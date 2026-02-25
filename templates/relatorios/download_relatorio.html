@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Download de Relatório - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-2">
+        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-download me-2"></i>Download de Relatório</h1>
+        <div>
+            <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.id %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+    
+    <!-- Informações do Relatório -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>Informações do Relatório
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Título:</div>
+                <div class="col-md-9">{{ relatorio.titulo }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Tipo:</div>
+                <div class="col-md-9">{{ relatorio.get_tipo_display }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Data de Geração:</div>
+                <div class="col-md-9">{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulário de Download -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-file-download me-2"></i>Opções de Download
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-4">Personalize o nome do arquivo antes de fazer o download.</p>
+            
+            <form method="post" action="{% url 'relatorios:download_relatorio_arquivo' relatorio_id=relatorio.id %}">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <label for="nome_arquivo" class="col-md-3 col-form-label">Nome do arquivo:</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="nome_arquivo" name="nome_arquivo" value="{{ relatorio.titulo|slugify }}" required>
+                        <small class="form-text text-muted">O nome do arquivo que será baixado (sem a extensão).</small>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <label for="formato" class="col-md-3 col-form-label">Formato:</label>
+                    <div class="col-md-9">
+                        <select class="form-select" id="formato" name="formato">
+                            <option value="pdf" selected>PDF</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Baixar Arquivo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

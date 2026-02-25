@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhe da Movimentação - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-exchange-alt me-2"></i>
+            {% if movimentacao.tipo == 'RETIRADA' %}
+                Detalhe da Retirada
+            {% else %}
+                Detalhe da Devolução
+            {% endif %}
+        </h1>
+        <div>
+            <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+            <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}?id={{ movimentacao.id }}" class="btn btn-primary">
+                <i class="fas fa-file-alt me-2"></i>Gerar Relatório
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Informações da Movimentação -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Informações da Movimentação
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">ID:</div>
+                        <div class="col-md-8">{{ movimentacao.id }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Tipo:</div>
+                        <div class="col-md-8">
+                            {% if movimentacao.tipo == 'RETIRADA' %}
+                            <span class="badge badge-retirada">Retirada</span>
+                            {% else %}
+                            <span class="badge badge-devolucao">Devolução</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Data/Hora:</div>
+                        <div class="col-md-8">{{ movimentacao.data_hora|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Finalidade:</div>
+                        <div class="col-md-8">{{ movimentacao.finalidade|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Observações:</div>
+                        <div class="col-md-8">{{ movimentacao.observacoes|linebreaks|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Registrado por:</div>
+                        <div class="col-md-8">{{ movimentacao.registrado_por.get_full_name|default:movimentacao.registrado_por.username }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informações do Material -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-box me-2"></i>Informações do Material
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Identificação:</div>
+                        <div class="col-md-8">
+                            <a href="{% url 'materiais:detalhe_material' material_id=movimentacao.material.id %}">
+                                <span class="h5 text-primary">{{ movimentacao.material.identificacao }}</span>
+                            </a>
+                            <br><small class="text-muted">Tipo: {{ movimentacao.material.get_tipo_display }}</small>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Tipo:</div>
+                        <div class="col-md-8">{{ movimentacao.material.get_tipo_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Status Atual:</div>
+                        <div class="col-md-8">
+                            {% if movimentacao.material.status == 'DISPONIVEL' %}
+                            <span class="badge badge-disponivel">Disponível</span>
+                            {% elif movimentacao.material.status == 'EM_USO' %}
+                            <span class="badge badge-em-uso">Em Uso</span>
+                            {% elif movimentacao.material.status == 'MANUTENCAO' %}
+                            <span class="badge badge-manutencao">Em Manutenção</span>
+                            {% elif movimentacao.material.status == 'APREENDIDO' %}
+                            <span class="badge badge-apreendido">Apreendido</span>
+                            {% elif movimentacao.material.status == 'BAIXADO' %}
+                            <span class="badge badge-baixado">Baixado</span>
+                            {% else %}
+                            <span class="badge badge-secondary">{{ movimentacao.material.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Data Aquisição:</div>
+                        <div class="col-md-8">{{ movimentacao.material.data_aquisicao|date:"d/m/Y"|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Observações:</div>
+                        <div class="col-md-8">{{ movimentacao.material.observacoes|linebreaks|default:"-" }}</div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'materiais:detalhe_material' material_id=movimentacao.material.id %}" class="btn btn-info">
+                        <i class="fas fa-eye me-2"></i>Ver Material
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informações do Policial -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user-shield me-2"></i>Informações do Policial
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 text-center mb-3">
+                    {% if movimentacao.policial.foto %}
+                    <img src="{{ movimentacao.policial.foto.url }}" alt="Foto de {{ movimentacao.policial.nome }}" class="img-fluid rounded-circle" style="max-width: 100px; max-height: 100px;">
+                    {% else %}
+                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; margin: 0 auto;">
+                        <i class="fas fa-user-shield fa-3x"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-10">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">RE:</div>
+                                <div class="col-md-8">{{ movimentacao.policial.re }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Nome:</div>
+                                <div class="col-md-8">
+                                    <a href="{% url 'policiais:detalhe_policial' movimentacao.policial.id %}">
+                                        {{ movimentacao.policial.nome }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Posto:</div>
+                                <div class="col-md-8">{{ movimentacao.policial.get_posto_display }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Situação:</div>
+                                <div class="col-md-8">
+                                    {% if movimentacao.policial.situacao == 'ATIVO' %}
+                                    <span class="badge badge-ativo">Ativo</span>
+                                    {% else %}
+                                    <span class="badge badge-inativo">Inativo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{% url 'policiais:detalhe_policial' movimentacao.policial.id %}" class="btn btn-info">
+                <i class="fas fa-eye me-2"></i>Ver Policial
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

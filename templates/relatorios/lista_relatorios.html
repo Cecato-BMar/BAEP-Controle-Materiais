@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-2">
+        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-alt me-2"></i>Relatórios</h1>
+        <div>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-plus me-2"></i>Gerar Novo Relatório
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}">
+                            <i class="fas fa-chart-pie me-2"></i>Situação Atual
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_materiais' %}">
+                            <i class="fas fa-boxes me-2"></i>Materiais
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}">
+                            <i class="fas fa-exchange-alt me-2"></i>Movimentações
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="SITUACAO_ATUAL" {% if request.GET.tipo == 'SITUACAO_ATUAL' %}selected{% endif %}>Situação Atual</option>
+                        <option value="MATERIAIS" {% if request.GET.tipo == 'MATERIAIS' %}selected{% endif %}>Materiais</option>
+                        <option value="MATERIAIS_EM_USO" {% if request.GET.tipo == 'MATERIAIS_EM_USO' %}selected{% endif %}>Materiais em Uso</option>
+                        <option value="MATERIAIS_DISPONIVEIS" {% if request.GET.tipo == 'MATERIAIS_DISPONIVEIS' %}selected{% endif %}>Materiais Disponíveis</option>
+                        <option value="MOVIMENTACOES" {% if request.GET.tipo == 'MOVIMENTACOES' %}selected{% endif %}>Movimentações</option>
+                        <option value="MOVIMENTACOES_DIA" {% if request.GET.tipo == 'MOVIMENTACOES_DIA' %}selected{% endif %}>Movimentações do Dia</option>
+                        <option value="MOVIMENTACOES_PERIODO" {% if request.GET.tipo == 'MOVIMENTACOES_PERIODO' %}selected{% endif %}>Movimentações por Período</option>
+                        <option value="MOVIMENTACOES_POLICIAL" {% if request.GET.tipo == 'MOVIMENTACOES_POLICIAL' %}selected{% endif %}>Movimentações por Policial</option>
+                        <option value="MOVIMENTACOES_MATERIAL" {% if request.GET.tipo == 'MOVIMENTACOES_MATERIAL' %}selected{% endif %}>Movimentações por Material</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="titulo" class="form-label">Título</label>
+                    <input type="text" name="titulo" id="titulo" class="form-control" placeholder="Título" value="{{ request.GET.titulo }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="usuario" class="form-label">Gerado por</label>
+                    <input type="text" name="usuario" id="usuario" class="form-control" placeholder="Nome do usuário" value="{{ request.GET.usuario }}">
+                </div>
+                <div class="col-md-9 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary">
+                        <i class="fas fa-eraser me-2"></i>Limpar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de Relatórios -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-list me-2"></i>Lista de Relatórios
+        </div>
+        <div class="card-body">
+            {% if relatorios %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Data Geração</th>
+                            <th>Gerado por</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for relatorio in relatorios %}
+                        <tr>
+                            <td>{{ relatorio.titulo }}</td>
+                            <td>
+                                {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
+                                <span class="badge bg-info">Situação Atual</span>
+                                {% elif relatorio.tipo == 'MATERIAIS' %}
+                                <span class="badge bg-primary">Materiais</span>
+                                {% elif relatorio.tipo == 'MOVIMENTACOES' %}
+                                <span class="badge bg-success">Movimentações</span>
+                                {% elif relatorio.tipo == 'MATERIAIS_EM_USO' %}
+                                <span class="badge bg-warning">Materiais em Uso</span>
+                                {% elif relatorio.tipo == 'MATERIAIS_DISPONIVEIS' %}
+                                <span class="badge bg-primary">Materiais Disponíveis</span>
+                                {% elif relatorio.tipo == 'MOVIMENTACOES_DIA' %}
+                                <span class="badge bg-success">Movimentações do Dia</span>
+                                {% elif relatorio.tipo == 'MOVIMENTACOES_PERIODO' %}
+                                <span class="badge bg-success">Movimentações por Período</span>
+                                {% elif relatorio.tipo == 'MOVIMENTACOES_POLICIAL' %}
+                                <span class="badge bg-success">Movimentações por Policial</span>
+                                {% elif relatorio.tipo == 'MOVIMENTACOES_MATERIAL' %}
+                                <span class="badge bg-success">Movimentações por Material</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ relatorio.get_tipo_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</td>
+                            <td>{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</td>
+                            <td>
+                                <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-info" title="Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-primary" title="Baixar Relatório">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if relatorios.has_other_pages %}
+            <nav aria-label="Navegação de página" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if relatorios.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.previous_page_number }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in relatorios.paginator.page_range %}
+                        {% if relatorios.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > relatorios.number|add:'-3' and i < relatorios.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if relatorios.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.next_page_number }}" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.paginator.num_pages }}" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Nenhum relatório encontrado com os filtros selecionados.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

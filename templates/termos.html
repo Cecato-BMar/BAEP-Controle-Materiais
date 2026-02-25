@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Termos de Uso - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-gavel me-2"></i>Termos de Uso</h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Importante:</strong> Ao utilizar o Sistema de Reserva BAEP, você concorda com todos os termos e condições descritos abaixo.
+            </div>
+            
+            <h3 class="mb-3">1. Introdução</h3>
+            <p>Bem-vindo ao Sistema de Reserva BAEP, uma plataforma desenvolvida para gerenciar o controle de materiais, policiais e movimentações do Batalhão de Ações Especiais de Polícia (BAEP).</p>
+            <p>Estes Termos de Uso estabelecem as regras e condições para a utilização do sistema, bem como os direitos e obrigações dos usuários.</p>
+            
+            <h3 class="mb-3 mt-4">2. Acesso ao Sistema</h3>
+            <p>O acesso ao Sistema de Reserva BAEP é restrito a usuários autorizados, mediante login e senha pessoais e intransferíveis.</p>
+            <p>Ao receber suas credenciais de acesso, você se compromete a:</p>
+            <ul>
+                <li>Manter a confidencialidade de sua senha;</li>
+                <li>Não compartilhar suas credenciais com terceiros;</li>
+                <li>Notificar imediatamente a administração do sistema em caso de suspeita de acesso não autorizado à sua conta;</li>
+                <li>Encerrar sua sessão ao finalizar o uso do sistema, especialmente em computadores compartilhados.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">3. Responsabilidades do Usuário</h3>
+            <p>Ao utilizar o Sistema de Reserva BAEP, você se compromete a:</p>
+            <ul>
+                <li>Fornecer informações precisas e verdadeiras;</li>
+                <li>Utilizar o sistema apenas para os fins a que se destina;</li>
+                <li>Não realizar ações que possam comprometer a segurança ou o funcionamento do sistema;</li>
+                <li>Respeitar as normas e procedimentos internos do BAEP relacionados ao controle de materiais;</li>
+                <li>Reportar imediatamente qualquer erro, falha ou inconsistência identificada no sistema;</li>
+                <li>Não utilizar o sistema para fins ilegais ou não autorizados.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">4. Registro de Atividades</h3>
+            <p>Todas as ações realizadas no Sistema de Reserva BAEP são registradas e associadas ao usuário que as executou, incluindo:</p>
+            <ul>
+                <li>Data e hora de login e logout;</li>
+                <li>Cadastros, alterações e exclusões de registros;</li>
+                <li>Consultas e geração de relatórios;</li>
+                <li>Registro de movimentações (retiradas e devoluções).</li>
+            </ul>
+            <p>Estes registros são mantidos para fins de auditoria e segurança, e podem ser utilizados em caso de investigação de uso indevido do sistema.</p>
+            
+            <h3 class="mb-3 mt-4">5. Privacidade e Proteção de Dados</h3>
+            <p>O Sistema de Reserva BAEP coleta e armazena dados pessoais dos usuários e policiais cadastrados, em conformidade com a Lei Geral de Proteção de Dados (LGPD) e demais legislações aplicáveis.</p>
+            <p>Os dados coletados são utilizados exclusivamente para os fins a que se destina o sistema, e são protegidos por medidas de segurança técnicas e administrativas.</p>
+            <p>O acesso aos dados é restrito aos usuários autorizados, de acordo com seu nível de permissão no sistema.</p>
+            
+            <h3 class="mb-3 mt-4">6. Propriedade Intelectual</h3>
+            <p>O Sistema de Reserva BAEP, incluindo seu código-fonte, design, logotipos, conteúdo e documentação, é protegido por direitos autorais e outras leis de propriedade intelectual.</p>
+            <p>É expressamente proibido:</p>
+            <ul>
+                <li>Copiar, modificar, distribuir ou criar obras derivadas do sistema;</li>
+                <li>Realizar engenharia reversa ou tentar extrair o código-fonte;</li>
+                <li>Remover ou alterar avisos de direitos autorais ou marcas registradas;</li>
+                <li>Utilizar o sistema para fins comerciais não autorizados.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">7. Disponibilidade e Manutenção</h3>
+            <p>O Sistema de Reserva BAEP busca oferecer disponibilidade contínua, porém, podem ocorrer interrupções programadas para manutenção ou atualizações, ou interrupções não programadas devido a falhas técnicas.</p>
+            <p>A administração do sistema se compromete a:</p>
+            <ul>
+                <li>Informar previamente sobre manutenções programadas;</li>
+                <li>Minimizar o tempo de indisponibilidade;</li>
+                <li>Resolver prontamente falhas técnicas que afetem o funcionamento do sistema.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">8. Limitação de Responsabilidade</h3>
+            <p>O Sistema de Reserva BAEP é fornecido "no estado em que se encontra", sem garantias de qualquer tipo, expressas ou implícitas.</p>
+            <p>A administração do sistema não se responsabiliza por:</p>
+            <ul>
+                <li>Danos diretos, indiretos, incidentais ou consequenciais resultantes do uso ou impossibilidade de uso do sistema;</li>
+                <li>Perda de dados ou informações, a menos que seja comprovada falha grave no sistema;</li>
+                <li>Uso indevido do sistema por parte dos usuários;</li>
+                <li>Falhas de conectividade ou problemas técnicos fora de seu controle.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">9. Alterações nos Termos de Uso</h3>
+            <p>A administração do Sistema de Reserva BAEP se reserva o direito de modificar estes Termos de Uso a qualquer momento, mediante notificação prévia aos usuários.</p>
+            <p>O uso continuado do sistema após a publicação de alterações constitui aceitação dos novos termos.</p>
+            
+            <h3 class="mb-3 mt-4">10. Disposições Gerais</h3>
+            <p>Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil.</p>
+            <p>Qualquer controvérsia ou reivindicação decorrente ou relacionada a estes Termos de Uso será resolvida administrativamente, e, caso necessário, judicialmente, no foro competente.</p>
+            <p>A não aplicação de qualquer condição prevista nestes Termos de Uso não constitui renúncia a qualquer direito.</p>
+            
+            <div class="alert alert-secondary mt-4">
+                <p class="mb-0"><strong>Última atualização:</strong> 01 de Junho de 2023</p>
+            </div>
+            
+            <div class="text-center mt-5 mb-3">
+                <p>Em caso de dúvidas sobre estes Termos de Uso, entre em contato com a administração do sistema.</p>
+                <a href="{% url 'ajuda' %}#contato" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Contato
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

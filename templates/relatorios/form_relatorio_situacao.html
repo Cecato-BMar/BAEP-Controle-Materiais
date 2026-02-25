@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Gerar Relatório de Situação Atual - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-2">
+        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-pie me-2"></i>Gerar Relatório de Situação Atual</h1>
+        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-cog me-2"></i>Configurações do Relatório
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form.titulo|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Este relatório irá gerar um resumo da situação atual dos materiais, incluindo:
+                    <ul>
+                        <li>Resumo geral com totais de materiais por status</li>
+                        <li>Detalhamento por tipo de material</li>
+                    </ul>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-file-alt me-2"></i>Gerar Relatório
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Inicialização do formulário
+    });
+</script>
+{% endblock %}

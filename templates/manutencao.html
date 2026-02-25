@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Em Manutenção - Reserva BAEP</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .maintenance-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 30px;
+        }
+        .maintenance-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .maintenance-icon {
+            font-size: 5rem;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+        .countdown {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container text-center">
+        <img src="/static/img/logo-baep.png" alt="Logo BAEP" class="logo">
+        
+        <div class="card maintenance-card p-5 mb-4">
+            <div class="card-body">
+                <div class="maintenance-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                
+                <h1 class="display-4 mb-4">Sistema em Manutenção</h1>
+                
+                <p class="lead mb-4">
+                    Estamos realizando melhorias no Sistema de Reserva BAEP para oferecer uma experiência ainda melhor.
+                    Por favor, tente novamente mais tarde.
+                </p>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock me-2"></i>
+                    Previsão de retorno: <span id="countdown" class="fw-bold">--:--:--</span>
+                </div>
+                
+                <p class="mt-4">
+                    Agradecemos sua compreensão e paciência durante este período de manutenção.
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Sistema de Reserva BAEP &copy; {% now "Y" %} - Todos os direitos reservados</p>
+            <p>Em caso de emergência, entre em contato com o administrador do sistema</p>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Configurar o contador regressivo (exemplo: 2 horas a partir de agora)
+        function updateCountdown() {
+            // Obter a data atual
+            const now = new Date();
+            
+            // Definir a data de término (exemplo: 2 horas a partir de agora)
+            // Na prática, isso seria configurado pelo administrador do sistema
+            const endTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+            
+            // Calcular a diferença
+            const diff = endTime - now;
+            
+            // Calcular horas, minutos e segundos
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // Formatar o contador
+            const formattedHours = String(hours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            const formattedSeconds = String(seconds).padStart(2, '0');
+            
+            // Atualizar o elemento HTML
+            document.getElementById('countdown').textContent = 
+                `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            
+            // Se o tempo acabou, mostrar mensagem
+            if (diff <= 0) {
+                document.getElementById('countdown').textContent = 'Em breve';
+                return;
+            }
+            
+            // Atualizar a cada segundo
+            setTimeout(updateCountdown, 1000);
+        }
+        
+        // Iniciar o contador quando a página carregar
+        $(document).ready(function() {
+            updateCountdown();
+        });
+    </script>
+</body>
+</html>

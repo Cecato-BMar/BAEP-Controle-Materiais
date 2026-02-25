@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.id %}
+        Editar Material - Reserva BAEP
+    {% else %}
+        Novo Material - Reserva BAEP
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">
+            {% if form.instance.id %}
+                <i class="fas fa-edit me-2"></i>Editar Material
+            {% else %}
+                <i class="fas fa-plus-circle me-2"></i>Novo Material
+            {% endif %}
+        </h1>
+        <a href="{% if form.instance.id %}{% url 'materiais:detalhe_material' material_id=form.instance.id %}{% else %}{% url 'materiais:lista_materiais' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-gradient">
+            <i class="fas fa-box me-2"></i>
+            {% if form.instance.id %}
+                <span class="fw-bold">Editar Material:</span> {{ form.instance.identificacao }}
+            {% else %}
+                <span class="fw-bold">Cadastrar Novo Material</span>
+            {% endif %}
+        </div>
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                
+                <!-- Seção de Informações Básicas -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Informações Básicas</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.nome|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tipo|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Identificação -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-fingerprint me-2"></i>Identificação</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.numero|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.quantidade|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Estado e Status -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-clipboard-check me-2"></i>Estado e Status</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.estado|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.status|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Detalhes Adicionais -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-file-alt me-2"></i>Detalhes Adicionais</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            {{ form.observacoes|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Imagem -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-image me-2"></i>Imagem</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.imagem|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6" id="preview-container" class="mt-2">
+                            {% if form.instance.imagem %}
+                            <div class="mt-3">
+                                <p class="form-label fw-bold">Imagem Atual:</p>
+                                <img src="{{ form.instance.imagem.url }}" alt="Imagem de {{ form.instance.nome }}" class="img-thumbnail shadow-sm" style="max-width: 200px; max-height: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% if form.instance.id %}{% url 'materiais:detalhe_material' material_id=form.instance.id %}{% else %}{% url 'materiais:lista_materiais' %}{% endif %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-save me-2"></i>
+                        {% if form.instance.id %}
+                            Salvar Alterações
+                        {% else %}
+                            Cadastrar Material
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Preview da imagem selecionada
+        $('#id_imagem').change(function() {
+            // Limpa previews anteriores
+            $('#preview-container').find('.preview-new').remove();
+            
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-container').append(
+                        '<div class="mt-3 preview-new">'+
+                        '<p class="form-label fw-bold">Preview da Nova Imagem:</p>'+
+                        '<img src="' + e.target.result + '" class="img-thumbnail shadow-sm" style="max-width: 200px; max-height: 200px;">'+
+                        '</div>'
+                    );
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Estilização dos selects
+        $('select').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+        
+        // Animação de entrada
+        $('.card').hide().fadeIn(500);
+        
+        // Validação de formulário aprimorada
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin me-2"></i>Processando...');
+        });
+        
+        // Adiciona classes Bootstrap aos campos
+        $('input[type="text"], input[type="number"], textarea').addClass('form-control');
+        $('select').addClass('form-select');
+        
+        // Tooltip para campos com ajuda
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

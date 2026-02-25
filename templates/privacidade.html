@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Política de Privacidade - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-shield-alt me-2"></i>Política de Privacidade</h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Importante:</strong> Esta Política de Privacidade descreve como o Sistema de Reserva BAEP coleta, utiliza, armazena e protege as informações pessoais dos usuários.
+            </div>
+            
+            <h3 class="mb-3">1. Introdução</h3>
+            <p>O Sistema de Reserva BAEP está comprometido com a proteção da privacidade e dos dados pessoais de seus usuários, em conformidade com a Lei Geral de Proteção de Dados (LGPD) e demais legislações aplicáveis.</p>
+            <p>Esta Política de Privacidade tem como objetivo informar de maneira clara e transparente como os dados pessoais são tratados no âmbito do sistema.</p>
+            
+            <h3 class="mb-3 mt-4">2. Dados Coletados</h3>
+            <p>O Sistema de Reserva BAEP coleta e processa os seguintes tipos de dados pessoais:</p>
+            
+            <h5 class="mt-3">2.1. Dados de Usuários do Sistema</h5>
+            <ul>
+                <li>Nome completo</li>
+                <li>Nome de usuário (login)</li>
+                <li>Endereço de e-mail institucional</li>
+                <li>Cargo ou função</li>
+                <li>Informações de acesso (data, hora, endereço IP)</li>
+                <li>Registros de atividades realizadas no sistema</li>
+            </ul>
+            
+            <h5 class="mt-3">2.2. Dados de Policiais Cadastrados</h5>
+            <ul>
+                <li>Nome completo</li>
+                <li>Registro de Identificação (RE)</li>
+                <li>Informações de contato</li>
+                <li>Histórico de movimentações de materiais</li>
+                <li>Status (ativo, inativo)</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">3. Finalidade do Tratamento de Dados</h3>
+            <p>Os dados pessoais coletados são utilizados exclusivamente para as seguintes finalidades:</p>
+            <ul>
+                <li>Gerenciamento de acesso ao sistema</li>
+                <li>Autenticação e autorização de usuários</li>
+                <li>Registro e controle de movimentações de materiais</li>
+                <li>Geração de relatórios operacionais e gerenciais</li>
+                <li>Auditoria e segurança do sistema</li>
+                <li>Comunicação institucional relacionada ao uso do sistema</li>
+                <li>Cumprimento de obrigações legais e regulatórias</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">4. Base Legal para o Tratamento de Dados</h3>
+            <p>O tratamento de dados pessoais no Sistema de Reserva BAEP é realizado com base nas seguintes hipóteses legais previstas na LGPD:</p>
+            <ul>
+                <li><strong>Execução de contrato ou procedimentos preliminares:</strong> para viabilizar o acesso e uso do sistema pelos usuários autorizados;</li>
+                <li><strong>Cumprimento de obrigação legal ou regulatória:</strong> para atender às exigências legais relacionadas ao controle de materiais e equipamentos policiais;</li>
+                <li><strong>Exercício regular de direitos em processo:</strong> para documentação e comprovação de atividades em caso de processos administrativos ou judiciais;</li>
+                <li><strong>Legítimo interesse:</strong> para garantir a segurança, integridade e disponibilidade do sistema, bem como para prevenir fraudes e uso indevido.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">5. Compartilhamento de Dados</h3>
+            <p>Os dados pessoais coletados pelo Sistema de Reserva BAEP podem ser compartilhados nas seguintes situações:</p>
+            <ul>
+                <li>Com outros órgãos da Polícia Militar, quando necessário para o cumprimento de finalidades institucionais;</li>
+                <li>Com autoridades públicas, mediante requisição legal ou ordem judicial;</li>
+                <li>Com prestadores de serviços técnicos que auxiliam na operação e manutenção do sistema, sempre mediante contratos que garantam a confidencialidade e segurança dos dados.</li>
+            </ul>
+            <p>O Sistema de Reserva BAEP não comercializa, aluga ou transfere dados pessoais para terceiros com finalidades comerciais ou de marketing.</p>
+            
+            <h3 class="mb-3 mt-4">6. Armazenamento e Segurança dos Dados</h3>
+            <p>O Sistema de Reserva BAEP adota medidas técnicas e administrativas de segurança para proteger os dados pessoais contra acessos não autorizados, destruição, perda, alteração ou divulgação indevida, incluindo:</p>
+            <ul>
+                <li>Controle de acesso baseado em perfis de usuários;</li>
+                <li>Registro de logs de acesso e atividades;</li>
+                <li>Criptografia de dados sensíveis;</li>
+                <li>Backup periódico das informações;</li>
+                <li>Políticas de senhas fortes e autenticação segura;</li>
+                <li>Treinamento e conscientização dos usuários sobre segurança da informação.</li>
+            </ul>
+            
+            <h3 class="mb-3 mt-4">7. Período de Retenção dos Dados</h3>
+            <p>Os dados pessoais são armazenados pelo tempo necessário para cumprir as finalidades para as quais foram coletados, observando-se:</p>
+            <ul>
+                <li>Prazos legais de guarda de documentos e informações;</li>
+                <li>Prazos prescricionais aplicáveis a possíveis responsabilidades;</li>
+                <li>Necessidade operacional e histórica dos dados.</li>
+            </ul>
+            <p>Após o término do período de retenção, os dados pessoais serão excluídos ou anonimizados, salvo quando houver obrigação legal de mantê-los.</p>
+            
+            <h3 class="mb-3 mt-4">8. Direitos dos Titulares de Dados</h3>
+            <p>Em conformidade com a LGPD, os titulares de dados pessoais têm os seguintes direitos:</p>
+            <ul>
+                <li><strong>Confirmação da existência de tratamento:</strong> verificar se seus dados pessoais são tratados pelo sistema;</li>
+                <li><strong>Acesso aos dados:</strong> obter informações sobre quais dados pessoais são tratados;</li>
+                <li><strong>Correção de dados incompletos, inexatos ou desatualizados:</strong> solicitar a atualização de informações incorretas;</li>
+                <li><strong>Anonimização, bloqueio ou eliminação:</strong> quando aplicável e não houver impedimento legal;</li>
+                <li><strong>Informação sobre compartilhamento:</strong> saber com quais entidades públicas e privadas os dados são compartilhados;</li>
+                <li><strong>Revogação do consentimento:</strong> quando o tratamento for baseado no consentimento e não houver outra base legal aplicável.</li>
+            </ul>
+            <p>Para exercer esses direitos, o titular deve entrar em contato com o Encarregado de Proteção de Dados (DPO) do sistema, conforme informações disponíveis na seção de contato.</p>
+            
+            <h3 class="mb-3 mt-4">9. Cookies e Tecnologias Similares</h3>
+            <p>O Sistema de Reserva BAEP utiliza cookies e tecnologias similares para melhorar a experiência do usuário e o funcionamento do sistema, incluindo:</p>
+            <ul>
+                <li><strong>Cookies de sessão:</strong> para manter o usuário autenticado durante a navegação;</li>
+                <li><strong>Cookies de preferências:</strong> para lembrar configurações e personalização do usuário;</li>
+                <li><strong>Cookies de segurança:</strong> para proteger contra acessos não autorizados e atividades fraudulentas.</li>
+            </ul>
+            <p>O usuário pode configurar seu navegador para recusar cookies, mas isso pode afetar o funcionamento adequado do sistema.</p>
+            
+            <h3 class="mb-3 mt-4">10. Alterações na Política de Privacidade</h3>
+            <p>Esta Política de Privacidade pode ser atualizada periodicamente para refletir mudanças nas práticas de tratamento de dados ou alterações na legislação aplicável.</p>
+            <p>As alterações significativas serão comunicadas aos usuários por meio de avisos no sistema ou por e-mail.</p>
+            <p>Recomenda-se a consulta regular a esta política para se manter informado sobre as práticas de privacidade do Sistema de Reserva BAEP.</p>
+            
+            <h3 class="mb-3 mt-4">11. Encarregado de Proteção de Dados (DPO)</h3>
+            <p>O Encarregado de Proteção de Dados (Data Protection Officer - DPO) é responsável por garantir a conformidade do Sistema de Reserva BAEP com a legislação de proteção de dados e por atender às solicitações dos titulares de dados.</p>
+            <p>Para entrar em contato com o DPO, utilize os seguintes canais:</p>
+            <ul>
+                <li><strong>E-mail:</strong> dpo.reserva@baep.sp.gov.br</li>
+                <li><strong>Telefone:</strong> (11) 3333-5555</li>
+                <li><strong>Endereço:</strong> Av. Principal, 1000 - São Paulo/SP - CEP: 01000-000</li>
+            </ul>
+            
+            <div class="alert alert-secondary mt-4">
+                <p class="mb-0"><strong>Última atualização:</strong> 01 de Junho de 2023</p>
+            </div>
+            
+            <div class="text-center mt-5 mb-3">
+                <p>Em caso de dúvidas sobre esta Política de Privacidade, entre em contato com o Encarregado de Proteção de Dados.</p>
+                <a href="{% url 'ajuda' %}#contato" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Contato
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Reserva BAEP{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #faf603;
+            --secondary-color: #0056b3;
+            --accent-color: #ffc107;
+            --text-color: #333;
+            --light-bg: #000000;
+            --dark-bg: #343a40;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: #f5f5f5;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: rgb(0, 0, 0) !important;
+        }
+        
+        .nav-link {
+            color: rgba(0, 0, 0, 0.85) !important;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: white !important;
+        }
+        
+        .nav-link.active {
+            color: var(--accent-color) !important;
+            font-weight: 600;
+        }
+        
+        .sidebar {
+            background-color: white;
+            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+            height: calc(100vh - 56px);
+            position: fixed;
+            top: 56px;
+            left: 0;
+            width: 250px;
+            z-index: 100;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--text-color) !important;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: var(--secondary-color);
+            color: white !important;
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: rgb(255, 0, 0) !important;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: calc(100vh - 56px - 80px); /* Ajustado para o rodapé */
+            position: relative;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: rgb(0, 0, 0);
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #000;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-disponivel {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-em-uso {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .badge-manutencao {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .badge-ativo {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-inativo {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .badge-retirada {
+            background-color: #0056b3;
+            color: white;
+        }
+        
+        .badge-devolucao {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-apreendido {
+            background-color: #fd7e14;
+            color: white;
+        }
+        
+        .badge-baixado {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        /* Estilos para o rodapé */
+        footer {
+            background-color: var(--light-bg);
+            padding: 15px 0;
+            width: 100%;
+            z-index: 100;
+        }
+        
+        footer a {
+            color: var(--secondary-color);
+            transition: color 0.3s;
+        }
+        
+        footer a:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                min-height: calc(100vh - 56px - 80px);
+            }
+            
+            .sidebar.show {
+                display: block;
+            }
+            
+            footer {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-shield-alt me-2"></i>Reserva BAEP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}"><i class="fas fa-id-card me-2"></i>Meu Perfil</a></li>
+                            <li><a class="dropdown-item" href="{% url 'usuarios:alterar_senha' %}"><i class="fas fa-key me-2"></i>Alterar Senha</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'usuarios:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'usuarios:login' %}"><i class="fas fa-sign-in-alt me-1"></i> Entrar</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% if user.is_authenticated %}
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}" href="{% url 'materiais:lista_materiais' %}">
+                        <i class="fas fa-boxes"></i> Materiais
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'policiais' in request.path %}active{% endif %}" href="{% url 'policiais:lista_policiais' %}">
+                        <i class="fas fa-user-shield"></i> Policiais
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'movimentacoes' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">
+                        <i class="fas fa-exchange-alt"></i> Movimentações
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'movimentacoes:nova_retirada' in request.path %}active{% endif %}" href="{% url 'movimentacoes:nova_retirada' %}">
+                        <i class="fas fa-arrow-right"></i> Nova Retirada
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'movimentacoes:nova_devolucao' in request.path %}active{% endif %}" href="{% url 'movimentacoes:nova_devolucao' %}">
+                        <i class="fas fa-arrow-left"></i> Nova Devolução
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:dashboard' %}">
+                        <i class="fas fa-warehouse"></i> Estoque
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'relatorios' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
+                        <i class="fas fa-file-alt"></i> Relatórios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'ajuda' in request.path %}active{% endif %}" href="{% url 'ajuda' %}">
+                        <i class="fas fa-question-circle"></i> Ajuda
+                    </a>
+                </li>
+                {% if user.is_staff %}
+                <li class="nav-item">
+                    <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
+                        <i class="fas fa-users"></i> Usuários
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/" target="_blank">
+                        <i class="fas fa-cog"></i> Administração
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    {% else %}
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content_unauthenticated %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="bg-light py-3 mt-5">
+        <div class="container text-center">
+            <div class="row">
+                <div class="col-md-12">
+                    <p class="mb-1">
+                        <a href="{% url 'sobre' %}" class="text-decoration-none text-secondary mx-2"><i class="fas fa-info-circle"></i> Sobre</a>
+                        <a href="{% url 'ajuda' %}" class="text-decoration-none text-secondary mx-2"><i class="fas fa-question-circle"></i> Ajuda</a>
+                        <a href="{% url 'termos' %}" class="text-decoration-none text-secondary mx-2"><i class="fas fa-file-contract"></i> Termos de Uso</a>
+                        <a href="{% url 'privacidade' %}" class="text-decoration-none text-secondary mx-2"><i class="fas fa-shield-alt"></i> Política de Privacidade</a>
+                    </p>
+                    <p class="text-muted mb-0">© {% now "Y" %} Sistema Reserva BAEP - Todos os direitos reservados</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        // Toggle sidebar on mobile
+        $(document).ready(function() {
+            $('.navbar-toggler').click(function() {
+                $('.sidebar').toggleClass('show');
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Policiais - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-shield me-2"></i>Policiais</h1>
+        <a href="{% url 'policiais:novo_policial' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Novo Policial
+        </a>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="termo_busca" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="termo_busca" name="termo_busca" placeholder="Nome, RE..." value="{{ request.GET.termo_busca|default:'' }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="posto" class="form-label">Posto</label>
+                    <select class="form-select" id="posto" name="posto">
+                        <option value="">Todos</option>
+                        {% for posto_choice in form.posto.field.choices %}
+                            <option value="{{ posto_choice.0 }}" {% if request.GET.posto == posto_choice.0 %}selected{% endif %}>
+                                {{ posto_choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="situacao" class="form-label">Situação</label>
+                    <select class="form-select" id="situacao" name="situacao">
+                        <option value="">Todas</option>
+                        {% for situacao_choice in form.situacao.field.choices %}
+                            <option value="{{ situacao_choice.0 }}" {% if request.GET.situacao == situacao_choice.0 %}selected{% endif %}>
+                                {{ situacao_choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'policiais:lista_policiais' %}" class="btn btn-secondary">
+                        <i class="fas fa-undo me-2"></i>Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de Policiais -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-list me-2"></i>Lista de Policiais</span>
+            <span class="text-muted small">Total: {{ page_obj.paginator.count }} policiais</span>
+        </div>
+        <div class="card-body">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>RE</th>
+                            <th>Nome</th>
+                            <th>Posto</th>
+                            <th>Situação</th>
+                            <th>Materiais em Uso</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for policial in page_obj %}
+                        <tr>
+                            <td>{{ policial.re }}</td>
+                            <td>{{ policial.nome }}</td>
+                            <td>{{ policial.get_posto_display }}</td>
+                            <td>
+                                {% if policial.situacao == 'ATIVO' %}
+                                <span class="badge badge-ativo">Ativo</span>
+                                {% else %}
+                                <span class="badge badge-inativo">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ policial.materiais_em_uso|default:"0" }}</td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'policiais:detalhe_policial' policial.id %}" class="btn btn-sm btn-info" title="Detalhes" aria-label="Ver detalhes do policial">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'policiais:editar_policial' policial.id %}" class="btn btn-sm btn-warning" title="Editar" aria-label="Editar policial">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <!-- Exemplo de dropdown para mais ações futuras -->
+                                    <!--
+                                    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">Outra ação</a></li>
+                                    </ul>
+                                    -->
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginação" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Nenhum policial encontrado.
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted text-end small">
+            <i class="fas fa-info-circle me-1"></i>Use os filtros acima para refinar sua busca.
+        </div>
+    </div>
+</div>
+{% endblock %}

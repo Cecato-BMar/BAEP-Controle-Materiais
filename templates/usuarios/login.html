@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - Reserva BAEP{% endblock %}
+
+{% block content_unauthenticated %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header  text-center">
+                    <h3 class="my-4"><i class="fas fa-shield-alt me-2"></i>Reserva BAEP</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="/static/img/logo_baep.png" alt="Logo BAEP" class="img-fluid" style="max-height: 100px;">
+                        <h4 class="mt-3">Sistema de Controle de Materiais</h4>
+                    </div>
+                    
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                            <a class="small" href="{% url 'usuarios:password_reset' %}">Esqueceu sua senha?</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        <p class="mb-0">© {% now "Y" %} - Batalhão de Ações Especiais de Polícia</p>
+                        <p class="mb-0">Polícia Militar do Estado de São Paulo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<!-- Sem sidebar na página de login -->
+{% endblock %}
+
+{% block navbar %}
+<!-- Sem navbar na página de login -->
+{% endblock %}

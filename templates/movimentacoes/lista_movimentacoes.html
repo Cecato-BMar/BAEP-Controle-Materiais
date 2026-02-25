@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Movimentações - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-exchange-alt me-2"></i>Movimentações</h1>
+        <div>
+            <a href="{% url 'movimentacoes:nova_retirada' %}" class="btn btn-primary me-2">
+                <i class="fas fa-arrow-right me-2"></i>Nova Retirada
+            </a>
+            <a href="{% url 'movimentacoes:nova_devolucao' %}" class="btn btn-success">
+                <i class="fas fa-arrow-left me-2"></i>Nova Devolução
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="RETIRADA" {% if request.GET.tipo == 'RETIRADA' %}selected{% endif %}>Retirada</option>
+                        <option value="DEVOLUCAO" {% if request.GET.tipo == 'DEVOLUCAO' %}selected{% endif %}>Devolução</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="material" class="form-label">Material</label>
+                    <input type="text" name="material" id="material" class="form-control" placeholder="Identificação" value="{{ request.GET.material }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="policial" class="form-label">Policial</label>
+                    <input type="text" name="policial" id="policial" class="form-control" placeholder="RE ou Nome" value="{{ request.GET.policial }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="finalidade" class="form-label">Finalidade</label>
+                    <input type="text" name="finalidade" id="finalidade" class="form-control" placeholder="Finalidade" value="{{ request.GET.finalidade }}">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
+                        <i class="fas fa-eraser me-2"></i>Limpar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de Movimentações -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-list me-2"></i>Lista de Movimentações</span>
+                <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}{{ request.GET.urlencode|safe }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-file-alt me-2"></i>Gerar Relatório
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Tipo</th>
+                            <th>Identificação</th>
+                            <th>Policial</th>
+                            <th>Finalidade</th>
+                            <th>Observações</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movimentacao in page_obj %}
+                        <tr>
+                            <td>{{ movimentacao.data_hora|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if movimentacao.tipo == 'RETIRADA' %}
+                                <span class="badge badge-retirada">Retirada</span>
+                                {% else %}
+                                <span class="badge badge-devolucao">Devolução</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'materiais:detalhe_material' material_id=movimentacao.material.id %}">
+                                    {{ movimentacao.material.identificacao }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'policiais:detalhe_policial' movimentacao.policial.id %}">
+                                    {{ movimentacao.policial.re }} - {{ movimentacao.policial.nome }}
+                                </a>
+                            </td>
+                            <td>{{ movimentacao.finalidade|default:"-" }}</td>
+                            <td>{{ movimentacao.observacoes|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'movimentacoes:detalhe_movimentacao' movimentacao.id %}" class="btn btn-sm btn-info" title="Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegação de página" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Primeira">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Nenhuma movimentação encontrada com os filtros selecionados.
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted">
+            Total: {{ page_obj.paginator.count }} movimentações
+        </div>
+    </div>
+</div>
+{% endblock %}

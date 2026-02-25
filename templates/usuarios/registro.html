@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registro de Usuário - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-plus me-2"></i>Registro de Novo Usuário</h1>
+        <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-user-edit me-2"></i>Preencha os dados do novo usuário
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.username|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.email|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.first_name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.last_name|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.password1|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.password2|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ perfil_form.nivel_acesso|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ perfil_form.telefone|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ perfil_form.policial|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Informações sobre os níveis de acesso:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Usuário Padrão:</strong> Pode visualizar e registrar movimentações.</li>
+                        <li><strong>Equipe Administrativa (Staff):</strong> Pode gerenciar materiais, policiais e gerar relatórios.</li>
+                        <li><strong>Administrador:</strong> Acesso completo ao sistema, incluindo gerenciamento de usuários.</li>
+                    </ul>
+                </div>
+                
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Registrar Usuário
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Adicionar validação de força de senha
+        $('#id_password1').on('input', function() {
+            const password = $(this).val();
+            let strength = 0;
+            let feedback = '';
+            
+            // Verificar comprimento
+            if (password.length >= 8) {
+                strength += 1;
+            } else {
+                feedback += '<li>A senha deve ter pelo menos 8 caracteres</li>';
+            }
+            
+            // Verificar letras maiúsculas
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos uma letra maiúscula</li>';
+            }
+            
+            // Verificar letras minúsculas
+            if (/[a-z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos uma letra minúscula</li>';
+            }
+            
+            // Verificar números
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos um número</li>';
+            }
+            
+            // Verificar caracteres especiais
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos um caractere especial</li>';
+            }
+            
+            // Exibir feedback
+            let strengthText = '';
+            let strengthClass = '';
+            
+            if (strength === 0) {
+                strengthText = 'Muito fraca';
+                strengthClass = 'text-danger';
+            } else if (strength <= 2) {
+                strengthText = 'Fraca';
+                strengthClass = 'text-danger';
+            } else if (strength <= 3) {
+                strengthText = 'Média';
+                strengthClass = 'text-warning';
+            } else if (strength <= 4) {
+                strengthText = 'Forte';
+                strengthClass = 'text-success';
+            } else {
+                strengthText = 'Muito forte';
+                strengthClass = 'text-success';
+            }
+            
+            // Adicionar ou atualizar o feedback
+            if ($('#password-strength-feedback').length === 0) {
+                $('#div_id_password1').append('<div id="password-strength-feedback" class="mt-2"></div>');
+            }
+            
+            let feedbackHtml = '<div class="' + strengthClass + '">Força da senha: ' + strengthText + '</div>';
+            
+            if (feedback) {
+                feedbackHtml += '<ul class="small text-muted mt-1">' + feedback + '</ul>';
+            }
+            
+            $('#password-strength-feedback').html(feedbackHtml);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+    
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-4">
+        <!-- Materiais -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Materiais</h5>
+                    <h2 class="display-4">{{ total_materiais }}</h2>
+                    <div class="mt-3">
+                        <span class="badge bg-success me-2">{{ materiais_disponiveis }} Disponíveis</span>
+                        <span class="badge bg-warning text-dark me-2">{{ materiais_em_uso }} Em Uso</span>
+                        <span class="badge bg-danger">{{ materiais_manutencao }} Manutenção</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-sm btn-primary w-100" >Ver Materiais</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Policiais -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="fas fa-user-shield me-2"></i>Policiais</h5>
+                    <h2 class="display-4">{{ total_policiais }}</h2>
+                    <div class="mt-3">
+                        <span class="badge bg-success">{{ policiais_ativos }} Ativos</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'policiais:lista_policiais' %}" class="btn btn-sm btn-primary w-100 style="color: rgb(0, 0, 0);">Ver Policiais</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Movimentações Hoje -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="fas fa-exchange-alt me-2"></i>Movimentações Hoje</h5>
+                    <h2 class="display-4">{{ movimentacoes_hoje }}</h2>
+                    <div class="mt-3">
+                        <span class="badge bg-primary me-2">{{ retiradas_hoje }} Retiradas</span>
+                        <span class="badge bg-success">{{ devolucoes_hoje }} Devoluções</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-primary w-100">Ver Movimentações</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Movimentações do Mês -->
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>Movimentações do Mês</h5>
+                    <h2 class="display-4">{{ movimentacoes_mes }}</h2>
+                    <div class="mt-3">
+                        <span class="badge bg-primary me-2">{{ retiradas_mes }} Retiradas</span>
+                        <span class="badge bg-success">{{ devolucoes_mes }} Devoluções</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}" class="btn btn-sm btn-primary w-100">Gerar Relatório</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Últimas Movimentações -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>Últimas Movimentações
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Policial</th>
+                                    <th>Identificação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movimentacao in ultimas_movimentacoes %}
+                                <tr>
+                                    <td>{{ movimentacao.data_hora|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if movimentacao.tipo == 'RETIRADA' %}
+                                        <span class="badge badge-retirada">Retirada</span>
+                                        {% else %}
+                                        <span class="badge badge-devolucao">Devolução</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ movimentacao.policial.nome }}</td>
+                                    <td>{{ movimentacao.material.identificacao }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhuma movimentação registrada.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-primary">Ver Todas</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Materiais Mais Movimentados -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Materiais Mais Movimentados (Mês Atual)
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Identificação</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Movimentações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for material in materiais_mais_movimentados %}
+                                <tr>
+                                    <td>{{ material.identificacao }}</td>
+                                    <td>{{ material.get_tipo_display }}</td>
+                                    <td>
+                                        {% if material.status == 'DISPONIVEL' %}
+                                        <span class="badge badge-disponivel">Disponível</span>
+                                        {% elif material.status == 'EM_USO' %}
+                                        <span class="badge badge-em-uso">Em Uso</span>
+                                        {% elif material.status == 'MANUTENCAO' %}
+                                        <span class="badge badge-manutencao">Manutenção</span>
+                                        {% elif material.status == 'APREENDIDO' %}
+                                        <span class="badge badge-apreendido">Apreendido</span>
+                                        {% elif material.status == 'BAIXADO' %}
+                                        <span class="badge badge-baixado">Baixado</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary">{{ material.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ material.total_movimentacoes }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum material movimentado no mês atual.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'relatorios:gerar_relatorio_materiais' %}" class="btn btn-sm btn-primary">Gerar Relatório</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Policiais com Mais Retiradas -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-user-shield me-2"></i>Policiais com Mais Retiradas (Mês Atual)
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>RE</th>
+                                    <th>Nome</th>
+                                    <th>Posto</th>
+                                    <th>Retiradas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for policial in policiais_mais_retiradas %}
+                                <tr>
+                                    <td>{{ policial.re }}</td>
+                                    <td>{{ policial.nome }}</td>
+                                    <td>{{ policial.get_posto_display }}</td>
+                                    <td>{{ policial.total_retiradas }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhuma retirada registrada no mês atual.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}" class="btn btn-sm btn-primary">Gerar Relatório</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Últimos Relatórios Gerados -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-2"></i>Últimos Relatórios Gerados
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Título</th>
+                                    <th>Gerado por</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for relatorio in ultimos_relatorios %}
+                                <tr>
+                                    <td>{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ relatorio.titulo }}</td>
+                                    <td>{{ relatorio.usuario.username }}</td>
+                                    <td>
+                                        <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-sm btn-primary" title="Baixar Relatório">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum relatório gerado.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-sm btn-primary">Ver Todos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

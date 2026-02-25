@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhe do Relatório - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-2">
+        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-alt me-2"></i>Detalhe do Relatório</h1>
+        <div>
+            <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-primary">
+                <i class="fas fa-download me-2"></i>Baixar Relatório
+            </a>
+        </div>
+    </div>
+    
+    <!-- Informações do Relatório -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>Informações do Relatório
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Título:</div>
+                <div class="col-md-9">{{ relatorio.titulo }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Tipo:</div>
+                <div class="col-md-9">
+                    {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
+                    <span class="badge bg-info">Situação Atual</span>
+                    {% elif relatorio.tipo == 'MATERIAIS' %}
+                    <span class="badge bg-primary">Materiais</span>
+                    {% elif relatorio.tipo == 'MOVIMENTACOES' %}
+                    <span class="badge bg-success">Movimentações</span>
+                    {% elif relatorio.tipo == 'MATERIAIS_EM_USO' %}
+                    <span class="badge bg-warning">Materiais em Uso</span>
+                    {% elif relatorio.tipo == 'MATERIAIS_DISPONIVEIS' %}
+                    <span class="badge bg-primary">Materiais Disponíveis</span>
+                    {% elif relatorio.tipo == 'MOVIMENTACOES_DIA' %}
+                    <span class="badge bg-success">Movimentações do Dia</span>
+                    {% elif relatorio.tipo == 'MOVIMENTACOES_PERIODO' %}
+                    <span class="badge bg-success">Movimentações por Período</span>
+                    {% elif relatorio.tipo == 'MOVIMENTACOES_POLICIAL' %}
+                    <span class="badge bg-success">Movimentações por Policial</span>
+                    {% elif relatorio.tipo == 'MOVIMENTACOES_MATERIAL' %}
+                    <span class="badge bg-success">Movimentações por Material</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ relatorio.get_tipo_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Data de Geração:</div>
+                <div class="col-md-9">{{ relatorio.data_geracao|date:"d/m/Y H:i:s" }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Gerado por:</div>
+                <div class="col-md-9">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Observações:</div>
+                <div class="col-md-9">{{ relatorio.observacoes|linebreaks|default:"-" }}</div>
+            </div>
+            {% if relatorio.periodo_inicio or relatorio.periodo_fim %}
+            <div class="row mb-3">
+                <div class="col-md-3 fw-bold">Período:</div>
+                <div class="col-md-9">
+                    {% if relatorio.periodo_inicio and relatorio.periodo_fim %}
+                        {% if relatorio.periodo_inicio.date == relatorio.periodo_fim.date %}
+                            {{ relatorio.periodo_inicio|date:"d/m/Y" }}
+                        {% else %}
+                            {{ relatorio.periodo_inicio|date:"d/m/Y" }} a {{ relatorio.periodo_fim|date:"d/m/Y" }}
+                        {% endif %}
+                    {% elif relatorio.periodo_inicio %}
+                        A partir de {{ relatorio.periodo_inicio|date:"d/m/Y" }}
+                    {% elif relatorio.periodo_fim %}
+                        Até {{ relatorio.periodo_fim|date:"d/m/Y" }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Visualização do PDF -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-file-pdf me-2"></i>Visualização do Relatório
+        </div>
+        <div class="card-body">
+            {% if relatorio.arquivo_pdf %}
+                <div class="ratio ratio-16x9 mb-4">
+                    <iframe src="{{ relatorio.arquivo_pdf.url }}" title="Visualização do relatório" allowfullscreen></iframe>
+                </div>
+            {% endif %}
+            {% if preview_data and preview_type == 'situacao_atual' %}
+                <div class="alert alert-info mb-3">Pré-visualização dos dados do relatório (Situação Atual):</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>{{ preview_data.0.0 }}</th>
+                                <th>{{ preview_data.0.1 }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview_data|slice:'1:' %}
+                            <tr>
+                                <td>{{ row.0 }}</td>
+                                <td>{{ row.1 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif preview_data and preview_type == 'materiais' %}
+                <div class="alert alert-info mb-3">Pré-visualização dos dados do relatório (Materiais):</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Identificação</th>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Qtd. Total</th>
+                                <th>Qtd. Disponível</th>
+                                <th>Status</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview_data %}
+                            <tr>
+                                <td>{{ row.0 }}</td>
+                                <td>{{ row.1 }}</td>
+                                <td>{{ row.2 }}</td>
+                                <td>{{ row.3 }}</td>
+                                <td>{{ row.4 }}</td>
+                                <td>{{ row.5 }}</td>
+                                <td>{{ row.6 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif preview_data and preview_type == 'movimentacoes' %}
+                <div class="alert alert-info mb-3">Pré-visualização dos dados do relatório (Movimentações):</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Tipo</th>
+                                <th>Material</th>
+                                <th>Policial</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview_data %}
+                            <tr>
+                                <td>{{ row.0|date:'d/m/Y H:i' }}</td>
+                                <td>{{ row.1 }}</td>
+                                <td>{{ row.2 }}</td>
+                                <td>{{ row.3 }}</td>
+                                <td>{{ row.4 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif preview_data %}
+    <div class="alert alert-info mb-3">Pré-visualização genérica dos dados do relatório:</div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    {% for col in preview_data.0 %}
+                        <th>Coluna {{ forloop.counter }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in preview_data %}
+                <tr>
+                    {% for cell in row %}
+                        <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+            {% else %}
+                <div class="alert alert-warning">Nenhum dado disponível para pré-visualização deste relatório.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

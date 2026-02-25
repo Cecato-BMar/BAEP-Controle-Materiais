@@ -1,0 +1,440 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Nova Retirada - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-arrow-right me-2"></i>Nova Retirada</h1>
+        <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-exchange-alt me-2"></i>Registrar Nova Retirada
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <!-- Policial -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-user-shield me-2"></i>Policial
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.policial|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6" id="policial-info">
+                                        <!-- Informações do policial serão carregadas via AJAX -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Material -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-box me-2"></i>Materiais Disponíveis
+                            </div>
+                            <div class="card-body">
+                                <!-- Filtros de busca -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" id="busca-material" class="form-control" placeholder="Buscar material...">
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-buscar-material">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select id="filtro-tipo" class="form-select">
+                                            <option value="">Todos os tipos</option>
+                                            <option value="ARMA">Arma</option>
+                                            <option value="MUNICAO">Munição</option>
+                                            <option value="COLETE">Colete</option>
+                                            <option value="RADIO">Rádio</option>
+                                            <option value="ALGEMA">Algema</option>
+                                            <option value="OUTROS">Outros</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="alert alert-info mb-0 py-2">
+                                            <small><i class="fas fa-info-circle me-1"></i> Mostrando apenas materiais disponíveis para retirada</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="materiais-tabela">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tipo</th>
+                                                        <th>Identificação</th>
+                                                        <th>Quantidade Disponível</th>
+                                                        <th>Estado</th>
+                                                        <th>Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="materiais-lista">
+                                                    {% for material in materiais %}
+                                                    <tr>
+                                                        <td>{{ material.get_tipo_display }}</td>
+                                                        <td>{{ material.nome }} {% if material.numero %}({{ material.numero }}){% endif %}</td>
+                                                        <td>{{ material.quantidade_disponivel }}</td>
+                                                        <td>{{ material.get_estado_display }}</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-primary adicionar-material" 
+                                                                    data-id="{{ material.id }}" 
+                                                                    data-nome="{{ material.nome }}" 
+                                                                    data-numero="{{ material.numero }}" 
+                                                                    data-tipo="{{ material.get_tipo_display }}" 
+                                                                    data-max="{{ material.quantidade_disponivel }}">
+                                                                <i class="fas fa-plus"></i> Adicionar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    {% empty %}
+                                                    <tr>
+                                                        <td colspan="5" class="text-center">
+                                                            <div class="alert alert-warning mb-0">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i>Nenhum material disponível encontrado.
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Materiais Selecionados -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-list me-2"></i>Materiais Selecionados
+                            </div>
+                            <div class="card-body">
+                                <div id="materiais-selecionados-lista">
+                                    <div class="alert alert-info" id="sem-materiais-msg">
+                                        <i class="fas fa-info-circle me-2"></i>Nenhum material selecionado. Adicione materiais da lista acima.
+                                    </div>
+                                </div>
+                                {{ form.materiais_selecionados }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detalhes da Retirada -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-info-circle me-2"></i>Detalhes da Retirada
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        {{ form.finalidade|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        {{ form.observacoes|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Registrar Retirada
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Inicializa o array de materiais selecionados
+        let materiaisSelecionados = [];
+        
+        // Função para carregar informações do policial
+        function carregarInfoPolicial(policialId) {
+            if (!policialId) {
+                $('#policial-info').html('');
+                return;
+            }
+            
+            $.ajax({
+                url: '/policiais/api/policiais/' + policialId + '/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    let html = '<div class="card">';
+                    html += '<div class="card-body">';
+                    html += '<div class="d-flex align-items-center">';
+                    
+                    // Foto ou ícone
+                    if (data.foto) {
+                        html += '<img src="' + data.foto + '" class="rounded-circle me-3" style="width: 60px; height: 60px;">';
+                    } else {
+                        html += '<div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;"><i class="fas fa-user-shield fa-2x"></i></div>';
+                    }
+                    
+                    // Informações
+                    html += '<div>';
+                    html += '<h5 class="mb-1">' + data.nome + '</h5>';
+                    html += '<p class="mb-1"><strong>RE:</strong> ' + data.re + '</p>';
+                    html += '<p class="mb-1"><strong>Posto:</strong> ' + data.posto_display + '</p>';
+                    
+                    // Situação com alerta visual
+                    let situacaoClass = 'badge bg-success';
+                    let situacaoText = 'Ativo';
+                    
+                    if (data.situacao !== 'ATIVO') {
+                        situacaoClass = 'badge bg-danger';
+                        situacaoText = 'Inativo';
+                        
+                        // Adiciona alerta se o policial não estiver ativo
+                        html += '<div class="alert alert-danger mt-2"><i class="fas fa-exclamation-triangle me-2"></i>Este policial não está ativo. Não será possível registrar a retirada.</div>';
+                    }
+                    
+                    html += '<p class="mb-0"><strong>Situação:</strong> <span class="' + situacaoClass + '">' + situacaoText + '</span></p>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    $('#policial-info').html(html);
+                    
+                    // Desabilita o botão de envio se o policial não estiver ativo
+                    if (data.situacao !== 'ATIVO') {
+                        $('button[type="submit"]').prop('disabled', true);
+                    } else {
+                        $('button[type="submit"]').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    $('#policial-info').html('<div class="alert alert-danger">Erro ao carregar informações do policial.</div>');
+                }
+            });
+        }
+        
+        // Função para buscar materiais disponíveis via API
+        function buscarMateriais() {
+            const termo = $('#busca-material').val();
+            const tipo = $('#filtro-tipo').val();
+            
+            // Mostra indicador de carregamento
+            $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></td></tr>');
+            
+            $.ajax({
+                url: '/materiais/api/materiais/',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    termo: termo,
+                    tipo: tipo,
+                    disponivel: 'true'  // Filtra apenas materiais disponíveis
+                },
+                success: function(data) {
+                    // Verifica se a resposta é um array
+                    if (!Array.isArray(data)) {
+                        console.error('A resposta da API não é um array:', data);
+                        $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Erro ao processar dados dos materiais.</div></td></tr>');
+                        return;
+                    }
+                    
+                    if (data.length === 0) {
+                        $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum material disponível encontrado.</div></td></tr>');
+                        return;
+                    }
+                    
+                    let html = '';
+                    data.forEach(function(material) {
+                        html += '<tr>';
+                        html += '<td>' + material.tipo_display + '</td>';
+                        html += '<td>' + material.nome + (material.numero ? ' (' + material.numero + ')' : '') + '</td>';
+                        html += '<td>' + material.quantidade_disponivel + '</td>';
+                        html += '<td>' + material.estado_display + '</td>';
+                        html += '<td>';
+                        html += '<button type="button" class="btn btn-sm btn-primary adicionar-material" ' +
+                                'data-id="' + material.id + '" ' +
+                                'data-nome="' + material.nome + '" ' +
+                                'data-numero="' + material.numero + '" ' +
+                                'data-tipo="' + material.tipo_display + '" ' +
+                                'data-max="' + material.quantidade_disponivel + '">';
+                        html += '<i class="fas fa-plus"></i> Adicionar';
+                        html += '</button>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                    
+                    $('#materiais-lista').html(html);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro na requisição AJAX:', status, error);
+                    $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Erro ao carregar materiais.</div></td></tr>');
+                },
+                dataType: 'json' // Especifica que esperamos um JSON como resposta
+            });
+        }
+        
+        // Função para atualizar o campo oculto com os materiais selecionados
+        function atualizarCampoOculto() {
+            $('#id_materiais_selecionados').val(JSON.stringify(materiaisSelecionados));
+        }
+        
+        // Função para atualizar a lista de materiais selecionados na interface
+        function atualizarListaMateriais() {
+            if (materiaisSelecionados.length === 0) {
+                $('#sem-materiais-msg').show();
+                return;
+            }
+            
+            $('#sem-materiais-msg').hide();
+            
+            let html = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
+            html += '<th>Tipo</th><th>Identificação</th><th>Quantidade</th><th>Ações</th>';
+            html += '</tr></thead><tbody>';
+            
+            materiaisSelecionados.forEach(function(item, index) {
+                html += '<tr>';
+                html += '<td>' + item.tipo + '</td>';
+                html += '<td>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</td>';
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
+                html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i> Remover</button></td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            $('#materiais-selecionados-lista').html(html);
+            
+            // Adiciona evento para atualizar a quantidade
+            $('.quantidade-material').change(function() {
+                const index = $(this).data('index');
+                const novaQuantidade = parseInt($(this).val());
+                
+                if (novaQuantidade > 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade = novaQuantidade;
+                    atualizarCampoOculto();
+                } else {
+                    // Restaura o valor anterior se inválido
+                    $(this).val(materiaisSelecionados[index].quantidade);
+                    alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max);
+                }
+            });
+            
+            // Adiciona evento para remover material
+            $('.remover-material').click(function() {
+                const index = $(this).data('index');
+                materiaisSelecionados.splice(index, 1);
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            });
+        }
+        
+        // Evento para adicionar material à lista
+        $(document).on('click', '.adicionar-material', function() {
+            const id = $(this).data('id');
+            const nome = $(this).data('nome');
+            const numero = $(this).data('numero');
+            const tipo = $(this).data('tipo');
+            const max = parseInt($(this).data('max'));
+            
+            // Verifica se o material já está na lista
+            const materialExistente = materiaisSelecionados.find(item => item.id === id);
+            
+            if (materialExistente) {
+                alert('Este material já foi adicionado à lista.');
+                return;
+            }
+            
+            // Adiciona o material à lista
+            materiaisSelecionados.push({
+                id: id,
+                nome: nome,
+                numero: numero,
+                tipo: tipo,
+                quantidade: 1,
+                max: max
+            });
+            
+            // Atualiza o campo oculto e a interface
+            atualizarCampoOculto();
+            atualizarListaMateriais();
+        });
+        
+        // Eventos de busca e filtro de materiais
+        $('#btn-buscar-material').click(function() {
+            buscarMateriais();
+        });
+        
+        $('#busca-material').keypress(function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                buscarMateriais();
+            }
+        });
+        
+        $('#filtro-tipo').change(function() {
+            buscarMateriais();
+        });
+        
+        // Eventos de mudança para o policial
+        $('#id_policial').change(function() {
+            carregarInfoPolicial($(this).val());
+        });
+        
+        // Inicialização
+        if ($('#id_policial').val()) {
+            carregarInfoPolicial($('#id_policial').val());
+        }
+        
+        // Inicializa a lista de materiais
+        atualizarListaMateriais();
+        
+        // Carrega os materiais disponíveis via API
+        buscarMateriais();
+        
+        // Validação do formulário
+        $('form').submit(function(e) {
+            if (materiaisSelecionados.length === 0) {
+                e.preventDefault();
+                alert('Selecione pelo menos um material para retirada.');
+                return false;
+            }
+            return true;
+        });
+    });
+</script>
+{% endblock %}

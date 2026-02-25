@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Nova Devolução - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-undo me-2"></i>Nova Devolução</h1>
+        <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-exchange-alt me-2"></i>Registrar Nova Devolução
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <!-- Policial -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-user-shield me-2"></i>Policial
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.policial|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6" id="policial-info">
+                                        <!-- Informações do policial serão carregadas via AJAX -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filtros de Busca -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-filter me-2"></i>Filtros de Busca
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="filtro-policial" class="form-label">Filtrar por Policial</label>
+                                        <select id="filtro-policial" class="form-select">
+                                            <option value="">Todos os policiais</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="filtro-material" class="form-label">Filtrar por Material</label>
+                                        <select id="filtro-material" class="form-select">
+                                            <option value="">Todos os materiais</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="button" id="btn-limpar-filtros" class="btn btn-outline-secondary d-block">
+                                            <i class="fas fa-times me-2"></i>Limpar Filtros
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de Materiais Pendentes -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-list-alt me-2"></i>Materiais Pendentes de Devolução
+                                </div>
+                                <div>
+                                    <button type="button" id="btn-selecionar-todos" class="btn btn-sm btn-outline-primary me-2">
+                                        <i class="fas fa-check-square me-1"></i>Selecionar Todos
+                                    </button>
+                                    <button type="button" id="btn-limpar-selecao" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-square me-1"></i>Limpar Seleção
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="materiais-pendentes-lista">
+                                    <div class="alert alert-info" id="sem-pendencias-msg">
+                                        <i class="fas fa-info-circle me-2"></i>Carregando materiais pendentes de devolução...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Materiais Selecionados -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-list me-2"></i>Materiais para Devolução
+                                    <span id="contador-materiais" class="badge bg-primary ms-2">0</span>
+                                </div>
+                                <div>
+                                    <button type="button" id="btn-remover-todos" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash me-1"></i>Remover Todos
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="materiais-selecionados-lista">
+                                    <div class="alert alert-info" id="sem-materiais-msg">
+                                        <i class="fas fa-info-circle me-2"></i>Nenhum material selecionado para devolução. Selecione materiais da lista acima.
+                                    </div>
+                                </div>
+                                {{ form.devolucoes_selecionadas }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detalhes da Devolução -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-info-circle me-2"></i>Detalhes da Devolução
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        {{ form.observacoes|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>Registrar Devolução
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Inicializa o array de materiais selecionados para devolução
+        let materiaisSelecionados = [];
+        let materiaisPendentes = [];
+        
+        // Função para carregar informações do policial
+        function carregarInfoPolicial(policialId) {
+            if (!policialId) {
+                $('#policial-info').html('');
+                return;
+            }
+            
+            $.ajax({
+                url: '/policiais/api/policiais/' + policialId + '/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    let html = '<div class="card">';
+                    html += '<div class="card-body">';
+                    html += '<div class="d-flex align-items-center">';
+                    
+                    // Foto ou ícone
+                    if (data.foto) {
+                        html += '<img src="' + data.foto + '" class="rounded-circle me-3" style="width: 60px; height: 60px;">';
+                    } else {
+                        html += '<div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;"><i class="fas fa-user-shield fa-2x"></i></div>';
+                    }
+                    
+                    // Informações
+                    html += '<div>';
+                    html += '<h5 class="mb-1">' + data.nome + '</h5>';
+                    html += '<p class="mb-1"><strong>RE:</strong> ' + data.re + '</p>';
+                    html += '<p class="mb-1"><strong>Posto:</strong> ' + data.posto_display + '</p>';
+                    
+                    // Situação com alerta visual
+                    let situacaoClass = 'badge bg-success';
+                    let situacaoText = 'Ativo';
+                    
+                    if (data.situacao !== 'ATIVO') {
+                        situacaoClass = 'badge bg-danger';
+                        situacaoText = 'Inativo';
+                        
+                        // Adiciona alerta se o policial não estiver ativo
+                        html += '<div class="alert alert-danger mt-2"><i class="fas fa-exclamation-triangle me-2"></i>Este policial não está ativo. Não será possível registrar a devolução.</div>';
+                    }
+                    
+                    html += '<p class="mb-0"><strong>Situação:</strong> <span class="' + situacaoClass + '">' + situacaoText + '</span></p>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    $('#policial-info').html(html);
+                    
+                    // Desabilita o botão de envio se o policial não estiver ativo
+                    if (data.situacao !== 'ATIVO') {
+                        $('button[type="submit"]').prop('disabled', true);
+                    } else {
+                        $('button[type="submit"]').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    $('#policial-info').html('<div class="alert alert-danger">Erro ao carregar informações do policial.</div>');
+                }
+            });
+        }
+        
+        // Função para adicionar material para devolução
+        function adicionarMaterialParaDevolucao(retirada) {
+            // Verifica se o material já está na lista
+            const materialExistente = materiaisSelecionados.find(item => 
+                item.retirada_id === retirada.id && item.material_id === retirada.material.id
+            );
+            
+            if (materialExistente) {
+                alert('Este material já foi adicionado à lista de devolução.');
+                return;
+            }
+            
+            // Adiciona o material à lista
+            materiaisSelecionados.push({
+                retirada_id: retirada.id,
+                material_id: retirada.material.id,
+                nome: retirada.material.nome || retirada.material.tipo_display,
+                numero: retirada.material.numero,
+                tipo: retirada.material.tipo_display,
+                policial_re: retirada.policial.re,
+                policial_nome: retirada.policial.nome,
+                quantidade: retirada.quantidade_pendente,
+                max: retirada.quantidade_pendente,
+                estado: 'BOM', // Estado padrão
+                manutencao: false // Não enviar para manutenção por padrão
+            });
+            
+            // Atualiza o campo oculto e a interface
+            atualizarCampoOculto();
+            atualizarListaMateriais();
+        }
+        
+        // Função para remover material da lista de devolução
+        function removerMaterialDaDevolucao(index) {
+            materiaisSelecionados.splice(index, 1);
+            atualizarCampoOculto();
+            atualizarListaMateriais();
+        }
+        
+        // Função para atualizar o campo oculto com os materiais selecionados
+        function atualizarCampoOculto() {
+            $('#id_devolucoes_selecionadas').val(JSON.stringify(materiaisSelecionados));
+        }
+        
+        // Função para atualizar a lista de materiais selecionados na interface
+        function atualizarListaMateriais() {
+            if (materiaisSelecionados.length === 0) {
+                $('#sem-materiais-msg').show();
+                $('#contador-materiais').text('0');
+                return;
+            }
+            
+            $('#sem-materiais-msg').hide();
+            $('#contador-materiais').text(materiaisSelecionados.length);
+            
+            let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-light"><tr>';
+            html += '<th>Identificação</th><th>Policial</th><th>Quantidade</th><th>Estado</th><th>Manutenção</th><th>Ações</th>';
+            html += '</tr></thead><tbody>';
+            
+            materiaisSelecionados.forEach(function(item, index) {
+                html += '<tr>';
+                html += '<td><strong>' + item.tipo + '</strong><br><small>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</small></td>';
+                html += '<td><small>' + item.policial_re + ' - ' + item.policial_nome + '</small></td>';
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
+                html += '<td><select class="form-select form-select-sm estado-material" data-index="' + index + '">';
+                html += '<option value="BOM" ' + (item.estado === 'BOM' ? 'selected' : '') + '>Bom</option>';
+                html += '<option value="REGULAR" ' + (item.estado === 'REGULAR' ? 'selected' : '') + '>Regular</option>';
+                html += '<option value="RUIM" ' + (item.estado === 'RUIM' ? 'selected' : '') + '>Ruim</option>';
+                html += '<option value="PESSIMO" ' + (item.estado === 'PESSIMO' ? 'selected' : '') + '>Péssimo</option>';
+                html += '</select></td>';
+                html += '<td><div class="form-check form-switch">';
+                html += '<input class="form-check-input manutencao-material" type="checkbox" data-index="' + index + '" id="manutencao-' + index + '"' + (item.manutencao ? ' checked' : '') + '>';
+                html += '<label class="form-check-label" for="manutencao-' + index + '">Sim</label>';
+                html += '</div></td>';
+                html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i></button></td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            $('#materiais-selecionados-lista').html(html);
+            
+            // Adiciona eventos para os controles
+            adicionarEventosMateriais();
+        }
+        
+        // Função para adicionar eventos aos controles de materiais
+        function adicionarEventosMateriais() {
+            // Evento para atualizar a quantidade
+            $('.quantidade-material').change(function() {
+                const index = $(this).data('index');
+                const novaQuantidade = parseInt($(this).val());
+                
+                if (novaQuantidade > 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade = novaQuantidade;
+                    atualizarCampoOculto();
+                } else {
+                    // Restaura o valor anterior se inválido
+                    $(this).val(materiaisSelecionados[index].quantidade);
+                    alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max);
+                }
+            });
+            
+            // Evento para atualizar o estado
+            $('.estado-material').change(function() {
+                const index = $(this).data('index');
+                const novoEstado = $(this).val();
+                materiaisSelecionados[index].estado = novoEstado;
+                
+                // Se o estado for RUIM ou PESSIMO, marca automaticamente para manutenção
+                if (novoEstado === 'RUIM' || novoEstado === 'PESSIMO') {
+                    $('#manutencao-' + index).prop('checked', true);
+                    materiaisSelecionados[index].manutencao = true;
+                }
+                
+                atualizarCampoOculto();
+            });
+            
+            // Evento para atualizar a opção de manutenção
+            $('.manutencao-material').change(function() {
+                const index = $(this).data('index');
+                const manutencao = $(this).prop('checked');
+                materiaisSelecionados[index].manutencao = manutencao;
+                atualizarCampoOculto();
+            });
+            
+            // Evento para remover material
+            $('.remover-material').click(function() {
+                const index = $(this).data('index');
+                removerMaterialDaDevolucao(index);
+            });
+        }
+        
+        // Função para carregar materiais pendentes
+        function carregarMateriaisPendentes() {
+            const policialId = $('#filtro-policial').val();
+            const materialId = $('#filtro-material').val();
+            
+            // Mostra indicador de carregamento
+            $('#materiais-pendentes-lista').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>');
+            
+            $.ajax({
+                url: '/movimentacoes/api/movimentacoes/retiradas-pendentes/',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    policial_id: policialId,
+                    material_id: materialId
+                },
+                success: function(data) {
+                    if (Array.isArray(data)) {
+                        materiaisPendentes = data;
+                        if (data.length === 0) {
+                            $('#materiais-pendentes-lista').html('<div class="alert alert-warning">Não há materiais pendentes de devolução com os filtros aplicados.</div>');
+                        } else {
+                            exibirMateriaisPendentes(data);
+                        }
+                    } else {
+                        console.error('Dados de retiradas pendentes não são um array:', data);
+                        $('#materiais-pendentes-lista').html('<div class="alert alert-danger">Erro ao processar dados dos materiais pendentes.</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro ao carregar materiais pendentes:', error);
+                    $('#materiais-pendentes-lista').html('<div class="alert alert-danger">Erro ao carregar materiais pendentes.</div>');
+                }
+            });
+        }
+        
+        // Função para exibir a lista de materiais pendentes
+        function exibirMateriaisPendentes(retiradas) {
+            if (!retiradas || retiradas.length === 0) {
+                $('#materiais-pendentes-lista').html('<div class="alert alert-warning">Não há materiais pendentes de devolução.</div>');
+                return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-bordered table-hover"><thead class="table-light"><tr>';
+            html += '<th><input type="checkbox" id="select-all" class="form-check-input"></th>';
+            html += '<th>Identificação</th><th>Policial</th><th>Data Retirada</th><th>Finalidade</th><th>Qtd. Pendente</th>';
+            html += '</tr></thead><tbody>';
+            
+            retiradas.forEach(function(item, index) {
+                const isSelected = materiaisSelecionados.some(selected => 
+                    selected.retirada_id === item.id && selected.material_id === item.material.id
+                );
+                
+                html += '<tr>';
+                html += '<td><input type="checkbox" class="form-check-input material-checkbox" data-index="' + index + '"' + (isSelected ? ' checked' : '') + '></td>';
+                html += '<td>' + (item.material.nome || '') + (item.material.numero ? ' (' + item.material.numero + ')' : '') + '</td>';
+                html += '<td>' + item.policial.re + ' - ' + item.policial.nome + '</td>';
+                html += '<td>' + item.data_hora + '</td>';
+                html += '<td>' + (item.finalidade || '-') + '</td>';
+                html += '<td>' + item.quantidade_pendente + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            $('#materiais-pendentes-lista').html(html);
+            
+            // Adiciona eventos para os checkboxes
+            adicionarEventosCheckboxes();
+        }
+        
+        // Função para adicionar eventos aos checkboxes
+        function adicionarEventosCheckboxes() {
+            // Evento para checkbox "selecionar todos"
+            $('#select-all').change(function() {
+                const isChecked = $(this).prop('checked');
+                $('.material-checkbox').prop('checked', isChecked);
+                
+                if (isChecked) {
+                    // Adiciona todos os materiais não selecionados
+                    materiaisPendentes.forEach(function(item, index) {
+                        const isSelected = materiaisSelecionados.some(selected => 
+                            selected.retirada_id === item.id && selected.material_id === item.material.id
+                        );
+                        
+                        if (!isSelected) {
+                            adicionarMaterialParaDevolucao(item);
+                        }
+                    });
+                } else {
+                    // Remove todos os materiais selecionados
+                    materiaisSelecionados = [];
+                    atualizarCampoOculto();
+                    atualizarListaMateriais();
+                }
+            });
+            
+            // Evento para checkboxes individuais
+            $('.material-checkbox').change(function() {
+                const index = $(this).data('index');
+                const isChecked = $(this).prop('checked');
+                const item = materiaisPendentes[index];
+                
+                if (isChecked) {
+                    // Adiciona o material
+                    adicionarMaterialParaDevolucao(item);
+                } else {
+                    // Remove o material
+                    const materialIndex = materiaisSelecionados.findIndex(selected => 
+                        selected.retirada_id === item.id && selected.material_id === item.material.id
+                    );
+                    
+                    if (materialIndex !== -1) {
+                        removerMaterialDaDevolucao(materialIndex);
+                    }
+                }
+                
+                // Atualiza o estado do checkbox "selecionar todos"
+                const totalCheckboxes = $('.material-checkbox').length;
+                const checkedCheckboxes = $('.material-checkbox:checked').length;
+                $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes);
+            });
+        }
+        
+        // Função para carregar filtros
+        function carregarFiltros() {
+            // Carrega policiais para o filtro
+            $.ajax({
+                url: '/policiais/api/policiais/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    const select = $('#filtro-policial');
+                    select.empty();
+                    select.append('<option value="">Todos os policiais</option>');
+                    
+                    if (Array.isArray(data)) {
+                        data.forEach(function(policial) {
+                            const option = $('<option></option>');
+                            option.val(policial.id);
+                            option.text(policial.re + ' - ' + policial.nome);
+                            select.append(option);
+                        });
+                    }
+                }
+            });
+            
+            // Carrega materiais para o filtro
+            $.ajax({
+                url: '/materiais/api/materiais/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    const select = $('#filtro-material');
+                    select.empty();
+                    select.append('<option value="">Todos os materiais</option>');
+                    
+                    if (Array.isArray(data)) {
+                        data.forEach(function(material) {
+                            const option = $('<option></option>');
+                            option.val(material.id);
+                            option.text(material.tipo_display + ' - ' + material.numero);
+                            select.append(option);
+                        });
+                    }
+                }
+            });
+        }
+        
+        // Eventos dos filtros
+        $('#filtro-policial, #filtro-material').change(function() {
+            carregarMateriaisPendentes();
+        });
+        
+        $('#btn-limpar-filtros').click(function() {
+            $('#filtro-policial').val('');
+            $('#filtro-material').val('');
+            carregarMateriaisPendentes();
+        });
+        
+        // Eventos dos botões de ação
+        $('#btn-selecionar-todos').click(function() {
+            $('#select-all').prop('checked', true).trigger('change');
+        });
+        
+        $('#btn-limpar-selecao').click(function() {
+            $('#select-all').prop('checked', false).trigger('change');
+        });
+        
+        $('#btn-remover-todos').click(function() {
+            if (confirm('Tem certeza que deseja remover todos os materiais selecionados?')) {
+                materiaisSelecionados = [];
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+                $('.material-checkbox').prop('checked', false);
+                $('#select-all').prop('checked', false);
+            }
+        });
+        
+        // Eventos de mudança para o policial
+        $('#id_policial').change(function() {
+            carregarInfoPolicial($(this).val());
+        });
+        
+        // Inicialização
+        carregarFiltros();
+        carregarMateriaisPendentes();
+        atualizarListaMateriais();
+        
+        // Validação do formulário
+        $('form').submit(function(e) {
+            if (materiaisSelecionados.length === 0) {
+                e.preventDefault();
+                alert('Selecione pelo menos um material para devolução.');
+                return false;
+            }
+            return true;
+        });
+    });
+</script>
+{% endblock %}

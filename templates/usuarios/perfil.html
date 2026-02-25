@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Meu Perfil - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-circle me-2"></i>Meu Perfil</h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="row">
+        <!-- Informações do Usuário -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-id-card me-2"></i>Informações do Usuário
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mx-auto mb-3">
+                            <span class="initials">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                        </div>
+                        <h4>{{ user.get_full_name }}</h4>
+                        <p class="text-muted">@{{ user.username }}</p>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <strong>E-mail:</strong> {{ user.email }}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-user-shield me-2 text-primary"></i>
+                            <strong>Tipo de Usuário:</strong>
+                            {% if user.is_superuser %}
+                            <span class="badge bg-danger">Administrador</span>
+                            {% elif user.is_staff %}
+                            <span class="badge bg-warning text-dark">Staff</span>
+                            {% else %}
+                            <span class="badge bg-info">Padrão</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                            <strong>Último Acesso:</strong>
+                            {% if user.last_login %}
+                            {{ user.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                            <span class="text-muted">Nunca acessou</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-calendar-plus me-2 text-primary"></i>
+                            <strong>Data de Cadastro:</strong> {{ user.date_joined|date:"d/m/Y" }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulário de Edição -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4 mt-3">
+                            <div class="card-header bg-warning text-dark">
+                                <i class="fas fa-key me-2"></i>Alterar Senha
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Deixe os campos em branco se não deseja alterar a senha.</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.password1|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.password2|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Atividade Recente -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>Atividade Recente
+                </div>
+                <div class="card-body">
+                    {% if atividades %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Ação</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for atividade in atividades %}
+                                <tr>
+                                    <td>{{ atividade.data_hora|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ atividade.tipo_acao }}</td>
+                                    <td>{{ atividade.descricao }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Nenhuma atividade recente registrada.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #007bff;
+        text-align: center;
+        border-radius: 50%;
+        -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .initials {
+        font-size: 40px;
+        line-height: 1;
+        color: #fff;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Adicionar validação de força de senha
+        $('#id_password1').on('input', function() {
+            const password = $(this).val();
+            
+            // Se o campo estiver vazio, remover o feedback
+            if (!password) {
+                $('#password-strength-feedback').remove();
+                return;
+            }
+            
+            let strength = 0;
+            let feedback = '';
+            
+            // Verificar comprimento
+            if (password.length >= 8) {
+                strength += 1;
+            } else {
+                feedback += '<li>A senha deve ter pelo menos 8 caracteres</li>';
+            }
+            
+            // Verificar letras maiúsculas
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos uma letra maiúscula</li>';
+            }
+            
+            // Verificar letras minúsculas
+            if (/[a-z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos uma letra minúscula</li>';
+            }
+            
+            // Verificar números
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos um número</li>';
+            }
+            
+            // Verificar caracteres especiais
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback += '<li>Inclua pelo menos um caractere especial</li>';
+            }
+            
+            // Exibir feedback
+            let strengthText = '';
+            let strengthClass = '';
+            
+            if (strength === 0) {
+                strengthText = 'Muito fraca';
+                strengthClass = 'text-danger';
+            } else if (strength <= 2) {
+                strengthText = 'Fraca';
+                strengthClass = 'text-danger';
+            } else if (strength <= 3) {
+                strengthText = 'Média';
+                strengthClass = 'text-warning';
+            } else if (strength <= 4) {
+                strengthText = 'Forte';
+                strengthClass = 'text-success';
+            } else {
+                strengthText = 'Muito forte';
+                strengthClass = 'text-success';
+            }
+            
+            // Adicionar ou atualizar o feedback
+            if ($('#password-strength-feedback').length === 0) {
+                $('#div_id_password1').append('<div id="password-strength-feedback" class="mt-2"></div>');
+            }
+            
+            let feedbackHtml = '<div class="' + strengthClass + '">Força da senha: ' + strengthText + '</div>';
+            
+            if (feedback) {
+                feedbackHtml += '<ul class="small text-muted mt-1">' + feedback + '</ul>';
+            }
+            
+            $('#password-strength-feedback').html(feedbackHtml);
+        });
+    });
+</script>
+{% endblock %}

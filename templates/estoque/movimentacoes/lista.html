@@ -1,0 +1,286 @@
+{% extends 'estoque/base.html' %}
+
+{% block title %}Movimentações de Estoque{% endblock %}
+
+{% block estoque_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-exchange-alt text-success"></i>
+        Movimentações de Estoque
+    </h1>
+    <div>
+        <a href="{% url 'estoque:criar_movimentacao' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nova Movimentação
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h6 class="m-0">
+            <i class="fas fa-filter"></i>
+            Filtros
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="q" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="q" name="q" 
+                       value="{{ request.GET.q }}" placeholder="Produto ou documento...">
+            </div>
+            <div class="col-md-2">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select class="form-select" id="tipo" name="tipo">
+                    <option value="">Todos</option>
+                    <option value="ENTRADA" {% if request.GET.tipo == 'ENTRADA' %}selected{% endif %}>Entrada</option>
+                    <option value="SAIDA" {% if request.GET.tipo == 'SAIDA' %}selected{% endif %}>Saída</option>
+                    <option value="TRANSFERENCIA" {% if request.GET.tipo == 'TRANSFERENCIA' %}selected{% endif %}>Transferência</option>
+                    <option value="AJUSTE" {% if request.GET.tipo == 'AJUSTE' %}selected{% endif %}>Ajuste</option>
+                    <option value="PERDA" {% if request.GET.tipo == 'PERDA' %}selected{% endif %}>Perda</option>
+                    <option value="DEVOLUCAO" {% if request.GET.tipo == 'DEVOLUCAO' %}selected{% endif %}>Devolução</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="motivo" class="form-label">Motivo</label>
+                <select class="form-select" id="motivo" name="motivo">
+                    <option value="">Todos</option>
+                    <option value="COMPRA" {% if request.GET.motivo == 'COMPRA' %}selected{% endif %}>Compra</option>
+                    <option value="DOACAO" {% if request.GET.motivo == 'DOACAO' %}selected{% endif %}>Doação</option>
+                    <option value="USO" {% if request.GET.motivo == 'USO' %}selected{% endif %}>Uso Operacional</option>
+                    <option value="MANUTENCAO" {% if request.GET.motivo == 'MANUTENCAO' %}selected{% endif %}>Manutenção</option>
+                    <option value="PERDA" {% if request.GET.motivo == 'PERDA' %}selected{% endif %}>Perda</option>
+                    <option value="AJUSTE_INVENTARIO" {% if request.GET.motivo == 'AJUSTE_INVENTARIO' %}selected{% endif %}>Ajuste de Inventário</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="data_inicio" class="form-label">Data Início</label>
+                <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                       value="{{ request.GET.data_inicio }}">
+            </div>
+            <div class="col-md-2">
+                <label for="data_fim" class="form-label">Data Fim</label>
+                <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                       value="{{ request.GET.data_fim }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label d-block">&nbsp;</label>
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resultados -->
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0">
+            <i class="fas fa-list"></i>
+            Histórico ({{ total_movimentacoes }} movimentações)
+        </h6>
+        <div>
+            <a href="{% url 'estoque:exportar_movimentacoes_pdf' %}" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Produto</th>
+                        <th>Tipo</th>
+                        <th>Motivo</th>
+                        <th>Quantidade</th>
+                        <th>Valor Total</th>
+                        <th>Usuário</th>
+                        <th>Documento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in page_obj %}
+                    <tr>
+                        <td>
+                            {{ mov.data_hora|date:"d/m/Y H:i" }}
+                            <br><small class="text-muted">{{ mov.data_hora|timesince }}</small>
+                        </td>
+                        <td>
+                            <strong>{{ mov.produto.nome }}</strong>
+                            <br><small class="text-muted">{{ mov.produto.codigo }}</small>
+                            {% if mov.lote %}
+                            <br><small class="text-info">Lote: {{ mov.lote.numero_lote }}</small>
+                            {% endif %}
+                            {% if mov.numero_serie %}
+                            <br><small class="text-info">Série: {{ mov.numero_serie.numero_serie }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if mov.tipo_movimentacao == 'ENTRADA' %}
+                            <span class="badge bg-success">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% elif mov.tipo_movimentacao == 'SAIDA' %}
+                            <span class="badge bg-danger">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% elif mov.tipo_movimentacao == 'TRANSFERENCIA' %}
+                            <span class="badge bg-info">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% elif mov.tipo_movimentacao == 'AJUSTE' %}
+                            <span class="badge bg-warning text-dark">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% elif mov.tipo_movimentacao == 'PERDA' %}
+                            <span class="badge bg-secondary">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% elif mov.tipo_movimentacao == 'DEVOLUCAO' %}
+                            <span class="badge bg-primary">{{ mov.get_tipo_movimentacao_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ mov.get_motivo_display }}</td>
+                        <td>
+                            <strong>{{ mov.quantidade }}</strong>
+                            <br><small class="text-muted">{{ mov.produto.unidade_medida.sigla }}</small>
+                        </td>
+                        <td>R$ {{ mov.valor_total|floatformat:2 }}</td>
+                        <td>
+                            {{ mov.usuario.get_full_name|default:mov.usuario.username }}
+                            <br><small class="text-muted">{{ mov.usuario.perfil.get_nivel_acesso_display }}</small>
+                        </td>
+                        <td>
+                            {% if mov.documento_referencia %}
+                            {{ mov.documento_referencia }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" data-bs-target="#detalhesModal{{ mov.pk }}"
+                                        title="Ver Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Modal de Detalhes -->
+                    <div class="modal fade" id="detalhesModal{{ mov.pk }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Detalhes da Movimentação</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>ID:</strong> {{ mov.uuid }}<br>
+                                            <strong>Data/Hora:</strong> {{ mov.data_hora|date:"d/m/Y H:i:s" }}<br>
+                                            <strong>Tipo:</strong> {{ mov.get_tipo_movimentacao_display }}<br>
+                                            <strong>Motivo:</strong> {{ mov.get_motivo_display }}<br>
+                                            <strong>Quantidade:</strong> {{ mov.quantidade }} {{ mov.produto.unidade_medida.sigla }}<br>
+                                            <strong>Valor Unitário:</strong> R$ {{ mov.valor_unitario|floatformat:2 }}<br>
+                                            <strong>Valor Total:</strong> R$ {{ mov.valor_total|floatformat:2 }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Produto:</strong> {{ mov.produto.nome }} ({{ mov.produto.codigo }})<br>
+                                            {% if mov.lote %}
+                                            <strong>Lote:</strong> {{ mov.lote.numero_lote }}<br>
+                                            {% endif %}
+                                            {% if mov.numero_serie %}
+                                            <strong>Nº Série:</strong> {{ mov.numero_serie.numero_serie }}<br>
+                                            {% endif %}
+                                            {% if mov.fornecedor %}
+                                            <strong>Fornecedor:</strong> {{ mov.fornecedor.nome }}<br>
+                                            {% endif %}
+                                            {% if mov.solicitante %}
+                                            <strong>Solicitante:</strong> {{ mov.solicitante }}<br>
+                                            {% endif %}
+                                            <strong>Usuário:</strong> {{ mov.usuario.get_full_name|default:mov.usuario.username }}<br>
+                                            {% if mov.destino_origem %}
+                                            <strong>Destino/Origem:</strong> {{ mov.destino_origem }}<br>
+                                            {% endif %}
+                                            {% if mov.ip_address %}
+                                            <strong>IP:</strong> {{ mov.ip_address }}<br>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if mov.observacoes %}
+                                    <hr>
+                                    <strong>Observações:</strong><br>
+                                    {{ mov.observacoes|linebreaks }}
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginação">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Primeira</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Anterior</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Primeira</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Próxima</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Última</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Próxima</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Última</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhuma movimentação encontrada</h5>
+            <p class="text-muted">Tente ajustar os filtros ou <a href="{% url 'estoque:criar_movimentacao' %}">registre uma nova movimentação</a>.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

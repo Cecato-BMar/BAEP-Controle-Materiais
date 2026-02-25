@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.id %}
+        Editar Policial - Reserva BAEP
+    {% else %}
+        Novo Policial - Reserva BAEP
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">
+            {% if form.instance.id %}
+                <i class="fas fa-edit me-2"></i>Editar Policial
+            {% else %}
+                <i class="fas fa-user-plus me-2"></i>Novo Policial
+            {% endif %}
+        </h1>
+        <a href="{% if form.instance.id %}{% url 'policiais:detalhe_policial' policial_id=form.instance.id %}{% else %}{% url 'policiais:lista_policiais' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-gradient">
+            <i class="fas fa-user-shield me-2"></i>
+            {% if form.instance.id %}
+                <span class="fw-bold">Editar Policial:</span> {{ form.instance.nome }}
+            {% else %}
+                <span class="fw-bold">Cadastrar Novo Policial</span>
+            {% endif %}
+        </div>
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                
+                <!-- Seção de Identificação -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-id-card me-2"></i>Identificação</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.re.id_for_label }}" class="form-label">
+                                    <i class="fas fa-fingerprint me-1 text-secondary"></i> {{ form.re.label }}
+                                </label>
+                                {{ form.re }}
+                                {% if form.re.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.re.errors }}</div>
+                                {% endif %}
+                                {% if form.re.help_text %}
+                                    <small class="form-text text-muted">{{ form.re.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-1 text-secondary"></i> {{ form.nome.label }}
+                                </label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.nome.errors }}</div>
+                                {% endif %}
+                                {% if form.nome.help_text %}
+                                    <small class="form-text text-muted">{{ form.nome.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Status -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Status</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.posto.id_for_label }}" class="form-label">
+                                    <i class="fas fa-medal me-1 text-secondary"></i> {{ form.posto.label }}
+                                </label>
+                                {{ form.posto }}
+                                {% if form.posto.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.posto.errors }}</div>
+                                {% endif %}
+                                {% if form.posto.help_text %}
+                                    <small class="form-text text-muted">{{ form.posto.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.situacao.id_for_label }}" class="form-label">
+                                    <i class="fas fa-toggle-on me-1 text-secondary"></i> {{ form.situacao.label }}
+                                </label>
+                                {{ form.situacao }}
+                                {% if form.situacao.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.situacao.errors }}</div>
+                                {% endif %}
+                                {% if form.situacao.help_text %}
+                                    <small class="form-text text-muted">{{ form.situacao.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Detalhes Adicionais -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-file-alt me-2"></i>Detalhes Adicionais</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                                    <i class="fas fa-comment-alt me-1 text-secondary"></i> {{ form.observacoes.label }}
+                                </label>
+                                {{ form.observacoes }}
+                                {% if form.observacoes.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.observacoes.errors }}</div>
+                                {% endif %}
+                                {% if form.observacoes.help_text %}
+                                    <small class="form-text text-muted">{{ form.observacoes.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seção de Foto -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-camera me-2"></i>Foto</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.foto.id_for_label }}" class="form-label">
+                                    <i class="fas fa-image me-1 text-secondary"></i> {{ form.foto.label }}
+                                </label>
+                                {{ form.foto }}
+                                {% if form.foto.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.foto.errors }}</div>
+                                {% endif %}
+                                {% if form.foto.help_text %}
+                                    <small class="form-text text-muted">{{ form.foto.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            <div id="preview-container" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if form.instance.foto %}
+                            <div class="mt-3">
+                                <p class="form-label fw-bold">Foto Atual:</p>
+                                <img src="{{ form.instance.foto.url }}" alt="Foto de {{ form.instance.nome }}" class="img-thumbnail shadow-sm" style="max-width: 200px; max-height: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% if form.instance.id %}{% url 'policiais:detalhe_policial' policial_id=form.instance.id %}{% else %}{% url 'policiais:lista_policiais' %}{% endif %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-save me-2"></i>
+                        {% if form.instance.id %}
+                            Salvar Alterações
+                        {% else %}
+                            Cadastrar Policial
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Preview da imagem selecionada
+        $('#id_foto').change(function() {
+            // Limpa previews anteriores
+            $('#preview-container').find('.preview-new').remove();
+            
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-container').append(
+                        '<div class="mt-3 preview-new">'+
+                        '<p class="form-label fw-bold">Preview da Nova Foto:</p>'+
+                        '<img src="' + e.target.result + '" class="img-thumbnail shadow-sm" style="max-width: 200px; max-height: 200px;">'+
+                        '</div>'
+                    );
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Estilização dos selects
+        $('select').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+        
+        // Animação de entrada
+        $('.card').hide().fadeIn(500);
+        
+        // Validação de formulário aprimorada
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin me-2"></i>Processando...');
+        });
+        
+        // Adiciona classes Bootstrap aos campos
+        $('input[type="text"], input[type="number"], textarea').addClass('form-control');
+        $('select').addClass('form-select');
+        
+        // Tooltip para campos com ajuda
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
