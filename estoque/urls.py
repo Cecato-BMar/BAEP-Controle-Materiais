@@ -40,6 +40,10 @@ urlpatterns = [
     
     # Relatórios
     path('relatorios/estoque-baixo/', views.relatorio_estoque_baixo, name='relatorio_estoque_baixo'),
+    path('relatorios/materiais-manutencao/', views.relatorio_materiais_manutencao, name='relatorio_manutencao'),
+    path('relatorios/baixas-materiais/', views.relatorio_baixas_materiais, name='relatorio_baixas'),
+    path('relatorios/situacao-estoque/', views.relatorio_situacao_estoque, name='relatorio_situacao_estoque'),
+    path('relatorios/inventarios/', views.relatorio_inventarios, name='relatorio_inventarios'),
     path('relatorios/movimentacoes-periodo/', views.relatorio_movimentacoes_periodo, name='relatorio_movimentacoes_periodo'),
     path('exportar/produtos-csv/', views.exportar_produtos_csv, name='exportar_produtos_csv'),
     path('exportar/movimentacoes-pdf/', views.exportar_movimentacoes_pdf, name='exportar_movimentacoes_pdf'),

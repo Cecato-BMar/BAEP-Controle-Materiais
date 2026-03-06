@@ -894,3 +894,373 @@ def buscar_produto_por_qr_ajax(request):
         'codigo': produto.codigo,
         'nome': produto.nome,
     })
+
+
+@login_required
+def relatorio_materiais_manutencao(request):
+    """Relatório de materiais em manutenção"""
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    status = request.GET.get('status', 'todos')
+    
+    produtos = Produto.objects.all()
+    
+    # Filtrar por categoria
+    if categoria_id:
+        produtos = produtos.filter(categoria_id=categoria_id)
+    
+    # Filtrar por status
+    if status != 'todos':
+        produtos = produtos.filter(status=status)
+    
+    # Buscar números de série em manutenção
+    numeros_manutencao = NumeroSerie.objects.filter(status='MANUTENCAO').select_related('produto')
+    
+    # Produtos com controle de número de série
+    produtos_com_numeros = []
+    for num_serie in numeros_manutencao:
+        produtos_com_numeros.append({
+            'codigo': num_serie.produto.codigo,
+            'nome': num_serie.produto.nome,
+            'categoria': num_serie.produto.categoria.nome if num_serie.produto.categoria else '',
+            'numero_serie': num_serie.numero_serie,
+            'patrimonio': num_serie.patrimonio or '',
+            'localizacao': num_serie.localizacao or '',
+            'responsavel': str(num_serie.responsavel) if num_serie.responsavel else '',
+            'conta_contabil': num_serie.produto.conta_contabil or '',
+            'localizacao_fisica': num_serie.produto.localizacao_fisica or '',
+            'data_cadastro': num_serie.data_cadastro.strftime('%d/%m/%Y'),
+        })
+    
+    # Produtos sem controle de número de série (status MANUTENCAO)
+    produtos_sem_numeros = produtos.filter(
+        status='MANUTENCAO',
+        controla_numero_serie=False
+    ).select_related('categoria')
+    
+    for produto in produtos_sem_numeros:
+        produtos_com_numeros.append({
+            'codigo': produto.codigo,
+            'nome': produto.nome,
+            'categoria': produto.categoria.nome if produto.categoria else '',
+            'numero_serie': 'N/A',
+            'patrimonio': 'N/A',
+            'localizacao': 'N/A',
+            'responsavel': 'N/A',
+            'conta_contabil': produto.conta_contabil or '',
+            'localizacao_fisica': produto.localizacao_fisica or '',
+            'data_cadastro': 'N/A',
+        })
+    
+    # Ordenar por nome
+    produtos_com_numeros.sort(key=lambda x: x['nome'])
+    
+    context = {
+        'produtos': produtos_com_numeros,
+        'categorias': Categoria.objects.all(),
+        'categoria_filtro': categoria_id,
+        'status_filtro': status,
+        'total': len(produtos_com_numeros),
+    }
+    
+    return render(request, 'estoque/relatorios/materiais_manutencao.html', context)
+
+
+@login_required
+def relatorio_baixas_materiais(request):
+    """Relatório de baixas de materiais"""
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    status = request.GET.get('status', 'todos')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    
+    produtos = Produto.objects.all()
+    
+    # Filtrar por categoria
+    if categoria_id:
+        produtos = produtos.filter(categoria_id=categoria_id)
+    
+    # Filtrar por status
+    if status != 'todos':
+        produtos = produtos.filter(status=status)
+    else:
+        # Por padrão, mostrar apenas baixados e obsoletos
+        produtos = produtos.filter(status__in=['BAIXADO', 'OBSOLETO'])
+    
+    # Filtrar por período
+    if data_inicio:
+        try:
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            produtos = produtos.filter(data_atualizacao__date__gte=data_inicio)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            produtos = produtos.filter(data_atualizacao__date__lte=data_fim)
+        except ValueError:
+            pass
+    
+    # Buscar números de série baixados
+    numeros_baixados = NumeroSerie.objects.filter(
+        status__in=['BAIXADO', 'OBSOLETO']
+    ).select_related('produto')
+    
+    # Produtos com controle de número de série
+    produtos_baixados = []
+    for num_serie in numeros_baixados:
+        produtos_baixados.append({
+            'codigo': num_serie.produto.codigo,
+            'nome': num_serie.produto.nome,
+            'categoria': num_serie.produto.categoria.nome if num_serie.produto.categoria else '',
+            'numero_serie': num_serie.numero_serie,
+            'patrimonio': num_serie.patrimonio or '',
+            'status': num_serie.get_status_display(),
+            'localizacao': num_serie.localizacao or '',
+            'responsavel': str(num_serie.responsavel) if num_serie.responsavel else '',
+            'conta_contabil': num_serie.produto.conta_contabil or '',
+            'localizacao_fisica': num_serie.produto.localizacao_fisica or '',
+            'data_baixa': num_serie.data_atualizacao.strftime('%d/%m/%Y') if num_serie.data_atualizacao else '',
+            'motivo_baixa': 'Baixa registrada no sistema',
+        })
+    
+    # Produtos sem controle de número de série (status BAIXADO/OBSOLETO)
+    produtos_sem_numeros = produtos.filter(
+        status__in=['BAIXADO', 'OBSOLETO'],
+        controla_numero_serie=False
+    ).select_related('categoria')
+    
+    for produto in produtos_sem_numeros:
+        produtos_baixados.append({
+            'codigo': produto.codigo,
+            'nome': produto.nome,
+            'categoria': produto.categoria.nome if produto.categoria else '',
+            'numero_serie': 'N/A',
+            'patrimonio': 'N/A',
+            'status': produto.get_status_display(),
+            'localizacao': 'N/A',
+            'responsavel': 'N/A',
+            'conta_contabil': produto.conta_contabil or '',
+            'localizacao_fisica': produto.localizacao_fisica or '',
+            'data_baixa': produto.data_atualizacao.strftime('%d/%m/%Y') if produto.data_atualizacao else '',
+            'motivo_baixa': 'Baixa registrada no sistema',
+        })
+    
+    # Ordenar por data de baixa (mais recentes primeiro)
+    produtos_baixados.sort(key=lambda x: x['data_baixa'], reverse=True)
+    
+    context = {
+        'produtos': produtos_baixados,
+        'categorias': Categoria.objects.all(),
+        'categoria_filtro': categoria_id,
+        'status_filtro': status,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'total': len(produtos_baixados),
+    }
+    
+    return render(request, 'estoque/relatorios/baixas_materiais.html', context)
+
+
+@login_required
+def relatorio_situacao_estoque(request):
+    """Relatório de situação atual do estoque"""
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    status = request.GET.get('status', 'todos')
+    tipo_produto = request.GET.get('tipo_produto', 'todos')
+    estoque_baixo = request.GET.get('estoque_baixo') == 'on'
+    
+    produtos = Produto.objects.all().select_related('categoria', 'fornecedor_padrao')
+    
+    # Filtrar por categoria
+    if categoria_id:
+        produtos = produtos.filter(categoria_id=categoria_id)
+    
+    # Filtrar por status
+    if status != 'todos':
+        produtos = produtos.filter(status=status)
+    
+    # Filtrar por tipo de produto
+    if tipo_produto != 'todos':
+        produtos = produtos.filter(tipo_produto=tipo_produto)
+    
+    # Filtrar estoque baixo
+    if estoque_baixo:
+        produtos = produtos.filter(estoque_disponivel__lte=models.F('estoque_minimo'))
+    
+    # Montar dados do relatório
+    produtos_situacao = []
+    valor_total_estoque = 0
+    
+    for produto in produtos:
+        # Calcular valor total em estoque
+        valor_total = float(produto.estoque_atual) * float(produto.valor_unitario)
+        valor_total_estoque += valor_total
+        
+        # Status do estoque
+        if produto.estoque_disponivel <= 0:
+            status_estoque = 'ESGOTADO'
+            cor_status = 'danger'
+        elif produto.estoque_critico:
+            status_estoque = 'CRÍTICO'
+            cor_status = 'warning'
+        elif produto.precisa_reposicao:
+            status_estoque = 'BAIXO'
+            cor_status = 'info'
+        else:
+            status_estoque = 'NORMAL'
+            cor_status = 'success'
+        
+        produtos_situacao.append({
+            'codigo': produto.codigo,
+            'codigo_barras': produto.codigo_barras or '',
+            'nome': produto.nome,
+            'categoria': produto.categoria.nome if produto.categoria else '',
+            'tipo_produto': produto.get_tipo_produto_display(),
+            'status': produto.get_status_display(),
+            'estoque_atual': float(produto.estoque_atual),
+            'estoque_minimo': float(produto.estoque_minimo),
+            'estoque_maximo': float(produto.estoque_maximo),
+            'estoque_reservado': float(produto.estoque_reservado),
+            'estoque_disponivel': float(produto.estoque_disponivel),
+            'valor_unitario': float(produto.valor_unitario),
+            'valor_total': valor_total,
+            'status_estoque': status_estoque,
+            'cor_status': cor_status,
+            'conta_contabil': produto.conta_contabil or '',
+            'localizacao_fisica': produto.localizacao_fisica or '',
+            'fornecedor': produto.fornecedor_padrao.nome if produto.fornecedor_padrao else '',
+        })
+    
+    # Ordenar por nome
+    produtos_situacao.sort(key=lambda x: x['nome'])
+    
+    # Estatísticas
+    total_produtos = len(produtos_situacao)
+    produtos_esgotados = len([p for p in produtos_situacao if p['status_estoque'] == 'ESGOTADO'])
+    produtos_criticos = len([p for p in produtos_situacao if p['status_estoque'] == 'CRÍTICO'])
+    produtos_baixo = len([p for p in produtos_situacao if p['status_estoque'] == 'BAIXO'])
+    produtos_normais = len([p for p in produtos_situacao if p['status_estoque'] == 'NORMAL'])
+    
+    context = {
+        'produtos': produtos_situacao,
+        'categorias': Categoria.objects.all(),
+        'categoria_filtro': categoria_id,
+        'status_filtro': status,
+        'tipo_produto_filtro': tipo_produto,
+        'estoque_baixo_filtro': estoque_baixo,
+        'total_produtos': total_produtos,
+        'produtos_esgotados': produtos_esgotados,
+        'produtos_criticos': produtos_criticos,
+        'produtos_baixo': produtos_baixo,
+        'produtos_normais': produtos_normais,
+        'valor_total_estoque': valor_total_estoque,
+        'TIPO_PRODUTO_CHOICES': Produto.TIPO_PRODUTO_CHOICES,
+        'STATUS_CHOICES': Produto.STATUS_CHOICES,
+    }
+    
+    return render(request, 'estoque/relatorios/situacao_estoque.html', context)
+
+
+@login_required
+def relatorio_inventarios(request):
+    """Relatório de inventários"""
+    # Filtros
+    status = request.GET.get('status', 'todos')
+    tipo_inventario = request.GET.get('tipo_inventario', 'todos')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    
+    inventarios = Inventario.objects.all().select_related('responsavel')
+    
+    # Filtrar por status
+    if status != 'todos':
+        inventarios = inventarios.filter(status=status)
+    
+    # Filtrar por tipo de inventário
+    if tipo_inventario != 'todos':
+        inventarios = inventarios.filter(tipo_inventario=tipo_inventario)
+    
+    # Filtrar por período
+    if data_inicio:
+        try:
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            inventarios = inventarios.filter(data_cadastro__date__gte=data_inicio)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            inventarios = inventarios.filter(data_cadastro__date__lte=data_fim)
+        except ValueError:
+            pass
+    
+    # Montar dados do relatório
+    inventarios_dados = []
+    
+    for inventario in inventarios:
+        # Contar itens
+        total_itens = inventario.itens.count()
+        itens_contados = inventario.itens.filter(quantidade_contada__isnull=False).count()
+        itens_pendentes = total_itens - itens_contados
+        
+        # Calcular diferenças
+        itens_com_diferenca = 0
+        valor_total_diferenca = 0
+        
+        for item in inventario.itens.all():
+            if item.quantidade_contada is not None:
+                diferenca = item.quantidade_contada - item.quantidade_sistema
+                if diferenca != 0:
+                    itens_com_diferenca += 1
+                    valor_total_diferenca += abs(diferenca) * item.produto.valor_unitario
+        
+        # Progresso
+        progresso = (itens_contados / total_itens * 100) if total_itens > 0 else 0
+        
+        inventarios_dados.append({
+            'numero': inventario.numero,
+            'descricao': inventario.descricao,
+            'tipo_inventario': inventario.get_tipo_inventario_display(),
+            'status': inventario.get_status_display(),
+            'responsavel': str(inventario.responsavel) if inventario.responsavel else '',
+            'data_cadastro': inventario.data_cadastro.strftime('%d/%m/%Y %H:%M') if inventario.data_cadastro else '',
+            'data_prevista_fim': inventario.data_prevista_fim.strftime('%d/%m/%Y %H:%M') if inventario.data_prevista_fim else '',
+            'data_conclusao': inventario.data_conclusao.strftime('%d/%m/%Y %H:%M') if inventario.data_conclusao else '',
+            'total_itens': total_itens,
+            'itens_contados': itens_contados,
+            'itens_pendentes': itens_pendentes,
+            'itens_com_diferenca': itens_com_diferenca,
+            'valor_total_diferenca': valor_total_diferenca,
+            'progresso': progresso,
+            'observacoes': inventario.observacoes or '',
+        })
+    
+    # Ordenar por data de cadastro (mais recentes primeiro)
+    inventarios_dados.sort(key=lambda x: x['data_cadastro'], reverse=True)
+    
+    # Estatísticas
+    total_inventarios = len(inventarios_dados)
+    inventarios_em_andamento = len([i for i in inventarios_dados if i['status'] == 'Em Andamento'])
+    inventarios_concluidos = len([i for i in inventarios_dados if i['status'] == 'Concluído'])
+    inventarios_pendentes = len([i for i in inventarios_dados if i['status'] == 'Pendente'])
+    
+    context = {
+        'inventarios': inventarios_dados,
+        'status_filtro': status,
+        'tipo_inventario_filtro': tipo_inventario,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'total_inventarios': total_inventarios,
+        'inventarios_em_andamento': inventarios_em_andamento,
+        'inventarios_concluidos': inventarios_concluidos,
+        'inventarios_pendentes': inventarios_pendentes,
+        'TIPO_INVENTARIO_CHOICES': Inventario.TIPO_INVENTARIO_CHOICES,
+        'STATUS_INVENTARIO_CHOICES': Inventario.STATUS_INVENTARIO_CHOICES,
+    }
+    
+    return render(request, 'estoque/relatorios/inventarios.html', context)

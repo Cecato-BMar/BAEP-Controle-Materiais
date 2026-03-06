@@ -1,0 +1,219 @@
+{% extends 'estoque/base.html' %}
+{% load static %}
+
+{% block title %}Relatório de Inventários{% endblock %}
+
+{% block estoque_content %}
+<div class="mb-2">
+    <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-clipboard-list me-2"></i>Relatório de Inventários</h1>
+    <div>
+        <a href="{% url 'estoque:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total</h5>
+                <h3>{{ total_inventarios }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Pendentes</h5>
+                <h3>{{ inventarios_pendentes }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Em Andamento</h5>
+                <h3>{{ inventarios_em_andamento }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Concluídos</h5>
+                <h3>{{ inventarios_concluidos }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="todos" {% if status_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    {% for value, label in STATUS_INVENTARIO_CHOICES %}
+                    <option value="{{ value }}" {% if status_filtro == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="tipo_inventario" class="form-label">Tipo Inventário</label>
+                <select name="tipo_inventario" id="tipo_inventario" class="form-select">
+                    <option value="todos" {% if tipo_inventario_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    {% for value, label in TIPO_INVENTARIO_CHOICES %}
+                    <option value="{{ value }}" {% if tipo_inventario_filtro == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="data_inicio" class="form-label">Data Início</label>
+                <input type="date" name="data_inicio" id="data_inicio" class="form-control" 
+                       value="{{ data_inicio|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label for="data_fim" class="form-label">Data Fim</label>
+                <input type="date" name="data_fim" id="data_fim" class="form-control" 
+                       value="{{ data_fim|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'estoque:relatorio_inventarios' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Limpar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Inventários
+            <span class="badge bg-primary ms-2">{{ total_inventarios }} inventários</span>
+        </h5>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarExcel()">
+                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if inventarios %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="tabelaInventarios">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Número</th>
+                        <th>Descrição</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Data Cadastro</th>
+                        <th>Data Prevista</th>
+                        <th>Data Conclusão</th>
+                        <th>Total Itens</th>
+                        <th>Itens Contados</th>
+                        <th>Itens Pendentes</th>
+                        <th>Progresso</th>
+                        <th>Itens c/ Diferença</th>
+                        <th>Valor Diferença</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inventario in inventarios %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'estoque:detalhe_inventario' inventario.numero %}" class="text-decoration-none">
+                                {{ inventario.numero }}
+                            </a>
+                        </td>
+                        <td>{{ inventario.descricao }}</td>
+                        <td>{{ inventario.tipo_inventario }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if inventario.status == 'Concluído' %}bg-success
+                                {% elif inventario.status == 'Em Andamento' %}bg-info
+                                {% elif inventario.status == 'Pendente' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ inventario.status }}
+                            </span>
+                        </td>
+                        <td>{{ inventario.responsavel }}</td>
+                        <td>{{ inventario.data_cadastro }}</td>
+                        <td>{{ inventario.data_prevista_fim }}</td>
+                        <td>{{ inventario.data_conclusao }}</td>
+                        <td>{{ inventario.total_itens }}</td>
+                        <td>{{ inventario.itens_contados }}</td>
+                        <td>{{ inventario.itens_pendentes }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar {% if inventario.progresso >= 100 %}bg-success{% elif inventario.progresso >= 70 %}bg-info{% elif inventario.progresso >= 40 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ inventario.progresso|floatformat:0 }}%">
+                                    {{ inventario.progresso|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if inventario.itens_com_diferenca > 0 %}
+                            <span class="badge bg-warning">{{ inventario.itens_com_diferenca }}</span>
+                            {% else %}
+                            <span class="text-muted">0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if inventario.valor_total_diferenca > 0 %}
+                            <span class="text-danger">R$ {{ inventario.valor_total_diferenca|floatformat:2 }}</span>
+                            {% else %}
+                            <span class="text-muted">R$ 0,00</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ inventario.observacoes|truncatechars:50 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhum inventário encontrado</h5>
+            <p class="text-muted">Tente ajustar os filtros ou verifique se há inventários cadastrados.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function exportarPDF() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'pdf');
+    window.open(url.toString(), '_blank');
+}
+
+function exportarExcel() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'excel');
+    window.open(url.toString(), '_blank');
+}
+</script>
+{% endblock %}

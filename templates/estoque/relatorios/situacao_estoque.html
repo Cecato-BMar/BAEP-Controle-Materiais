@@ -1,0 +1,234 @@
+{% extends 'estoque/base.html' %}
+{% load static %}
+
+{% block title %}Relatório de Situação do Estoque{% endblock %}
+
+{% block estoque_content %}
+<div class="mb-2">
+    <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-warehouse me-2"></i>Relatório de Situação do Estoque</h1>
+    <div>
+        <a href="{% url 'estoque:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total</h5>
+                <h3>{{ total_produtos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Normal</h5>
+                <h3>{{ produtos_normais }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Baixo</h5>
+                <h3>{{ produtos_baixo }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Crítico</h5>
+                <h3>{{ produtos_criticos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Esgotado</h5>
+                <h3>{{ produtos_esgotados }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h5 class="card-title">Valor Total</h5>
+                <h3>R$ {{ valor_total_estoque|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="categoria" class="form-label">Categoria</label>
+                <select name="categoria" id="categoria" class="form-select">
+                    <option value="">Todas</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if categoria_filtro == cat.id|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="todos" {% if status_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    {% for value, label in STATUS_CHOICES %}
+                    <option value="{{ value }}" {% if status_filtro == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="tipo_produto" class="form-label">Tipo Produto</label>
+                <select name="tipo_produto" id="tipo_produto" class="form-select">
+                    <option value="todos" {% if tipo_produto_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    {% for value, label in TIPO_PRODUTO_CHOICES %}
+                    <option value="{{ value }}" {% if tipo_produto_filtro == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="estoque_baixo" id="estoque_baixo" 
+                           {% if estoque_baixo_filtro %}checked{% endif %}>
+                    <label class="form-check-label" for="estoque_baixo">
+                        Apenas estoque baixo
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'estoque:relatorio_situacao_estoque' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Limpar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Produtos em Estoque
+            <span class="badge bg-primary ms-2">{{ total_produtos }} produtos</span>
+        </h5>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarExcel()">
+                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if produtos %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="tabelaSituacao">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nº Empenho</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Estoque Atual</th>
+                        <th>Estoque Mínimo</th>
+                        <th>Estoque Máximo</th>
+                        <th>Reservado</th>
+                        <th>Disponível</th>
+                        <th>Valor Unit.</th>
+                        <th>Valor Total</th>
+                        <th>Status Estoque</th>
+                        <th>Conta Contábil</th>
+                        <th>Localização Física</th>
+                        <th>Fornecedor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produto in produtos %}
+                    <tr>
+                        <td>{{ produto.codigo }}</td>
+                        <td>{{ produto.codigo_barras }}</td>
+                        <td>{{ produto.nome }}</td>
+                        <td>{{ produto.categoria }}</td>
+                        <td>{{ produto.tipo_produto }}</td>
+                        <td>
+                            <span class="badge {% if produto.status == 'ATIVO' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ produto.status }}
+                            </span>
+                        </td>
+                        <td>{{ produto.estoque_atual|floatformat:2 }}</td>
+                        <td>{{ produto.estoque_minimo|floatformat:2 }}</td>
+                        <td>{{ produto.estoque_maximo|floatformat:2 }}</td>
+                        <td>{{ produto.estoque_reservado|floatformat:2 }}</td>
+                        <td>{{ produto.estoque_disponivel|floatformat:2 }}</td>
+                        <td>R$ {{ produto.valor_unitario|floatformat:2 }}</td>
+                        <td>R$ {{ produto.valor_total|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge bg-{{ produto.cor_status }}">
+                                {{ produto.status_estoque }}
+                            </span>
+                        </td>
+                        <td>{{ produto.conta_contabil }}</td>
+                        <td>{{ produto.localizacao_fisica }}</td>
+                        <td>{{ produto.fornecedor }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-dark">
+                    <tr>
+                        <th colspan="12" class="text-end">Valor Total do Estoque:</th>
+                        <th colspan="6">R$ {{ valor_total_estoque|floatformat:2 }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhum produto encontrado</h5>
+            <p class="text-muted">Tente ajustar os filtros ou verifique se há produtos cadastrados.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function exportarPDF() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'pdf');
+    window.open(url.toString(), '_blank');
+}
+
+function exportarExcel() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'excel');
+    window.open(url.toString(), '_blank');
+}
+</script>
+{% endblock %}

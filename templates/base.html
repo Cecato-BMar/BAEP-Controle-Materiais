@@ -264,7 +264,7 @@
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <i class="fas fa-tachometer-alt"></i> Dashboard Reserva de Armas
                     </a>
                 </li>
                 <li class="nav-item">
@@ -283,24 +283,36 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'movimentacoes:nova_retirada' in request.path %}active{% endif %}" href="{% url 'movimentacoes:nova_retirada' %}">
-                        <i class="fas fa-arrow-right"></i> Nova Retirada
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'movimentacoes:nova_devolucao' in request.path %}active{% endif %}" href="{% url 'movimentacoes:nova_devolucao' %}">
-                        <i class="fas fa-arrow-left"></i> Nova Devolução
+                    <a class="nav-link {% if 'relatorios' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
+                        <i class="fas fa-file-alt"></i> Relatórios
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:dashboard' %}">
-                        <i class="fas fa-warehouse"></i> Estoque
+                        <i class="fas fa-warehouse"></i> Estoque P4
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'relatorios' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
-                        <i class="fas fa-file-alt"></i> Relatórios
-                    </a>
+                    <ul class="nav flex-column ms-3 mt-2">
+                        <li class="nav-item">
+                            <a class="nav-link small {% if 'relatorio_manutencao' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_manutencao' %}">
+                                <i class="fas fa-tools me-1"></i> Materiais em Manutenção
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small {% if 'relatorio_baixas' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_baixas' %}">
+                                <i class="fas fa-trash me-1"></i> Baixas de Materiais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small {% if 'relatorio_situacao_estoque' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_situacao_estoque' %}">
+                                <i class="fas fa-chart-bar me-1"></i> Situação do Estoque
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small {% if 'relatorio_inventarios' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_inventarios' %}">
+                                <i class="fas fa-clipboard-list me-1"></i> Inventários
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'ajuda' in request.path %}active{% endif %}" href="{% url 'ajuda' %}">

@@ -1,0 +1,135 @@
+{% extends 'estoque/base.html' %}
+{% load static %}
+
+{% block title %}Relatório de Materiais em Manutenção{% endblock %}
+
+{% block estoque_content %}
+<div class="mb-2">
+    <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tools me-2"></i>Relatório de Materiais em Manutenção</h1>
+    <div>
+        <a href="{% url 'estoque:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="categoria" class="form-label">Categoria</label>
+                <select name="categoria" id="categoria" class="form-select">
+                    <option value="">Todas</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if categoria_filtro == cat.id|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="todos" {% if status_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="MANUTENCAO" {% if status_filtro == 'MANUTENCAO' %}selected{% endif %}>Em Manutenção</option>
+                    <option value="ATIVO" {% if status_filtro == 'ATIVO' %}selected{% endif %}>Ativo</option>
+                    <option value="INATIVO" {% if status_filtro == 'INATIVO' %}selected{% endif %}>Inativo</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'estoque:relatorio_manutencao' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Limpar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Resultados
+            <span class="badge bg-primary ms-2">{{ total }} materiais</span>
+        </h5>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="exportarExcel()">
+                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if produtos %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="tabelaManutencao">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Nº Série</th>
+                        <th>Patrimônio</th>
+                        <th>Localização</th>
+                        <th>Responsável</th>
+                        <th>Conta Contábil</th>
+                        <th>Localização Física</th>
+                        <th>Data Cadastro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produto in produtos %}
+                    <tr>
+                        <td>{{ produto.codigo }}</td>
+                        <td>{{ produto.nome }}</td>
+                        <td>{{ produto.categoria }}</td>
+                        <td>{{ produto.numero_serie }}</td>
+                        <td>{{ produto.patrimonio }}</td>
+                        <td>{{ produto.localizacao }}</td>
+                        <td>{{ produto.responsavel }}</td>
+                        <td>{{ produto.conta_contabil }}</td>
+                        <td>{{ produto.localizacao_fisica }}</td>
+                        <td>{{ produto.data_cadastro }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhum material em manutenção encontrado</h5>
+            <p class="text-muted">Tente ajustar os filtros ou verifique se há materiais com status "Em Manutenção".</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function exportarPDF() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'pdf');
+    window.open(url.toString(), '_blank');
+}
+
+function exportarExcel() {
+    const url = new URL(window.location);
+    url.searchParams.set('format', 'excel');
+    window.open(url.toString(), '_blank');
+}
+</script>
+{% endblock %}

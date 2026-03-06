@@ -125,6 +125,8 @@ class ProdutoForm(forms.ModelForm):
             'fornecedor_padrao': forms.Select(attrs={'class': 'form-select'}),
             'controla_validade': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'controla_numero_serie': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'localizacao_fisica': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Armário 5, Prateleira A'}),
+            'conta_contabil': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1.01.001'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -172,6 +174,11 @@ class ProdutoForm(forms.ModelForm):
                 Column('controla_validade', css_class='form-group col-md-4 mb-0'),
                 Column('prazo_validade_meses', css_class='form-group col-md-4 mb-0'),
                 Column('controla_numero_serie', css_class='form-group col-md-4 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('localizacao_fisica', css_class='form-group col-md-6 mb-0'),
+                Column('conta_contabil', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
             'imagem',
@@ -293,8 +300,8 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
     class Meta:
         model = MovimentacaoEstoque
         fields = ['produto', 'lote', 'numero_serie', 'tipo_movimentacao', 'motivo', 
-                 'quantidade', 'valor_unitario', 'documento_referencia', 'fornecedor', 
-                 'solicitante', 'destino_origem', 'observacoes']
+                 'quantidade', 'valor_unitario', 'documento_referencia', 'documento_quem_retirou',
+                 'fornecedor', 'solicitante', 'responsavel_autorizacao', 'destino_origem', 'observacoes']
         widgets = {
             'produto': forms.Select(attrs={'class': 'form-select'}),
             'lote': forms.Select(attrs={'class': 'form-select'}),
@@ -303,6 +310,8 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
             'motivo': forms.Select(attrs={'class': 'form-select'}),
             'fornecedor': forms.Select(attrs={'class': 'form-select'}),
             'solicitante': forms.Select(attrs={'class': 'form-select'}),
+            'responsavel_autorizacao': forms.Select(attrs={'class': 'form-select'}),
+            'documento_quem_retirou': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: RG 12.345.678-9'}),
             'observacoes': forms.Textarea(attrs={'rows': 3}),
         }
 
@@ -325,12 +334,17 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
                 css_class='form-row'
             ),
             Row(
-                Column('documento_referencia', css_class='form-group col-md-4 mb-0'),
-                Column('fornecedor', css_class='form-group col-md-4 mb-0'),
-                Column('solicitante', css_class='form-group col-md-4 mb-0'),
+                Column('documento_referencia', css_class='form-group col-md-3 mb-0'),
+                Column('documento_quem_retirou', css_class='form-group col-md-3 mb-0'),
+                Column('fornecedor', css_class='form-group col-md-3 mb-0'),
+                Column('solicitante', css_class='form-group col-md-3 mb-0'),
                 css_class='form-row'
             ),
-            'destino_origem',
+            Row(
+                Column('responsavel_autorizacao', css_class='form-group col-md-6 mb-0'),
+                Column('destino_origem', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
             'observacoes',
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),

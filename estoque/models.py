@@ -136,6 +136,14 @@ class Produto(models.Model):
     
     # Imagens
     imagem = models.ImageField(_('Imagem'), upload_to='produtos/', blank=True, null=True)
+    
+    # Campos adicionais solicitados
+    localizacao_fisica = models.CharField(_('Localização Física'), max_length=200, 
+                                       blank=True, null=True, 
+                                       help_text=_('Ex: Armário 5, Prateleira A, Ala 2'))
+    conta_contabil = models.CharField(_('Conta Contábil'), max_length=50, 
+                                  blank=True, null=True,
+                                  help_text=_('Código da conta contábil do material'))
 
     # QR Code
     qr_code_token = models.UUIDField(_('Token QR Code'), default=uuid.uuid4, unique=True, editable=False)
@@ -316,10 +324,15 @@ class MovimentacaoEstoque(models.Model):
     
     # Referências
     documento_referencia = models.CharField(_('Documento Referência'), max_length=100, blank=True, null=True)
+    documento_quem_retirou = models.CharField(_('Documento Quem Retirou'), max_length=50, 
+                                           blank=True, null=True,
+                                           help_text=_('Documento de identificação de quem retirou o material'))
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True, 
                                   related_name='movimentacoes', verbose_name=_('Fornecedor'))
     solicitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='movimentacoes_solicitadas', verbose_name=_('Solicitante'))
+    responsavel_autorizacao = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True,
+                                           related_name='autorizacoes_movimentacoes', verbose_name=_('Responsável pela Autorização'))
     destino_origem = models.CharField(_('Destino/Origem'), max_length=200, blank=True, null=True)
     
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
