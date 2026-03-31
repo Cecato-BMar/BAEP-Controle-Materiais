@@ -1260,7 +1260,7 @@ def relatorio_inventarios(request):
         'inventarios_concluidos': inventarios_concluidos,
         'inventarios_pendentes': inventarios_pendentes,
         'TIPO_INVENTARIO_CHOICES': Inventario.TIPO_INVENTARIO_CHOICES,
-        'STATUS_INVENTARIO_CHOICES': Inventario.STATUS_INVENTARIO_CHOICES,
+        'STATUS_INVENTARIO_CHOICES': Inventario.STATUS_CHOICES,
     }
     
     return render(request, 'estoque/relatorios/inventarios.html', context)
