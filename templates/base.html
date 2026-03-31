@@ -14,98 +14,117 @@
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #faf603;
-            --secondary-color: #0056b3;
-            --accent-color: #ffc107;
-            --text-color: #333;
-            --light-bg: #000000;
-            --dark-bg: #343a40;
+            --primary-color: #f1c40f; /* Amarelo PMESP */
+            --secondary-color: #2c3e50; /* Azul Profundo */
+            --sidebar-bg: #1e272e;
+            --sidebar-color: #d1d8e0;
+            --sidebar-hover-bg: #2d3436;
+            --accent-color: #3498db;
+            --text-color: #2f3640;
+            --light-bg: #f5f6fa;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             color: var(--text-color);
-            background-color: #f5f5f5;
+            background-color: var(--light-bg);
         }
         
         .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(90deg, var(--secondary-color) 0%, #1a252f 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-bottom: 2px solid var(--primary-color);
         }
         
         .navbar-brand {
-            font-weight: bold;
-            color: rgb(0, 0, 0) !important;
-        }
-        
-        .nav-link {
-            color: rgba(0, 0, 0, 0.85) !important;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        
-        .nav-link:hover {
-            color: white !important;
-        }
-        
-        .nav-link.active {
-            color: var(--accent-color) !important;
-            font-weight: 600;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary-color) !important;
         }
         
         .sidebar {
-            background-color: white;
-            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
-            height: calc(100vh - 56px);
+            background-color: var(--sidebar-bg);
+            height: 100vh;
             position: fixed;
-            top: 56px;
+            top: 0;
             left: 0;
-            width: 250px;
-            z-index: 100;
-            padding-top: 20px;
+            width: 260px;
+            z-index: 1000;
+            padding-top: 70px;
             overflow-y: auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
         
         .sidebar .nav-link {
-            color: var(--text-color) !important;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 5px;
+            color: var(--sidebar-color) !important;
+            padding: 12px 20px;
+            margin: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
         }
         
         .sidebar .nav-link:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--sidebar-hover-bg);
             color: white !important;
+            transform: translateX(5px);
         }
         
         .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: rgb(255, 0, 0) !important;
+            background-color: rgba(241, 196, 15, 0.1);
+            color: var(--primary-color) !important;
+            border-left: 4px solid var(--primary-color);
         }
         
         .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 24px;
             text-align: center;
+            opacity: 0.8;
+        }
+
+        .sidebar-heading {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            margin: 25px 32px 10px;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-heading::after {
+            content: "";
+            height: 1px;
+            flex-grow: 1;
+            background: rgba(255,255,255,0.1);
+            margin-left: 10px;
         }
         
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            min-height: calc(100vh - 56px - 80px); /* Ajustado para o rodapé */
-            position: relative;
+            margin-left: 260px;
+            padding: 24px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s;
         }
         
         .card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: transform 0.3s;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
@@ -183,42 +202,24 @@
         
         /* Estilos para o rodapé */
         footer {
-            background-color: var(--light-bg);
-            padding: 15px 0;
-            width: 100%;
-            z-index: 100;
-        }
-        
-        footer a {
-            color: var(--secondary-color);
-            transition: color 0.3s;
-        }
-        
-        footer a:hover {
-            color: var(--primary-color);
+            margin-left: 260px;
+            padding: 24px 0;
+            background: white;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s;
         }
         
         /* Responsividade */
-        @media (max-width: 768px) {
+        @media (max-width: 991.98px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                top: 0;
-                display: none;
+                transform: translateX(-100%);
+                padding-top: 20px;
             }
-            
-            .main-content {
-                margin-left: 0;
-                min-height: calc(100vh - 56px - 80px);
-            }
-            
             .sidebar.show {
-                display: block;
+                transform: translateX(0);
             }
-            
-            footer {
-                margin-left: 0;
+            .main-content, footer {
+                margin-left: 0 !important;
             }
         }
     </style>
@@ -228,24 +229,30 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-shield-alt me-2"></i>Reserva BAEP
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <div class="bg-white rounded-circle p-1 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    <i class="fas fa-shield-alt text-dark" style="font-size: 1.1rem;"></i>
+                </div>
+                <span>RESERVA BAEP</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" data-bs-toggle="dropdown">
+                            <div class="bg-primary text-dark rounded-circle me-2 d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}"><i class="fas fa-id-card me-2"></i>Meu Perfil</a></li>
-                            <li><a class="dropdown-item" href="{% url 'usuarios:alterar_senha' %}"><i class="fas fa-key me-2"></i>Alterar Senha</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item py-2" href="{% url 'usuarios:perfil' %}"><i class="fas fa-id-card me-2 text-primary"></i>Meu Perfil</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'usuarios:alterar_senha' %}"><i class="fas fa-key me-2 text-primary"></i>Alterar Senha</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'usuarios:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="{% url 'usuarios:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
                         </ul>
                     </li>
                     {% else %}
@@ -260,26 +267,28 @@
 
     {% if user.is_authenticated %}
     <div class="d-flex">
-        <!-- Sidebar -->
+        <!-- Sidebar Modernizada -->
         <div class="sidebar">
             <ul class="nav flex-column">
+                
+                <div class="sidebar-heading">Principal</div>
                 <li class="nav-item">
-                    <a class="nav-link text-center border-bottom mb-2 bg-light text-dark fw-bold" href="{% url 'home' %}">
-                        <i class="fas fa-th-large me-2"></i> Módulos
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                        <i class="fas fa-home"></i> Início
                     </a>
                 </li>
+
+                <!-- Módulo Reserva de Armas -->
                 {% if user.is_superuser or user|has_group:'reserva_armas' %}
-                <li class="nav-item mt-2">
-                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-crosshairs me-1"></i> Reserva de Armas</span>
-                </li>
+                <div class="sidebar-heading">Reserva de Armas</div>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <i class="fas fa-chart-line"></i> Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}" href="{% url 'materiais:lista_materiais' %}">
-                        <i class="fas fa-boxes"></i> Armamento
+                        <i class="fas fa-crosshairs"></i> Armamentos
                     </a>
                 </li>
                 <li class="nav-item">
@@ -288,70 +297,113 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'movimentacoes' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">
-                        <i class="fas fa-exchange-alt"></i> Movimentações
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'relatorios' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
-                        <i class="fas fa-file-alt"></i> Relatórios
+                    <a class="nav-link {% if 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">
+                        <i class="fas fa-exchange-alt"></i> Cautela / Devolução
                     </a>
                 </li>
                 {% endif %}
+
+                <!-- Módulo Controle de Estoque PAP -->
                 {% if user.is_superuser or user|has_group:'materiais' %}
-                <li class="nav-item mt-3">
-                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-dolly-flatbed me-1"></i> Materiais P4</span>
+                <div class="sidebar-heading">Estoque PAP (P4)</div>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'estoque' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'estoque:dashboard' %}">
+                        <i class="fas fa-warehouse"></i> Dashboard PAP
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:dashboard' %}">
-                        <i class="fas fa-warehouse"></i> Dashboard Materiais
+                    <a class="nav-link {% if 'painel' in request.path %}active{% endif %}" href="{% url 'estoque:painel_controle' %}">
+                        <i class="fas fa-sliders-h"></i> Painel de Controle
                     </a>
-                    <ul class="nav flex-column ms-3 mt-2">
-                        <li class="nav-item">
-                            <a class="nav-link small {% if 'relatorio_manutencao' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_manutencao' %}">
-                                <i class="fas fa-tools me-1"></i> Em Manutenção
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small {% if 'relatorio_baixas' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_baixas' %}">
-                                <i class="fas fa-trash me-1"></i> Baixas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small {% if 'relatorio_situacao_estoque' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_situacao_estoque' %}">
-                                <i class="fas fa-chart-bar me-1"></i> Situação
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link small {% if 'relatorio_inventarios' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_inventarios' %}">
-                                <i class="fas fa-clipboard-list me-1"></i> Inventários
-                            </a>
-                        </li>
-                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'materiais' in request.path and 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:lista_produtos' %}">
+                        <i class="fas fa-boxes"></i> Materiais de Consumo
+                    </a>
+                </li>
+                
+                <!-- Submenu Movimentações PAP -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'entrada' in request.path or 'saida' in request.path or 'movimentacoes' in request.path and 'estoque' in request.path %}active{% endif %}" 
+                       data-bs-toggle="collapse" href="#collapseEstoque" role="button">
+                        <span><i class="fas fa-sync-alt"></i> Movimentações</span>
+                        <i class="fas fa-chevron-down small opacity-50"></i>
+                    </a>
+                    <div class="collapse {% if 'entrada' in request.path or 'saida' in request.path or 'movimentacoes' in request.path and 'estoque' in request.path %}show{% endif %}" id="collapseEstoque">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'entrada' in request.path %}active{% endif %}" href="{% url 'estoque:criar_entrada_material' %}">
+                                    <i class="fas fa-plus-circle text-success"></i> Entrada (§2)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'saida' in request.path %}active{% endif %}" href="{% url 'estoque:criar_saida_material' %}">
+                                    <i class="fas fa-minus-circle text-danger"></i> Saída (§3)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'movimentacoes' in request.path and 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:lista_movimentacoes' %}">
+                                    <i class="fas fa-history"></i> Histórico PAP
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <!-- Submenu Relatórios PAP -->
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'relatorios' in request.path and 'estoque' in request.path %}active{% endif %}" 
+                       data-bs-toggle="collapse" href="#collapseRelatorios" role="button">
+                        <span><i class="fas fa-file-invoice"></i> Relatórios PAP</span>
+                        <i class="fas fa-chevron-down small opacity-50"></i>
+                    </a>
+                    <div class="collapse {% if 'relatorios' in request.path and 'estoque' in request.path %}show{% endif %}" id="collapseRelatorios">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'estoque' in request.path and 'relatorio_estoque' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_estoque_materiais' %}">
+                                    <i class="fas fa-file-alt"></i> Estoque (§5.1)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'estoque_baixo' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_estoque_baixo' %}">
+                                    <i class="fas fa-exclamation-triangle"></i> Reposição Crítica
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'inventarios' in request.path %}active{% endif %}" href="{% url 'estoque:lista_inventarios' %}">
+                                    <i class="fas fa-tasks"></i> Inventários
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link {% if 'ajuda' in request.path %}active{% endif %}" href="{% url 'ajuda' %}">
-                        <i class="fas fa-question-circle"></i> Ajuda
-                    </a>
-                </li>
+
+                <!-- Administração -->
                 {% if user.is_superuser or user|has_group:'administracao' %}
-                <li class="nav-item mt-3">
-                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-cogs me-1"></i> Administração</span>
-                </li>
+                <div class="sidebar-heading">Administração</div>
                 <li class="nav-item">
                     <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
-                        <i class="fas fa-users"></i> Usuários
+                        <i class="fas fa-users-cog"></i> Gestão de Usuários
                     </a>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/" target="_blank">
-                        <i class="fas fa-cog"></i> Django Admin
+                        <i class="fas fa-terminal"></i> Django Admin
                     </a>
                 </li>
                 {% endif %}
                 {% endif %}
+
+                <div class="mt-auto mb-4 px-4">
+                    <div class="bg-dark rounded p-3 text-center">
+                        <small class="text-muted d-block mb-2">Versão 2.1.0 PAP</small>
+                        <a href="{% url 'ajuda' %}" class="btn btn-xs btn-outline-light btn-sm w-100">
+                            <i class="fas fa-question-circle me-1"></i> Ajuda
+                        </a>
+                    </div>
+                </div>
             </ul>
         </div>
 

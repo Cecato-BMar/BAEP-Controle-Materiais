@@ -1,0 +1,49 @@
+{% extends 'estoque/base.html' %}
+{% block estoque_content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h3 class="fw-bold"><i class="fas fa-clipboard-list me-2"></i> Inventário {{ inventario.numero }}</h3>
+        <p class="mb-0 text-muted">{{ inventario.get_tipo_inventario_display }} | Responsável: {{ inventario.responsavel.get_full_name }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if inventario.status == 'PLANEJADO' %}
+        <a href="{% url 'estoque:iniciar_inventario' inventario.pk %}" class="btn btn-success"><i class="fas fa-play me-1"></i> Iniciar Contagem</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><h6 class="mb-0 fw-bold">Itens do Inventário</h6></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>Material</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td>{{ item.produto.nome }}</td>
+                        <td>{{ item.quantidade_sistema }}</td>
+                        <td>{{ item.quantidade_contada|default:"—" }}</td>
+                        <td class="fw-bold {% if item.diferenca != 0 %}text-danger{% endif %}">{{ item.diferenca|default:"—" }}</td>
+                        <td><span class="badge {% if item.status_contagem == 'CONTADO' %}bg-success{% else %}bg-warning{% endif %}">{{ item.get_status_display }}</span></td>
+                        <td>
+                            <form method="post" action="{% url 'estoque:contar_item_inventario' item.pk %}" class="row g-1">
+                                {% csrf_token %}
+                                <div class="col-auto">
+                                    <input type="number" name="quantidade_contada" class="form-control form-control-sm" style="width: 80px;" required>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-sm btn-primary">Ok</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4">Inventário não iniciado ou vazio.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

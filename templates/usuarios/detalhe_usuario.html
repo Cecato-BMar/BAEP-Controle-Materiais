@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes do Usuário - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid animate__animated animate__fadeIn">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0"><i class="fas fa-id-badge me-2 text-primary"></i>Perfil de Usuário</h1>
+            <p class="text-muted">Gestão de acessos e informações institucionais</p>
+        </div>
+        <div class="btn-group shadow-sm">
+            <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+            <a href="{% url 'usuarios:editar_usuario' usuario.pk %}" class="btn btn-warning">
+                <i class="fas fa-user-edit me-1"></i> Editar
+            </a>
+            {% if usuario != request.user %}
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalExcluir">
+                <i class="fas fa-user-slash me-1"></i> Excluir
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Coluna da Esquerda: Resumo -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-4 mb-4">
+                <div class="card-body">
+                    <div class="mx-auto mb-3" style="width: 100px; height: 100px; background-color: #2c3e50; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span class="text-white fw-bold fs-1">{{ usuario.first_name|first|default:usuario.username|first|upper }}</span>
+                    </div>
+                    <h4 class="fw-bold mb-0 text-uppercase">{{ usuario.get_full_name|default:usuario.username }}</h4>
+                    <p class="text-muted mb-3">@{{ usuario.username }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        {% if usuario.is_active %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Ativo</span>
+                        {% else %}
+                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Inativo</span>
+                        {% endif %}
+
+                        {% if usuario.perfil.nivel_acesso %}
+                        <span class="badge bg-primary text-uppercase">{{ usuario.perfil.get_nivel_acesso_display }}</span>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <p class="small text-muted mb-0">Último Acesso:</p>
+                    <p class="fw-bold">{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca acessou" }}</p>
+                </div>
+            </div>
+
+            <!-- Vínculo Policial -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-shield-halved me-2 text-primary"></i>Identificação Militar</h6>
+                </div>
+                <div class="card-body pt-0">
+                    {% if usuario.perfil.policial %}
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-1 small text-muted">Posto/Graduação e RE:</p>
+                        <p class="fw-bold mb-3">{{ usuario.perfil.policial.posto_grad_display }} {{ usuario.perfil.policial.re }}</p>
+                        <p class="mb-1 small text-muted">QRA (Nome de Guerra):</p>
+                        <p class="fw-bold mb-0 text-primary">{{ usuario.perfil.policial.qra }}</p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Usuário sem policial vinculado.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna da Direita: Detalhes e Grupos -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-list-alt me-2 text-primary"></i>Informações de Contato e Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="text-muted w-25">E-mail Corporativo:</td>
+                            <td class="fw-bold">{{ usuario.email|default:"Nenhum e-mail cadastrado" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Telefone/Ramal:</td>
+                            <td class="fw-bold">{{ usuario.perfil.telefone|default:"Não informado" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Data de Criação:</td>
+                            <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Nível de Staff (Django):</td>
+                            <td>
+                                {% if usuario.is_staff %}
+                                <span class="text-success"><i class="fas fa-check me-1"></i> Sim (Acesso administrativo)</span>
+                                {% else %}
+                                <span class="text-muted"><i class="fas fa-times me-1"></i> Não (Acesso comum)</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Grupos / Módulos de Acesso -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-key me-2 text-primary"></i>Módulos de Acesso Liberados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for group in usuario.groups.all %}
+                        <div class="p-3 border rounded text-center bg-light" style="min-width: 120px;">
+                            <i class="fas fa-folder-open fa-2x text-primary mb-2"></i>
+                            <div class="fw-bold text-uppercase small">{{ group.name }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="alert alert-info w-100">
+                             Este usuário não possui módulos de acesso vinculados via grupos.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Exclusão -->
+{% if usuario != request.user %}
+<div class="modal fade" id="modalExcluir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Você tem certeza que deseja excluir o usuário <strong>{{ usuario.username }}</strong>?
+                <p class="text-danger small mt-2"><i class="fas fa-exclamation-triangle me-1"></i> Esta ação é irreversível.</p>
+            </div>
+            <div class="modal-footer">
+                <form action="{% url 'usuarios:excluir_usuario' usuario.pk %}" method="post">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalExcluir">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sim, Excluir Usuário</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

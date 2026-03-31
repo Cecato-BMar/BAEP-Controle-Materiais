@@ -1,0 +1,205 @@
+{% extends 'estoque/base.html' %}
+{% load static %}
+
+{% block title %}{{ produto.nome }} — Detalhes PAP §1{% endblock %}
+
+{% block estoque_content %}
+<div class="row align-items-end mb-4 animate__animated animate__fadeIn">
+    <div class="col-md-8">
+        <h2 class="mb-0 fw-bold">{{ produto.nome }}</h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-secondary me-2">Cód: {{ produto.codigo }}</span>
+            <span class="badge bg-outline-secondary">SIAFÍSICO: {{ produto.codigo_siafisico|default:"—" }}</span>
+            <span class="badge bg-outline-secondary">CAT MAT: {{ produto.codigo_cat_mat|default:"—" }}</span>
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group shadow-sm">
+            <a href="{% url 'estoque:editar_produto' produto.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Editar
+            </a>
+            <a href="{% url 'estoque:criar_entrada_material' %}?produto={{ produto.pk }}" class="btn btn-success">
+                <i class="fas fa-arrow-down me-1"></i> Entrada
+            </a>
+            <a href="{% url 'estoque:criar_saida_material' %}?produto={{ produto.pk }}" class="btn btn-danger">
+                <i class="fas fa-arrow-up me-1"></i> Saída
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row gx-4">
+    <!-- Painel de Indicadores -->
+    <div class="col-md-9 animate__animated animate__fadeInUp">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4 bg-white border-bottom border-primary border-4">
+                    <div class="card-body">
+                        <i class="fas fa-database fa-2x text-primary mb-3"></i>
+                        <h3 class="fw-bold mb-0 {% if precisa_reposicao %}text-danger animate__animated animate__pulse animate__infinite{% endif %}">
+                            {{ saldo }}
+                        </h3>
+                        <p class="small text-muted text-uppercase mb-0">Saldo em Estoque</p>
+                        <small class="text-muted">{{ produto.unidade_medida.sigla|default:"Unidade" }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4 bg-white">
+                    <div class="card-body">
+                        <i class="fas fa-money-bill-wave fa-2x text-success mb-3"></i>
+                        <h3 class="fw-bold mb-0">R$ {{ produto.preco_medio|default:produto.valor_unitario|default:"0,00" }}</h3>
+                        <p class="small text-muted text-uppercase mb-0">Preço Médio (PAP)</p>
+                        <small class="text-muted">Cotação: {{ produto.data_cotacao|default:"—" }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4 bg-white">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-2x text-info mb-3"></i>
+                        <h3 class="fw-bold mb-0">{{ produto.consumo_medio|default:"—" }}</h3>
+                        <p class="small text-muted text-uppercase mb-0">Consumo Médio</p>
+                        <small class="text-muted">Mês Atual</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center py-4 bg-white">
+                    <div class="card-body">
+                        <i class="fas fa-hourglass-half fa-2x text-warning mb-3"></i>
+                        <h3 class="fw-bold mb-0">{{ produto.autonomia|default:"—" }}</h3>
+                        <p class="small text-muted text-uppercase mb-0">Autonomia</p>
+                        <small class="text-muted">Dias restantes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ficha Técnica -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Ficha Técnica e Localização</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr><th class="text-muted w-25">Categoria</th><td>{{ produto.categoria.nome }}</td></tr>
+                            <tr><th class="text-muted">Unid. Medida</th><td>{{ produto.unidade_medida.nome }} ({{ produto.unidade_medida.sigla }})</td></tr>
+                            <tr><th class="text-muted">Fornecimento</th><td>{{ produto.unidade_fornecimento.nome|default:"—" }}</td></tr>
+                            <tr><th class="text-muted">Conta Patrimonial</th><td>{{ produto.conta_patrimonial|default:"—" }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr><th class="text-muted w-25">Estoque Mínimo</th><td>{{ produto.estoque_minimo }}</td></tr>
+                            <tr><th class="text-muted">Localização</th><td>{{ produto.localizacao_fisica.nome|default:"—" }}</td></tr>
+                            <tr><th class="text-muted">Controla Validade</th><td>{% if produto.controla_validade %}Sim ({{ produto.prazo_validade_meses }} m){% else %}Não{% endif %}</td></tr>
+                            <tr><th class="text-muted">Código de Barras</th><td>{{ produto.codigo_barras|default:"—" }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-12 mt-0">
+                        <hr>
+                        <p class="small text-muted mb-1 fw-bold">Descrição / Histórico Subcategoria:</p>
+                        <div class="bg-light p-3 rounded small text-muted">
+                            {{ produto.descricao|default:"Sem descrição adicional." }}
+                            {% if produto.historico_subcategoria %}
+                            <br><hr>
+                            <strong>Histórico:</strong> {{ produto.historico_subcategoria }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Movimentações -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Histórico Recente (Últimas 20)</h5>
+                <a href="{% url 'estoque:lista_movimentacoes' %}?produto={{ produto.pk }}" class="btn btn-sm btn-outline-primary">Ver Tudo</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo (Subtipo)</th>
+                            <th class="text-center">Qtd</th>
+                            <th>Usuário/Militar</th>
+                            <th>Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimentacoes %}
+                        <tr>
+                            <td>{{ mov.data_hora|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if mov.tipo == 'ENTRADA' %}
+                                <i class="fas fa-arrow-circle-down text-success me-1"></i>
+                                {% else %}
+                                <i class="fas fa-arrow-circle-up text-danger me-1"></i>
+                                {% endif %}
+                                {{ mov.get_subtipo_display }}
+                            </td>
+                            <td class="text-center fw-bold">{{ mov.quantidade }}</td>
+                            <td>{{ mov.usuario.username }} / {{ mov.militar_requisitante.qra|default:"—" }}</td>
+                            <td>{{ mov.nota_fiscal|default:mov.documento_referencia|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar de Alertas -->
+    <div class="col-md-3 animate__animated animate__fadeInRight">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-bell me-2 text-warning"></i>Status PAP</h6>
+            </div>
+            <div class="card-body">
+                {% if precisa_reposicao %}
+                <div class="alert alert-danger py-2 mb-2">
+                    <i class="fas fa-exclamation-triangle me-1"></i> REPOSIÇÃO NECESSÁRIA
+                    <br><small>Saldo abaixo do mínimo.</small>
+                </div>
+                {% endif %}
+
+                {% if cotacao_vencida %}
+                <div class="alert alert-warning py-2 mb-2">
+                    <i class="fas fa-clock me-1"></i> COTAÇÃO VENCIDA (>180 dias)
+                    <br><small>Conforme PAP §4, re-cotar material.</small>
+                </div>
+                {% endif %}
+
+                {% if not precisa_reposicao and not cotacao_vencida %}
+                <div class="alert alert-success py-2 mb-2">
+                    <i class="fas fa-check-circle me-1"></i> STATUS REGULAR
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if produto.imagem %}
+        <div class="card border-0 shadow-sm mb-4">
+            <img src="{{ produto.imagem.url }}" class="card-img-top p-2" style="border-radius: 12px;" alt="{{ produto.nome }}">
+        </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light py-2 small fw-bold">Atalhos de Apoio</div>
+            <div class="card-body p-2 list-group list-group-flush">
+                <a href="{% url 'estoque:painel_controle' %}?material={{ produto.pk }}" class="list-group-item list-group-item-action small py-2 px-3">
+                    <i class="fas fa-sliders-h me-2 text-primary"></i>Ver no Painel §4
+                </a>
+                <a href="{% url 'estoque:relatorio_estoque_materiais' %}?data_inicio={{ month_ago }}" class="list-group-item list-group-item-action small py-2 px-3">
+                    <i class="fas fa-file-invoice me-2 text-info"></i>Gerar Ficha §5.1
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -19,9 +19,16 @@
                 <i class="fas fa-user-plus me-2"></i>Novo Policial
             {% endif %}
         </h1>
-        <a href="{% if form.instance.id %}{% url 'policiais:detalhe_policial' policial_id=form.instance.id %}{% else %}{% url 'policiais:lista_policiais' %}{% endif %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
-        </a>
+        <div class="d-flex gap-2">
+            {% if not form.instance.id %}
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importarExcelModal">
+                <i class="fas fa-file-excel me-2"></i>Importar Excell
+            </button>
+            {% endif %}
+            <a href="{% if form.instance.id %}{% url 'policiais:detalhe_policial' policial_id=form.instance.id %}{% else %}{% url 'policiais:lista_policiais' %}{% endif %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
     </div>
     
     <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
@@ -174,6 +181,36 @@
                             Cadastrar Policial
                         {% endif %}
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar Excel -->
+<div class="modal fade" id="importarExcelModal" tabindex="-1" aria-labelledby="importarExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="importarExcelModalLabel"><i class="fas fa-file-excel me-2"></i>Importar de Planilha Excel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'policiais:importar_policiais_excel' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="arquivo_excel" class="form-label">Selecione o arquivo .xls (Excel 97-2003)</label>
+                        <input class="form-control" type="file" id="arquivo_excel" name="arquivo_excel" accept=".xls">
+                    </div>
+                    <div class="alert alert-info py-2 small">
+                        <i class="fas fa-info-circle me-1"></i> 
+                        O sistema processará as colunas: <strong>Posto/Grad, RE e NOME</strong>.
+                        <br>Se nenhum arquivo for selecionado, o sistema tentará importar o arquivo padrão <em>'Efetivo - MARÇO.xls'</em>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Iniciar Importação</button>
                 </div>
             </form>
         </div>

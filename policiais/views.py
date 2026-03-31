@@ -7,6 +7,9 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Policial
 from .forms import PolicialForm, PolicialSearchForm
+import xlrd
+from django.db import transaction
+import os
 
 @login_required
 @require_module_permission('reserva_armas')
@@ -94,3 +97,91 @@ def editar_policial(request, policial_id):
         'policial': policial,
         'titulo': _('Editar Policial'),
     })
+
+@login_required
+@require_module_permission('reserva_armas')
+def importar_policiais_excel(request):
+    if request.method == 'POST':
+        xls_file = request.FILES.get('arquivo_excel')
+        
+        # Se não enviou arquivo no POST, mas clicou em importar, tenta o arquivo padrão no disco
+        if not xls_file:
+            path_padrao = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Efetivo - MARÇO.xls')
+            if os.path.exists(path_padrao):
+                try:
+                    workbook = xlrd.open_workbook(path_padrao)
+                except Exception as e:
+                    messages.error(request, f"Erro ao abrir arquivo padrão: {e}")
+                    return redirect('policiais:lista_policiais')
+            else:
+                messages.error(request, "Nenhum arquivo enviado e arquivo padrão 'Efetivo - MARÇO.xls' não encontrado.")
+                return redirect('policiais:lista_policiais')
+        else:
+            # Ler arquivo do upload
+            try:
+                # xlrd precisa de um path ou file_contents
+                workbook = xlrd.open_workbook(file_contents=xls_file.read())
+            except Exception as e:
+                messages.error(request, f"Erro ao ler arquivo enviado: {e}")
+                return redirect('policiais:lista_policiais')
+
+        sheet = workbook.sheet_by_index(0)
+        
+        cont_sucesso = 0
+        cont_atualizado = 0
+        cont_erro = 0
+        
+        # Mapeamento de Postos (Excel -> Modelo)
+        mapa_postos = {
+            'TEN CEL PM': 'TENCEL_PM',
+            'MAJ PM': 'MAJ_PM',
+            'CAP PM': 'CAP_PM',
+            '1º TEN PM': '1TEN_PM',
+            '2º TEN PM': '2TEN_PM',
+            'SUBTEN PM': 'SUBTEN_PM',
+            'SUB TEN PM': 'SUBTEN_PM',
+            'ST PM': 'STEN_PM',
+            '1º SGT PM': '1SGT_PM',
+            '2º SGT PM': '2SGT_PM',
+            '3º SGT PM': '3SGT_PM',
+            'CB PM': 'CB_PM',
+            'SD PM': 'SD_PM',
+            'CEL PM': 'CEL_PM',
+        }
+
+        try:
+            with transaction.atomic():
+                # Começar da linha 1 (pula cabeçalho na linha 0)
+                for i in range(1, sheet.nrows):
+                    row = sheet.row_values(i)
+                    if len(row) < 4: continue
+                    
+                    posto_raw = str(row[1]).strip().upper()
+                    re_raw = str(row[2]).strip()
+                    nome_raw = str(row[3]).strip().upper()
+                    
+                    if not re_raw or not nome_raw: continue
+                    
+                    # Limpar RE (remover traços e transformar em string limpa)
+                    re_limpo = re_raw.replace('-', '').replace('.', '')
+                    
+                    posto_codigo = mapa_postos.get(posto_raw, 'SD_PM') # Default Sd se não achar
+                    
+                    # Update or Create
+                    obj, created = Policial.objects.update_or_create(
+                        re=re_limpo,
+                        defaults={
+                            'nome': nome_raw,
+                            'posto': posto_codigo,
+                            'situacao': 'ATIVO'
+                        }
+                    )
+                    
+                    if created: cont_sucesso += 1
+                    else: cont_atualizado += 1
+            
+            messages.success(request, f"Importação concluída: {cont_sucesso} novos, {cont_atualizado} atualizados.")
+        except Exception as e:
+            messages.error(request, f"Erro durante o processamento dos dados: {e}")
+            
+    return redirect('policiais:lista_policiais')

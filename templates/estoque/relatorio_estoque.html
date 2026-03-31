@@ -1,0 +1,160 @@
+{% extends 'estoque/base.html' %}
+
+{% block title %}Relatório de Estoque de Materiais — PAP §5.1{% endblock %}
+
+{% block estoque_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <div>
+    <a href="{% url 'estoque:painel_controle' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i> Voltar ao Painel
+    </a>
+  </div>
+  <div class="d-flex gap-2">
+    <form class="d-flex gap-2 align-items-center" method="get">
+      <input type="date" name="data_inicio" class="form-control form-control-sm" value="{{ data_inicio|date:'Y-m-d'|default:'' }}" placeholder="Data Início">
+      <input type="date" name="data_fim" class="form-control form-control-sm" value="{{ data_fim|date:'Y-m-d'|default:'' }}" placeholder="Data Fim">
+      <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i> Filtrar</button>
+    </form>
+    <button onclick="window.print()" class="btn btn-success btn-sm">
+      <i class="fas fa-print me-1"></i> Imprimir
+    </button>
+    <a href="{% url 'estoque:exportar_produtos_csv' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-file-csv me-1"></i> CSV
+    </a>
+  </div>
+</div>
+
+<!-- Cabeçalho Institucional -->
+<div class="card border-0 shadow print-page" id="relatorio-pap">
+  <div class="card-body">
+
+    <!-- Cabeçalho BAEP -->
+    <div class="text-center border-bottom pb-3 mb-3">
+      <div class="fw-bold fs-5 text-uppercase">Polícia Militar do Estado de São Paulo</div>
+      <div class="fw-bold text-uppercase">2º Batalhão de Ações Especiais de Polícia — 2º BAEP</div>
+      <div class="text-muted">Setor de Logística — P4</div>
+      <div class="fw-bold mt-2 fs-6 text-uppercase">RELATÓRIO DE ESTOQUE DE MATERIAIS DE CONSUMO</div>
+      {% if titulo_extra %}<div class="fw-bold text-danger">{{ titulo_extra }}</div>{% endif %}
+      <div class="text-muted small">
+        Ref.: PAP — Controle de Estoque | Emissão: {{ data_emissao|date:"d/m/Y H:i" }}
+        {% if data_inicio and data_fim %}
+        | Período: {{ data_inicio }} a {{ data_fim }}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Tabela PAP §5.1 -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm relatorio-table">
+        <thead class="table-dark">
+          <tr>
+            <th style="width:5%">#</th>
+            <th style="width:25%">5.1.1. MATERIAL (SUBCATEGORIA)</th>
+            <th style="width:10%" class="text-center">5.1.2. SALDO<br>EM ESTOQUE</th>
+            <th style="width:8%" class="text-center">5.1.3. UNIDADE<br>DE MEDIDA</th>
+            <th style="width:10%" class="text-center">5.1.4. ESTOQUE<br>MÍNIMO</th>
+            <th style="width:10%" class="text-center">5.1.5. CONSUMO<br>MÉDIO (dia)</th>
+            <th style="width:10%" class="text-center">AUTONOMIA<br>(dias)</th>
+            <th style="width:12%" class="text-center">COTAÇÃO</th>
+            <th style="width:10%" class="text-center">SITUAÇÃO</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in dados %}
+          <tr {% if item.alerta %}class="table-warning"{% endif %}>
+            <td class="text-muted small">{{ forloop.counter }}</td>
+            <td>
+              <strong>{{ item.material.nome }}</strong>
+              <br><small class="text-muted">Cód: {{ item.material.codigo }}
+              {% if item.material.categoria %} | {{ item.material.categoria.nome }}{% endif %}</small>
+            </td>
+            <td class="text-center fw-bold {% if item.alerta %}text-danger{% else %}text-success{% endif %}">
+              {{ item.saldo }}
+            </td>
+            <td class="text-center">{{ item.material.unidade_medida.sigla|default:"UN" }}</td>
+            <td class="text-center">{{ item.estoque_minimo }}</td>
+            <td class="text-center">
+              {% if item.consumo_medio %}{{ item.consumo_medio|floatformat:2 }}{% else %}—{% endif %}
+            </td>
+            <td class="text-center">
+              {% if item.consumo_medio and item.consumo_medio > 0 %}
+                {{ item.saldo|floatformat:0 }}d
+              {% else %}∞{% endif %}
+            </td>
+            <td class="text-center small">
+              {% if item.cotacao_vencida %}
+              <span class="text-danger fw-bold">{{ item.material.data_cotacao|default:"—" }} ⚠</span>
+              {% else %}
+              {{ item.material.data_cotacao|default:"—" }}
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if item.alerta %}
+              <span class="badge bg-danger">REPOR</span>
+              {% else %}
+              <span class="badge bg-success">OK</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">Nenhum material no estoque.</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <td colspan="9" class="text-end small text-muted">
+              Total de materiais: <strong>{{ dados|length }}</strong> |
+              Emissão: <strong>{{ data_emissao|date:"d/m/Y H:i" }}</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- 5.1.6. Responsável + Assinaturas -->
+    <div class="mt-4 border-top pt-3">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="small text-muted mb-1">5.1.6. RESPONSÁVEL PELO INVENTÁRIO</p>
+          <p class="fw-bold">{{ responsavel.get_full_name|default:responsavel.username }}</p>
+        </div>
+        <div class="col-md-6 text-muted small">
+          <p>Data de emissão: {{ data_emissao|date:"d/m/Y" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Área de Assinaturas -->
+    <div class="row mt-5 text-center">
+      <div class="col-md-5 offset-md-1">
+        <div class="border-top pt-2">
+          <p class="mb-0 fw-bold">_____________________________________</p>
+          <p class="mb-0 small">CHEFE DO SETOR DE LOGÍSTICA</p>
+          <p class="mb-0 small text-muted">2º BAEP / P4</p>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="border-top pt-2">
+          <p class="mb-0 fw-bold">_____________________________________</p>
+          <p class="mb-0 small">ENCARREGADO DO SETOR DE INTENDÊNCIA</p>
+          <p class="mb-0 small text-muted">2º BAEP</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-4 small text-muted">
+      2º Batalhão de Ações Especiais de Polícia — Setor de Logística — 123666-A
+    </div>
+
+  </div>
+</div>
+
+<style>
+@media print {
+  .no-print { display: none !important; }
+  .card { box-shadow: none !important; border: none !important; }
+  body { font-size: 11px; }
+  .relatorio-table th, .relatorio-table td { padding: 4px 6px !important; font-size: 10px; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'estoque/base.html' %}
+{% block estoque_content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-truck-moving me-2"></i> Detalhe do Fornecedor</h5>
+            </div>
+            <div class="card-body">
+                <h3>{{ fornecedor.nome }}</h3>
+                <p><strong>Documento:</strong> {{ fornecedor.documento }}</p>
+                <p><strong>Email:</strong> {{ fornecedor.email }}</p>
+                <p><strong>Telefone:</strong> {{ fornecedor.telefone }}</p>
+                <p><strong>Endereço:</strong> {{ fornecedor.endereco }}, {{ fornecedor.cidade }} - {{ fornecedor.estado }}</p>
+                <p><strong>Status:</strong> {% if fornecedor.ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-danger">Inativo</span>{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

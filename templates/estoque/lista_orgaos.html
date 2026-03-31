@@ -1,0 +1,22 @@
+{% extends 'estoque/lista_generica.html' %}
+{% block table_rows %}
+{% for o in page_obj|default:objetos %}
+<tr>
+    {% if o.codigo %}<td><code>{{ o.codigo }}</code></td>{% endif %}
+    {% if o.sigla %}<td><code>{{ o.sigla }}</code></td>{% endif %}
+    {% if o.re %}<td><code>{{ o.re }}</code></td>{% endif %}
+    <td>{{ o.nome|default:o.descricao|default:o.qra }}</td>
+    {% if o.categoria_pai %}<td>{{ o.categoria_pai.nome }}</td>{% endif %}
+    <td class="text-center">
+        {% if o.ativo %}
+            <span class="badge bg-success">Ativo</span>
+        {% else %}
+            <span class="badge bg-danger">Inativo</span>
+        {% endif %}
+    </td>
+    <td class="text-end">
+        <a href="#" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt"></i></a>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}

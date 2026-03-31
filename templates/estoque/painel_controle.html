@@ -1,0 +1,259 @@
+{% extends 'estoque/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Painel de Controle de Estoque — PAP{% endblock %}
+
+{% block estoque_content %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-primary text-white d-flex align-items-center gap-2">
+        <i class="fas fa-chart-bar"></i>
+        <span class="fw-bold">Formulário de Controle de Estoque (PAP §4) — Somente Leitura</span>
+      </div>
+      <div class="card-body">
+        {% crispy form %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if indicadores %}
+{% with m=indicadores.material %}
+<div class="row g-3 mb-4">
+
+  <!-- Material + Categoria -->
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <p class="text-muted small mb-1">4.1. MATERIAL (SUBCATEGORIA)</p>
+        <h5 class="fw-bold mb-0">{{ m.nome }}</h5>
+        <p class="text-muted small">Cód: {{ m.codigo }}</p>
+        <p class="text-muted small mb-1">4.2. CATEGORIA</p>
+        <span class="badge bg-secondary">{{ m.categoria.nome }}</span>
+        {% if m.codigo_siafisico %}
+        <br><small class="text-muted">SIAFÍSICO: {{ m.codigo_siafisico }}</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Saldo em Estoque -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm
+        {% if indicadores.estoque_critico %}border-danger bg-danger bg-opacity-10
+        {% elif indicadores.precisa_reposicao %}border-warning bg-warning bg-opacity-10{% endif %}">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.3. QUANTIDADE EM ESTOQUE</p>
+        <div class="display-5 fw-bold
+          {% if indicadores.estoque_critico %}text-danger
+          {% elif indicadores.precisa_reposicao %}text-warning
+          {% else %}text-success{% endif %}">
+          {{ indicadores.saldo }}
+        </div>
+        <div class="text-muted small mt-1">
+          {{ m.unidade_medida.sigla|default:"UN" }}
+          {% if indicadores.precisa_reposicao %}
+          <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Abaixo do mínimo</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estoque Mínimo -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.7. ESTOQUE MÍNIMO</p>
+        <div class="display-5 fw-bold text-info">{{ indicadores.estoque_minimo }}</div>
+        <div class="text-muted small">{{ m.unidade_medida.sigla|default:"UN" }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumo Médio -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.5. CONSUMO MÉDIO</p>
+        {% if indicadores.data_inicio and indicadores.data_fim %}
+        <small class="text-muted d-block">{{ indicadores.data_inicio }} → {{ indicadores.data_fim }}</small>
+        {% endif %}
+        <div class="display-5 fw-bold text-primary">
+          {% if indicadores.consumo_medio %}
+            {{ indicadores.consumo_medio|floatformat:2 }}
+          {% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">{{ m.unidade_medida.sigla|default:"UN" }}/dia</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Autonomia -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.6. AUTONOMIA DE ESTOQUE</p>
+        <div class="display-5 fw-bold text-success">
+          {% if indicadores.autonomia %}
+            {{ indicadores.autonomia|floatformat:0 }}
+          {% else %}∞{% endif %}
+        </div>
+        <div class="text-muted small">dias</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tempo de Reposição -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.8. TEMPO DE REPOSIÇÃO</p>
+        <div class="display-5 fw-bold text-secondary">
+          {{ indicadores.tempo_reposicao|default:"—" }}
+        </div>
+        <div class="text-muted small">dias</div>
+        {% if m.data_inicio_projeto %}
+        <small class="text-muted">Proj.: {{ m.data_inicio_projeto }}</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Data da Última Cotação -->
+  <div class="col-md-3">
+    <div class="card h-100 border-0 shadow-sm {% if indicadores.cotacao_vencida %}border-warning{% endif %}">
+      <div class="card-body text-center">
+        <p class="text-muted small mb-1">4.8. DATA DA ÚLTIMA COTAÇÃO</p>
+        <div class="fw-bold {% if indicadores.cotacao_vencida %}text-danger{% endif %}">
+          {% if m.data_cotacao %}{{ m.data_cotacao }}{% else %}—{% endif %}
+        </div>
+        {% if indicadores.cotacao_vencida %}
+        <span class="badge bg-danger mt-1"><i class="fas fa-exclamation-circle me-1"></i>+180 dias!</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Histórico de Movimentações do Material -->
+<div class="card border-0 shadow-sm mt-2">
+  <div class="card-header">
+    <i class="fas fa-history me-1"></i> Histórico de Movimentações — {{ m.nome }}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Quantidade</th>
+            <th>Órgão</th>
+            <th>Militar</th>
+            <th>Registrado por</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in m.movimentacoes_estoque.all|slice:":20" %}
+          <tr>
+            <td>{{ mov.data_movimentacao }}</td>
+            <td>
+              {% if mov.tipo_movimentacao == 'ENTRADA' %}
+              <span class="badge bg-success">{{ mov.get_subtipo_display }}</span>
+              {% else %}
+              <span class="badge bg-danger">{{ mov.get_subtipo_display }}</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.quantidade }}</td>
+            <td>{{ mov.orgao_requisitante|default:"—" }}</td>
+            <td>{{ mov.militar_requisitante|default:"—" }}</td>
+            <td>{{ mov.usuario.get_full_name|default:mov.usuario.username }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-3">Sem movimentações registradas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endwith %}
+
+{% elif form.is_valid and not indicadores %}
+<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Selecione um material para visualizar os indicadores.</div>
+{% endif %}
+
+<!-- Tabela Consolidada Todos os Materiais -->
+<div class="card border-0 shadow-sm mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-boxes me-1"></i> Situação Consolidada do Estoque</span>
+    <div>
+      <a href="{% url 'estoque:relatorio_estoque_materiais' %}" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-print me-1"></i> Relatório PAP
+      </a>
+      <a href="{% url 'estoque:exportar_produtos_csv' %}" class="btn btn-sm btn-outline-secondary ms-1">
+        <i class="fas fa-file-csv me-1"></i> CSV
+      </a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Código</th>
+            <th>Subcategoria</th>
+            <th>Categoria</th>
+            <th class="text-end">Saldo</th>
+            <th>UM</th>
+            <th class="text-end">Mínimo</th>
+            <th>Situação</th>
+            <th>Cotação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in todos_materiais %}
+          <tr class="{% if m.alerta_reposicao %}table-warning{% endif %}">
+            <td><code>{{ m.codigo }}</code></td>
+            <td>{{ m.nome }}</td>
+            <td><span class="badge bg-secondary">{{ m.categoria.nome }}</span></td>
+            <td class="text-end fw-bold {% if m.alerta_reposicao %}text-danger{% else %}text-success{% endif %}">
+              {{ m.saldo_atual }}
+            </td>
+            <td>{{ m.unidade_medida.sigla|default:"UN" }}</td>
+            <td class="text-end text-muted">{{ m.estoque_minimo }}</td>
+            <td>
+              {% if m.alerta_reposicao %}
+              <span class="badge bg-danger"><i class="fas fa-exclamation-triangle"></i> Repor</span>
+              {% else %}
+              <span class="badge bg-success">OK</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.alerta_cotacao %}
+              <span class="badge bg-warning text-dark" title="Cotação vencida (>180 dias)">
+                <i class="fas fa-clock"></i> {{ m.data_cotacao }}
+              </span>
+              {% else %}
+              <span class="text-muted small">{{ m.data_cotacao|default:"—" }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'estoque:detalhe_produto' m.pk %}" class="btn btn-xs btn-outline-primary btn-sm">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">Nenhum material cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

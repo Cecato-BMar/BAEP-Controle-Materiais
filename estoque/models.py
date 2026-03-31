@@ -3,17 +3,140 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 import uuid
 from decimal import Decimal
 from io import BytesIO
 
 
+# =============================================================================
+# TABELAS DE PADRONIZAÇÃO (PAP §1)
+# =============================================================================
+
+class Cor(models.Model):
+    """Tabela de cores parametrizável (PAP §1 - Cor)"""
+    nome = models.CharField(_('Nome'), max_length=50, unique=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Cor')
+        verbose_name_plural = _('Cores')
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
+
+class UnidadeFornecimento(models.Model):
+    """Unidade de fornecimento (PAP §1 — separada de UnidadeMedida para evitar confusão).
+    Valor padrão: UNIDADE. Cadastro restrito a administradores."""
+    nome = models.CharField(_('Nome'), max_length=100, unique=True)
+    descricao = models.TextField(_('Descrição'), blank=True, null=True)
+    padrao = models.BooleanField(_('Padrão (Unidade)'), default=False,
+                                  help_text=_('Marca esta unidade de fornecimento como padrão do sistema'))
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Unidade de Fornecimento')
+        verbose_name_plural = _('Unidades de Fornecimento')
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
+    @classmethod
+    def get_padrao(cls):
+        """Retorna a unidade de fornecimento padrão (UNIDADE)"""
+        obj = cls.objects.filter(padrao=True, ativo=True).first()
+        if not obj:
+            obj = cls.objects.filter(ativo=True).first()
+        return obj
+
+
+class ContaPatrimonial(models.Model):
+    """Conta patrimonial (PAP §1)"""
+    codigo = models.CharField(_('Código'), max_length=30, unique=True)
+    descricao = models.CharField(_('Descrição'), max_length=200)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Conta Patrimonial')
+        verbose_name_plural = _('Contas Patrimoniais')
+        ordering = ['codigo']
+
+    def __str__(self):
+        return f"{self.codigo} — {self.descricao}"
+
+
+class OrgaoRequisitante(models.Model):
+    """Órgão requisitante (PAP §1)"""
+    nome = models.CharField(_('Nome'), max_length=100, unique=True)
+    sigla = models.CharField(_('Sigla'), max_length=20, blank=True, null=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Órgão Requisitante')
+        verbose_name_plural = _('Órgãos Requisitantes')
+        ordering = ['nome']
+
+    def __str__(self):
+        if self.sigla:
+            return f"{self.sigla} — {self.nome}"
+        return self.nome
+
+
+class LocalizacaoFisica(models.Model):
+    """Localização física no almoxarifado (PAP §1)"""
+    nome = models.CharField(_('Nome'), max_length=100, unique=True)
+    descricao = models.TextField(_('Descrição'), blank=True, null=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Localização Física')
+        verbose_name_plural = _('Localizações Físicas')
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
+
+class MilitarRequisitante(models.Model):
+    """Militar requisitante (PAP §1 — RE + QRA com busca automática)"""
+    re = models.CharField(_('RE'), max_length=20, unique=True)
+    qra = models.CharField(_('QRA (Nome de Guerra)'), max_length=100)
+    nome_completo = models.CharField(_('Nome Completo'), max_length=200, blank=True, null=True)
+    orgao = models.ForeignKey(OrgaoRequisitante, on_delete=models.SET_NULL, null=True, blank=True,
+                               verbose_name=_('Órgão'), related_name='militares')
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Militar Requisitante')
+        verbose_name_plural = _('Militares Requisitantes')
+        ordering = ['re']
+
+    def __str__(self):
+        return f"{self.re} — {self.qra}"
+
+
+# =============================================================================
+# CADASTROS EXISTENTES MANTIDOS / EXPANDIDOS
+# =============================================================================
+
 class Categoria(models.Model):
-    """Categorias de materiais para organização do estoque"""
+    """Categorias de materiais (ex: Papelaria, Limpeza, Informática).
+    Subcategoria é um material específico dentro de uma categoria."""
     nome = models.CharField(_('Nome'), max_length=100, unique=True)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
     codigo = models.CharField(_('Código'), max_length=20, unique=True)
-    categoria_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
+    categoria_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
                                        related_name='subcategorias', verbose_name=_('Categoria Pai'))
     ativo = models.BooleanField(_('Ativo'), default=True)
     data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
@@ -29,16 +152,16 @@ class Categoria(models.Model):
 
     @property
     def hierarquia(self):
-        """Retorna a hierarquia completa da categoria"""
         if self.categoria_pai:
             return f"{self.categoria_pai.hierarquia} > {self.nome}"
         return self.nome
 
 
 class UnidadeMedida(models.Model):
-    """Unidades de medida para controle de estoque"""
-    sigla = models.CharField(_('Sigla'), max_length=10, unique=True)
-    nome = models.CharField(_('Nome'), max_length=50)
+    """Unidade de medida do item (PAP §1 — ex: ml, kg, pacote 100g).
+    Distinta de UnidadeFornecimento."""
+    sigla = models.CharField(_('Sigla'), max_length=20, unique=True)
+    nome = models.CharField(_('Nome'), max_length=100)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
 
@@ -52,12 +175,12 @@ class UnidadeMedida(models.Model):
 
 
 class Fornecedor(models.Model):
-    """Cadastro de fornecedores de materiais"""
+    """Cadastro de fornecedores"""
     TIPO_PESSOA_CHOICES = [
         ('FISICA', 'Pessoa Física'),
         ('JURIDICA', 'Pessoa Jurídica'),
     ]
-    
+
     nome = models.CharField(_('Nome/Razão Social'), max_length=200)
     tipo_pessoa = models.CharField(_('Tipo Pessoa'), max_length=10, choices=TIPO_PESSOA_CHOICES)
     documento = models.CharField(_('CPF/CNPJ'), max_length=20, unique=True)
@@ -81,149 +204,244 @@ class Fornecedor(models.Model):
         return f"{self.nome} ({self.documento})"
 
 
+# =============================================================================
+# MATERIAL DE CONSUMO (refatoração de Produto conforme PAP §1)
+# =============================================================================
+
 class Produto(models.Model):
-    """Cadastro de produtos do estoque"""
-    TIPO_PRODUTO_CHOICES = [
-        ('ARMAMENTO', 'Armamento'),
-        ('MUNICAO', 'Munição'),
-        ('EQUIPAMENTO', 'Equipamento'),
-        ('VESTUARIO', 'Vestuário'),
-        ('MATERIAL_EXPEDIENTE', 'Material de Expediente'),
-        ('VEICULO', 'Veículo'),
-        ('COMUNICACAO', 'Comunicação'),
-        ('MEDICO', 'Material Médico'),
-        ('OUTROS', 'Outros'),
-    ]
-    
+    """Material de Consumo — model central do estoque.
+    Expandido com campos obrigatórios do PAP §1 (Cadastro de Materiais de Consumo)."""
+
     STATUS_CHOICES = [
         ('ATIVO', 'Ativo'),
         ('INATIVO', 'Inativo'),
         ('OBSOLETO', 'Obsoleto'),
         ('EM_DESENVOLVIMENTO', 'Em Desenvolvimento'),
     ]
-    
-    codigo = models.CharField(_('Código'), max_length=50, unique=True)
-    codigo_barras = models.CharField(_('Número do Empenho'), max_length=50, blank=True, null=True, unique=True)
-    nome = models.CharField(_('Nome'), max_length=200)
-    descricao = models.TextField(_('Descrição'), blank=True, null=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='produtos', verbose_name=_('Categoria'))
-    unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.PROTECT, verbose_name=_('Unidade de Medida'))
-    tipo_produto = models.CharField(_('Tipo Produto'), max_length=20, choices=TIPO_PRODUTO_CHOICES)
-    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='ATIVO')
-    
-    # Controle de estoque
-    estoque_minimo = models.DecimalField(_('Estoque Mínimo'), max_digits=10, decimal_places=2, 
-                                        validators=[MinValueValidator(Decimal('0.00'))])
+
+    # --- Identificação (PAP §1) ---
+    codigo = models.CharField(_('Código Único'), max_length=50, unique=True,
+                               help_text=_('Código único do material. Ex: MAT-001'))
+    codigo_barras = models.CharField(_('Código de Barras / Empenho'), max_length=100,
+                                      blank=True, null=True, unique=True,
+                                      help_text=_('Preparado para futura leitura por scanner'))
+    nome = models.CharField(_('Subcategoria (Nome do Material)'), max_length=200,
+                             help_text=_('Ex: Caneta Azul, Papel Sulfite A4'))
+    descricao = models.TextField(_('Descrição'), blank=True, null=True,
+                                  help_text=_('Conforme Termo de Referência'))
+
+    # --- Classificação PAP §1 ---
+    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='produtos',
+                                   verbose_name=_('Categoria'))
+    codigo_siafisico = models.CharField(_('Código SIAFÍSICO'), max_length=50, blank=True, null=True,
+                                         help_text=_('Conforme Termo de Referência'))
+    codigo_cat_mat = models.CharField(_('Código CAT MAT'), max_length=50, blank=True, null=True,
+                                       help_text=_('Conforme Termo de Referência'))
+
+    # --- Aquisição / Licitação PAP §1 ---
+    preco_medio = models.DecimalField(_('Preço Médio'), max_digits=12, decimal_places=4,
+                                       default=Decimal('0.00'),
+                                       validators=[MinValueValidator(Decimal('0.00'))],
+                                       help_text=_('Preço médio de aquisição'))
+    data_cotacao = models.DateField(_('Data da Cotação'), null=True, blank=True,
+                                     help_text=_('Alerta automático após 180 dias'))
+    data_inicio_projeto = models.DateField(_('Data de Início do Projeto de Aquisição'),
+                                            null=True, blank=True)
+    tempo_reposicao = models.PositiveIntegerField(_('Tempo de Reposição (dias)'), default=0,
+                                                   help_text=_('Em dias. Calculado ou informado manualmente.'))
+    termo_referencia = models.CharField(_('Termo de Referência nº'), max_length=100,
+                                         blank=True, null=True)
+    processo_sei = models.CharField(_('Processo SEI nº'), max_length=100, blank=True, null=True)
+    historico_subcategoria = models.TextField(_('Histórico / Observações da Subcategoria'),
+                                               blank=True, null=True,
+                                               help_text=_('Registrar atualizações da subcategoria'))
+
+    # --- Unidades PAP §1 ---
+    unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.PROTECT,
+                                        verbose_name=_('Unidade de Medida do Item'),
+                                        null=True, blank=True)
+    unidade_fornecimento = models.ForeignKey(UnidadeFornecimento, on_delete=models.SET_NULL,
+                                              null=True, blank=True,
+                                              verbose_name=_('Unidade de Fornecimento Padrão'))
+
+    # --- Controle de Estoque ---
+    estoque_minimo = models.DecimalField(_('Estoque Mínimo'), max_digits=10, decimal_places=2,
+                                         default=Decimal('0.00'),
+                                         validators=[MinValueValidator(Decimal('0.00'))])
     estoque_maximo = models.DecimalField(_('Estoque Máximo'), max_digits=10, decimal_places=2,
-                                        validators=[MinValueValidator(Decimal('0.00'))])
-    estoque_atual = models.DecimalField(_('Estoque Atual'), max_digits=10, decimal_places=2, default=0)
-    estoque_reservado = models.DecimalField(_('Estoque Reservado'), max_digits=10, decimal_places=2, default=0)
-    
-    # Valores
-    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=10, decimal_places=2, default=0)
-    valor_total = models.DecimalField(_('Valor Total'), max_digits=12, decimal_places=2, default=0, editable=False)
-    
-    # Controle de validade (para produtos com validade)
+                                         default=Decimal('0.00'),
+                                         validators=[MinValueValidator(Decimal('0.00'))])
+    # ATENÇÃO: estoque_atual é campo legado. Use saldo_calculado para lógica de negócio.
+    estoque_atual = models.DecimalField(_('Estoque Atual (cache)'), max_digits=10, decimal_places=2,
+                                         default=0,
+                                         help_text=_('Cache — use saldo_calculado para operações'))
+    estoque_reservado = models.DecimalField(_('Estoque Reservado'), max_digits=10, decimal_places=2,
+                                             default=0)
+
+    # --- Valores ---
+    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=12, decimal_places=4,
+                                          default=0)
+    valor_total = models.DecimalField(_('Valor Total'), max_digits=14, decimal_places=2,
+                                       default=0, editable=False)
+
+    # --- Controle por Validade / Série ---
     controla_validade = models.BooleanField(_('Controla Validade'), default=False)
     prazo_validade_meses = models.PositiveIntegerField(_('Prazo Validade (meses)'), null=True, blank=True)
-    
-    # Controle por número de série (para equipamentos)
     controla_numero_serie = models.BooleanField(_('Controla Número de Série'), default=False)
-    
-    # Fornecedor padrão
-    fornecedor_padrao = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True, 
-                                        related_name='produtos_fornecidos', verbose_name=_('Fornecedor Padrão'))
-    
-    # Imagens
-    imagem = models.ImageField(_('Imagem'), upload_to='produtos/', blank=True, null=True)
-    
-    # Campos adicionais solicitados
-    localizacao_fisica = models.CharField(_('Localização Física'), max_length=200, 
-                                       blank=True, null=True, 
-                                       help_text=_('Ex: Armário 5, Prateleira A, Ala 2'))
-    conta_contabil = models.CharField(_('Conta Contábil'), max_length=50, 
-                                  blank=True, null=True,
-                                  help_text=_('Código da conta contábil do material'))
 
-    # QR Code
+    # --- Vínculos PAP ---
+    fornecedor_padrao = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True,
+                                           related_name='produtos_fornecidos',
+                                           verbose_name=_('Fornecedor Padrão'))
+    localizacao_fisica = models.ForeignKey(LocalizacaoFisica, on_delete=models.SET_NULL,
+                                            null=True, blank=True,
+                                            verbose_name=_('Localização Física'))
+    conta_patrimonial = models.ForeignKey(ContaPatrimonial, on_delete=models.SET_NULL,
+                                           null=True, blank=True,
+                                           verbose_name=_('Conta Patrimonial'))
+
+    # --- Status ---
+    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='ATIVO')
+
+    # --- Imagem / QR Code ---
+    imagem = models.ImageField(_('Imagem'), upload_to='produtos/', blank=True, null=True)
     qr_code_token = models.UUIDField(_('Token QR Code'), default=uuid.uuid4, unique=True, editable=False)
-    qr_code_imagem = models.ImageField(_('QR Code'), upload_to='produtos/qrcodes/', blank=True, null=True, editable=False)
-    
-    # Auditoria
-    criado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='produtos_criados', verbose_name=_('Criado por'))
+    qr_code_imagem = models.ImageField(_('QR Code'), upload_to='produtos/qrcodes/',
+                                        blank=True, null=True, editable=False)
+
+    # --- Auditoria ---
+    criado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='produtos_criados',
+                                    verbose_name=_('Criado por'))
     data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
     data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
-    atualizado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='produtos_atualizados', 
-                                      verbose_name=_('Atualizado por'), null=True, blank=True)
+    atualizado_por = models.ForeignKey(User, on_delete=models.PROTECT,
+                                        related_name='produtos_atualizados',
+                                        verbose_name=_('Atualizado por'), null=True, blank=True)
 
     class Meta:
-        verbose_name = _('Produto')
-        verbose_name_plural = _('Produtos')
+        verbose_name = _('Material de Consumo')
+        verbose_name_plural = _('Materiais de Consumo')
         ordering = ['codigo', 'nome']
         indexes = [
             models.Index(fields=['codigo']),
             models.Index(fields=['nome']),
             models.Index(fields=['categoria']),
-            models.Index(fields=['tipo_produto']),
+            models.Index(fields=['status']),
         ]
 
     def __str__(self):
         return f"{self.codigo} - {self.nome}"
 
     def save(self, *args, **kwargs):
-        # Calcula valor total
-        self.valor_total = self.estoque_atual * self.valor_unitario
-        
-        # Define usuário de atualização
+        self.valor_total = self.estoque_atual * Decimal(str(self.valor_unitario or 0))
         if hasattr(self, '_current_user'):
             self.atualizado_por = self._current_user
-        
         super().save(*args, **kwargs)
-
         if not self.qr_code_imagem:
             try:
                 import qrcode
-
                 payload = str(self.qr_code_token)
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_M,
-                    box_size=10,
-                    border=4,
-                )
+                qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M,
+                                   box_size=10, border=4)
                 qr.add_data(payload)
                 qr.make(fit=True)
                 img = qr.make_image(fill_color='black', back_color='white')
-
                 buffer = BytesIO()
                 img.save(buffer, format='PNG')
                 filename = f"qr_{self.codigo}.png"
                 self.qr_code_imagem.save(filename, ContentFile(buffer.getvalue()), save=False)
-
                 super().save(update_fields=['qr_code_imagem'])
             except Exception:
-                # Não falhar o cadastro caso a dependência do QR Code não esteja disponível
                 pass
+
+    # --- Properties de Negócio (PAP §4) ---
+
+    @property
+    def saldo_calculado(self):
+        """Saldo real: SOMA(entradas) - SOMA(saídas). PAP §4.3"""
+        from django.db.models import Sum, Q
+        TIPOS_ENTRADA = ['COMPRA_NOVA', 'DEVOLUCAO_ENTRADA']
+        TIPOS_SAIDA = ['REQUISICAO', 'DESCARTE']
+        movs = self.movimentacoes_estoque.all()
+        entradas = movs.filter(subtipo__in=TIPOS_ENTRADA).aggregate(
+            total=Sum('quantidade'))['total'] or Decimal('0.00')
+        saidas = movs.filter(subtipo__in=TIPOS_SAIDA).aggregate(
+            total=Sum('quantidade'))['total'] or Decimal('0.00')
+        # Incluir ajustes
+        ajustes_acrescimo = self.ajustes.filter(tipo_ajuste='ACRESCIMO').aggregate(
+            total=Sum('quantidade'))['total'] or Decimal('0.00')
+        ajustes_debito = self.ajustes.filter(tipo_ajuste='DEBITO').aggregate(
+            total=Sum('quantidade'))['total'] or Decimal('0.00')
+        return entradas - saidas + ajustes_acrescimo - ajustes_debito
 
     @property
     def estoque_disponivel(self):
-        """Retorna quantidade disponível para uso"""
-        return self.estoque_atual - self.estoque_reservado
+        return self.saldo_calculado - self.estoque_reservado
 
     @property
     def precisa_reposicao(self):
-        """Verifica se precisa de reposição"""
         return self.estoque_disponivel <= self.estoque_minimo
 
     @property
     def estoque_critico(self):
-        """Verifica se estoque está crítico"""
         return self.estoque_disponivel <= (self.estoque_minimo * Decimal('0.5'))
 
+    @property
+    def cotacao_vencida(self):
+        """Alerta se cotação tem mais de 180 dias. PAP §4.8"""
+        if self.data_cotacao:
+            return (timezone.now().date() - self.data_cotacao).days > 180
+        return False
+
+    @property
+    def tempo_reposicao_calculado(self):
+        """PAP §4.8: Data Entrada - Data Início Projeto"""
+        if self.data_inicio_projeto:
+            # Busca a primeira entrada
+            primeira_entrada = self.movimentacoes_estoque.filter(
+                subtipo='COMPRA_NOVA').order_by('data_movimentacao').first()
+            if primeira_entrada:
+                delta = primeira_entrada.data_movimentacao - self.data_inicio_projeto
+                return delta.days
+        return self.tempo_reposicao
+
+    def consumo_medio(self, data_inicio=None, data_fim=None):
+        """PAP §4.5: consumo médio no período (saídas / dias)"""
+        from django.db.models import Sum
+        qs = self.movimentacoes_estoque.filter(subtipo__in=['REQUISICAO', 'DESCARTE'])
+        if data_inicio:
+            qs = qs.filter(data_movimentacao__gte=data_inicio)
+        if data_fim:
+            qs = qs.filter(data_movimentacao__lte=data_fim)
+        total_saidas = qs.aggregate(total=Sum('quantidade'))['total'] or Decimal('0.00')
+        if data_inicio and data_fim:
+            dias = (data_fim - data_inicio).days or 1
+        else:
+            # Calcula sobre todo o histórico
+            primeira = qs.order_by('data_movimentacao').values_list(
+                'data_movimentacao', flat=True).first()
+            if primeira:
+                dias = (timezone.now().date() - (primeira.date() if hasattr(primeira, 'date') else primeira)).days or 1
+            else:
+                return Decimal('0.00')
+        return total_saidas / Decimal(str(dias))
+
+    def autonomia(self, data_inicio=None, data_fim=None):
+        """PAP §4.6: quantidade / consumo médio"""
+        cm = self.consumo_medio(data_inicio, data_fim)
+        if cm == 0:
+            return None  # Infinito / sem consumo
+        return self.saldo_calculado / cm
+
+
+# =============================================================================
+# LOTES (PEPS — PAP §1.3)
+# =============================================================================
 
 class Lote(models.Model):
-    """Controle de lotes para produtos"""
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='lotes', verbose_name=_('Produto'))
+    """Controle de lotes para rastreabilidade PEPS"""
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='lotes',
+                                 verbose_name=_('Produto'))
     numero_lote = models.CharField(_('Número do Lote'), max_length=50)
     data_fabricacao = models.DateField(_('Data de Fabricação'), null=True, blank=True)
     data_validade = models.DateField(_('Data de Validade'), null=True, blank=True)
@@ -233,13 +451,13 @@ class Lote(models.Model):
     nota_fiscal = models.CharField(_('Nota Fiscal'), max_length=50, blank=True, null=True)
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
-    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
-    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _('Lote')
         verbose_name_plural = _('Lotes')
-        ordering = ['-data_cadastro']
+        ordering = ['data_cadastro']  # PEPS: mais antigo primeiro
         unique_together = ['produto', 'numero_lote']
 
     def __str__(self):
@@ -247,34 +465,32 @@ class Lote(models.Model):
 
     @property
     def vencido(self):
-        """Verifica se lote está vencido"""
         if self.data_validade:
-            from django.utils import timezone
             return self.data_validade < timezone.now().date()
         return False
 
     @property
     def proximo_vencimento(self):
-        """Verifica se lote está próximo do vencimento (30 dias)"""
         if self.data_validade:
-            from django.utils import timezone
-            dias_para_vencer = (self.data_validade - timezone.now().date()).days
-            return 0 <= dias_para_vencer <= 30
+            dias = (self.data_validade - timezone.now().date()).days
+            return 0 <= dias <= 30
         return False
 
 
 class NumeroSerie(models.Model):
     """Controle de números de série para equipamentos"""
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='numeros_serie', verbose_name=_('Produto'))
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='numeros_serie',
+                                 verbose_name=_('Produto'))
     numero_serie = models.CharField(_('Número de Série'), max_length=100, unique=True)
     patrimonio = models.CharField(_('Patrimônio'), max_length=50, blank=True, null=True)
     status = models.CharField(_('Status'), max_length=20, choices=Produto.STATUS_CHOICES, default='ATIVO')
     localizacao = models.CharField(_('Localização'), max_length=100, blank=True, null=True)
     responsavel = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True,
-                                    related_name='equipamentos_responsaveis', verbose_name=_('Responsável'))
+                                     related_name='equipamentos_responsaveis',
+                                     verbose_name=_('Responsável'))
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
-    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
-    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _('Número de Série')
@@ -285,121 +501,193 @@ class NumeroSerie(models.Model):
         return f"{self.numero_serie} - {self.produto.nome}"
 
 
+# =============================================================================
+# MOVIMENTAÇÃO DE ESTOQUE (PAP §2 Entrada / §3 Saída)
+# =============================================================================
+
 class MovimentacaoEstoque(models.Model):
-    """Registro de movimentações de estoque"""
+    """Registro de movimentações. Saldo é sempre DERIVADO daqui — nunca atualizar
+    estoque_atual diretamente. PAP §1.2, §2, §3."""
+
     TIPO_MOVIMENTACAO_CHOICES = [
         ('ENTRADA', 'Entrada'),
         ('SAIDA', 'Saída'),
-        ('TRANSFERENCIA', 'Transferência'),
         ('AJUSTE', 'Ajuste de Estoque'),
-        ('PERDA', 'Perda'),
-        ('DEVOLUCAO', 'Devolução'),
     ]
-    
-    MOTIVO_CHOICES = [
-        ('COMPRA', 'Compra'),
-        ('DOACAO', 'Doação'),
+
+    # Subtipos PAP §1 (não permitir cadastro manual além destes)
+    SUBTIPO_CHOICES = [
+        # Entradas
+        ('COMPRA_NOVA', 'Compra Nova'),
+        ('DEVOLUCAO_ENTRADA', 'Devolução'),
+        # Saídas
+        ('REQUISICAO', 'Requisição'),
+        ('DESCARTE', 'Descarte'),
+        # Legado / outros
         ('TRANSFERENCIA', 'Transferência'),
-        ('USO', 'Uso Operacional'),
-        ('MANUTENCAO', 'Manutenção'),
-        ('PERDA', 'Perda'),
-        ('ROUBO', 'Roubo'),
-        ('DANO', 'Dano'),
         ('AJUSTE_INVENTARIO', 'Ajuste de Inventário'),
-        ('DEVOLUCAO_FORNECEDOR', 'Devolução ao Fornecedor'),
         ('OUTROS', 'Outros'),
     ]
-    
+
+    SUBTIPOS_ENTRADA = ['COMPRA_NOVA', 'DEVOLUCAO_ENTRADA']
+    SUBTIPOS_SAIDA = ['REQUISICAO', 'DESCARTE']
+
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='movimentacoes', verbose_name=_('Produto'))
-    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True, related_name='movimentacoes', verbose_name=_('Lote'))
-    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True, 
-                                   related_name='movimentacoes', verbose_name=_('Número de Série'))
-    
-    tipo_movimentacao = models.CharField(_('Tipo Movimentação'), max_length=20, choices=TIPO_MOVIMENTACAO_CHOICES)
-    motivo = models.CharField(_('Motivo'), max_length=30, choices=MOTIVO_CHOICES)
-    quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2)
-    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=10, decimal_places=2, default=0)
-    valor_total = models.DecimalField(_('Valor Total'), max_digits=12, decimal_places=2, default=0, editable=False)
-    
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE,
+                                 related_name='movimentacoes_estoque',
+                                 verbose_name=_('Material'))
+    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='movimentacoes', verbose_name=_('Lote'))
+    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name='movimentacoes', verbose_name=_('Número de Série'))
+
+    # Tipo e subtipo PAP
+    tipo_movimentacao = models.CharField(_('Tipo'), max_length=20, choices=TIPO_MOVIMENTACAO_CHOICES)
+    subtipo = models.CharField(_('Subtipo'), max_length=30, choices=SUBTIPO_CHOICES,
+                                help_text=_('Compra Nova / Devolução / Requisição / Descarte'))
+
+    # Data (PAP §2.3, §3 — calendário travado por padrão)
+    data_movimentacao = models.DateField(_('Data da Movimentação'), default=timezone.now)
+
+    # Campos de Entrada PAP §2
+    cor = models.ForeignKey(Cor, on_delete=models.SET_NULL, null=True, blank=True,
+                             verbose_name=_('Cor'))
+    unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.SET_NULL,
+                                        null=True, blank=True,
+                                        verbose_name=_('Unidade de Medida do Item'))
+    unidade_fornecimento = models.ForeignKey(UnidadeFornecimento, on_delete=models.SET_NULL,
+                                              null=True, blank=True,
+                                              verbose_name=_('Unidade de Fornecimento'))
+    conta_patrimonial = models.ForeignKey(ContaPatrimonial, on_delete=models.SET_NULL,
+                                           null=True, blank=True,
+                                           verbose_name=_('Conta Patrimonial'))
+    localizacao_fisica = models.ForeignKey(LocalizacaoFisica, on_delete=models.SET_NULL,
+                                            null=True, blank=True,
+                                            verbose_name=_('Localização Física'))
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='movimentacoes_estoque',
+                                    verbose_name=_('Fornecedor'))
+
+    # Campos de Saída PAP §3
+    orgao_requisitante = models.ForeignKey(OrgaoRequisitante, on_delete=models.SET_NULL,
+                                            null=True, blank=True,
+                                            verbose_name=_('Órgão Requisitante'))
+    militar_requisitante = models.ForeignKey(MilitarRequisitante, on_delete=models.SET_NULL,
+                                              null=True, blank=True,
+                                              verbose_name=_('Militar Requisitante'))
+
+    # Quantidades e Valores
+    quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2,
+                                      validators=[MinValueValidator(Decimal('0.01'))])
+    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=12, decimal_places=4, default=0)
+    valor_total = models.DecimalField(_('Valor Total'), max_digits=14, decimal_places=2,
+                                       default=0, editable=False)
+
     # Referências
-    documento_referencia = models.CharField(_('Documento Referência'), max_length=100, blank=True, null=True)
-    documento_quem_retirou = models.CharField(_('Documento Quem Retirou'), max_length=50, 
-                                           blank=True, null=True,
-                                           help_text=_('Documento de identificação de quem retirou o material'))
-    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True, 
-                                  related_name='movimentacoes', verbose_name=_('Fornecedor'))
-    solicitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name='movimentacoes_solicitadas', verbose_name=_('Solicitante'))
-    responsavel_autorizacao = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True,
-                                           related_name='autorizacoes_movimentacoes', verbose_name=_('Responsável pela Autorização'))
-    destino_origem = models.CharField(_('Destino/Origem'), max_length=200, blank=True, null=True)
-    
-    observacoes = models.TextField(_('Observações'), blank=True, null=True)
-    
+    documento_referencia = models.CharField(_('Documento Referência'), max_length=100,
+                                             blank=True, null=True)
+    nota_fiscal = models.CharField(_('Nota Fiscal'), max_length=100, blank=True, null=True)
+
     # Auditoria
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='movimentacoes_estoque', verbose_name=_('Usuário'))
-    data_hora = models.DateTimeField(_('Data e Hora'), auto_now_add=True)
+    observacoes = models.TextField(_('Observações'), blank=True, null=True)
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT,
+                                 related_name='movimentacoes_estoque_registradas',
+                                 verbose_name=_('Registrado por'))
+    data_hora = models.DateTimeField(_('Data/Hora do Registro'), auto_now_add=True)
     ip_address = models.GenericIPAddressField(_('IP Address'), null=True, blank=True)
-    user_agent = models.TextField(_('User Agent'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Movimentação de Estoque')
         verbose_name_plural = _('Movimentações de Estoque')
         ordering = ['-data_hora']
         indexes = [
-            models.Index(fields=['produto', '-data_hora']),
-            models.Index(fields=['tipo_movimentacao', '-data_hora']),
-            models.Index(fields=['data_hora']),
+            models.Index(fields=['produto', '-data_movimentacao']),
+            models.Index(fields=['subtipo', '-data_movimentacao']),
+            models.Index(fields=['data_movimentacao']),
         ]
 
     def __str__(self):
-        return f"{self.get_tipo_movimentacao_display()} - {self.produto.nome} - {self.quantidade} - {self.data_hora.strftime('%d/%m/%Y %H:%M')}"
+        return (f"{self.get_subtipo_display()} — {self.produto.nome} — "
+                f"{self.quantidade} — {self.data_movimentacao.strftime('%d/%m/%Y')}")
+
+    def clean(self):
+        """Validações de negócio (PAP Observações)"""
+        super().clean()
+        # Subtipo deve ser coerente com tipo
+        if self.subtipo in self.SUBTIPOS_ENTRADA and self.tipo_movimentacao != 'ENTRADA':
+            raise ValidationError({'subtipo': _('Subtipo de entrada incompatível com tipo de movimentação.')})
+        if self.subtipo in self.SUBTIPOS_SAIDA and self.tipo_movimentacao != 'SAIDA':
+            raise ValidationError({'subtipo': _('Subtipo de saída incompatível com tipo de movimentação.')})
+
+        # PAP: Saída não pode ser maior que saldo disponível
+        if self.subtipo in self.SUBTIPOS_SAIDA and self.produto_id:
+            from django.db.models import Sum
+            saldo = self.produto.saldo_calculado
+            quantidade_nova = Decimal(str(self.quantidade or 0))
+            if quantidade_nova > saldo:
+                raise ValidationError({
+                    'quantidade': _(
+                        f'Quantidade de saída ({quantidade_nova}) é maior que o saldo disponível ({saldo}). '
+                        f'Operação bloqueada conforme PAP.'
+                    )
+                })
 
     def save(self, *args, **kwargs):
-        # Calcula valor total
-        self.valor_total = self.quantidade * self.valor_unitario
-        
-        # Captura IP e User Agent se disponível
+        # Deriva tipo a partir do subtipo
+        if self.subtipo in self.SUBTIPOS_ENTRADA:
+            self.tipo_movimentacao = 'ENTRADA'
+        elif self.subtipo in self.SUBTIPOS_SAIDA:
+            self.tipo_movimentacao = 'SAIDA'
+
+        self.valor_total = Decimal(str(self.quantidade or 0)) * Decimal(str(self.valor_unitario or 0))
+
         if hasattr(self, '_request'):
             self.ip_address = self._request.META.get('REMOTE_ADDR')
-            self.user_agent = self._request.META.get('HTTP_USER_AGENT', '')[:500]
-        
+
         super().save(*args, **kwargs)
 
+        # Atualiza cache de estoque_atual no produto
+        try:
+            self.produto.estoque_atual = self.produto.saldo_calculado
+            Produto.objects.filter(pk=self.produto_id).update(
+                estoque_atual=self.produto.estoque_atual)
+        except Exception:
+            pass
+
+
+# =============================================================================
+# INVENTÁRIO ROTATIVO (PAP §1.5)
+# =============================================================================
 
 class Inventario(models.Model):
-    """Controle de inventários"""
+    """Controle de inventários rotativos mensais"""
     STATUS_CHOICES = [
         ('PLANEJADO', 'Planejado'),
         ('EM_ANDAMENTO', 'Em Andamento'),
         ('CONCLUIDO', 'Concluído'),
         ('CANCELADO', 'Cancelado'),
     ]
-    
     TIPO_INVENTARIO_CHOICES = [
         ('COMPLETO', 'Completo'),
         ('PARCIAL', 'Parcial'),
         ('ROTATIVO', 'Rotativo'),
         ('SORTEIO', 'Por Sorteio'),
     ]
-    
+
     numero = models.CharField(_('Número'), max_length=20, unique=True)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
-    tipo_inventario = models.CharField(_('Tipo Inventário'), max_length=20, choices=TIPO_INVENTARIO_CHOICES)
+    tipo_inventario = models.CharField(_('Tipo'), max_length=20, choices=TIPO_INVENTARIO_CHOICES)
     status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='PLANEJADO')
-    
     data_inicio = models.DateTimeField(_('Data Início'), null=True, blank=True)
     data_fim = models.DateTimeField(_('Data Fim'), null=True, blank=True)
     data_prevista_fim = models.DateTimeField(_('Data Prevista Fim'))
-    
-    responsavel = models.ForeignKey(User, on_delete=models.PROTECT, related_name='inventarios_responsaveis', 
-                                  verbose_name=_('Responsável'))
+    responsavel = models.ForeignKey(User, on_delete=models.PROTECT,
+                                     related_name='inventarios_responsaveis',
+                                     verbose_name=_('Responsável'))
     produtos = models.ManyToManyField(Produto, through='ItemInventario', verbose_name=_('Produtos'))
-    
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
-    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
-    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _('Inventário')
@@ -411,42 +699,46 @@ class Inventario(models.Model):
 
     @property
     def total_produtos(self):
-        """Retorna total de produtos no inventário"""
         return self.produtos.count()
 
     @property
     def itens_contados(self):
-        """Retorna total de itens já contados"""
         return self.itens_inventario.filter(contado_em__isnull=False).count()
 
     @property
     def percentual_conclusao(self):
-        """Retorna percentual de conclusão"""
         if self.total_produtos == 0:
             return 0
         return (self.itens_contados / self.total_produtos) * 100
 
 
 class ItemInventario(models.Model):
-    """Itens do inventário"""
-    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name='itens_inventario', verbose_name=_('Inventário'))
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='itens_inventario', verbose_name=_('Produto'))
-    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True, related_name='itens_inventario', verbose_name=_('Lote'))
-    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True, 
-                                   related_name='itens_inventario', verbose_name=_('Número de Série'))
-    
+    """Itens do inventário com contagem física e divergência"""
+    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE,
+                                    related_name='itens_inventario', verbose_name=_('Inventário'))
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE,
+                                 related_name='itens_inventario', verbose_name=_('Produto'))
+    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='itens_inventario', verbose_name=_('Lote'))
+    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name='itens_inventario', verbose_name=_('Número de Série'))
+
     quantidade_sistema = models.DecimalField(_('Quantidade Sistema'), max_digits=10, decimal_places=2)
-    quantidade_contada = models.DecimalField(_('Quantidade Contada'), max_digits=10, decimal_places=2, null=True, blank=True)
-    diferenca = models.DecimalField(_('Diferença'), max_digits=10, decimal_places=2, null=True, blank=True, editable=False)
-    
-    status_contagem = models.CharField(_('Status Contagem'), max_length=20, 
-                                       choices=[('PENDENTE', 'Pendente'), ('CONTRADO', 'Contado'), ('AJUSTADO', 'Ajustado')],
-                                       default='PENDENTE')
-    
-    contado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
-                                   related_name='itens_contados', verbose_name=_('Contado por'))
+    quantidade_contada = models.DecimalField(_('Quantidade Contada'), max_digits=10, decimal_places=2,
+                                              null=True, blank=True)
+    diferenca = models.DecimalField(_('Diferença'), max_digits=10, decimal_places=2,
+                                     null=True, blank=True, editable=False)
+
+    status_contagem = models.CharField(_('Status Contagem'), max_length=20,
+                                        choices=[('PENDENTE', 'Pendente'),
+                                                 ('CONTADO', 'Contado'),
+                                                 ('AJUSTADO', 'Ajustado')],
+                                        default='PENDENTE')
+
+    contado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='itens_contados', verbose_name=_('Contado por'))
     contado_em = models.DateTimeField(_('Contado em'), null=True, blank=True)
-    
+    justificativa_divergencia = models.TextField(_('Justificativa da Divergência'), blank=True, null=True)
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
 
     class Meta:
@@ -458,19 +750,17 @@ class ItemInventario(models.Model):
         return f"{self.inventario.numero} - {self.produto.nome}"
 
     def save(self, *args, **kwargs):
-        # Calcula diferença
         if self.quantidade_contada is not None:
             self.diferenca = self.quantidade_contada - self.quantidade_sistema
         super().save(*args, **kwargs)
 
 
 class AjusteEstoque(models.Model):
-    """Registro de ajustes de estoque"""
+    """Ajustes de estoque com justificativa obrigatória"""
     TIPO_AJUSTE_CHOICES = [
         ('ACRESCIMO', 'Acréscimo'),
         ('DEBITO', 'Débito'),
     ]
-    
     MOTIVO_CHOICES = [
         ('INVENTARIO', 'Inventário'),
         ('PERDA', 'Perda'),
@@ -479,30 +769,33 @@ class AjusteEstoque(models.Model):
         ('DEVOLUCAO', 'Devolução'),
         ('OUTROS', 'Outros'),
     ]
-    
-    inventario = models.ForeignKey(Inventario, on_delete=models.SET_NULL, null=True, blank=True, 
-                                  related_name='ajustes', verbose_name=_('Inventário'))
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='ajustes', verbose_name=_('Produto'))
-    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True, related_name='ajustes', verbose_name=_('Lote'))
-    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True, 
-                                   related_name='ajustes', verbose_name=_('Número de Série'))
-    
+
+    inventario = models.ForeignKey(Inventario, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='ajustes', verbose_name=_('Inventário'))
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE,
+                                 related_name='ajustes', verbose_name=_('Produto'))
+    lote = models.ForeignKey(Lote, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='ajustes', verbose_name=_('Lote'))
+    numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True,
+                                      related_name='ajustes', verbose_name=_('Número de Série'))
+
     tipo_ajuste = models.CharField(_('Tipo Ajuste'), max_length=20, choices=TIPO_AJUSTE_CHOICES)
     motivo = models.CharField(_('Motivo'), max_length=30, choices=MOTIVO_CHOICES)
     quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2)
-    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=10, decimal_places=2, default=0)
-    valor_total = models.DecimalField(_('Valor Total'), max_digits=12, decimal_places=2, default=0, editable=False)
-    
+    valor_unitario = models.DecimalField(_('Valor Unitário'), max_digits=12, decimal_places=4, default=0)
+    valor_total = models.DecimalField(_('Valor Total'), max_digits=14, decimal_places=2,
+                                       default=0, editable=False)
+
     quantidade_antes = models.DecimalField(_('Quantidade Antes'), max_digits=10, decimal_places=2)
     quantidade_depois = models.DecimalField(_('Quantidade Depois'), max_digits=10, decimal_places=2)
-    
-    observacoes = models.TextField(_('Observações'), blank=True, null=True)
-    
-    # Auditoria
-    aprovado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='ajustes_aprovados', 
-                                    verbose_name=_('Aprovado por'))
-    data_aprovacao = models.DateTimeField(_('Data Aprovação'), auto_now_add=True)
-    ip_address = models.GenericIPAddressField(_('IP Address'), null=True, blank=True)
+
+    observacoes = models.TextField(_('Observações / Justificativa'), blank=True, null=True)
+
+    aprovado_por = models.ForeignKey(User, on_delete=models.PROTECT,
+                                      related_name='ajustes_aprovados',
+                                      verbose_name=_('Aprovado por'))
+    data_aprovacao = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
 
     class Meta:
         verbose_name = _('Ajuste de Estoque')
@@ -513,6 +806,13 @@ class AjusteEstoque(models.Model):
         return f"{self.get_tipo_ajuste_display()} - {self.produto.nome} - {self.quantidade}"
 
     def save(self, *args, **kwargs):
-        # Calcula valor total
-        self.valor_total = self.quantidade * self.valor_unitario
+        self.valor_total = Decimal(str(self.quantidade)) * Decimal(str(self.valor_unitario or 0))
         super().save(*args, **kwargs)
+        # Atualiza cache do produto
+        try:
+            Produto.objects.filter(pk=self.produto_id).update(
+                estoque_atual=self.produto.saldo_calculado)
+        except Exception:
+            pass
+
+

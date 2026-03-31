@@ -1,0 +1,52 @@
+{% extends 'estoque/base.html' %}
+
+{% block title %}{{ titulo|default:"Listagem" }}{% endblock %}
+
+{% block estoque_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">{{ titulo|default:"Listagem de Cadastros" }}</h4>
+        <p class="text-muted small mb-0">{{ subtitulo|default:"PAP — Tabelas de Referência" }}</p>
+    </div>
+    {% if url_nova %}
+    <a href="{% url url_nova %}" class="btn btn-primary btn-sm shadow-sm">
+        <i class="fas fa-plus me-1"></i> Adicionar Novo
+    </a>
+    {% endif %}
+</div>
+
+{% if busca_q %}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row gx-2 gy-1">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar..." value="{{ termo|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        {% for th in table_headers %}
+                        <th>{{ th }}</th>
+                        {% endfor %}
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% block table_rows %}{% endblock %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

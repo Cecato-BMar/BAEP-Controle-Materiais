@@ -1,0 +1,66 @@
+{% extends 'estoque/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ produto.nome|default:"Novo Material" }} — PAP §1{% endblock %}
+
+{% block estoque_content %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="card border-0 shadow-sm animate__animated animate__fadeIn">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2 text-primary"></i>
+                        {% if objeto %}Editar Material{% else %}Cadastrar Novo Material de Consumo{% endif %}
+                    </h5>
+                    <a href="{% url 'estoque:lista_produtos' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info py-2 small mb-4">
+                    <i class="fas fa-info-circle me-1"></i> 
+                    Conforme o <strong>PAP §1</strong>, o cadastro de materiais deve conter todos os dados SIAFÍSICO e CAT MAT para fins de auditoria e reposição.
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" class="modern-form">
+                    {% csrf_token %}
+                    {% crispy form %}
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-light">
+                <i class="fas fa-lightbulb me-1 text-warning"></i> Dicas
+            </div>
+            <div class="card-body small">
+                <p><strong>SIAFÍSICO:</strong> Utilize o código padrão do sistema estadual para facilitar relatórios de auditoria.</p>
+                <hr>
+                <p><strong>Cotação:</strong> O sistema gera alerta automático caso a cotação tenha mais de 180 dias, conforme §4 do PAP.</p>
+                <hr>
+                <p><strong>Estoque Mínimo:</strong> Defina um valor que garanta a autonomia de serviço durante o prazo de reposição.</p>
+            </div>
+        </div>
+
+        {% if objeto.imagem %}
+        <div class="card border-0 shadow-sm">
+            <img src="{{ objeto.imagem.url }}" class="card-img-top" alt="{{ objeto.nome }}">
+            <div class="card-body text-center py-2">
+                <small class="text-muted">Imagem Atual</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .modern-form .form-group { margin-bottom: 0.75rem; }
+    .modern-form label { font-weight: 500; font-size: 0.85rem; color: #4b5563; }
+    .modern-form .form-control-sm, .modern-form .form-select-sm { border-radius: 6px; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); }
+</style>
+{% endblock %}

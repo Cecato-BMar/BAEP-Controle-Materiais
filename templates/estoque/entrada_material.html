@@ -1,0 +1,102 @@
+{% extends 'estoque/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registrar Entrada de Material — PAP §2{% endblock %}
+
+{% block estoque_content %}
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+
+    <div class="card border-0 shadow">
+      <div class="card-header bg-success text-white d-flex align-items-center gap-2">
+        <i class="fas fa-arrow-down fa-lg"></i>
+        <div>
+          <div class="fw-bold fs-5">Registrar Entrada de Material</div>
+          <small class="opacity-75">PAP §2 — Tabela de Entrada de Materiais de Consumo</small>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Alerta de saldo (preenchido via JS) -->
+        <div id="saldo-info" class="alert alert-info py-2 mb-3" style="display:none">
+          <i class="fas fa-info-circle me-1"></i>
+          Saldo atual de <strong id="saldo-nome-produto"></strong>:
+          <strong id="saldo-valor-entrada" class="text-success"></strong>
+          <span id="saldo-unidade"></span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {% crispy form %}
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Regras PAP -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body py-2">
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1 text-success"></i>
+          <strong>PAP §2:</strong>
+          A quantidade de unidades deve refletir a quantidade consumível (ex.: caixa com 3 frascos → cadastrar 3).
+          A data é travada na data de hoje por padrão.
+          O saldo é atualizado automaticamente ao salvar.
+        </small>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const produtoSelect = document.getElementById('id_produto_entrada');
+  const qtd = document.querySelector('[name="quantidade"]');
+  const vUnitario = document.querySelector('[name="valor_unitario"]');
+  const valorTotalDiv = document.getElementById('valor-total-entrada');
+  const saldoInfo = document.getElementById('saldo-info');
+  const saldoNome = document.getElementById('saldo-nome-produto');
+  const saldoValor = document.getElementById('saldo-valor-entrada');
+  const saldoUnidade = document.getElementById('saldo-unidade');
+
+  function atualizarSaldo(produtoId) {
+    if (!produtoId) return;
+    fetch(`{% url 'estoque:buscar_saldo_produto_ajax' %}?produto_id=${produtoId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.saldo !== undefined) {
+          saldoValor.textContent = data.saldo;
+          saldoUnidade.textContent = data.unidade;
+          saldoInfo.style.display = '';
+          saldoNome.textContent = produtoSelect.options[produtoSelect.selectedIndex].text;
+          // Sugerir unidade de fornecimento padrão
+          const ufSelect = document.querySelector('[name="unidade_fornecimento"]');
+          if (ufSelect && data.unidade_fornecimento) {
+            for (let opt of ufSelect.options) {
+              if (opt.text === data.unidade_fornecimento) { opt.selected = true; break; }
+            }
+          }
+        }
+      }).catch(() => {});
+  }
+
+  function calcularTotal() {
+    const q = parseFloat(qtd ? qtd.value : 0) || 0;
+    const v = parseFloat(vUnitario ? vUnitario.value : 0) || 0;
+    if (valorTotalDiv) {
+      valorTotalDiv.textContent = 'R$ ' + (q * v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    }
+  }
+
+  if (produtoSelect) {
+    produtoSelect.addEventListener('change', () => atualizarSaldo(produtoSelect.value));
+    if (produtoSelect.value) atualizarSaldo(produtoSelect.value);
+  }
+  if (qtd) qtd.addEventListener('input', calcularTotal);
+  if (vUnitario) vUnitario.addEventListener('input', calcularTotal);
+});
+</script>
+{% endblock %}

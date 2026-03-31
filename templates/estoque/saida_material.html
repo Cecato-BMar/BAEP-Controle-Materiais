@@ -1,0 +1,151 @@
+{% extends 'estoque/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registrar Saída de Material — PAP §3{% endblock %}
+
+{% block estoque_content %}
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+
+    <div class="card border-0 shadow">
+      <div class="card-header bg-danger text-white d-flex align-items-center gap-2">
+        <i class="fas fa-arrow-up fa-lg"></i>
+        <div>
+          <div class="fw-bold fs-5">Registrar Saída de Material</div>
+          <small class="opacity-75">PAP §3 — Tabela de Saída de Materiais de Consumo</small>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <form method="post">
+          {% csrf_token %}
+          {% crispy form %}
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Regras PAP -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body py-2">
+        <small class="text-muted">
+          <i class="fas fa-exclamation-triangle me-1 text-danger"></i>
+          <strong>PAP — Regras obrigatórias:</strong>
+          A saída não pode exceder o saldo disponível.
+          Digite o RE para localizar o militar automaticamente.
+          A baixa ocorre em tempo real ao salvar.
+          Unidade de Fornecimento será sempre <strong>UNIDADE</strong>.
+        </small>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const produtoSelect = document.getElementById('id_produto_saida');
+  const reBusca = document.getElementById('id_re_busca');
+  const militarSelect = document.getElementById('id_militar_select');
+  const saldoBox = document.getElementById('saldo-disponivel-box');
+  const saldoValor = document.getElementById('saldo-valor');
+  const qtdInput = document.querySelector('[name="quantidade"]');
+
+  // Busca saldo ao selecionar produto
+  function buscarSaldo(produtoId) {
+    if (!produtoId) return;
+    fetch(`{% url 'estoque:buscar_saldo_produto_ajax' %}?produto_id=${produtoId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.saldo !== undefined) {
+          saldoValor.textContent = data.saldo + ' ' + (data.unidade || '');
+          saldoBox.style.display = '';
+          // Validação em tempo real
+          if (qtdInput) {
+            qtdInput.setAttribute('max', data.saldo);
+          }
+        }
+      }).catch(() => {});
+  }
+
+  if (produtoSelect) {
+    produtoSelect.addEventListener('change', () => buscarSaldo(produtoSelect.value));
+    if (produtoSelect.value) buscarSaldo(produtoSelect.value);
+  }
+
+  // Validar quantidade vs saldo
+  if (qtdInput) {
+    qtdInput.addEventListener('input', function() {
+      const max = parseFloat(this.getAttribute('max'));
+      const val = parseFloat(this.value);
+      if (!isNaN(max) && val > max) {
+        this.classList.add('is-invalid');
+        let feedback = this.parentElement.querySelector('.invalid-feedback');
+        if (!feedback) {
+          feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          this.parentElement.appendChild(feedback);
+        }
+        feedback.textContent = `Quantidade maior que o saldo disponível (${max}). Operação bloqueada.`;
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    });
+  }
+
+  // Busca de militar por RE (PAP §3 — retorno automático QRA)
+  if (reBusca) {
+    reBusca.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        const re = this.value.trim();
+        if (!re) return;
+        fetch(`{% url 'estoque:buscar_militar_por_re_ajax' %}?re=${encodeURIComponent(re)}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.id) {
+              // Seleciona o militar no select
+              let found = false;
+              for (let opt of militarSelect.options) {
+                if (opt.value == data.id) {
+                  opt.selected = true;
+                  found = true;
+                  break;
+                }
+              }
+              if (!found) {
+                // Adiciona opção dinamicamente
+                const opt = new Option(`${data.re} — ${data.qra}`, data.id, true, true);
+                militarSelect.appendChild(opt);
+              }
+              // Feedback visual
+              reBusca.classList.add('is-valid');
+              let fb = reBusca.parentElement.querySelector('.valid-feedback');
+              if (!fb) {
+                fb = document.createElement('div');
+                fb.className = 'valid-feedback';
+                reBusca.parentElement.appendChild(fb);
+              }
+              fb.textContent = `QRA: ${data.qra}${data.nome_completo ? ' — ' + data.nome_completo : ''}`;
+            } else {
+              reBusca.classList.add('is-invalid');
+              let fb = reBusca.parentElement.querySelector('.invalid-feedback');
+              if (!fb) {
+                fb = document.createElement('div');
+                fb.className = 'invalid-feedback';
+                reBusca.parentElement.appendChild(fb);
+              }
+              fb.textContent = `RE ${re} não encontrado no cadastro.`;
+            }
+          })
+          .catch(() => {
+            reBusca.classList.add('is-invalid');
+          });
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

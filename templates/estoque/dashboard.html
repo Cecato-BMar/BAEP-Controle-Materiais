@@ -1,218 +1,198 @@
 {% extends 'estoque/base.html' %}
+{% load static %}
 
-{% block title %}Dashboard de Materiais{% endblock %}
+{% block title %}Dashboard de Estoque — 2º BAEP{% endblock %}
 
 {% block estoque_content %}
-<!-- Cards de Estatísticas -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
+<div class="row g-3 mb-4">
+    <!-- Card: Total de Itens -->
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm bg-primary text-white">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total de Produtos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_produtos }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 small text-uppercase">TOTAL DE MATERIAIS</h6>
+                        <h2 class="fw-bold mb-0">{{ total_produtos }}</h2>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-boxes fa-2x text-gray-300"></i>
-                    </div>
+                    <i class="fas fa-boxes fa-2x text-white-50"></i>
+                </div>
+                <div class="mt-3 small">
+                    <a href="{% url 'estoque:lista_produtos' %}" class="text-white text-decoration-none">
+                        Ver listagem <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
+    <!-- Card: Valor Total em Estoque -->
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm bg-indigo text-white" style="background-color: #6610f2;">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Valor dos Materiais
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ estoque_total_valor|floatformat:2 }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 small text-uppercase">VALOR TOTAL ESTIMADO</h6>
+                        <h2 class="fw-bold mb-0">R$ {{ valor_total_estoque|floatformat:2 }}</h2>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                    </div>
+                    <i class="fas fa-coins fa-2x text-white-50"></i>
+                </div>
+                <div class="mt-3 small">
+                    <span class="text-white-50">Baseado no Saldo x Valor Unitário</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
+    <!-- Card: Alertas Reposição (PAP) -->
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm {% if total_alertas_estoque > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Materiais Baixos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ produtos_estoque_baixo }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 small text-uppercase">ALERTAS DE REPOSIÇÃO</h6>
+                        <h2 class="fw-bold mb-0">{{ total_alertas_estoque }}</h2>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                    </div>
+                    <i class="fas fa-exclamation-triangle fa-2x text-white-50"></i>
+                </div>
+                <div class="mt-3 small">
+                    <a href="{% url 'estoque:relatorio_estoque_baixo' %}" class="text-white text-decoration-none">
+                        Verificar itens críticos <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-danger shadow h-100 py-2">
+    <!-- Card: Cotações Vencidas (PAP) -->
+    <div class="col-md-3">
+        <div class="card h-100 border-0 shadow-sm {% if total_alertas_cotacao > 0 %}bg-warning text-dark{% else %}bg-white text-muted{% endif %}">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Materiais Críticos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ produtos_criticos }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="small text-uppercase opacity-75">COTAÇÕES VENCIDAS</h6>
+                        <h2 class="fw-bold mb-0">{{ total_alertas_cotacao }}</h2>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
-                    </div>
+                    <i class="fas fa-clock fa-2x opacity-25"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Alertas -->
-{% if produtos_estoque_baixo > 0 or produtos_criticos > 0 or lotes_vencendo > 0 %}
-<div class="row mb-4">
-    <div class="col-12">
-        {% if produtos_criticos > 0 %}
-        <div class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-circle"></i>
-            <strong>Atenção!</strong> Existem {{ produtos_criticos }} produtos com estoque crítico. 
-            <a href="{% url 'estoque:relatorio_estoque_baixo' %}" class="alert-link">Ver produtos</a>
-        </div>
-        {% endif %}
-        
-        {% if produtos_estoque_baixo > 0 %}
-        <div class="alert alert-warning" role="alert">
-            <i class="fas fa-exclamation-triangle"></i>
-            <strong>Atenção!</strong> Existem {{ produtos_estoque_baixo }} produtos com estoque baixo. 
-            <a href="{% url 'estoque:relatorio_estoque_baixo' %}" class="alert-link">Ver produtos</a>
-        </div>
-        {% endif %}
-        
-        {% if lotes_vencendo > 0 %}
-        <div class="alert alert-info" role="alert">
-            <i class="fas fa-clock"></i>
-            <strong>Atenção!</strong> Existem {{ lotes_vencendo }} lotes que vencerão nos próximos 30 dias.
-        </div>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
-
-<!-- Menu Rápido -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Menu Rápido</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:lista_produtos' %}" class="btn btn-outline-primary btn-block">
-                            <i class="fas fa-box fa-2x mb-2"></i><br>
-                            Produtos
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-outline-success btn-block">
-                            <i class="fas fa-exchange-alt fa-2x mb-2"></i><br>
-                            Movimentações
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:lista_inventarios' %}" class="btn btn-outline-info btn-block">
-                            <i class="fas fa-clipboard-list fa-2x mb-2"></i><br>
-                            Inventários
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:lista_fornecedores' %}" class="btn btn-outline-warning btn-block">
-                            <i class="fas fa-truck fa-2x mb-2"></i><br>
-                            Fornecedores
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:lista_categorias' %}" class="btn btn-outline-secondary btn-block">
-                            <i class="fas fa-tags fa-2x mb-2"></i><br>
-                            Categorias
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
-                        <a href="{% url 'estoque:relatorio_estoque_baixo' %}" class="btn btn-outline-danger btn-block">
-                            <i class="fas fa-chart-line fa-2x mb-2"></i><br>
-                            Relatórios
-                        </a>
-                    </div>
+                <div class="mt-3 small">
+                    {% if total_alertas_cotacao > 0 %}
+                    <span class="fw-bold"><i class="fas fa-exclamation-circle me-1"></i> Mais de 180 dias</span>
+                    {% else %}
+                    <span class="text-success"><i class="fas fa-check-circle me-1"></i> Tudo atualizado</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Movimentações Recentes -->
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Movimentações Recentes</h6>
-                <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-sm btn-primary">Ver Todas</a>
+<div class="row g-4">
+    <!-- Coluna Esquerda: Itens Críticos e Alertas -->
+    <div class="col-lg-7">
+        <!-- Lista de Reposição Urgente -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-shopping-cart text-danger me-2"></i> Itens que Precisam de Reposição (PAP §4)</h6>
+                <a href="{% url 'estoque:relatorio_estoque_baixo' %}" class="btn btn-xs btn-outline-danger btn-sm">Ver todos</a>
             </div>
-            <div class="card-body">
-                {% if movimentacoes_recentes %}
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Produto</th>
-                                <th>Tipo</th>
-                                <th>Quantidade</th>
-                                <th>Usuário</th>
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr class="small">
+                                <th>Material</th>
+                                <th class="text-center">Saldo</th>
+                                <th class="text-center">Mínimo</th>
+                                <th class="text-end">Ação</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for mov in movimentacoes_recentes %}
+                            {% for item in alertas_estoque_minimo %}
                             <tr>
-                                <td>{{ mov.data_hora|date:"d/m/Y H:i" }}</td>
-                                <td>{{ mov.produto.nome }}</td>
-                                <td>
-                                    <span class="badge badge-{{ mov.tipo_movimentacao|lower }}">
-                                        {{ mov.get_tipo_movimentacao_display }}
-                                    </span>
+                                <td class="small">{{ item.nome }}<br><code class="text-muted">{{ item.codigo }}</code></td>
+                                <td class="text-center fw-bold text-danger">{{ item.saldo_calculado }}</td>
+                                <td class="text-center small text-muted">{{ item.estoque_minimo }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'estoque:criar_entrada_material' %}?produto={{ item.pk }}" class="btn btn-xs btn-outline-success btn-sm"><i class="fas fa-plus"></i></a>
                                 </td>
-                                <td>{{ mov.quantidade }}</td>
-                                <td>{{ mov.usuario.get_full_name|default:mov.usuario.username }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small"><i class="fas fa-check-circle text-success mb-2 d-block fa-2x"></i>Estoque acima do nível mínimo.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <p class="text-muted">Nenhuma movimentação recente encontrada.</p>
-                {% endif %}
+            </div>
+        </div>
+
+        <!-- Cotações Vencidas -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-history text-warning me-2"></i> Cotações Vencidas (Acima de 180 dias)</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr class="small">
+                                <th>Material</th>
+                                <th class="text-center">Última Cotação</th>
+                                <th class="text-center">Atrás há</th>
+                                <th class="text-end">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in alertas_cotacao %}
+                            <tr>
+                                <td class="small">{{ item.nome }}</td>
+                                <td class="text-center small">{{ item.data_cotacao|date:"d/m/Y"|default:"Sem data" }}</td>
+                                <td class="text-center small text-danger fw-bold">VENCIDA</td>
+                                <td class="text-end">
+                                    <a href="{% url 'estoque:editar_produto' item.pk %}" class="btn btn-xs btn-outline-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small"><i class="fas fa-check-circle text-success mb-2 d-block fa-2x"></i>Todas as cotações dentro do prazo.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna Direita: Movimentações Recentes -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-exchange-alt text-primary me-2"></i> Movimentações Recentes</h6>
+                <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-xs btn-outline-primary btn-sm">Ver todas</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush small">
+                    {% for mov in movimentacoes_recentes %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge {% if mov.tipo_movimentacao == 'ENTRADA' %}bg-success{% else %}bg-danger{% endif %} mb-1">
+                                    {{ mov.get_subtipo_display }}
+                                </span>
+                                <p class="fw-bold mb-0">{{ mov.produto.nome }}</p>
+                                <p class="text-muted mb-0 small">Qtd: {{ mov.quantidade }} | Por: {{ mov.usuario.get_full_name|default:mov.usuario.username }}</p>
+                            </div>
+                            <span class="text-muted x-small">{{ mov.data_hora|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted">Sem movimentações recentes.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-.badge-entrada { background-color: #28a745; }
-.badge-saida { background-color: #dc3545; }
-.badge-transferencia { background-color: #17a2b8; }
-.badge-ajuste { background-color: #ffc107; color: #212529; }
-.badge-perda { background-color: #6f42c1; }
-.badge-devolucao { background-color: #fd7e14; }
-</style>
 {% endblock %}
