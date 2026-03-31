@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load auth_extras %}
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -227,7 +228,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-shield-alt me-2"></i>Reserva BAEP
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -263,13 +264,22 @@
         <div class="sidebar">
             <ul class="nav flex-column">
                 <li class="nav-item">
+                    <a class="nav-link text-center border-bottom mb-2 bg-light text-dark fw-bold" href="{% url 'home' %}">
+                        <i class="fas fa-th-large me-2"></i> Módulos
+                    </a>
+                </li>
+                {% if user.is_superuser or user|has_group:'reserva_armas' %}
+                <li class="nav-item mt-2">
+                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-crosshairs me-1"></i> Reserva de Armas</span>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard Reserva de Armas
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}" href="{% url 'materiais:lista_materiais' %}">
-                        <i class="fas fa-boxes"></i> Materiais
+                        <i class="fas fa-boxes"></i> Armamento
                     </a>
                 </li>
                 <li class="nav-item">
@@ -287,24 +297,29 @@
                         <i class="fas fa-file-alt"></i> Relatórios
                     </a>
                 </li>
+                {% endif %}
+                {% if user.is_superuser or user|has_group:'materiais' %}
+                <li class="nav-item mt-3">
+                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-dolly-flatbed me-1"></i> Materiais P4</span>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:dashboard' %}">
-                        <i class="fas fa-warehouse"></i> Estoque P4
+                        <i class="fas fa-warehouse"></i> Dashboard Materiais
                     </a>
                     <ul class="nav flex-column ms-3 mt-2">
                         <li class="nav-item">
                             <a class="nav-link small {% if 'relatorio_manutencao' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_manutencao' %}">
-                                <i class="fas fa-tools me-1"></i> Materiais em Manutenção
+                                <i class="fas fa-tools me-1"></i> Em Manutenção
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link small {% if 'relatorio_baixas' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_baixas' %}">
-                                <i class="fas fa-trash me-1"></i> Baixas de Materiais
+                                <i class="fas fa-trash me-1"></i> Baixas
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link small {% if 'relatorio_situacao_estoque' in request.path %}active{% endif %}" href="{% url 'estoque:relatorio_situacao_estoque' %}">
-                                <i class="fas fa-chart-bar me-1"></i> Situação do Estoque
+                                <i class="fas fa-chart-bar me-1"></i> Situação
                             </a>
                         </li>
                         <li class="nav-item">
@@ -314,22 +329,28 @@
                         </li>
                     </ul>
                 </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'ajuda' in request.path %}active{% endif %}" href="{% url 'ajuda' %}">
                         <i class="fas fa-question-circle"></i> Ajuda
                     </a>
                 </li>
-                {% if user.is_staff %}
+                {% if user.is_superuser or user|has_group:'administracao' %}
+                <li class="nav-item mt-3">
+                    <span class="nav-link text-muted small fw-bold text-uppercase pb-0"><i class="fas fa-cogs me-1"></i> Administração</span>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
                         <i class="fas fa-users"></i> Usuários
                     </a>
                 </li>
+                {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/" target="_blank">
-                        <i class="fas fa-cog"></i> Administração
+                        <i class="fas fa-cog"></i> Django Admin
                     </a>
                 </li>
+                {% endif %}
                 {% endif %}
             </ul>
         </div>

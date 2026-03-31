@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
+from reserva_baep.decorators import require_module_permission, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +16,7 @@ from .forms import (
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
         
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
@@ -36,9 +37,7 @@ def login_view(request):
                 
                 # Redireciona para a página solicitada ou para o dashboard
                 next_page = request.GET.get('next')
-                if next_page:
-                    return redirect(next_page)
-                return redirect('dashboard')
+                return redirect('home')
         else:
             messages.error(request, _('Nome de usuário ou senha inválidos.'))
     else:
@@ -57,7 +56,7 @@ def is_admin(user):
     return user.is_superuser or (hasattr(user, 'perfil') and user.perfil.nivel_acesso == 'ADMIN')
 
 @login_required
-@user_passes_test(is_admin)
+@require_module_permission('administracao')
 def registro_usuario(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -68,6 +67,11 @@ def registro_usuario(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password1'])
             user.save()
+            
+            # Adiciona os módulos (grupos) selecionados
+            modulos = form.cleaned_data.get('modulos')
+            if modulos:
+                user.groups.set(modulos)
             
             # Atualiza o perfil
             perfil = user.perfil  # O perfil é criado automaticamente pelo sinal post_save
@@ -88,7 +92,7 @@ def registro_usuario(request):
     })
 
 @login_required
-@user_passes_test(is_admin)
+@require_module_permission('administracao')
 def lista_usuarios(request):
     usuarios = User.objects.all().order_by('username')
     
@@ -113,7 +117,7 @@ def lista_usuarios(request):
     })
 
 @login_required
-@user_passes_test(is_admin)
+@require_module_permission('administracao')
 def detalhe_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     
@@ -122,7 +126,7 @@ def detalhe_usuario(request, pk):
     })
 
 @login_required
-@user_passes_test(is_admin)
+@require_module_permission('administracao')
 def editar_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     
@@ -131,12 +135,18 @@ def editar_usuario(request, pk):
         perfil_form = PerfilForm(request.POST, instance=usuario.perfil)
         
         if user_form.is_valid() and perfil_form.is_valid():
-            user_form.save()
+            user = user_form.save()
             perfil_form.save()
+            
+            # Atualiza os módulos
+            modulos = user_form.cleaned_data.get('modulos')
+            if modulos is not None:
+                user.groups.set(modulos)
+                
             messages.success(request, _('Usuário atualizado com sucesso!'))
             return redirect('usuarios:detalhe_usuario', pk=usuario.pk)
     else:
-        user_form = UserUpdateForm(instance=usuario)
+        user_form = UserUpdateForm(instance=usuario, initial={'modulos': usuario.groups.all()})
         perfil_form = PerfilForm(instance=usuario.perfil)
     
     return render(request, 'usuarios/editar_usuario.html', {
@@ -182,7 +192,7 @@ def perfil_usuario(request):
     })
 
 @login_required
-@user_passes_test(is_admin)
+@require_module_permission('administracao')
 def excluir_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     

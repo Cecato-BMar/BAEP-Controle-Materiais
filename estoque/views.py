@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from reserva_baep.decorators import require_module_permission
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -34,6 +35,7 @@ def is_admin_or_gestor(user):
 
 
 @login_required
+@require_module_permission('materiais')
 def dashboard_estoque(request):
     """Dashboard principal do estoque"""
     # Estatísticas gerais
@@ -85,6 +87,7 @@ def dashboard_estoque(request):
 # === CATEGORIAS ===
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def lista_categorias(request):
     categorias = Categoria.objects.select_related('categoria_pai').all()
     
@@ -108,6 +111,7 @@ def lista_categorias(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -126,6 +130,7 @@ def criar_categoria(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def editar_categoria(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     
@@ -148,6 +153,7 @@ def editar_categoria(request, pk):
 # === UNIDADES DE MEDIDA ===
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def lista_unidades_medida(request):
     unidades = UnidadeMedida.objects.all()
     
@@ -170,6 +176,7 @@ def lista_unidades_medida(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_unidade_medida(request):
     if request.method == 'POST':
         form = UnidadeMedidaForm(request.POST)
@@ -188,6 +195,7 @@ def criar_unidade_medida(request):
 
 # === FORNECEDORES ===
 @login_required
+@require_module_permission('materiais')
 def lista_fornecedores(request):
     fornecedores = Fornecedor.objects.all()
     
@@ -211,6 +219,7 @@ def lista_fornecedores(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_fornecedor(request):
     if request.method == 'POST':
         form = FornecedorForm(request.POST)
@@ -228,6 +237,7 @@ def criar_fornecedor(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def detalhe_fornecedor(request, pk):
     fornecedor = get_object_or_404(Fornecedor, pk=pk)
     
@@ -248,6 +258,7 @@ def detalhe_fornecedor(request, pk):
 
 # === PRODUTOS ===
 @login_required
+@require_module_permission('materiais')
 def lista_produtos(request):
     produtos = Produto.objects.select_related('categoria', 'unidade_medida').all()
     
@@ -292,6 +303,7 @@ def lista_produtos(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_produto(request):
     if request.method == 'POST':
         form = ProdutoForm(request.POST, request.FILES)
@@ -311,6 +323,7 @@ def criar_produto(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def detalhe_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
     
@@ -344,6 +357,7 @@ def detalhe_produto(request, pk):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def editar_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
     
@@ -365,6 +379,7 @@ def editar_produto(request, pk):
 
 # === MOVIMENTAÇÕES ===
 @login_required
+@require_module_permission('materiais')
 def lista_movimentacoes(request):
     movimentacoes = MovimentacaoEstoque.objects.select_related(
         'produto', 'usuario', 'fornecedor', 'solicitante'
@@ -406,6 +421,7 @@ def lista_movimentacoes(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_movimentacao(request):
     if request.method == 'POST':
         form = MovimentacaoEstoqueForm(request.POST)
@@ -427,6 +443,7 @@ def criar_movimentacao(request):
 
 # === INVENTÁRIO ===
 @login_required
+@require_module_permission('materiais')
 def lista_inventarios(request):
     inventarios = Inventario.objects.select_related('responsavel').all().order_by('-data_cadastro')
     
@@ -454,6 +471,7 @@ def lista_inventarios(request):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def criar_inventario(request):
     if request.method == 'POST':
         form = InventarioForm(request.POST)
@@ -473,6 +491,7 @@ def criar_inventario(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def detalhe_inventario(request, pk):
     inventario = get_object_or_404(Inventario, pk=pk)
     
@@ -497,6 +516,7 @@ def detalhe_inventario(request, pk):
 
 @login_required
 @user_passes_test(is_admin_or_gestor)
+@require_module_permission('materiais')
 def iniciar_inventario(request, pk):
     inventario = get_object_or_404(Inventario, pk=pk)
     
@@ -525,6 +545,7 @@ def iniciar_inventario(request, pk):
 
 
 @login_required
+@require_module_permission('materiais')
 def contar_item_inventario(request, pk):
     """View para contagem de item do inventário via AJAX"""
     item = get_object_or_404(ItemInventario, pk=pk)
@@ -563,6 +584,7 @@ def contar_item_inventario(request, pk):
 
 # === RELATÓRIOS ===
 @login_required
+@require_module_permission('materiais')
 def relatorio_estoque_baixo(request):
     """Relatório de produtos com estoque baixo"""
     produtos_baixo = []
@@ -584,6 +606,7 @@ def relatorio_estoque_baixo(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def relatorio_movimentacoes_periodo(request):
     """Relatório de movimentações por período"""
     data_inicio = request.GET.get('data_inicio')
@@ -616,6 +639,7 @@ def relatorio_movimentacoes_periodo(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def exportar_produtos_csv(request):
     """Exporta lista de produtos para CSV"""
     response = HttpResponse(content_type='text/csv')
@@ -641,6 +665,7 @@ def exportar_produtos_csv(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def exportar_movimentacoes_pdf(request):
     """Exporta movimentações para PDF"""
     try:
@@ -828,6 +853,7 @@ def exportar_movimentacoes_pdf(request):
 
 # === AJAX ===
 @login_required
+@require_module_permission('materiais')
 def buscar_produtos_ajax(request):
     """Busca produtos via AJAX para selects"""
     termo = request.GET.get('q', '')
@@ -849,6 +875,7 @@ def buscar_produtos_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def buscar_lotes_ajax(request):
     """Busca lotes de um produto via AJAX"""
     produto_id = request.GET.get('produto_id')
@@ -875,6 +902,7 @@ def buscar_lotes_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def buscar_produto_por_qr_ajax(request):
     """Busca produto pelo token do QR Code (UUID)"""
     token = (request.GET.get('token') or '').strip()
@@ -897,6 +925,7 @@ def buscar_produto_por_qr_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def relatorio_materiais_manutencao(request):
     """Relatório de materiais em manutenção"""
     # Filtros
@@ -967,6 +996,7 @@ def relatorio_materiais_manutencao(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def relatorio_baixas_materiais(request):
     """Relatório de baixas de materiais"""
     # Filtros
@@ -1065,6 +1095,7 @@ def relatorio_baixas_materiais(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def relatorio_situacao_estoque(request):
     """Relatório de situação atual do estoque"""
     # Filtros
@@ -1166,6 +1197,7 @@ def relatorio_situacao_estoque(request):
 
 
 @login_required
+@require_module_permission('materiais')
 def relatorio_inventarios(request):
     """Relatório de inventários"""
     # Filtros
@@ -1264,3 +1296,4 @@ def relatorio_inventarios(request):
     }
     
     return render(request, 'estoque/relatorios/inventarios.html', context)
+

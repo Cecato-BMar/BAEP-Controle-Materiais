@@ -1,6 +1,6 @@
 {% extends 'estoque/base.html' %}
 
-{% block title %}Dashboard do Estoque{% endblock %}
+{% block title %}Dashboard de Materiais{% endblock %}
 
 {% block estoque_content %}
 <!-- Cards de Estatísticas -->
@@ -29,7 +29,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Valor do Estoque
+                            Valor dos Materiais
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ estoque_total_valor|floatformat:2 }}</div>
                     </div>
@@ -47,7 +47,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Estoque Baixo
+                            Materiais Baixos
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ produtos_estoque_baixo }}</div>
                     </div>
@@ -65,7 +65,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Estoque Crítico
+                            Materiais Críticos
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ produtos_criticos }}</div>
                     </div>

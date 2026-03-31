@@ -3,9 +3,9 @@
 
 {% block title %}
     {% if form.instance.id %}
-        Editar Material - Reserva BAEP
+        Editar Arma - Reserva BAEP
     {% else %}
-        Novo Material - Reserva BAEP
+        Nova Arma - Reserva BAEP
     {% endif %}
 {% endblock %}
 
@@ -14,9 +14,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-primary">
             {% if form.instance.id %}
-                <i class="fas fa-edit me-2"></i>Editar Material
+                <i class="fas fa-edit me-2"></i>Editar Arma
             {% else %}
-                <i class="fas fa-plus-circle me-2"></i>Novo Material
+                <i class="fas fa-plus-circle me-2"></i>Nova Arma
             {% endif %}
         </h1>
         <a href="{% if form.instance.id %}{% url 'materiais:detalhe_material' material_id=form.instance.id %}{% else %}{% url 'materiais:lista_materiais' %}{% endif %}" class="btn btn-outline-secondary">
@@ -28,9 +28,9 @@
         <div class="card-header bg-gradient">
             <i class="fas fa-box me-2"></i>
             {% if form.instance.id %}
-                <span class="fw-bold">Editar Material:</span> {{ form.instance.identificacao }}
+                <span class="fw-bold">Editar Arma:</span> {{ form.instance.identificacao }}
             {% else %}
-                <span class="fw-bold">Cadastrar Novo Material</span>
+                <span class="fw-bold">Cadastrar Nova Arma</span>
             {% endif %}
         </div>
         <div class="card-body p-4">
@@ -118,7 +118,7 @@
                         {% if form.instance.id %}
                             Salvar Alterações
                         {% else %}
-                            Cadastrar Material
+                            Cadastrar Arma
                         {% endif %}
                     </button>
                 </div>

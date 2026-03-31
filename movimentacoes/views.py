@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from reserva_baep.decorators import require_module_permission
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -13,6 +14,7 @@ from materiais.models import Material
 from policiais.models import Policial
 
 @login_required
+@require_module_permission('reserva_armas')
 def lista_movimentacoes(request):
     form = MovimentacaoSearchForm(request.GET)
     movimentacoes = Movimentacao.objects.all().order_by('-data_hora')
@@ -54,6 +56,7 @@ def lista_movimentacoes(request):
     return render(request, 'movimentacoes/lista_movimentacoes.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def detalhe_movimentacao(request, pk):
     movimentacao = get_object_or_404(Movimentacao, pk=pk)
     
@@ -78,6 +81,7 @@ def detalhe_movimentacao(request, pk):
     return render(request, 'movimentacoes/detalhe_movimentacao.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def nova_retirada(request):
     if request.method == 'POST':
         form = RetiradaForm(request.POST)
@@ -192,6 +196,7 @@ def nova_retirada(request):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def nova_devolucao(request):
     if request.method == 'POST':
         form = DevolucaoForm(request.POST)
@@ -293,6 +298,7 @@ def nova_devolucao(request):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def buscar_retiradas_pendentes(request):
     policial_id = request.GET.get('policial_id')
     
@@ -333,6 +339,7 @@ def buscar_retiradas_pendentes(request):
     return JsonResponse({'retiradas': retiradas_pendentes})
 
 @login_required
+@require_module_permission('reserva_armas')
 def buscar_materiais_disponiveis(request):
     termo = request.GET.get('termo', '')
     tipo = request.GET.get('tipo', '')

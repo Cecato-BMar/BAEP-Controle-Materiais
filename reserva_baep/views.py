@@ -8,8 +8,10 @@ from materiais.models import Material
 from movimentacoes.models import Movimentacao
 from policiais.models import Policial
 from relatorios.models import Relatorio
+from reserva_baep.decorators import require_module_permission
 
 @login_required
+@require_module_permission('reserva_armas')
 def dashboard(request):
     # Estatísticas de materiais
     total_materiais = Material.objects.count()
@@ -77,7 +79,7 @@ def dashboard(request):
 
 def home(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return render(request, 'modulo_dashboard.html')
     return redirect('usuarios:login')
 
 def handler404(request, exception):

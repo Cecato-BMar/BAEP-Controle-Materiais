@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from reserva_baep.decorators import require_module_permission
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -47,6 +48,7 @@ def _draw_logo(canvas_, doc_):
         return
 
 @login_required
+@require_module_permission('reserva_armas')
 def lista_relatorios(request):
     relatorios = Relatorio.objects.all().order_by('-data_geracao')
     
@@ -96,6 +98,7 @@ def lista_relatorios(request):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def detalhe_relatorio(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
     preview_data = None
@@ -144,6 +147,7 @@ def detalhe_relatorio(request, relatorio_id):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def download_relatorio(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
     
@@ -157,6 +161,7 @@ def download_relatorio(request, relatorio_id):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def download_relatorio_arquivo(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
     
@@ -191,6 +196,7 @@ def download_relatorio_arquivo(request, relatorio_id):
         return redirect('relatorios:download_relatorio', relatorio_id=relatorio.pk)
 
 @login_required
+@require_module_permission('reserva_armas')
 def gerar_relatorio_situacao_atual(request):
     if request.method == 'POST':
         form = RelatorioSituacaoAtualForm(request.POST)
@@ -340,6 +346,7 @@ def gerar_relatorio_situacao_atual(request):
     return render(request, 'relatorios/form_relatorio_situacao.html', {'form': form})
 
 @login_required
+@require_module_permission('reserva_armas')
 def gerar_relatorio_materiais(request):
     if request.method == 'POST':
         form = RelatorioMateriaisForm(request.POST)
@@ -745,6 +752,7 @@ def gerar_relatorio_materiais(request):
     return render(request, 'relatorios/form_relatorio_materiais.html', {'form': form})
 
 @login_required
+@require_module_permission('reserva_armas')
 def gerar_relatorio_movimentacoes(request):
     if request.method == 'POST':
         form = RelatorioMovimentacoesForm(request.POST)

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load auth_extras %}
+
+{% block title %}Painel de Módulos - Reserva BAEP{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4"><i class="fas fa-shield-alt text-primary mb-3"></i><br>Sistema Integrado BAEP</h1>
+        <p class="lead text-muted">Selecione o módulo que deseja acessar</p>
+    </div>
+
+    <div class="row justify-content-center">
+        {% if user.is_superuser or user|has_group:"reserva_armas" %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-white module-card transition-all">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-crosshairs fa-4x text-primary mb-4"></i>
+                    <h3 class="card-title">Reserva de Armas</h3>
+                    <p class="card-text text-muted">Controle de armamentos, munições, coletes e cautelas.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-4 text-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg rounded-pill px-5">Acessar</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.is_superuser or user|has_group:"materiais" %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-white module-card transition-all">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-boxes fa-4x text-warning mb-4"></i>
+                    <h3 class="card-title">Materiais P4</h3>
+                    <p class="card-text text-muted">Gestão de estoque, almoxarifado, entradas e saídas de materiais gerais.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-4 text-center">
+                    <a href="{% url 'estoque:dashboard' %}" class="btn btn-warning btn-lg rounded-pill px-5 text-white">Acessar</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.is_superuser or user|has_group:"administracao" %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-white module-card transition-all">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-cogs fa-4x text-danger mb-4"></i>
+                    <h3 class="card-title">Administração</h3>
+                    <p class="card-text text-muted">Gerenciamento de usuários, permissões e configurações do sistema.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-4 text-center">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-danger btn-lg rounded-pill px-5">Acessar</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .module-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .module-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+    }
+    /* Esconder navbar lateral no dashboard principal */
+    .sidebar { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+</style>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Div
@@ -28,10 +28,11 @@ class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(label=_('Nome'), max_length=30, required=True)
     last_name = forms.CharField(label=_('Sobrenome'), max_length=150, required=True)
+    modulos = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
     
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+        fields = ('username', 'first_name', 'last_name', 'email', 'modulos', 'password1', 'password2')
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,6 +49,7 @@ class UserRegistrationForm(UserCreationForm):
                 css_class='form-row'
             ),
             'email',
+            'modulos',
             'password1',
             'password2',
             Div(
@@ -90,10 +92,11 @@ class PerfilForm(forms.ModelForm):
 
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField(required=True)
+    modulos = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
     
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('first_name', 'last_name', 'email', 'modulos')
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,6 +112,7 @@ class UserUpdateForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'email',
+            'modulos',
             Div(
                 Submit('submit', _('Atualizar'), css_class='btn btn-primary'),
                 css_class='text-center'

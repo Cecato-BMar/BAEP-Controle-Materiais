@@ -6,8 +6,10 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Material
 from .forms import MaterialForm, MaterialSearchForm
+from reserva_baep.decorators import require_module_permission
 
 @login_required
+@require_module_permission('reserva_armas')
 def lista_materiais(request):
     form = MaterialSearchForm(request.GET)
     materiais = Material.objects.all()
@@ -44,6 +46,7 @@ def lista_materiais(request):
     return render(request, 'materiais/lista_materiais.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def detalhe_material(request, material_id):
     material = get_object_or_404(Material, pk=material_id)
     movimentacoes = material.movimentacoes.all().order_by('-data_hora')[:10]  # Últimas 10 movimentações
@@ -56,6 +59,7 @@ def detalhe_material(request, material_id):
     return render(request, 'materiais/detalhe_material.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def novo_material(request):
     if request.method == 'POST':
         form = MaterialForm(request.POST, request.FILES)
@@ -74,6 +78,7 @@ def novo_material(request):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def editar_material(request, material_id):
     material = get_object_or_404(Material, pk=material_id)
     

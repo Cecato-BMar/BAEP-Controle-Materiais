@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from reserva_baep.decorators import require_module_permission
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -8,6 +9,7 @@ from .models import Policial
 from .forms import PolicialForm, PolicialSearchForm
 
 @login_required
+@require_module_permission('reserva_armas')
 def lista_policiais(request):
     form = PolicialSearchForm(request.GET)
     policiais = Policial.objects.all()
@@ -44,6 +46,7 @@ def lista_policiais(request):
     return render(request, 'policiais/lista_policiais.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def detalhe_policial(request, policial_id):
     policial = get_object_or_404(Policial, pk=policial_id)
     movimentacoes = policial.movimentacoes.all().order_by('-data_hora')[:10]  # Últimas 10 movimentações
@@ -56,6 +59,7 @@ def detalhe_policial(request, policial_id):
     return render(request, 'policiais/detalhe_policial.html', context)
 
 @login_required
+@require_module_permission('reserva_armas')
 def novo_policial(request):
     if request.method == 'POST':
         form = PolicialForm(request.POST, request.FILES)
@@ -72,6 +76,7 @@ def novo_policial(request):
     })
 
 @login_required
+@require_module_permission('reserva_armas')
 def editar_policial(request, policial_id):
     policial = get_object_or_404(Policial, pk=policial_id)
     

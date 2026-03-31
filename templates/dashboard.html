@@ -12,7 +12,7 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Materiais</h5>
+                    <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Reserva de Armas</h5>
                     <h2 class="display-4">{{ total_materiais }}</h2>
                     <div class="mt-3">
                         <span class="badge bg-success me-2">{{ materiais_disponiveis }} Disponíveis</span>
@@ -21,7 +21,7 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-sm btn-primary w-100" >Ver Materiais</a>
+                    <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-sm btn-primary w-100" >Ver Armas</a>
                 </div>
             </div>
         </div>
@@ -124,11 +124,11 @@
             </div>
         </div>
         
-        <!-- Materiais Mais Movimentados -->
+        <!-- Armas Mais Movimentadas -->
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <i class="fas fa-chart-bar me-2"></i>Materiais Mais Movimentados (Mês Atual)
+                    <i class="fas fa-chart-bar me-2"></i>Armas Mais Movimentadas (Mês Atual)
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -165,7 +165,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center">Nenhum material movimentado no mês atual.</td>
+                                    <td colspan="4" class="text-center">Nenhuma arma movimentada no mês atual.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
