@@ -1,268 +1,261 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Reserva BAEP{% endblock %}
+{% block title %}Dashboard Estratégico — Reserva de Armas BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+<div class="container-fluid animate__animated animate__fadeIn">
     
-    <!-- Estatísticas Gerais -->
-    <div class="row mb-4">
-        <!-- Materiais -->
-        <div class="col-md-3 mb-3">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Reserva de Armas</h5>
-                    <h2 class="display-4">{{ total_materiais }}</h2>
-                    <div class="mt-3">
-                        <span class="badge bg-success me-2">{{ materiais_disponiveis }} Disponíveis</span>
-                        <span class="badge bg-warning text-dark me-2">{{ materiais_em_uso }} Em Uso</span>
-                        <span class="badge bg-danger">{{ materiais_manutencao }} Manutenção</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-sm btn-primary w-100" >Ver Armas</a>
-                </div>
-            </div>
+    <!-- Cabeçalho de Boas-Vindas -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-0 text-navy"><i class="fas fa-shield-alt me-2"></i>Reserva de Armas</h1>
+            <p class="text-muted mb-0">Gestão de Material Bélico e Logística Operacional — {{ hoje|date:"d \d\e F \d\e Y" }}</p>
         </div>
-        
-        <!-- Policiais -->
-        <div class="col-md-3 mb-3">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="fas fa-user-shield me-2"></i>Policiais</h5>
-                    <h2 class="display-4">{{ total_policiais }}</h2>
-                    <div class="mt-3">
-                        <span class="badge bg-success">{{ policiais_ativos }} Ativos</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'policiais:lista_policiais' %}" class="btn btn-sm btn-primary w-100 style="color: rgb(0, 0, 0);">Ver Policiais</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Movimentações Hoje -->
-        <div class="col-md-3 mb-3">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="fas fa-exchange-alt me-2"></i>Movimentações Hoje</h5>
-                    <h2 class="display-4">{{ movimentacoes_hoje }}</h2>
-                    <div class="mt-3">
-                        <span class="badge bg-primary me-2">{{ retiradas_hoje }} Retiradas</span>
-                        <span class="badge bg-success">{{ devolucoes_hoje }} Devoluções</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-primary w-100">Ver Movimentações</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Movimentações do Mês -->
-        <div class="col-md-3 mb-3">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>Movimentações do Mês</h5>
-                    <h2 class="display-4">{{ movimentacoes_mes }}</h2>
-                    <div class="mt-3">
-                        <span class="badge bg-primary me-2">{{ retiradas_mes }} Retiradas</span>
-                        <span class="badge bg-success">{{ devolucoes_mes }} Devoluções</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}" class="btn btn-sm btn-primary w-100">Gerar Relatório</a>
-                </div>
+        <div class="text-end d-none d-md-block">
+            <div class="badge bg-light text-dark border p-2 px-3 shadow-sm">
+                <i class="far fa-clock me-1 text-primary"></i> <span id="current-time">--:--:--</span>
             </div>
         </div>
     </div>
     
+    <!-- Painel de Indicadores de Desempenho (KPIs) -->
+    <div class="row g-3 mb-4">
+        <!-- Card: Material Bélico -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                            <i class="fas fa-gun fa-lg text-primary"></i>
+                        </div>
+                        <span class="text-muted small fw-bold">TOTAL</span>
+                    </div>
+                    <h2 class="fw-bold mb-1">{{ total_materiais }}</h2>
+                    <p class="text-muted small mb-3 text-uppercase">Itens na Reserva</p>
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio materiais_disponiveis total_materiais 100 %}%"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio materiais_em_uso total_materiais 100 %}%"></div>
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio materiais_manutencao total_materiais 100 %}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-success"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ materiais_disponiveis }} Disp.</span>
+                        <span class="text-warning"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ materiais_em_uso }} Uso</span>
+                    </div>
+                </div>
+                <a href="{% url 'materiais:lista_materiais' %}" class="card-footer bg-light border-0 text-center text-primary text-decoration-none py-2 small fw-bold">
+                    GERENCIAR ARSENAL <i class="fas fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Card: Efetivo Policial -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 bg-navy text-white overflow-hidden">
+                <div class="card-body p-4 position-relative">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="rounded-circle bg-white bg-opacity-20 p-3">
+                            <i class="fas fa-users-cog fa-lg"></i>
+                        </div>
+                        <i class="fas fa-star opacity-20 fa-4x position-absolute end-0 bottom-0 mb-n3 me-n2"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">{{ total_policiais }}</h2>
+                    <p class="text-white-50 small mb-0 text-uppercase">Policiais Cadastrados</p>
+                    <hr class="opacity-10 my-3">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success rounded-pill me-2">{{ policiais_ativos }} Ativos</span>
+                        <small class="text-white-50">Prontos para serviço</small>
+                    </div>
+                </div>
+                <a href="{% url 'policiais:lista_policiais' %}" class="card-footer bg-white bg-opacity-10 border-0 text-center text-white text-decoration-none py-2 small fw-bold">
+                    VER EFETIVO <i class="fas fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Card: Movimentações Hoje -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-info"></i>FLUXO HOJE</h6>
+                        <span class="badge bg-light text-dark border">{{ hoje|date:"d/m" }}</span>
+                    </div>
+                    <div class="row text-center mt-3">
+                        <div class="col-6 border-end">
+                            <h3 class="fw-bold text-primary mb-0">{{ retiradas_hoje }}</h3>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Retiradas</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="fw-bold text-success mb-0">{{ devolucoes_hoje }}</h3>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Devoluções</small>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="card-footer bg-light border-0 text-center text-info text-decoration-none py-2 small fw-bold">
+                    REGISTRAR FLUXO <i class="fas fa-plus-circle ms-1"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Card: Relatórios Mensais -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-blue text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+                        <h6 class="fw-bold mb-0 text-uppercase">Consolidado Mês</h6>
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h2 class="fw-bold mt-2">{{ movimentacoes_mes }}</h2>
+                    <small class="text-white-50">Movimentações em {{ hoje|date:"F" }}</small>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Retiradas</span>
+                            <span>{{ retiradas_mes }}</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background-color: rgba(255,255,255,0.1);">
+                            <div class="progress-bar bg-white" style="width: {% widthratio retiradas_mes movimentacoes_mes 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'relatorios:lista_relatorios' %}" class="card-footer bg-dark bg-opacity-20 border-0 text-center text-white text-decoration-none py-2 small fw-bold">
+                    GERAR RELATÓRIO PDF <i class="fas fa-file-pdf ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabelas de Monitoramento -->
     <div class="row">
         <!-- Últimas Movimentações -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="fas fa-history me-2"></i>Últimas Movimentações
+        <div class="col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Monitor de Fluxo Recente</h5>
+                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-link text-decoration-none">Ver todas</a>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Data/Hora</th>
-                                    <th>Tipo</th>
-                                    <th>Policial</th>
-                                    <th>Identificação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for movimentacao in ultimas_movimentacoes %}
-                                <tr>
-                                    <td>{{ movimentacao.data_hora|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        {% if movimentacao.tipo == 'RETIRADA' %}
-                                        <span class="badge badge-retirada">Retirada</span>
-                                        {% else %}
-                                        <span class="badge badge-devolucao">Devolução</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ movimentacao.policial.nome }}</td>
-                                    <td>{{ movimentacao.material.identificacao }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Nenhuma movimentação registrada.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-primary">Ver Todas</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Armas Mais Movimentadas -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="fas fa-chart-bar me-2"></i>Armas Mais Movimentadas (Mês Atual)
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Identificação</th>
-                                    <th>Tipo</th>
-                                    <th>Status</th>
-                                    <th>Movimentações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for material in materiais_mais_movimentados %}
-                                <tr>
-                                    <td>{{ material.identificacao }}</td>
-                                    <td>{{ material.get_tipo_display }}</td>
-                                    <td>
-                                        {% if material.status == 'DISPONIVEL' %}
-                                        <span class="badge badge-disponivel">Disponível</span>
-                                        {% elif material.status == 'EM_USO' %}
-                                        <span class="badge badge-em-uso">Em Uso</span>
-                                        {% elif material.status == 'MANUTENCAO' %}
-                                        <span class="badge badge-manutencao">Manutenção</span>
-                                        {% elif material.status == 'APREENDIDO' %}
-                                        <span class="badge badge-apreendido">Apreendido</span>
-                                        {% elif material.status == 'BAIXADO' %}
-                                        <span class="badge badge-baixado">Baixado</span>
-                                        {% else %}
-                                        <span class="badge badge-secondary">{{ material.get_status_display }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ material.total_movimentacoes }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Nenhuma arma movimentada no mês atual.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{% url 'relatorios:gerar_relatorio_materiais' %}" class="btn btn-sm btn-primary">Gerar Relatório</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <!-- Policiais com Mais Retiradas -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="fas fa-user-shield me-2"></i>Policiais com Mais Retiradas (Mês Atual)
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>RE</th>
-                                    <th>Nome</th>
-                                    <th>Posto</th>
-                                    <th>Retiradas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for policial in policiais_mais_retiradas %}
-                                <tr>
-                                    <td>{{ policial.re }}</td>
-                                    <td>{{ policial.nome }}</td>
-                                    <td>{{ policial.get_posto_display }}</td>
-                                    <td>{{ policial.total_retiradas }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Nenhuma retirada registrada no mês atual.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}" class="btn btn-sm btn-primary">Gerar Relatório</a>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 custom-dashboard-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Data/Hora</th>
+                                <th>Tipo</th>
+                                <th>Militar</th>
+                                <th>Material</th>
+                                <th class="text-end pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mov in ultimas_movimentacoes %}
+                            <tr class="transition-row">
+                                <td class="ps-4">
+                                    <div class="small fw-bold">{{ mov.data_hora|date:"d/m" }}</div>
+                                    <div class="text-muted small">{{ mov.data_hora|date:"H:i" }}</div>
+                                </td>
+                                <td>
+                                    {% if mov.tipo == 'RETIRADA' %}
+                                    <span class="badge bg-primary-light text-primary border-primary border px-3 rounded-pill">Saindo</span>
+                                    {% else %}
+                                    <span class="badge bg-success-light text-success border-success border px-3 rounded-pill">Voltando</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2 bg-light text-primary fw-bold">{{ mov.policial.nome|first }}</div>
+                                        <span class="small fw-bold text-truncate" style="max-width: 120px;">{{ mov.policial.nome }}</span>
+                                    </div>
+                                </td>
+                                <td><code class="small text-navy">{{ mov.material.identificacao }}</code></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-icon btn-light rounded-circle shadow-sm"><i class="fas fa-file-alt"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-5 text-muted">Aguardando movimentações...</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
         
-        <!-- Últimos Relatórios Gerados -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="fas fa-file-alt me-2"></i>Últimos Relatórios Gerados
+        <!-- Alertas e Ranking -->
+        <div class="col-lg-5 mb-4">
+            <!-- Materiais mais utilizados -->
+             <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-orange"></i>Mais Movimentados do Mês</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Título</th>
-                                    <th>Gerado por</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for relatorio in ultimos_relatorios %}
-                                <tr>
-                                    <td>{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ relatorio.titulo }}</td>
-                                    <td>{{ relatorio.usuario.username }}</td>
-                                    <td>
-                                        <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-sm btn-primary" title="Baixar Relatório">
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Nenhum relatório gerado.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for material in materiais_mais_movimentados %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box bg-light me-3">
+                                    <i class="fas fa-gun text-muted"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ material.identificacao }}</p>
+                                    <small class="text-muted">{{ material.get_tipo_display }}</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ material.total_movimentacoes }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4 text-muted small">Sem dados para este período</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+             </div>
+
+             <!-- Relatórios recentes -->
+             <div class="card border-0 shadow-sm border-start border-4 border-info">
+                 <div class="card-body">
+                    <h6 class="fw-bold mb-3 d-flex justify-content-between">
+                        <span><i class="fas fa-file-alt me-2 text-info"></i>Documentos Recentes</span>
+                        <i class="fas fa-external-link-alt small text-muted"></i>
+                    </h6>
+                    {% for relatorio in ultimos_relatorios %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 text-info">
+                            <i class="fas fa-file-pdf fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold small">{{ relatorio.titulo|truncatechars:30 }}</div>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ relatorio.data_geracao|date:"d/m @ H:i" }} — {{ relatorio.usuario.username }}</small>
+                        </div>
+                        <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-xs btn-outline-info rounded-pill px-2" style="font-size: 0.6rem;">BAIXAR</a>
                     </div>
-                </div>
-                <div class="card-footer text-end">
-                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-sm btn-primary">Ver Todos</a>
-                </div>
-            </div>
+                    {% empty %}
+                    <p class="text-center text-muted small py-3">Nenhum relatório emitido.</p>
+                    {% endfor %}
+                 </div>
+             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .bg-gradient-blue { background: linear-gradient(135deg, #1a2a6c 0%, #2a4858 100%); }
+    .text-orange { color: #f39c12; }
+    .bg-primary-light { background-color: rgba(13, 110, 253, 0.05); }
+    .bg-success-light { background-color: rgba(25, 135, 84, 0.05); }
+    .avatar-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border: 1px solid #dee2e6; }
+    .icon-box { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .custom-dashboard-table thead th { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; border: 0; color: #6c757d; padding: 1rem 0.5rem; }
+    .transition-row { transition: background 0.2s; }
+    .transition-row:hover { background-color: #f8f9fa !important; }
+    .btn-xs { padding: 0.15rem 0.4rem; font-size: 0.75rem; }
+</style>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('current-time').textContent = timeStr;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+</script>
 {% endblock %}

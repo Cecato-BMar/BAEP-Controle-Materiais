@@ -2,147 +2,141 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Gerar Relatório de Movimentações - Reserva BAEP{% endblock %}
+{% block title %}Configurar Relatório Tático — Reserva BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="mb-2">
-        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-exchange-alt me-2"></i>Gerar Relatório de Movimentações</h1>
-        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
+<div class="container py-4 animate__animated animate__fadeIn">
+    <!-- Navegação de Retorno -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-decoration-none">Relatórios</a></li>
+                <li class="breadcrumb-item active">Gerar Movimentações</li>
+            </ol>
+        </nav>
+        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="fas fa-times me-1"></i> Cancelar
         </a>
     </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-cog me-2"></i>Configurações do Relatório
-        </div>
-        <div class="card-body">
-            <form method="post" novalidate>
-                {% csrf_token %}
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form.tipo_relatorio|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.titulo|as_crispy_field }}
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <i class="fas fa-filter me-2"></i>Filtros de Período
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                {{ form.data_inicio|as_crispy_field }}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.data_fim|as_crispy_field }}
-                            </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+                <div class="card-header bg-navy text-white p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
+                            <i class="fas fa-file-export fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-1">Parâmetros de Emissão</h3>
+                            <p class="text-white-50 mb-0 small text-uppercase fw-bold">Fluxo Operacional e Logístico</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <i class="fas fa-filter me-2"></i>Filtros de Movimentação
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate id="form-report">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4 mb-5">
                             <div class="col-md-6">
-                                {{ form.policial|as_crispy_field }}
+                                <div class="form-group-custom">
+                                    <label class="fw-bold text-navy mb-2"><i class="fas fa-tag me-1"></i> Título do Documento</label>
+                                    {{ form.titulo|as_crispy_field }}
+                                    <small class="text-muted">Este nome aparecerá no cabeçalho do PDF.</small>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                {{ form.material|as_crispy_field }}
+                                <div class="form-group-custom">
+                                    <label class="fw-bold text-navy mb-2"><i class="fas fa-list-ul me-1"></i> Tipo de Relatório</label>
+                                    {{ form.tipo_relatorio|as_crispy_field }}
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-12">
+                                <h6 class="text-uppercase fw-bold text-muted mb-4 border-bottom pb-2"><i class="fas fa-filter me-2"></i>Filtros de Consultas</h6>
+                            </div>
+                            <!-- Período -->
+                            <div class="col-md-3">
+                                <div class="p-3 rounded-4 bg-light">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase">Data Inicial</label>
+                                    {{ form.data_inicio|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded-4 bg-light">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase">Data Final</label>
+                                    {{ form.data_fim|as_crispy_field }}
+                                </div>
+                            </div>
+                            <!-- Agentes -->
+                            <div class="col-md-3">
+                                <div class="p-3 rounded-4 bg-light">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase">Filtrar por Militar</label>
+                                    {{ form.policial|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded-4 bg-light">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase">Filtrar por Material</label>
+                                    {{ form.material|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase">Observações Internas (Opcional)</label>
+                                    {{ form.observacoes|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-navy bg-opacity-5 rounded-4 p-4 mb-5 border-start border-navy border-4">
+                            <div class="d-flex align-items-center">
+                                <div class="text-navy me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div class="small">
+                                    <p class="mb-1 fw-bold">Processamento de Dados</p>
+                                    <p class="text-muted mb-0">O sistema consolidará as movimentações, gerará um resumo estatístico e preparará o arquivo para download imediato após a confirmação.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-navy btn-lg py-3 rounded-pill shadow-lg animate__animated animate__pulse animate__infinite animate__slower">
+                                <i class="fas fa-file-pdf me-2"></i> GERAR RELATÓRIO PDF
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        {{ form.observacoes|as_crispy_field }}
-                    </div>
-                </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Este relatório irá gerar uma lista de movimentações com base nos filtros selecionados, incluindo:
-                    <ul>
-                        <li>Lista detalhada de movimentações</li>
-                        <li>Resumo estatístico por período</li>
-                        <li>Informações sobre materiais e policiais envolvidos</li>
-                    </ul>
-                </div>
-                
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-file-alt me-2"></i>Gerar Relatório
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .border-navy { border-color: #1a2a6c !important; }
+    .form-group-custom .asteriskField { display: none; }
+    #div_id_policial .select2-container, #div_id_material .select2-container { width: 100% !important; }
+    .select2-selection { border: 0 !important; background: transparent !important; }
+    input[type="date"], input[type="text"], select, textarea { border-radius: 12px !important; border: 1px solid #eee !important; padding: 12px !important; }
+    input:focus, select:focus { border-color: #1a2a6c !important; box-shadow: 0 0 0 0.25rem rgba(26, 42, 108, 0.1) !important; }
+    label { display: none !important; } /* Hide crispy labels to use custom ones */
+    .form-group-custom label { display: block !important; } /* Restore specific labels */
+    .p-3 label { display: block !important; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Inicializar os select2 para os campos de seleção
-        $('#id_policial, #id_material').select2({
-            placeholder: 'Selecione...',
-            allowClear: true
-        });
-        
-        // Atualizar título automaticamente com base nos filtros
-        function atualizarTitulo() {
-            let titulo = 'Relatório de Movimentações';
-            
-            // Adicionar período ao título
-            const dataInicio = $('#id_data_inicio').val();
-            const dataFim = $('#id_data_fim').val();
-            if (dataInicio && dataFim) {
-                if (dataInicio === dataFim) {
-                    titulo += ' - ' + formatarData(dataInicio);
-                } else {
-                    titulo += ' - ' + formatarData(dataInicio) + ' a ' + formatarData(dataFim);
-                }
-            } else if (dataInicio) {
-                titulo += ' a partir de ' + formatarData(dataInicio);
-            } else if (dataFim) {
-                titulo += ' até ' + formatarData(dataFim);
-            }
-            
-            // Atualizar campo de título se estiver vazio ou se o usuário não tiver modificado
-            if (!$('#id_titulo').data('modificado-pelo-usuario')) {
-                $('#id_titulo').val(titulo);
-            }
-        }
-        
-        // Função para formatar data YYYY-MM-DD para DD/MM/YYYY
-        function formatarData(dataStr) {
-            if (!dataStr) return '';
-            const partes = dataStr.split('-');
-            return partes[2] + '/' + partes[1] + '/' + partes[0];
-        }
-        
-        // Eventos para atualizar título
-        $('#id_data_inicio, #id_data_fim').change(atualizarTitulo);
-        
-        // Marcar o título como modificado pelo usuário quando ele digitar
-        $('#id_titulo').on('input', function() {
-            $(this).data('modificado-pelo-usuario', true);
-        });
-        
-        // Inicializar título
-        atualizarTitulo();
+        $('#id_policial, #id_material').select2({ placeholder: "Todos", allowClear: true });
     });
 </script>
 {% endblock %}

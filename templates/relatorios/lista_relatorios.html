@@ -1,221 +1,200 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Relatórios - Reserva BAEP{% endblock %}
+{% block title %}Gestão de Relatórios — Reserva BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="mb-2">
-        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-file-alt me-2"></i>Relatórios</h1>
-        <div>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-plus me-2"></i>Gerar Novo Relatório
+<div class="container-fluid animate__animated animate__fadeIn">
+    
+    <!-- Cabeçalho KPI de Relatórios -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-file-invoice fa-lg text-primary"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ total_relatorios|default:"0" }}</h4>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Total Gerado</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-success bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-calendar-check fa-lg text-success"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-success">{{ reports_today|default:"0" }}</h4>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Emitidos Hoje</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-info bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-user-edit fa-lg text-info"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0" style="font-size: 1.1rem;">{{ most_active_user|truncatechars:12 }}</h4>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Usuário mais Ativo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dropdown h-100">
+                <button class="btn btn-navy w-100 h-100 rounded-3 shadow-sm dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-plus-circle me-2"></i>NOVO RELATÓRIO
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}">
-                            <i class="fas fa-chart-pie me-2"></i>Situação Atual
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_materiais' %}">
-                            <i class="fas fa-boxes me-2"></i>Materiais
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}">
-                            <i class="fas fa-exchange-alt me-2"></i>Movimentações
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-chart-pie me-2 text-info"></i>Situação Atual</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_materiais' %}"><i class="fas fa-boxes me-2 text-primary"></i>Materiais</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}"><i class="fas fa-exchange-alt me-2 text-success"></i>Movimentações</a></li>
                 </ul>
             </div>
         </div>
     </div>
-    
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-filter me-2"></i>Filtros
-        </div>
+
+    <!-- Filtros de Busca -->
+    <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="tipo" class="form-label">Tipo</label>
-                    <select name="tipo" id="tipo" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="SITUACAO_ATUAL" {% if request.GET.tipo == 'SITUACAO_ATUAL' %}selected{% endif %}>Situação Atual</option>
-                        <option value="MATERIAIS" {% if request.GET.tipo == 'MATERIAIS' %}selected{% endif %}>Materiais</option>
-                        <option value="MATERIAIS_EM_USO" {% if request.GET.tipo == 'MATERIAIS_EM_USO' %}selected{% endif %}>Materiais em Uso</option>
-                        <option value="MATERIAIS_DISPONIVEIS" {% if request.GET.tipo == 'MATERIAIS_DISPONIVEIS' %}selected{% endif %}>Materiais Disponíveis</option>
-                        <option value="MOVIMENTACOES" {% if request.GET.tipo == 'MOVIMENTACOES' %}selected{% endif %}>Movimentações</option>
-                        <option value="MOVIMENTACOES_DIA" {% if request.GET.tipo == 'MOVIMENTACOES_DIA' %}selected{% endif %}>Movimentações do Dia</option>
-                        <option value="MOVIMENTACOES_PERIODO" {% if request.GET.tipo == 'MOVIMENTACOES_PERIODO' %}selected{% endif %}>Movimentações por Período</option>
-                        <option value="MOVIMENTACOES_POLICIAL" {% if request.GET.tipo == 'MOVIMENTACOES_POLICIAL' %}selected{% endif %}>Movimentações por Policial</option>
-                        <option value="MOVIMENTACOES_MATERIAL" {% if request.GET.tipo == 'MOVIMENTACOES_MATERIAL' %}selected{% endif %}>Movimentações por Material</option>
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1">Tipo Documento</label>
+                    <select name="tipo" class="form-select border-0 bg-light small">
+                        <option value="">Todos os Tipos</option>
+                        <option value="SITUACAO_ATUAL" {% if request.GET.tipo == 'SITUACAO_ATUAL' %}selected{% endif %}>🟢 Situação Atual</option>
+                        <option value="MATERIAIS" {% if request.GET.tipo == 'MATERIAIS' %}selected{% endif %}>🔵 Materiais</option>
+                        <option value="MOVIMENTACOES" {% if request.GET.tipo == 'MOVIMENTACOES' %}selected{% endif %}>🟠 Movimentações</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="titulo" class="form-label">Título</label>
-                    <input type="text" name="titulo" id="titulo" class="form-control" placeholder="Título" value="{{ request.GET.titulo }}">
+                    <label class="small fw-bold text-muted mb-1">Título ou Assunto</label>
+                    <input type="text" name="titulo" class="form-control border-0 bg-light small" placeholder="Ex: Cargas Mensais..." value="{{ request.GET.titulo }}">
                 </div>
-                <div class="col-md-3">
-                    <label for="data_inicio" class="form-label">Data Início</label>
-                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1">Início</label>
+                    <input type="date" name="data_inicio" class="form-control border-0 bg-light small" value="{{ request.GET.data_inicio }}">
                 </div>
-                <div class="col-md-3">
-                    <label for="data_fim" class="form-label">Data Fim</label>
-                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1">Fim</label>
+                    <input type="date" name="data_fim" class="form-control border-0 bg-light small" value="{{ request.GET.data_fim }}">
                 </div>
-                <div class="col-md-3">
-                    <label for="usuario" class="form-label">Gerado por</label>
-                    <input type="text" name="usuario" id="usuario" class="form-control" placeholder="Nome do usuário" value="{{ request.GET.usuario }}">
-                </div>
-                <div class="col-md-9 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search me-2"></i>Filtrar
-                    </button>
-                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary">
-                        <i class="fas fa-eraser me-2"></i>Limpar Filtros
-                    </a>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i> Filtrar</button>
+                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></a>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- Lista de Relatórios -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-list me-2"></i>Lista de Relatórios
+
+    <!-- Tabela de Arquivos -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Identificação do Arquivo</th>
+                        <th>Classificação</th>
+                        <th class="text-center">Data/Hora</th>
+                        <th>Emissor</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for relatorio in relatorios %}
+                    <tr class="transition-all">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="file-icon me-3 bg-light rounded text-navy">
+                                    <i class="fas fa-file-pdf fa-lg"></i>
+                                </div>
+                                <div class="fw-bold">{{ relatorio.titulo }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
+                            <span class="badge bg-success-light text-success border border-success border-opacity-10 px-3">Situação Atual</span>
+                            {% elif 'MATERIAIS' in relatorio.tipo %}
+                            <span class="badge bg-primary-light text-primary border border-primary border-opacity-10 px-3">Logística</span>
+                            {% elif 'MOVIMENTACOES' in relatorio.tipo %}
+                            <span class="badge bg-warning-light text-warning border border-warning border-opacity-10 px-3">Fluxo Operacional</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark px-3">{{ relatorio.get_tipo_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center small text-muted">
+                            <div class="fw-bold">{{ relatorio.data_geracao|date:"d/m/Y" }}</div>
+                            <div>{{ relatorio.data_geracao|date:"H:i" }}</div>
+                        </td>
+                        <td class="small">
+                             <div class="d-flex align-items-center">
+                                <div class="avatar-xxs me-2">{{ relatorio.gerado_por.username|first|upper }}</div>
+                                {{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}
+                             </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-icon btn-white border shadow-xs" title="Ver Detalhes">
+                                    <i class="fas fa-eye text-primary"></i>
+                                </a>
+                                <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-icon btn-white border shadow-xs ms-1" title="Baixar Arquivo">
+                                    <i class="fas fa-download text-success"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="opacity-30 mb-3"><i class="fas fa-folder-open fa-3x"></i></div>
+                            <h6 class="text-muted">Nenhum relatório encontrado na base de dados.</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="card-body">
-            {% if relatorios %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Tipo</th>
-                            <th>Data Geração</th>
-                            <th>Gerado por</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for relatorio in relatorios %}
-                        <tr>
-                            <td>{{ relatorio.titulo }}</td>
-                            <td>
-                                {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
-                                <span class="badge bg-info">Situação Atual</span>
-                                {% elif relatorio.tipo == 'MATERIAIS' %}
-                                <span class="badge bg-primary">Materiais</span>
-                                {% elif relatorio.tipo == 'MOVIMENTACOES' %}
-                                <span class="badge bg-success">Movimentações</span>
-                                {% elif relatorio.tipo == 'MATERIAIS_EM_USO' %}
-                                <span class="badge bg-warning">Materiais em Uso</span>
-                                {% elif relatorio.tipo == 'MATERIAIS_DISPONIVEIS' %}
-                                <span class="badge bg-primary">Materiais Disponíveis</span>
-                                {% elif relatorio.tipo == 'MOVIMENTACOES_DIA' %}
-                                <span class="badge bg-success">Movimentações do Dia</span>
-                                {% elif relatorio.tipo == 'MOVIMENTACOES_PERIODO' %}
-                                <span class="badge bg-success">Movimentações por Período</span>
-                                {% elif relatorio.tipo == 'MOVIMENTACOES_POLICIAL' %}
-                                <span class="badge bg-success">Movimentações por Policial</span>
-                                {% elif relatorio.tipo == 'MOVIMENTACOES_MATERIAL' %}
-                                <span class="badge bg-success">Movimentações por Material</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ relatorio.get_tipo_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</td>
-                            <td>{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</td>
-                            <td>
-                                <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-info" title="Detalhes">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-primary" title="Baixar Relatório">
-                                    <i class="fas fa-download"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Paginação -->
-            {% if relatorios.has_other_pages %}
-            <nav aria-label="Navegação de página" class="mt-4">
-                <ul class="pagination justify-content-center">
+        
+        {% if relatorios.has_other_pages %}
+        <div class="card-footer bg-white border-top py-3">
+             <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0">
                     {% if relatorios.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" aria-label="Primeira">
-                            <span aria-hidden="true">&laquo;&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.previous_page_number }}" aria-label="Anterior">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" aria-label="Primeira">
-                            <span aria-hidden="true">&laquo;&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" aria-label="Anterior">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+                    <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.previous_page_number }}">&laquo;</a></li>
                     {% endif %}
                     
-                    {% for i in relatorios.paginator.page_range %}
-                        {% if relatorios.number == i %}
-                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
-                        {% elif i > relatorios.number|add:'-3' and i < relatorios.number|add:'3' %}
-                        <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ i }}">{{ i }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                    
+                    <li class="page-item active"><span class="page-link px-3">{{ relatorios.number }} de {{ relatorios.paginator.num_pages }}</span></li>
+
                     {% if relatorios.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.next_page_number }}" aria-label="Próxima">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.paginator.num_pages }}" aria-label="Última">
-                            <span aria-hidden="true">&raquo;&raquo;</span>
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" aria-label="Próxima">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" aria-label="Última">
-                            <span aria-hidden="true">&raquo;&raquo;</span>
-                        </a>
-                    </li>
+                    <li class="page-item"><a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ relatorios.next_page_number }}">&raquo;</a></li>
                     {% endif %}
                 </ul>
             </nav>
-            {% endif %}
-            
-            {% else %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>Nenhum relatório encontrado com os filtros selecionados.
-            </div>
-            {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+    .btn-navy { background-color: #1a2a6c; color: white; border: 0; }
+    .btn-navy:hover { background-color: #0f1a4a; color: white; }
+    .text-navy { color: #1a2a6c; }
+    .file-icon { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; }
+    .btn-icon { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
+    .bg-success-light { background-color: #e8f5e9; }
+    .bg-primary-light { background-color: #e3f2fd; }
+    .bg-warning-light { background-color: #fff3e0; }
+    .avatar-xxs { width: 22px; height: 22px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; border: 1px solid #ddd; }
+    .transition-all { transition: all 0.2s ease; }
+    .transition-all:hover { background-color: #fcfcfc !important; transform: scale(1.001); }
+    .shadow-xs { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .table thead th { font-size: 0.65rem; text-transform: uppercase; color: #7f8c8d; font-weight: 700; padding: 1rem 0.5rem; }
+</style>
 {% endblock %}

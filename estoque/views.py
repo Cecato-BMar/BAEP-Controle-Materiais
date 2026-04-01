@@ -135,18 +135,36 @@ def painel_controle_estoque(request):
                 'data_fim': data_fim,
             }
 
+    # Contadores estratégicos para o Dashboard KPI
+    count_reposicao = 0
+    count_cotacao_vencida = 0
+    total_valor_estoque = Decimal('0.00')
+
     # Todos os materiais ativos para o relatório consolidado
     todos_materiais = Produto.objects.filter(status='ATIVO').select_related('categoria', 'unidade_medida')
     for m in todos_materiais:
         m.saldo_atual = m.saldo_calculado
         m.alerta_reposicao = m.precisa_reposicao
         m.alerta_cotacao = m.cotacao_vencida
+        
+        if m.alerta_reposicao:
+            count_reposicao += 1
+        if m.alerta_cotacao:
+            count_cotacao_vencida += 1
+        
+        # Valor estimado (Saldo * Preço Médio ou Valor Unitário)
+        preco = m.preco_medio or m.valor_unitario or Decimal('0.00')
+        total_valor_estoque += (m.saldo_atual * preco)
 
     context = {
         'form': form,
         'material': material,
         'indicadores': indicadores,
         'todos_materiais': todos_materiais,
+        'count_reposicao': count_reposicao,
+        'count_cotacao_vencida': count_cotacao_vencida,
+        'total_valor_estoque': total_valor_estoque,
+        'responsavel': request.user,
     }
     return render(request, 'estoque/painel_controle.html', context)
 
@@ -567,19 +585,30 @@ def lista_produtos(request):
     if status:
         qs = qs.filter(status=status)
 
+    # Indicadores para o cabeçalho
+    total_count = qs.count()
+    active_count = qs.filter(status='ATIVO').count()
+    low_stock_count = 0
+    
     # Adiciona saldo calculado a cada produto
     for p in qs:
         p.saldo_atual = p.saldo_calculado
         p.alerta_reposicao = p.precisa_reposicao
+        if p.alerta_reposicao and p.status == 'ATIVO':
+            low_stock_count += 1
 
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
     categorias = Categoria.objects.filter(ativo=True)
+    
     return render(request, 'estoque/lista_produtos.html', {
         'page_obj': page,
         'termo': termo,
         'categorias': categorias,
         'status_filtro': status,
+        'total_count': total_count,
+        'active_count': active_count,
+        'low_stock_count': low_stock_count,
     })
 
 

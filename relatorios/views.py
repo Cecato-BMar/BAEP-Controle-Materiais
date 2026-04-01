@@ -86,15 +86,24 @@ def lista_relatorios(request):
             Q(gerado_por__last_name__icontains=usuario)
         )
     
-    # Paginação
-    paginator = Paginator(relatorios, 20)  # 20 itens por página
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Estatísticas para o cabeçalho
+    hoje = timezone.now().date()
+    reports_today = relatorios.filter(data_geracao__date=hoje).count()
     
+    # Usuário mais ativo (quem gerou mais relatórios)
+    most_active_user_data = relatorios.values('gerado_por__username').annotate(total=Count('id')).order_by('-total').first()
+    most_active_user = most_active_user_data['gerado_por__username'] if most_active_user_data else "N/A"
+    
+    last_report = relatorios.first()
+    last_report_date = last_report.data_geracao if last_report else None
+
     return render(request, 'relatorios/lista_relatorios.html', {
         'relatorios': page_obj,
         'page_obj': page_obj,
         'total_relatorios': relatorios.count(),
+        'reports_today': reports_today,
+        'most_active_user': most_active_user,
+        'last_report_date': last_report_date,
     })
 
 @login_required

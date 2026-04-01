@@ -2,84 +2,96 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Gerar Relatório de Materiais - Reserva BAEP{% endblock %}
+{% block title %}Inventário de Ativos — Reserva BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="mb-2">
-        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-boxes me-2"></i>Gerar Relatório de Materiais</h1>
-        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
-        </a>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-cog me-2"></i>Configurações do Relatório
-        </div>
-        <div class="card-body">
-            <form method="post" novalidate>
-                {% csrf_token %}
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form.tipo_relatorio|as_crispy_field }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.titulo|as_crispy_field }}
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <i class="fas fa-filter me-2"></i>Filtros
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-12">
-                                {{ form.tipo_material|as_crispy_field }}
-                            </div>
+<div class="container py-4 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+                <div class="card-header bg-navy text-white p-4">
+                    <div class="d-flex align-items-center">
+                         <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
+                            <i class="fas fa-boxes fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-1">Catálogo de Ativos Operacionais</h3>
+                            <p class="text-white-50 mb-0 small text-uppercase fw-bold">Configuração da Base de Materiais</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        {{ form.observacoes|as_crispy_field }}
-                    </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group-custom p-3 bg-light rounded-4">
+                                    <label class="fw-bold text-navy mb-2 small text-uppercase"><i class="fas fa-tag me-1"></i> Título Sugerido</label>
+                                    {{ form.titulo|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom p-3 bg-light rounded-4">
+                                     <label class="fw-bold text-navy mb-2 small text-uppercase"><i class="fas fa-filter me-1"></i> Categoria de Material</label>
+                                    {{ form.tipo_relatorio|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="form-group-custom p-3 border rounded-4">
+                                     <label class="fw-bold text-navy mb-2 small text-uppercase"><i class="fas fa-stream me-1"></i> Seleção de Tipos</label>
+                                    {{ form.tipo_material|as_crispy_field }}
+                                    <p class="text-muted small mt-2 mb-0">Deixe em branco para incluir todos os tipos cadastrados.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="form-group">
+                                     <label class="fw-bold text-navy mb-2 small text-uppercase">Notas Adicionais</label>
+                                    {{ form.observacoes|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                            <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none">
+                                <i class="fas fa-times me-1"></i> Descartar
+                            </a>
+                            <button type="submit" class="btn btn-navy btn-lg rounded-pill px-5 shadow-lg">
+                                <i class="fas fa-file-invoice me-2"></i> COMPILAR DOCUMENTO
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Este relatório irá gerar uma lista de materiais com base nos filtros selecionados, incluindo:
-                    <ul>
-                        <li>Lista detalhada de materiais</li>
-                        <li>Resumo com totais por tipo e status</li>
-                    </ul>
-                </div>
-                
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-file-alt me-2"></i>Gerar Relatório
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .form-group-custom .asteriskField { display: none; }
+    #id_tipo_material + .select2-container { width: 100% !important; margin-top: 5px; }
+    label { display: none !important; }
+    .form-group-custom label { display: block !important; }
+    .form-group label { display: block !important; }
+    input, select, textarea { border-radius: 12px !important; border: 1px solid #eee !important; padding: 12px !important; width: 100%;}
+    input:focus, select:focus, textarea:focus { border-color: #1a2a6c !important; box-shadow: 0 0 0 0.25rem rgba(26, 42, 108, 0.1) !important; outline: none; }
+    .select2-selection--multiple { border: 1px solid #eee !important; border-radius: 12px !important; padding: 5px !important; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Inicializar o select2 para o campo de tipo de material
-        $('#id_tipo_material').select2({
-            placeholder: 'Selecione um tipo de material',
-            allowClear: true
-        });
+        $('#id_tipo_material').select2({ placeholder: "Todos os tipos", allowClear: true });
     });
 </script>
 {% endblock %}
