@@ -8,6 +8,8 @@ urlpatterns = [
     path('', views.lista_movimentacoes, name='lista_movimentacoes'),
     path('<int:pk>/', views.detalhe_movimentacao, name='detalhe_movimentacao'),
     path('retirada/nova/', views.nova_retirada, name='nova_retirada'),
+    path('retirada/confirmacao/', views.confirmacao_retirada, name='confirmacao_retirada'),
+    path('retirada/recibo/', views.gerar_recibo_retirada, name='gerar_recibo_retirada'),
     path('devolucao/nova/', views.nova_devolucao, name='nova_devolucao'),
     
     # APIs existentes

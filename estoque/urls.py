@@ -19,6 +19,8 @@ urlpatterns = [
     # Saída de Materiais (PAP §3)
     # =========================================================================
     path('saida/', views.criar_saida_material, name='criar_saida_material'),
+    path('saida/confirmacao/', views.confirmacao_saida_material, name='confirmacao_saida_material'),
+    path('saida/recibo/', views.exportar_recibo_saida_pdf, name='exportar_recibo_saida_pdf'),
 
     # =========================================================================
     # Categorias
@@ -26,6 +28,11 @@ urlpatterns = [
     path('categorias/', views.lista_categorias, name='lista_categorias'),
     path('categorias/nova/', views.criar_categoria, name='criar_categoria'),
     path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
+
+    # =========================================================================
+    # Subcategorias
+    # =========================================================================
+    path('subcategorias/nova/', views.criar_subcategoria, name='criar_subcategoria'),
 
     # =========================================================================
     # Unidades de Medida (PAP §1)

@@ -131,13 +131,10 @@ class MilitarRequisitante(models.Model):
 # =============================================================================
 
 class Categoria(models.Model):
-    """Categorias de materiais (ex: Papelaria, Limpeza, Informática).
-    Subcategoria é um material específico dentro de uma categoria."""
+    """Categorias macro de materiais (ex: Papelaria, Limpeza, Informática)"""
     nome = models.CharField(_('Nome'), max_length=100, unique=True)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
     codigo = models.CharField(_('Código'), max_length=20, unique=True)
-    categoria_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                                       related_name='subcategorias', verbose_name=_('Categoria Pai'))
     ativo = models.BooleanField(_('Ativo'), default=True)
     data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
     data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
@@ -150,11 +147,23 @@ class Categoria(models.Model):
     def __str__(self):
         return f"{self.codigo} - {self.nome}"
 
-    @property
-    def hierarquia(self):
-        if self.categoria_pai:
-            return f"{self.categoria_pai.hierarquia} > {self.nome}"
-        return self.nome
+
+class Subcategoria(models.Model):
+    """Subcategorias vinculadas a uma Categoria (ex: Categoria: Papelaria -> Subcategoria: Canetas)"""
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias', verbose_name=_('Categoria'))
+    nome = models.CharField(_('Nome'), max_length=100)
+    descricao = models.TextField(_('Descrição'), blank=True, null=True)
+    codigo = models.CharField(_('Código'), max_length=20, unique=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Subcategoria')
+        verbose_name_plural = _('Subcategorias')
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.categoria.nome} > {self.nome}"
 
 
 class UnidadeMedida(models.Model):
@@ -210,7 +219,7 @@ class Fornecedor(models.Model):
 
 class Produto(models.Model):
     """Material de Consumo — model central do estoque.
-    Expandido com campos obrigatórios do PAP §1 (Cadastro de Materiais de Consumo)."""
+    Expandido with campos obrigatórios do PAP §1 (Cadastro de Materiais de Consumo)."""
 
     STATUS_CHOICES = [
         ('ATIVO', 'Ativo'),
@@ -222,10 +231,10 @@ class Produto(models.Model):
     # --- Identificação (PAP §1) ---
     codigo = models.CharField(_('Código Único'), max_length=50, unique=True,
                                help_text=_('Código único do material. Ex: MAT-001'))
-    codigo_barras = models.CharField(_('Código de Barras / Empenho'), max_length=100,
+    codigo_barras = models.CharField(_('Código de Barras'), max_length=100,
                                       blank=True, null=True, unique=True,
                                       help_text=_('Preparado para futura leitura por scanner'))
-    nome = models.CharField(_('Subcategoria (Nome do Material)'), max_length=200,
+    nome = models.CharField(_('Nome do Material'), max_length=200,
                              help_text=_('Ex: Caneta Azul, Papel Sulfite A4'))
     descricao = models.TextField(_('Descrição'), blank=True, null=True,
                                   help_text=_('Conforme Termo de Referência'))
@@ -233,12 +242,15 @@ class Produto(models.Model):
     # --- Classificação PAP §1 ---
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='produtos',
                                    verbose_name=_('Categoria'))
+    subcategoria = models.ForeignKey(Subcategoria, on_delete=models.PROTECT, related_name='produtos',
+                                      verbose_name=_('Subcategoria'), null=True, blank=True)
     codigo_siafisico = models.CharField(_('Código SIAFÍSICO'), max_length=50, blank=True, null=True,
                                          help_text=_('Conforme Termo de Referência'))
     codigo_cat_mat = models.CharField(_('Código CAT MAT'), max_length=50, blank=True, null=True,
                                        help_text=_('Conforme Termo de Referência'))
-
+    
     # --- Aquisição / Licitação PAP §1 ---
+    empenho = models.CharField(_('Nº de Empenho'), max_length=100, blank=True, null=True)
     preco_medio = models.DecimalField(_('Preço Médio'), max_digits=12, decimal_places=4,
                                        default=Decimal('0.00'),
                                        validators=[MinValueValidator(Decimal('0.00'))],
@@ -572,9 +584,9 @@ class MovimentacaoEstoque(models.Model):
     orgao_requisitante = models.ForeignKey(OrgaoRequisitante, on_delete=models.SET_NULL,
                                             null=True, blank=True,
                                             verbose_name=_('Órgão Requisitante'))
-    militar_requisitante = models.ForeignKey(MilitarRequisitante, on_delete=models.SET_NULL,
+    militar_requisitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL,
                                               null=True, blank=True,
-                                              verbose_name=_('Militar Requisitante'))
+                                              verbose_name=_('Policial Requisitante'))
 
     # Quantidades e Valores
     quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2,

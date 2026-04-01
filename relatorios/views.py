@@ -22,8 +22,9 @@ from reportlab.lib.units import inch, cm
 from .models import Relatorio
 from .forms import (
     RelatorioSituacaoAtualForm, RelatorioMateriaisForm, 
-    RelatorioMovimentacoesForm
+    RelatorioMovimentacoesForm, RelatorioEstoqueMovimentacoesForm
 )
+from estoque.models import MovimentacaoEstoque, Produto
 from materiais.models import Material
 from movimentacoes.models import Movimentacao, Retirada, Devolucao
 from policiais.models import Policial
@@ -97,6 +98,11 @@ def lista_relatorios(request):
     last_report = relatorios.first()
     last_report_date = last_report.data_geracao if last_report else None
 
+    # Paginação
+    paginator = Paginator(relatorios, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'relatorios/lista_relatorios.html', {
         'relatorios': page_obj,
         'page_obj': page_obj,
@@ -162,12 +168,15 @@ def download_relatorio(request, relatorio_id):
     
     if not relatorio.arquivo_pdf or not os.path.exists(relatorio.arquivo_pdf.path):
         messages.error(request, _('Arquivo PDF não encontrado.'))
-        return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
+        return redirect('relatorios:lista_relatorios')
     
-    # Renderiza a página de opções de download
-    return render(request, 'relatorios/download_relatorio.html', {
-        'relatorio': relatorio,
-    })
+    # Retornar o arquivo diretamente para download
+    return FileResponse(
+        open(relatorio.arquivo_pdf.path, 'rb'),
+        content_type='application/pdf',
+        as_attachment=True,
+        filename=f"{relatorio.titulo.replace(' ', '_').lower()}_{relatorio.pk}.pdf"
+    )
 
 @login_required
 @require_module_permission('reserva_armas')
@@ -1118,3 +1127,128 @@ def gerar_relatorio_movimentacoes(request):
         })    
     
     return render(request, 'relatorios/form_relatorio_movimentacoes.html', {'form': form})
+
+
+@login_required
+@require_module_permission('materiais')
+def gerar_relatorio_estoque_movimentacoes(request):
+    """Gera relatório de movimentações do estoque (PAP §2/§3)"""
+    if request.method == 'POST':
+        form = RelatorioEstoqueMovimentacoesForm(request.POST)
+        if form.is_valid():
+            titulo = form.cleaned_data.get('titulo')
+            tipo_mov = form.cleaned_data.get('tipo_movimentacao')
+            produto = form.cleaned_data.get('produto')
+            data_inicio = form.cleaned_data.get('data_inicio')
+            data_fim = form.cleaned_data.get('data_fim')
+            observacoes = form.cleaned_data.get('observacoes', '')
+            
+            # Filtra as movimentações
+            movimentacoes = MovimentacaoEstoque.objects.all().order_by('-data_movimentacao', '-data_hora')
+            
+            if tipo_mov:
+                movimentacoes = movimentacoes.filter(tipo_movimentacao=tipo_mov)
+            if data_inicio:
+                movimentacoes = movimentacoes.filter(data_movimentacao__gte=data_inicio)
+            if data_fim:
+                movimentacoes = movimentacoes.filter(data_movimentacao__lte=data_fim)
+            if produto:
+                movimentacoes = movimentacoes.filter(produto=produto)
+            
+            # Gera o PDF
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=1*cm, rightMargin=1*cm, topMargin=2*cm)
+            elements = []
+            
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, alignment=1, spaceAfter=20)
+            subtitle_style = ParagraphStyle('Subtitle', parent=styles['Heading2'], fontSize=12, spaceBefore=15, spaceAfter=10)
+            normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=9)
+            table_cell_style = ParagraphStyle('TableCell', parent=styles['Normal'], fontSize=7, leading=8)
+            
+            elements.append(Paragraph(titulo, title_style))
+            elements.append(Paragraph(f"<b>Emissor:</b> {request.user.get_full_name() or request.user.username}", normal_style))
+            elements.append(Paragraph(f"<b>Data de Geração:</b> {timezone.now().strftime('%d/%m/%Y %H:%M')}", normal_style))
+            
+            periodo_str = f"{data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}" if data_inicio and data_fim else "Todo o período"
+            elements.append(Paragraph(f"<b>Período:</b> {periodo_str}", normal_style))
+            elements.append(Spacer(1, 0.5*cm))
+
+            # Resumo
+            elements.append(Paragraph("📊 Resumo do Período", subtitle_style))
+            total_movs = movimentacoes.count()
+            entradas = movimentacoes.filter(tipo_movimentacao='ENTRADA').count()
+            saidas = movimentacoes.filter(tipo_movimentacao='SAIDA').count()
+            
+            resumo_data = [
+                ['Tipo', 'Qtd. Operações'],
+                ['Entradas', entradas],
+                ['Saídas', saidas],
+                ['Total Geral', total_movs]
+            ]
+            res_table = Table(resumo_data, colWidths=[4*cm, 3*cm])
+            res_table.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.navy),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold')
+            ]))
+            elements.append(res_table)
+            elements.append(Spacer(1, 1*cm))
+
+            # Detalhamento
+            elements.append(Paragraph("📝 Detalhamento de Movimentações", subtitle_style))
+            mov_data = [['Data', 'Tipo', 'Material', 'Qtd', 'V. Unit', 'Militar (Saída) / Fornec. (Entrada)']]
+            
+            for m in movimentacoes:
+                requisitante = str(m.militar_requisitante) if m.militar_requisitante else (str(m.fornecedor) if m.fornecedor else '-')
+                mov_data.append([
+                    m.data_movimentacao.strftime('%d/%m/%Y'),
+                    m.get_subtipo_display(),
+                    Paragraph(m.produto.nome, table_cell_style),
+                    f"{'+' if m.tipo_movimentacao == 'ENTRADA' else '-'}{m.quantidade}",
+                    f"R$ {m.valor_unitario:,.2f}",
+                    Paragraph(requisitante, table_cell_style)
+                ])
+            
+            # Ajuste de larguras para somar exatamente 18.5cm (A4 tem 21cm - 2cm margem = 19cm max)
+            col_widths = [2.2*cm, 2.5*cm, 4.0*cm, 1.8*cm, 2.2*cm, 5.8*cm]
+            table = Table(mov_data, colWidths=col_widths)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.white])
+            ]))
+            elements.append(table)
+            
+            if observacoes:
+                elements.append(Spacer(1, 1*cm))
+                elements.append(Paragraph("<b>Observações:</b>", normal_style))
+                elements.append(Paragraph(observacoes, normal_style))
+
+            doc.build(elements, onFirstPage=_draw_logo, onLaterPages=_draw_logo)
+            pdf = buffer.getvalue()
+            buffer.close()
+            
+            relatorio = Relatorio.objects.create(
+                titulo=titulo,
+                tipo='MOVIMENTACOES_PERIODO',
+                gerado_por=request.user,
+                periodo_inicio=timezone.make_aware(datetime.datetime.combine(data_inicio, datetime.time.min)) if data_inicio else None,
+                periodo_fim=timezone.make_aware(datetime.datetime.combine(data_fim, datetime.time.max)) if data_fim else None,
+                observacoes=observacoes
+            )
+            relatorio.arquivo_pdf.save(f"movimentacao_estoque_{relatorio.pk}.pdf", io.BytesIO(pdf))
+            
+            messages.success(request, _('Relatório gerado com sucesso!'))
+            return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
+            
+    else:
+        form = RelatorioEstoqueMovimentacoesForm()
+    
+    return render(request, 'relatorios/form_relatorio_estoque_movimentacoes.html', {'form': form})

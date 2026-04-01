@@ -5,11 +5,12 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Field, Div, HTML
 from crispy_forms.bootstrap import FormActions
 from .models import (
-    Categoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
+    Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
     MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque
 )
+from policiais.models import Policial
 
 
 # =============================================================================
@@ -19,7 +20,7 @@ from .models import (
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
-        fields = ['nome', 'descricao', 'codigo', 'categoria_pai', 'ativo']
+        fields = ['nome', 'descricao', 'codigo', 'ativo']
         widgets = {
             'descricao': forms.Textarea(attrs={'rows': 3}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -33,13 +34,44 @@ class CategoriaForm(forms.ModelForm):
                 Column('codigo', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
                 Column('ativo', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
-            'categoria_pai',
             'descricao',
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
                 HTML('<a href="{% url "estoque:lista_categorias" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            )
+        )
+
+
+class SubcategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Subcategoria
+        fields = ['categoria', 'nome', 'descricao', 'codigo', 'ativo']
+        widgets = {
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'descricao': forms.Textarea(attrs={'rows': 3}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('categoria', css_class='form-group col-md-4 mb-0'),
+                Column('nome', css_class='form-group col-md-8 mb-0'),
+                css_class='row'
+            ),
+            Row(
+                Column('codigo', css_class='form-group col-md-4 mb-0'),
+                Column('ativo', css_class='form-group col-md-8 mb-0'),
+                css_class='row'
+            ),
+            'descricao',
+            FormActions(
+                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
+                HTML('<a href="{% url "estoque:lista_produtos" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
             )
         )
 
@@ -61,7 +93,7 @@ class UnidadeMedidaForm(forms.ModelForm):
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
                 Column('ativo', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'descricao',
             FormActions(
@@ -89,7 +121,7 @@ class UnidadeFornecimentoForm(forms.ModelForm):
                 Column('nome', css_class='form-group col-md-6 mb-0'),
                 Column('padrao', css_class='form-group col-md-3 mb-0'),
                 Column('ativo', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'descricao',
             FormActions(
@@ -112,7 +144,7 @@ class CorForm(forms.ModelForm):
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
                 Column('ativo', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
@@ -135,7 +167,7 @@ class ContaPatrimonialForm(forms.ModelForm):
                 Column('codigo', css_class='form-group col-md-4 mb-0'),
                 Column('descricao', css_class='form-group col-md-5 mb-0'),
                 Column('ativo', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
@@ -158,7 +190,7 @@ class OrgaoRequisitanteForm(forms.ModelForm):
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
                 Column('ativo', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
@@ -183,7 +215,7 @@ class LocalizacaoFisicaForm(forms.ModelForm):
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
                 Column('ativo', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'descricao',
             FormActions(
@@ -211,7 +243,7 @@ class MilitarRequisitanteForm(forms.ModelForm):
                 Column('qra', css_class='form-group col-md-3 mb-0'),
                 Column('nome_completo', css_class='form-group col-md-4 mb-0'),
                 Column('ativo', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'orgao',
             FormActions(
@@ -239,25 +271,25 @@ class FornecedorForm(forms.ModelForm):
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
                 Column('tipo_pessoa', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('documento', css_class='form-group col-md-4 mb-0'),
                 Column('inscricao_estadual', css_class='form-group col-md-4 mb-0'),
                 Column('ativo', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('telefone', css_class='form-group col-md-4 mb-0'),
                 Column('email', css_class='form-group col-md-8 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'endereco',
             Row(
                 Column('cidade', css_class='form-group col-md-6 mb-0'),
                 Column('estado', css_class='form-group col-md-2 mb-0'),
                 Column('cep', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
@@ -275,9 +307,9 @@ class ProdutoForm(forms.ModelForm):
         model = Produto
         fields = [
             'codigo', 'codigo_barras', 'nome', 'descricao',
-            'categoria', 'codigo_siafisico', 'codigo_cat_mat',
+            'categoria', 'subcategoria', 'codigo_siafisico', 'codigo_cat_mat',
             'preco_medio', 'data_cotacao', 'data_inicio_projeto',
-            'tempo_reposicao', 'termo_referencia', 'processo_sei',
+            'tempo_reposicao', 'termo_referencia', 'processo_sei', 'empenho',
             'historico_subcategoria',
             'unidade_medida', 'unidade_fornecimento',
             'estoque_minimo', 'estoque_maximo', 'valor_unitario',
@@ -289,6 +321,7 @@ class ProdutoForm(forms.ModelForm):
             'descricao': forms.Textarea(attrs={'rows': 3}),
             'historico_subcategoria': forms.Textarea(attrs={'rows': 3}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'subcategoria': forms.Select(attrs={'class': 'form-select'}),
             'unidade_medida': forms.Select(attrs={'class': 'form-select'}),
             'unidade_fornecimento': forms.Select(attrs={'class': 'form-select'}),
             'fornecedor_padrao': forms.Select(attrs={'class': 'form-select'}),
@@ -303,7 +336,16 @@ class ProdutoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['codigo_barras'].label = _('Código de Barras / Empenho')
+        
+        # Helper para adicionar botão "+" nos dropdowns via Popup
+        def add_button(url_name, title):
+            from django.urls import reverse
+            try:
+                url = reverse(url_name) + '?popup=1'
+                return HTML(f'<button type="button" onclick="abrirPopup(\'{url}\')" class="btn btn-outline-primary btn-sm ms-1" title="{title}" style="height: 38px; min-width: 38px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-plus"></i></button>')
+            except:
+                return HTML('')
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-tag me-2"></i>Identificação</h6>'),
@@ -311,29 +353,55 @@ class ProdutoForm(forms.ModelForm):
                 Column('codigo', css_class='form-group col-md-3 mb-0'),
                 Column('codigo_barras', css_class='form-group col-md-3 mb-0'),
                 Column('status', css_class='form-group col-md-3 mb-0'),
-                Column('categoria', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                Column(
+                    Div(
+                        Field('categoria', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_categoria', 'Nova Categoria'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-3 mb-0'
+                ),
+                css_class='row'
             ),
             Row(
-                Column('nome', css_class='form-group col-md-8 mb-0'),
-                Column('unidade_medida', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                Column('nome', css_class='form-group col-md-5 mb-0'),
+                Column(
+                    Div(
+                        Field('subcategoria', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_subcategoria', 'Nova Subcategoria'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-4 mb-0'
+                ),
+                Column(
+                    Div(
+                        Field('unidade_medida', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_unidade_medida', 'Nova Unidade'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-3 mb-0'
+                ),
+                css_class='row'
             ),
             'descricao',
             HTML('<h6 class="text-muted border-bottom pb-2 mt-3 mb-3"><i class="fas fa-file-contract me-2"></i>Licitação / Aquisição (PAP)</h6>'),
             Row(
                 Column('codigo_siafisico', css_class='form-group col-md-3 mb-0'),
                 Column('codigo_cat_mat', css_class='form-group col-md-3 mb-0'),
+                Column('empenho', css_class='form-group col-md-3 mb-0'),
                 Column('termo_referencia', css_class='form-group col-md-3 mb-0'),
-                Column('processo_sei', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
+                Column('processo_sei', css_class='form-group col-md-3 mb-0'),
                 Column('preco_medio', css_class='form-group col-md-3 mb-0'),
                 Column('data_cotacao', css_class='form-group col-md-3 mb-0'),
                 Column('data_inicio_projeto', css_class='form-group col-md-3 mb-0'),
+                css_class='row'
+            ),
+            Row(
                 Column('tempo_reposicao', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'historico_subcategoria',
             HTML('<h6 class="text-muted border-bottom pb-2 mt-3 mb-3"><i class="fas fa-boxes me-2"></i>Estoque e Vínculos</h6>'),
@@ -341,27 +409,68 @@ class ProdutoForm(forms.ModelForm):
                 Column('estoque_minimo', css_class='form-group col-md-3 mb-0'),
                 Column('estoque_maximo', css_class='form-group col-md-3 mb-0'),
                 Column('valor_unitario', css_class='form-group col-md-3 mb-0'),
-                Column('unidade_fornecimento', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                Column(
+                    Div(
+                        Field('unidade_fornecimento', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_unidade_fornecimento', 'Nova Unidade Fornec.'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-3 mb-0'
+                ),
+                css_class='row'
             ),
             Row(
-                Column('fornecedor_padrao', css_class='form-group col-md-4 mb-0'),
-                Column('localizacao_fisica', css_class='form-group col-md-4 mb-0'),
-                Column('conta_patrimonial', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                Column(
+                    Div(
+                        Field('fornecedor_padrao', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_fornecedor', 'Novo Fornecedor'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-4 mb-0'
+                ),
+                Column(
+                    Div(
+                        Field('localizacao_fisica', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_localizacao', 'Nova Localização'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-4 mb-0'
+                ),
+                Column(
+                    Div(
+                        Field('conta_patrimonial', wrapper_class='flex-grow-1'),
+                        add_button('estoque:criar_conta_patrimonial', 'Nova Conta Patrim.'),
+                        css_class='d-flex align-items-start'
+                    ),
+                    css_class='form-group col-md-4 mb-0'
+                ),
+                css_class='row'
             ),
             Row(
                 Column('controla_validade', css_class='form-group col-md-4 mb-0'),
                 Column('prazo_validade_meses', css_class='form-group col-md-4 mb-0'),
                 Column('controla_numero_serie', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
+
             'imagem',
             FormActions(
                 HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Material</button>'),
                 HTML('<a href="{% url "estoque:lista_produtos" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
             )
         )
+
+    def clean_codigo_barras(self):
+        codigo = self.cleaned_data.get('codigo_barras')
+        if not codigo:
+            return None
+        return codigo
+
+    def clean_codigo(self):
+        codigo = self.cleaned_data.get('codigo')
+        if not codigo:
+            return None
+        return codigo
 
     def clean(self):
         cleaned_data = super().clean()
@@ -428,7 +537,7 @@ class EntradaMaterialForm(forms.ModelForm):
                 Column('subtipo', css_class='form-group col-md-3 mb-0'),
                 Column('data_movimentacao', css_class='form-group col-md-2 mb-0'),
                 Column('cor', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('unidade_medida', css_class='form-group col-md-3 mb-0'),
@@ -440,18 +549,18 @@ class EntradaMaterialForm(forms.ModelForm):
                          '<div id="valor-total-entrada" class="form-control bg-light fw-bold">R$ 0,00</div>'),
                     css_class='form-group col-md-2 mb-0'
                 ),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('conta_patrimonial', css_class='form-group col-md-4 mb-0'),
                 Column('localizacao_fisica', css_class='form-group col-md-4 mb-0'),
                 Column('fornecedor', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('lote', css_class='form-group col-md-4 mb-0'),
                 Column('nota_fiscal', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'observacoes',
             FormActions(
@@ -499,6 +608,9 @@ class SaidaMaterialForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['militar_requisitante'].label = _('Policial Requisitante')
+        self.fields['militar_requisitante'].queryset = Policial.objects.filter(situacao='ATIVO')
+        
         self.fields['subtipo'].choices = [
             ('REQUISICAO', 'Requisição'),
             ('DESCARTE', 'Descarte'),
@@ -514,7 +626,7 @@ class SaidaMaterialForm(forms.ModelForm):
                 Column('subtipo', css_class='form-group col-md-3 mb-0'),
                 Column('data_movimentacao', css_class='form-group col-md-2 mb-0'),
                 Column('quantidade', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             HTML('<div id="saldo-disponivel-box" class="alert alert-info py-2 mb-3" style="display:none">'
                  '<i class="fas fa-info-circle me-1"></i> Saldo disponível: <strong id="saldo-valor">—</strong>'
@@ -524,7 +636,7 @@ class SaidaMaterialForm(forms.ModelForm):
                 Column('orgao_requisitante', css_class='form-group col-md-4 mb-0'),
                 Column('re_busca', css_class='form-group col-md-3 mb-0'),
                 Column('militar_requisitante', css_class='form-group col-md-5 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'observacoes',
             FormActions(
@@ -587,7 +699,7 @@ class PainelEstoqueFilterForm(forms.Form):
                          '<i class="fas fa-search me-1"></i> Calcular</button></div>'),
                     css_class='form-group col-md-1 mb-0'
                 ),
-                css_class='form-row align-items-end'
+                css_class='row align-items-end'
             )
         )
 
@@ -618,14 +730,14 @@ class LoteForm(forms.ModelForm):
                 Column('produto', css_class='form-group col-md-6 mb-0'),
                 Column('numero_lote', css_class='form-group col-md-3 mb-0'),
                 Column('nota_fiscal', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('data_fabricacao', css_class='form-group col-md-3 mb-0'),
                 Column('data_validade', css_class='form-group col-md-3 mb-0'),
                 Column('fornecedor', css_class='form-group col-md-4 mb-0'),
                 Column('ativo', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'quantidade_inicial',
             'observacoes',
@@ -670,7 +782,7 @@ class InventarioForm(forms.ModelForm):
                 Column('tipo_inventario', css_class='form-group col-md-3 mb-0'),
                 Column('data_prevista_fim', css_class='form-group col-md-3 mb-0'),
                 Column('responsavel', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'descricao',
             'observacoes',
@@ -702,12 +814,12 @@ class ItemInventarioForm(forms.ModelForm):
                 Column('produto', css_class='form-group col-md-4 mb-0'),
                 Column('lote', css_class='form-group col-md-4 mb-0'),
                 Column('numero_serie', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('quantidade_sistema', css_class='form-group col-md-4 mb-0'),
                 Column('quantidade_contada', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'justificativa_divergencia',
             'observacoes',
@@ -740,14 +852,14 @@ class AjusteEstoqueForm(forms.ModelForm):
                 Column('produto', css_class='form-group col-md-4 mb-0'),
                 Column('tipo_ajuste', css_class='form-group col-md-4 mb-0'),
                 Column('motivo', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('quantidade', css_class='form-group col-md-4 mb-0'),
                 Column('valor_unitario', css_class='form-group col-md-4 mb-0'),
                 Column('lote', css_class='form-group col-md-2 mb-0'),
                 Column('numero_serie', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'observacoes',
             FormActions(
@@ -789,7 +901,7 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
                 Column('subtipo', css_class='form-group col-md-4 mb-0'),
                 Column('quantidade', css_class='form-group col-md-2 mb-0'),
                 Column('valor_unitario', css_class='form-group col-md-2 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'observacoes',
             FormActions(
@@ -818,13 +930,13 @@ class NumeroSerieForm(forms.ModelForm):
                 Column('produto', css_class='form-group col-md-6 mb-0'),
                 Column('numero_serie', css_class='form-group col-md-3 mb-0'),
                 Column('patrimonio', css_class='form-group col-md-3 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             Row(
                 Column('status', css_class='form-group col-md-4 mb-0'),
                 Column('localizacao', css_class='form-group col-md-4 mb-0'),
                 Column('responsavel', css_class='form-group col-md-4 mb-0'),
-                css_class='form-row'
+                css_class='row'
             ),
             'observacoes',
             FormActions(

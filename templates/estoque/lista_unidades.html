@@ -5,7 +5,7 @@
     {% if o.codigo %}<td><code>{{ o.codigo }}</code></td>{% endif %}
     {% if o.sigla %}<td><code>{{ o.sigla }}</code></td>{% endif %}
     {% if o.re %}<td><code>{{ o.re }}</code></td>{% endif %}
-    <td>{{ o.nome|default:o.descricao|default:o.qra }}</td>
+    <td>{% firstof o.nome o.descricao %}</td>
     {% if o.categoria_pai %}<td>{{ o.categoria_pai.nome }}</td>{% endif %}
     <td class="text-center">
         {% if o.ativo %}

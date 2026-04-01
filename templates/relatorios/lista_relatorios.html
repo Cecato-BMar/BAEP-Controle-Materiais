@@ -55,7 +55,8 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
                     <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-chart-pie me-2 text-info"></i>Situação Atual</a></li>
                     <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_materiais' %}"><i class="fas fa-boxes me-2 text-primary"></i>Materiais</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}"><i class="fas fa-exchange-alt me-2 text-success"></i>Movimentações</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}"><i class="fas fa-exchange-alt me-2 text-success"></i>Movimentações (Reserva)</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações (Estoque)</a></li>
                 </ul>
             </div>
         </div>

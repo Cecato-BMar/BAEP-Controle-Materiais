@@ -95,6 +95,7 @@
                         <table class="table table-sm table-borderless">
                             <tr><th class="text-muted w-25">Estoque Mínimo</th><td>{{ produto.estoque_minimo }}</td></tr>
                             <tr><th class="text-muted">Localização</th><td>{{ produto.localizacao_fisica.nome|default:"—" }}</td></tr>
+                            <tr><th class="text-muted">Nº de Empenho</th><td>{{ produto.empenho|default:"—" }}</td></tr>
                             <tr><th class="text-muted">Controla Validade</th><td>{% if produto.controla_validade %}Sim ({{ produto.prazo_validade_meses }} m){% else %}Não{% endif %}</td></tr>
                             <tr><th class="text-muted">Código de Barras</th><td>{{ produto.codigo_barras|default:"—" }}</td></tr>
                         </table>
@@ -144,7 +145,7 @@
                                 {{ mov.get_subtipo_display }}
                             </td>
                             <td class="text-center fw-bold">{{ mov.quantidade }}</td>
-                            <td>{{ mov.usuario.username }} / {{ mov.militar_requisitante.qra|default:"—" }}</td>
+                            <td>{{ mov.usuario.username }} / {{ mov.militar_requisitante|default:"—" }}</td>
                             <td>{{ mov.nota_fiscal|default:mov.documento_referencia|default:"—" }}</td>
                         </tr>
                         {% endfor %}

@@ -84,10 +84,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function calcularTotal() {
-    const q = parseFloat(qtd ? qtd.value : 0) || 0;
-    const v = parseFloat(vUnitario ? vUnitario.value : 0) || 0;
+    const qValue = (qtd ? qtd.value : '0').replace(',', '.');
+    const vValue = (vUnitario ? vUnitario.value : '0').replace(',', '.');
+    const q = parseFloat(qValue) || 0;
+    const v = parseFloat(vValue) || 0;
     if (valorTotalDiv) {
-      valorTotalDiv.textContent = 'R$ ' + (q * v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+      valorTotalDiv.textContent = 'R$ ' + (q * v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
   }
 
@@ -95,8 +97,16 @@ document.addEventListener('DOMContentLoaded', function() {
     produtoSelect.addEventListener('change', () => atualizarSaldo(produtoSelect.value));
     if (produtoSelect.value) atualizarSaldo(produtoSelect.value);
   }
-  if (qtd) qtd.addEventListener('input', calcularTotal);
-  if (vUnitario) vUnitario.addEventListener('input', calcularTotal);
+  if (qtd) {
+    qtd.addEventListener('input', calcularTotal);
+    qtd.addEventListener('change', calcularTotal);
+  }
+  if (vUnitario) {
+    vUnitario.addEventListener('input', calcularTotal);
+    vUnitario.addEventListener('change', calcularTotal);
+  }
+  // Calcular inicial se houver valores
+  calcularTotal();
 });
 </script>
 {% endblock %}

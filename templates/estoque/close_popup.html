@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sucesso</title>
+</head>
+<body>
+    <script type="text/javascript">
+        // Tenta recarregar a janela pai e fechar esta
+        if (window.opener) {
+            // Se quiser que a página pai recarregue automaticamente:
+            // window.opener.location.reload();
+        }
+        window.close();
+    </script>
+    <p>Cadastrado com sucesso! Você já pode fechar esta aba.</p>
+    <button onclick="window.close()">Fechar Aba</button>
+</body>
+</html>

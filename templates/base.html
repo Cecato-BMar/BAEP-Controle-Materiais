@@ -21,13 +21,18 @@
             --sidebar-hover-bg: #2d3436;
             --accent-color: #3498db;
             --text-color: #2f3640;
-            --light-bg: #f5f6fa;
+            --light-bg: #f8f9fa;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
         }
         
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
             color: var(--text-color);
             background-color: var(--light-bg);
+            background-image: radial-gradient(at 0% 0%, rgba(241, 196, 15, 0.05) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, rgba(52, 152, 219, 0.05) 0, transparent 50%);
         }
         
         .navbar {
@@ -301,6 +306,11 @@
                         <i class="fas fa-exchange-alt"></i> Cautela / Devolução
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'relatorios' in request.path and not 'estoque' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
+                        <i class="fas fa-file-contract"></i> Relatórios
+                    </a>
+                </li>
                 {% endif %}
 
                 <!-- Módulo Controle de Estoque PAP -->
@@ -467,6 +477,27 @@
                 $('.sidebar').toggleClass('show');
             });
         });
+
+        // utilitário para abrir popups e recarregar pai ao fechar
+        function abrirPopup(url) {
+            const width = 800;
+            const height = 600;
+            const left = (window.innerWidth - width) / 2;
+            const top = (window.innerHeight - height) / 2;
+            
+            const popup = window.open(url, 'Cadastro', 
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
+            );
+
+            // Verifica periodicamente se o popup foi fechado
+            const timer = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(timer);
+                    // Recarrega a página ao fechar o popup para atualizar os dropdowns
+                    location.reload();
+                }
+            }, 1000);
+        }
     </script>
     
     {% block extra_js %}{% endblock %}

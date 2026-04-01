@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    Categoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
+    Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
     MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque
@@ -63,11 +63,19 @@ class MilitarRequisitanteAdmin(admin.ModelAdmin):
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ['codigo', 'nome', 'categoria_pai', 'ativo', 'data_cadastro']
-    list_filter = ['ativo', 'categoria_pai']
+    list_display = ['codigo', 'nome', 'ativo', 'data_cadastro']
+    list_filter = ['ativo']
     search_fields = ['nome', 'codigo', 'descricao']
     ordering = ['codigo', 'nome']
     readonly_fields = ['data_cadastro', 'data_atualizacao']
+
+
+@admin.register(Subcategoria)
+class SubcategoriaAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'categoria', 'codigo', 'ativo', 'data_cadastro']
+    list_filter = ['categoria', 'ativo']
+    search_fields = ['nome', 'codigo', 'descricao']
+    ordering = ['categoria', 'nome']
 
 
 @admin.register(UnidadeMedida)
@@ -103,18 +111,18 @@ class NumeroSerieInline(admin.TabularInline):
 
 @admin.register(Produto)
 class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ['codigo', 'nome', 'categoria', 'saldo_display', 'estoque_minimo', 'valor_unitario', 'status']
-    list_filter = ['status', 'categoria', 'controla_validade', 'controla_numero_serie']
+    list_display = ['codigo', 'nome', 'categoria', 'subcategoria', 'saldo_display', 'estoque_minimo', 'valor_unitario', 'status']
+    list_filter = ['status', 'categoria', 'subcategoria', 'controla_validade', 'controla_numero_serie']
     search_fields = ['codigo', 'nome', 'descricao', 'codigo_siafisico', 'codigo_cat_mat']
     ordering = ['codigo', 'nome']
     readonly_fields = ['valor_total', 'data_cadastro', 'data_atualizacao', 'saldo_display', 'cotacao_vencida']
 
     fieldsets = (
         ('Identificação', {
-            'fields': ('codigo', 'codigo_barras', 'nome', 'descricao', 'categoria', 'status')
+            'fields': ('codigo', 'codigo_barras', 'nome', 'descricao', 'categoria', 'subcategoria', 'status')
         }),
         ('Licitação / PAP', {
-            'fields': ('codigo_siafisico', 'codigo_cat_mat', 'termo_referencia', 'processo_sei',
+            'fields': ('empenho', 'codigo_siafisico', 'codigo_cat_mat', 'termo_referencia', 'processo_sei',
                        'preco_medio', 'data_cotacao', 'cotacao_vencida',
                        'data_inicio_projeto', 'tempo_reposicao', 'historico_subcategoria')
         }),

@@ -15,15 +15,16 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from reserva_baep.decorators import require_module_permission
+from policiais.models import Policial
 
 from .models import (
-    Categoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
+    Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
     MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque
 )
 from .forms import (
-    CategoriaForm, UnidadeMedidaForm, UnidadeFornecimentoForm, CorForm,
+    CategoriaForm, SubcategoriaForm, UnidadeMedidaForm, UnidadeFornecimentoForm, CorForm,
     ContaPatrimonialForm, OrgaoRequisitanteForm, LocalizacaoFisicaForm,
     MilitarRequisitanteForm, FornecedorForm, ProdutoForm, LoteForm,
     NumeroSerieForm, EntradaMaterialForm, SaidaMaterialForm,
@@ -179,6 +180,7 @@ def criar_entrada_material(request):
     """Registrar entrada de material conforme PAP §2"""
     if request.method == 'POST':
         form = EntradaMaterialForm(request.POST)
+        form.instance.tipo_movimentacao = 'ENTRADA'
         if form.is_valid():
             mov = form.save(commit=False)
             mov.usuario = request.user
@@ -211,6 +213,7 @@ def criar_saida_material(request):
     """Registrar saída de material conforme PAP §3"""
     if request.method == 'POST':
         form = SaidaMaterialForm(request.POST)
+        form.instance.tipo_movimentacao = 'SAIDA'
         if form.is_valid():
             mov = form.save(commit=False)
             mov.usuario = request.user
@@ -223,7 +226,7 @@ def criar_saida_material(request):
                 request,
                 _(f'Saída registrada com sucesso! Saldo restante: {mov.produto.saldo_calculado}.')
             )
-            return redirect('estoque:lista_movimentacoes')
+            return redirect(reverse('estoque:confirmacao_saida_material') + f'?id={mov.id}')
         else:
             messages.error(request, _('Corrija os erros abaixo.'))
     else:
@@ -265,10 +268,29 @@ def criar_categoria(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Categoria criada com sucesso!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_categorias')
     else:
         form = CategoriaForm()
     return render(request, 'estoque/form_categoria.html', {'form': form})
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_module_permission('materiais')
+def criar_subcategoria(request):
+    if request.method == 'POST':
+        form = SubcategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Subcategoria criada com sucesso!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
+            return render(request, 'estoque/close_popup.html') # Subcategoria sempre via popup no momento
+    else:
+        form = SubcategoriaForm()
+    return render(request, 'estoque/form_subcategoria.html', {'form': form})
 
 
 @login_required
@@ -307,6 +329,8 @@ def criar_unidade_medida(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Unidade de medida criada!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_unidades_medida')
     else:
         form = UnidadeMedidaForm()
@@ -334,6 +358,8 @@ def criar_unidade_fornecimento(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Unidade de fornecimento criada!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_unidades_fornecimento')
     else:
         form = UnidadeFornecimentoForm()
@@ -360,6 +386,8 @@ def criar_cor(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Cor criada!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_cores')
     else:
         form = CorForm()
@@ -386,6 +414,8 @@ def criar_conta_patrimonial(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Conta patrimonial criada!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_contas_patrimoniais')
     else:
         form = ContaPatrimonialForm()
@@ -428,6 +458,8 @@ def criar_orgao_requisitante(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Órgão requisitante criado!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_orgaos_requisitantes')
     else:
         form = OrgaoRequisitanteForm()
@@ -470,6 +502,8 @@ def criar_localizacao(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Localização criada!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_localizacoes')
     else:
         form = LocalizacaoFisicaForm()
@@ -501,6 +535,8 @@ def criar_militar_requisitante(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Militar requisitante cadastrado!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_militares_requisitantes')
     else:
         form = MilitarRequisitanteForm()
@@ -548,6 +584,8 @@ def criar_fornecedor(request):
         if form.is_valid():
             form.save()
             messages.success(request, _('Fornecedor criado!'))
+            if request.GET.get('popup'):
+                return render(request, 'estoque/close_popup.html')
             return redirect('estoque:lista_fornecedores')
     else:
         form = FornecedorForm()
@@ -646,7 +684,7 @@ def detalhe_produto(request, pk):
     
     context = {
         'produto': produto,
-        'saldo': saldo,
+        'saldo': produto.saldo_calculado,
         'movimentacoes': movimentacoes,
         'cotacao_vencida': produto.cotacao_vencida,
         'precisa_reposicao': produto.precisa_reposicao,
@@ -1032,20 +1070,18 @@ def buscar_lotes_ajax(request):
 @login_required
 @require_GET
 def buscar_militar_por_re_ajax(request):
-    """Busca militar por RE — retorna QRA automaticamente (PAP §3)"""
+    """Busca policial por RE na tabela POLICIAIS (PAP §3)"""
     re = request.GET.get('re', '').strip()
     try:
-        militar = MilitarRequisitante.objects.select_related('orgao').get(re=re, ativo=True)
+        militar = Policial.objects.get(re=re, situacao='ATIVO')
         return JsonResponse({
             'id': militar.pk,
             're': militar.re,
-            'qra': militar.qra,
-            'nome_completo': militar.nome_completo or '',
-            'orgao_id': militar.orgao_id or '',
-            'orgao_nome': str(militar.orgao) if militar.orgao else '',
+            'qra': f"{militar.posto} {militar.nome}",
+            'nome_completo': militar.nome,
         })
-    except MilitarRequisitante.DoesNotExist:
-        return JsonResponse({'error': f'RE {re} não encontrado'}, status=404)
+    except Policial.DoesNotExist:
+        return JsonResponse({'error': f'RE {re} não encontrado na tabela de Policiais'}, status=404)
 
 
 @login_required
@@ -1064,3 +1100,137 @@ def buscar_saldo_produto_ajax(request):
         })
     except Produto.DoesNotExist:
         return JsonResponse({'error': 'Produto não encontrado'}, status=404)
+
+@login_required
+@require_module_permission('materiais')
+def confirmacao_saida_material(request):
+    """Tela de confirmação após registro de saída PAP §3"""
+    mov_id = request.GET.get('id')
+    mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
+    
+    return render(request, 'estoque/confirmacao_saida.html', {
+        'mov': mov,
+        'policial': mov.militar_requisitante,
+    })
+
+
+@login_required
+@require_module_permission('materiais')
+def exportar_recibo_saida_pdf(request):
+    """Gera recibo de saída PAP §3 em PDF (A5)"""
+    mov_id = request.GET.get('id')
+    mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A5, leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    header_style = ParagraphStyle('Header', parent=styles['Normal'], fontSize=9, leading=11, alignment=1, textColor=colors.white, fontName='Helvetica-Bold')
+    section_title = ParagraphStyle('SectionTitle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', spaceBefore=10, spaceAfter=5)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=8, leading=10)
+    
+    # Cabeçalho
+    header_data = [
+        [Paragraph("BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - BAEP<br/>RECIBO DE SAÍDA DE MATERIAL (PAP §3)", header_style)]
+    ]
+    header_table = Table(header_data, colWidths=[12.8*cm])
+    header_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.navy),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('PADDING', (0,0), (-1,-1), 10),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # Info Recibo
+    info_data = [
+        [Paragraph(f"<b>Controle:</b> #{mov.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {mov.data_movimentacao.strftime('%d/%m/%Y')}", body_style)],
+        [Paragraph(f"<b>Usuário:</b> {mov.usuario.username}", body_style), Paragraph(f"<b>Finalidade:</b> {mov.subtipo}", body_style)]
+    ]
+    info_table = Table(info_data, colWidths=[6.4*cm, 6.4*cm])
+    info_table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+    ]))
+    elements.append(info_table)
+    
+    # Dados do Requisitante
+    elements.append(Paragraph("DADOS DO REQUISITANTE", section_title))
+    p = mov.militar_requisitante
+    if p:
+        pol_data = [
+            [Paragraph(f"<b>Nome:</b> {p.nome}", body_style)],
+            [Paragraph(f"<b>RE:</b> {p.re}          <b>Posto/Grad:</b> {p.get_posto_display()}", body_style)]
+        ]
+    else:
+        pol_data = [
+            [Paragraph(f"<b>Órgão:</b> {mov.orgao_requisitante.nome if mov.orgao_requisitante else 'Não informado'}", body_style)]
+        ]
+        
+    pol_table = Table(pol_data, colWidths=[12.8*cm])
+    pol_table.setStyle(TableStyle([
+        ('BOX', (0,0), (-1,-1), 0.5, colors.grey),
+        ('PADDING', (0,0), (-1,-1), 5),
+    ]))
+    elements.append(pol_table)
+    
+    # Materiais
+    elements.append(Paragraph("MATERIAL FORNECIDO", section_title))
+    mat_data = [
+        ['Descrição do Material', 'Unidade', 'Qtd'],
+        [Paragraph(f"<b>{mov.produto.nome}</b><br/>{mov.produto.codigo}", body_style), 
+         str(mov.produto.unidade_medida.sigla if mov.produto.unidade_medida else 'UN'), 
+         f"{mov.quantidade:g}"]
+    ]
+    
+    mat_table = Table(mat_data, colWidths=[7.8*cm, 3*cm, 2*cm])
+    mat_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+    ]))
+    elements.append(mat_table)
+    
+    # Assinaturas
+    elements.append(Spacer(1, 1.5*cm))
+    sig_data = [
+        ["________________________________", "________________________________"],
+        ["Assinatura do Recebedor", "Data e Hora Recebimento"],
+        [f"RE/Nome: {'________________' if not p else p.re}", "___/___/_____  ___:___"]
+    ]
+    sig_table = Table(sig_data, colWidths=[6.4*cm, 6.4*cm])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('FONTSIZE', (0,0), (-1,-1), 7),
+    ]))
+    elements.append(sig_table)
+    
+    elements.append(Spacer(1, 1.0*cm))
+    sig_entrega = [
+        ["________________________________"],
+        ["Responsável pelo Almoxarifado (PAP)"],
+        [f"{mov.usuario.get_full_name() or mov.usuario.username}"]
+    ]
+    entrega_table = Table(sig_entrega, colWidths=[12.8*cm])
+    entrega_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('FONTSIZE', (0,0), (-1,-1), 7),
+    ]))
+    elements.append(entrega_table)
+    
+    # Rodapé fixo
+    def add_footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica', 6)
+        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Controle de Estoque PAP §3 - BAEP - Página {doc.page}")
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="recibo_saida_{mov.pk}.pdf"'
+    return response

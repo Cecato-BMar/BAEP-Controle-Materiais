@@ -216,3 +216,72 @@ class RelatorioMovimentacoesForm(forms.Form):
             raise forms.ValidationError(_('A data de início não pode ser posterior à data de fim.'))
         
         return cleaned_data
+
+from estoque.models import Produto
+
+class RelatorioEstoqueMovimentacoesForm(forms.Form):
+    titulo = forms.CharField(
+        label=_('Título do Relatório'),
+        max_length=100,
+        initial=_('Relatório de Movimentações de Estoque')
+    )
+    
+    tipo_movimentacao = forms.ChoiceField(
+        label=_('Tipo de Movimentação'),
+        choices=[('', 'Todas'), ('ENTRADA', 'Entrada'), ('SAIDA', 'Saída')],
+        required=False
+    )
+    
+    produto = forms.ModelChoiceField(
+        label=_('Material/Produto'),
+        queryset=Produto.objects.all(),
+        required=False,
+        empty_label=_('Todos os materiais'),
+        widget=forms.Select(attrs={'class': 'form-select select2'})
+    )
+    
+    data_inicio = forms.DateField(
+        label=_('Data Início'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=False
+    )
+    
+    data_fim = forms.DateField(
+        label=_('Data Fim'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=False
+    )
+    
+    observacoes = forms.CharField(
+        label=_('Observações'),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'titulo',
+            Row(
+                Column('tipo_movimentacao', css_class='form-group col-md-6 mb-0'),
+                Column('produto', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('data_inicio', css_class='form-group col-md-6 mb-0'),
+                Column('data_fim', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'observacoes',
+            Div(
+                Submit('submit', _('Gerar Relatório'), css_class='btn btn-primary w-100'),
+                css_class='mt-3'
+            )
+        )
+        
+        if not self.initial.get('data_fim'):
+            self.initial['data_fim'] = timezone.now().date()
+        if not self.initial.get('data_inicio'):
+            self.initial['data_inicio'] = timezone.now().date()

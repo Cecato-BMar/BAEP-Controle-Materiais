@@ -12,6 +12,9 @@
     <a href="{% url 'estoque:criar_saida_material' %}" class="btn btn-danger btn-sm">
       <i class="fas fa-arrow-up me-1"></i> Saída
     </a>
+    <a href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}" class="btn btn-navy btn-sm">
+      <i class="fas fa-file-pdf me-1"></i> Gerar Relatório
+    </a>
   </div>
 </div>
 
@@ -87,14 +90,21 @@
             </td>
             <td class="text-end small">R$ {{ mov.valor_unitario|floatformat:2 }}</td>
             <td class="small">{{ mov.orgao_requisitante.sigla|default:"—" }}</td>
-            <td class="small">{{ mov.militar_requisitante.qra|default:"—" }}</td>
+            <td class="small">{{ mov.militar_requisitante|default:"—" }}</td>
             <td class="small">{{ mov.usuario.get_full_name|default:mov.usuario.username }}</td>
             <td class="text-end">
-              {% if mov.observacoes %}
-              <span title="{{ mov.observacoes }}" class="text-muted" style="cursor:help">
-                <i class="fas fa-comment-dots"></i>
-              </span>
-              {% endif %}
+              <div class="btn-group">
+                {% if mov.tipo_movimentacao == 'SAIDA' %}
+                <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimir Recibo">
+                  <i class="fas fa-print"></i>
+                </a>
+                {% endif %}
+                {% if mov.observacoes %}
+                <span title="{{ mov.observacoes }}" class="btn btn-sm btn-link text-muted" style="cursor:help">
+                  <i class="fas fa-comment-dots"></i>
+                </span>
+                {% endif %}
+              </div>
             </td>
           </tr>
           {% empty %}

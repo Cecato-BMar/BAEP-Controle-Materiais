@@ -3,26 +3,74 @@
 
 {% block title %}{{ titulo|default:"Cadastro de Material" }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, #1a252f 100%);
+        padding: 2rem 1.5rem;
+        border-bottom: 3px solid var(--primary-color);
+    }
+    
+    .form-header h2 {
+        color: var(--primary-color);
+        font-weight: 800;
+        margin-bottom: 0;
+        letter-spacing: -0.5px;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #d4ac0d 100%);
+        border: none;
+        color: #000;
+        font-weight: 700;
+        padding: 0.8rem 2rem;
+        border-radius: 12px;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
+        color: #000;
+    }
+</style>
+{% endblock %}
+
 {% block estoque_content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0 fw-bold">
+<div class="row justify-content-center animate__animated animate__fadeInUp">
+    <div class="col-md-8 col-lg-7">
+        <div class="form-card">
+            <div class="form-header text-center">
+                <h2>
                     <i class="fas fa-edit me-2"></i>
                     {{ titulo|default:"Formulário de Cadastro" }}
-                </h5>
+                </h2>
             </div>
-            <div class="card-body p-4">
-                <form method="post" enctype="multipart/form-data">
+            <div class="card-body p-4 p-lg-5">
+                <form method="post" enctype="multipart/form-data" class="modern-form">
                     {% csrf_token %}
                     {% if form.helper %}
                         {% crispy form %}
                     {% else %}
                         {{ form|crispy }}
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary px-4">Salvar</button>
+                        <div class="d-flex justify-content-end gap-3 mt-5">
+                            <a href="javascript:history.back()" class="btn btn-light px-4 border">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fas fa-save me-1"></i> Salvar Registro
+                            </button>
                         </div>
                     {% endif %}
                 </form>
@@ -30,10 +78,10 @@
         </div>
         
         {% if help_text %}
-        <div class="card border-0 shadow-sm mt-3 bg-light">
-            <div class="card-body py-2">
-                <small class="text-muted"><i class="fas fa-info-circle me-1"></i> {{ help_text }}</small>
-            </div>
+        <div class="alert alert-light border shadow-sm mt-4 p-3 rounded-pill text-center">
+            <small class="text-muted fw-500">
+                <i class="fas fa-info-circle me-1 text-primary"></i> {{ help_text }}
+            </small>
         </div>
         {% endif %}
     </div>
