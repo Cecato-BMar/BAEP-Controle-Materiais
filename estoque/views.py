@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -11,8 +12,17 @@ from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 import json
 import csv
+import io
 from datetime import datetime, timedelta
 from decimal import Decimal
+
+# ReportLab para PDFs
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A5
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
 
 from reserva_baep.decorators import require_module_permission
 from policiais.models import Policial
