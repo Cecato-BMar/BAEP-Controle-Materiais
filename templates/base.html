@@ -120,23 +120,32 @@
         }
         
         .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 16px;
+            box-shadow: var(--shadow-premium);
             margin-bottom: 24px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
         }
         
         .card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
-            background-color: var(--primary-color);
-            color: rgb(0, 0, 0);
-            border-radius: 10px 10px 0 0 !important;
-            font-weight: 600;
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.15), rgba(255, 255, 255, 0.05));
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-color);
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 700;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
         }
         
         .btn-primary {
@@ -150,14 +159,43 @@
             border-color: var(--secondary-color);
         }
         
-        .table {
-            border-radius: 10px;
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+            border-radius: 12px;
             overflow: hidden;
         }
+
+        .table {
+            margin-bottom: 0;
+            background: transparent;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
         
-        .table thead {
-            background-color: var(--primary-color);
-            color: white;
+        .table thead th {
+            background: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+            border-top: none;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+        }
+
+        .table tbody td {
+            background: transparent;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            vertical-align: middle;
+            padding: 1rem 1.5rem;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .table tbody tr:hover td {
+            background: rgba(0, 0, 0, 0.015);
         }
         
         .badge-disponivel {

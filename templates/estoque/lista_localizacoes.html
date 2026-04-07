@@ -2,11 +2,8 @@
 {% block table_rows %}
 {% for o in page_obj|default:objetos %}
 <tr>
-    {% if o.codigo %}<td><code>{{ o.codigo }}</code></td>{% endif %}
-    {% if o.sigla %}<td><code>{{ o.sigla }}</code></td>{% endif %}
-    {% if o.re %}<td><code>{{ o.re }}</code></td>{% endif %}
-    <td>{{ o.nome|default:o.descricao|default:o.qra }}</td>
-    {% if o.categoria_pai %}<td>{{ o.categoria_pai.nome }}</td>{% endif %}
+    <td class="fw-bold">{{ o.nome }}</td>
+    <td class="small">{{ o.descricao|default:"-" }}</td>
     <td class="text-center">
         {% if o.ativo %}
             <span class="badge bg-success">Ativo</span>

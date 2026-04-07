@@ -2,11 +2,9 @@
 {% block table_rows %}
 {% for o in page_obj|default:objetos %}
 <tr>
-    {% if o.codigo %}<td><code>{{ o.codigo }}</code></td>{% endif %}
-    {% if o.sigla %}<td><code>{{ o.sigla }}</code></td>{% endif %}
-    {% if o.re %}<td><code>{{ o.re }}</code></td>{% endif %}
-    <td>{{ o.nome|default:o.descricao|default:o.qra }}</td>
-    {% if o.categoria_pai %}<td>{{ o.categoria_pai.nome }}</td>{% endif %}
+    <td><code>{{ o.documento }}</code></td>
+    <td class="fw-bold">{{ o.nome }}</td>
+    <td>{{ o.get_tipo_pessoa_display }}</td>
     <td class="text-center">
         {% if o.ativo %}
             <span class="badge bg-success">Ativo</span>
@@ -15,7 +13,7 @@
         {% endif %}
     </td>
     <td class="text-end">
-        <a href="#" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt"></i></a>
+        <a href="{% url 'estoque:detalhe_fornecedor' o.id %}" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-eye"></i></a>
     </td>
 </tr>
 {% endfor %}

@@ -266,7 +266,12 @@ def lista_categorias(request):
         )
     paginator = Paginator(categorias, 20)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'estoque/lista_categorias.html', {'page_obj': page, 'termo': termo})
+    return render(request, 'estoque/lista_categorias.html', {
+        'page_obj': page, 
+        'termo': termo,
+        'titulo': 'Categorias',
+        'table_headers': ['Código', 'Nome']
+    })
 
 
 @login_required
@@ -327,7 +332,11 @@ def editar_categoria(request, pk):
 @require_module_permission('materiais')
 def lista_unidades_medida(request):
     qs = UnidadeMedida.objects.all()
-    return render(request, 'estoque/lista_unidades.html', {'objetos': qs, 'titulo': 'Unidades de Medida'})
+    return render(request, 'estoque/lista_unidades.html', {
+        'objetos': qs, 
+        'titulo': 'Unidades de Medida',
+        'table_headers': ['Sigla', 'Nome', 'Descrição', 'Status']
+    })
 
 
 @login_required
@@ -356,7 +365,12 @@ def criar_unidade_medida(request):
 @require_module_permission('materiais')
 def lista_unidades_fornecimento(request):
     qs = UnidadeFornecimento.objects.all()
-    return render(request, 'estoque/lista_unidades.html', {'objetos': qs, 'titulo': 'Unidades de Fornecimento', 'tipo': 'fornecimento'})
+    return render(request, 'estoque/lista_unidades.html', {
+        'objetos': qs, 
+        'titulo': 'Unidades de Fornecimento', 
+        'tipo': 'fornecimento',
+        'table_headers': ['Nome', 'Descrição', 'Status']
+    })
 
 
 @login_required
@@ -384,7 +398,11 @@ def criar_unidade_fornecimento(request):
 @require_module_permission('materiais')
 def lista_cores(request):
     qs = Cor.objects.all()
-    return render(request, 'estoque/lista_cores.html', {'objetos': qs})
+    return render(request, 'estoque/lista_cores.html', {
+        'objetos': qs,
+        'titulo': 'Cores',
+        'table_headers': ['Nome', 'Status']
+    })
 
 
 @login_required
@@ -412,7 +430,11 @@ def criar_cor(request):
 @require_module_permission('materiais')
 def lista_contas_patrimoniais(request):
     qs = ContaPatrimonial.objects.all()
-    return render(request, 'estoque/lista_contas_patrimoniais.html', {'objetos': qs})
+    return render(request, 'estoque/lista_contas_patrimoniais.html', {
+        'objetos': qs,
+        'titulo': 'Contas Patrimoniais',
+        'table_headers': ['Código', 'Descrição', 'Status']
+    })
 
 
 @login_required
@@ -456,7 +478,11 @@ def editar_conta_patrimonial(request, pk):
 @require_module_permission('materiais')
 def lista_orgaos_requisitantes(request):
     qs = OrgaoRequisitante.objects.all()
-    return render(request, 'estoque/lista_orgaos.html', {'objetos': qs})
+    return render(request, 'estoque/lista_orgaos.html', {
+        'objetos': qs, 
+        'titulo': 'Órgãos Requisitantes',
+        'table_headers': ['Sigla', 'Nome', 'Status']
+    })
 
 
 @login_required
@@ -500,7 +526,11 @@ def editar_orgao_requisitante(request, pk):
 @require_module_permission('materiais')
 def lista_localizacoes(request):
     qs = LocalizacaoFisica.objects.all()
-    return render(request, 'estoque/lista_localizacoes.html', {'objetos': qs})
+    return render(request, 'estoque/lista_localizacoes.html', {
+        'objetos': qs,
+        'titulo': 'Localizações Físicas',
+        'table_headers': ['Nome', 'Descrição', 'Status']
+    })
 
 
 @login_required
@@ -582,7 +612,12 @@ def lista_fornecedores(request):
         qs = qs.filter(Q(nome__icontains=termo) | Q(documento__icontains=termo))
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'estoque/lista_fornecedores.html', {'page_obj': page, 'termo': termo})
+    return render(request, 'estoque/lista_fornecedores.html', {
+        'page_obj': page, 
+        'termo': termo,
+        'titulo': 'Fornecedores',
+        'table_headers': ['CPF/CNPJ', 'Nome/Razão Social', 'Tipo', 'Status']
+    })
 
 
 @login_required
