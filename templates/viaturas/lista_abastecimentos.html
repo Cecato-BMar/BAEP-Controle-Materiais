@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Abastecimentos — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-gas-pump me-2 text-info"></i>Abastecimentos</h4>
+        <small class="text-muted">Controle de combustível da frota</small>
+    </div>
+    <a href="{% url 'viaturas:criar_abastecimento' %}" class="btn btn-info btn-sm fw-bold text-white"><i class="fas fa-plus me-1"></i>Novo Abastecimento</a>
+</div>
+
+<!-- Filtro por viatura -->
+<div class="card border-0 mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row gx-2 align-items-end">
+            <div class="col-md-5">
+                <select name="viatura" class="form-select form-select-sm">
+                    <option value="">— Todas as Viaturas —</option>
+                    {% for v in viaturas %}
+                    <option value="{{ v.pk }}" {% if viatura_filtro == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.prefixo }} — {{ v.modelo.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-search me-1"></i>Filtrar</button>
+            </div>
+            <div class="col-md-1">
+                <a href="{% url 'viaturas:lista_abastecimentos' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Viatura</th>
+                        <th>Data/Hora</th>
+                        <th>Combustível</th>
+                        <th>Odômetro</th>
+                        <th>Litros</th>
+                        <th>Valor Total</th>
+                        <th>Motorista</th>
+                        <th>Posto/Cupom</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ab in page_obj %}
+                    <tr>
+                        <td><span class="badge bg-secondary fw-bold">{{ ab.viatura.prefixo }}</span></td>
+                        <td><small>{{ ab.data_abastecimento|date:"d/m/Y H:i" }}</small></td>
+                        <td><span class="badge bg-info text-dark">{{ ab.get_combustivel_display }}</span></td>
+                        <td>{{ ab.odometro|floatformat:0 }} km</td>
+                        <td class="fw-bold text-info">{{ ab.quantidade_litros|floatformat:2 }} L</td>
+                        <td>{% if ab.valor_total %}R$ {{ ab.valor_total|floatformat:2 }}{% else %}—{% endif %}</td>
+                        <td>{{ ab.motorista.qra|default:"—" }}</td>
+                        <td><small>{{ ab.posto_fornecedor|default:"" }} {% if ab.cupom_fiscal %}<code>{{ ab.cupom_fiscal }}</code>{% endif %}</small></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-5 text-muted">Nenhum abastecimento registrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-transparent">
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&viatura={{ viatura_filtro|default:'' }}">&laquo;</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&viatura={{ viatura_filtro|default:'' }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

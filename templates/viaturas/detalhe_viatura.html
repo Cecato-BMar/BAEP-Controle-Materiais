@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}{{ viatura.prefixo }} — Detalhe — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">
+            <i class="fas fa-car-side me-2 text-warning"></i>
+            {{ viatura.prefixo }}
+            {% if viatura.status == 'DISPONIVEL' %}<span class="badge bg-success ms-2">Disponível</span>
+            {% elif viatura.status == 'EM_USO' %}<span class="badge bg-warning text-dark ms-2">Em Uso</span>
+            {% elif viatura.status == 'MANUTENCAO' %}<span class="badge bg-danger ms-2">Manutenção</span>
+            {% elif viatura.status == 'BAIXADA' %}<span class="badge bg-secondary ms-2">Baixada</span>{% endif %}
+        </h4>
+        <small class="text-muted">{{ viatura.modelo.marca.nome }} {{ viatura.modelo.nome }} — {{ viatura.modelo.get_tipo_display }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:editar_viatura' viatura.pk %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt me-1"></i>Editar</a>
+        {% if viatura.status == 'DISPONIVEL' %}
+        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-arrow-right me-1"></i>Despachar</a>
+        {% elif viatura.status == 'EM_USO' and despacho_ativo %}
+        <a href="{% url 'viaturas:retorno_despacho' despacho_ativo.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-undo me-1"></i>Registrar Retorno</a>
+        {% endif %}
+        <a href="{% url 'viaturas:criar_abastecimento' %}" class="btn btn-outline-info btn-sm"><i class="fas fa-gas-pump me-1"></i>Abastecimento</a>
+        <a href="{% url 'viaturas:criar_manutencao' %}" class="btn btn-outline-danger btn-sm"><i class="fas fa-wrench me-1"></i>Manutenção</a>
+    </div>
+</div>
+
+<!-- Indicadores -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Odômetro Atual</div>
+            <div class="fs-4 fw-bold text-primary">{{ viatura.odometro_atual|floatformat:0 }}<small class="fs-6"> km</small></div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Km Rodado (Total)</div>
+            <div class="fs-4 fw-bold text-success">{{ total_km_rodado|floatformat:0 }}<small class="fs-6"> km</small></div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Total Abastecido</div>
+            <div class="fs-4 fw-bold text-info">{{ total_combustivel|floatformat:1 }}<small class="fs-6"> L</small></div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Custo Manutenção</div>
+            <div class="fs-4 fw-bold text-danger">R$ {{ custo_total_manutencao|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Dados da Viatura -->
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card border-0 h-100">
+            <div class="card-header"><i class="fas fa-info-circle me-2"></i>Dados da Viatura</div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th class="text-muted small">Prefixo</th><td class="fw-bold">{{ viatura.prefixo }}</td></tr>
+                    <tr><th class="text-muted small">Placa</th><td><code>{{ viatura.placa|default:"—" }}</code></td></tr>
+                    <tr><th class="text-muted small">Chassi</th><td><small>{{ viatura.chassi|default:"—" }}</small></td></tr>
+                    <tr><th class="text-muted small">RENAVAM</th><td><small>{{ viatura.renavam|default:"—" }}</small></td></tr>
+                    <tr><th class="text-muted small">Ano Fab.</th><td>{{ viatura.ano_fabricacao|default:"—" }}</td></tr>
+                    <tr><th class="text-muted small">Cor</th><td>{{ viatura.cor }}</td></tr>
+                    <tr><th class="text-muted small">Combustível</th><td>{{ viatura.get_tipo_combustivel_display }}</td></tr>
+                    <tr><th class="text-muted small">Cap. Tanque</th><td>{{ viatura.capacidade_tanque }} L</td></tr>
+                </table>
+                {% if viatura.observacoes %}
+                <div class="alert alert-secondary small p-2 mt-2">{{ viatura.observacoes }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Últimos Despachos -->
+        <div class="card border-0 mb-3">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="fas fa-route me-2 text-warning"></i>Últimos Despachos</span>
+                <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-xs btn-outline-warning btn-sm">Novo</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead><tr><th>Motorista</th><th>Saída</th><th>Km Saída</th><th>Retorno</th><th>Km Retorno</th></tr></thead>
+                        <tbody>
+                            {% for d in despachos %}
+                            <tr>
+                                <td>{{ d.motorista.qra }}</td>
+                                <td><small>{{ d.data_saida|date:"d/m/Y H:i" }}</small></td>
+                                <td>{{ d.km_saida }}</td>
+                                <td>
+                                    {% if d.data_retorno %}<small>{{ d.data_retorno|date:"d/m/Y H:i" }}</small>
+                                    {% else %}<span class="badge bg-warning text-dark">Em curso</span>{% endif %}
+                                </td>
+                                <td>{{ d.km_retorno|default:"—" }}</td>
+                            </tr>
+                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem despachos registrados.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manutenções -->
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="fas fa-wrench me-2 text-danger"></i>Manutenções</span>
+                <a href="{% url 'viaturas:criar_manutencao' %}" class="btn btn-xs btn-outline-danger btn-sm">Nova</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead><tr><th>Tipo</th><th>Início</th><th>Conclusão</th><th>Oficina</th><th>Custo Total</th></tr></thead>
+                        <tbody>
+                            {% for m in manutencoes %}
+                            <tr>
+                                <td><span class="badge {% if m.tipo == 'PREVENTIVA' %}bg-info{% else %}bg-danger{% endif %}">{{ m.get_tipo_display }}</span></td>
+                                <td><small>{{ m.data_inicio|date:"d/m/Y" }}</small></td>
+                                <td>
+                                    {% if m.data_conclusao %}<small>{{ m.data_conclusao|date:"d/m/Y" }}</small>
+                                    {% else %}<span class="badge bg-warning text-dark">Aberta</span>{% endif %}
+                                </td>
+                                <td>{{ m.oficina }}</td>
+                                <td>R$ {{ m.custo_total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma manutenção registrada.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Despachos — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-route me-2 text-warning"></i>Despachos de Viaturas</h4>
+        <small class="text-muted">Controle de saídas e retornos</small>
+    </div>
+    <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-plus me-1"></i>Novo Despacho</a>
+</div>
+
+<!-- Filtros de Status -->
+<div class="d-flex gap-2 mb-3">
+    <a href="?status=ativos" class="btn btn-sm {% if status_filtro == 'ativos' %}btn-warning fw-bold{% else %}btn-outline-secondary{% endif %}"><i class="fas fa-road me-1"></i>Ativos</a>
+    <a href="?status=concluidos" class="btn btn-sm {% if status_filtro == 'concluidos' %}btn-secondary fw-bold{% else %}btn-outline-secondary{% endif %}"><i class="fas fa-check me-1"></i>Concluídos</a>
+    <a href="?" class="btn btn-sm {% if not status_filtro %}btn-dark{% else %}btn-outline-dark{% endif %}">Todos</a>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Viatura</th>
+                        <th>Motorista</th>
+                        <th>Encarregado</th>
+                        <th>Saída</th>
+                        <th>Km Saída</th>
+                        <th>Retorno</th>
+                        <th>Km Retorno</th>
+                        <th>Rodado</th>
+                        <th class="text-end">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in page_obj %}
+                    <tr>
+                        <td><span class="badge bg-warning text-dark fw-bold">{{ d.viatura.prefixo }}</span></td>
+                        <td>{{ d.motorista.qra }}</td>
+                        <td>{{ d.encarregado.qra|default:"—" }}</td>
+                        <td><small>{{ d.data_saida|date:"d/m/Y H:i" }}</small></td>
+                        <td>{{ d.km_saida }}</td>
+                        <td>
+                            {% if d.data_retorno %}<small>{{ d.data_retorno|date:"d/m/Y H:i" }}</small>
+                            {% else %}<span class="badge bg-warning text-dark">Em curso</span>{% endif %}
+                        </td>
+                        <td>{{ d.km_retorno|default:"—" }}</td>
+                        <td>
+                            {% if d.km_retorno %}
+                            <small class="text-success">+{{ d.km_retorno|add:"-"|add:d.km_saida }} km</small>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if not d.data_retorno %}
+                            <a href="{% url 'viaturas:retorno_despacho' d.pk %}" class="btn btn-xs btn-success btn-sm"><i class="fas fa-undo me-1"></i>Retorno</a>
+                            {% else %}
+                            <span class="text-muted small"><i class="fas fa-check-circle text-success"></i> Concluído</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center py-5 text-muted">Nenhum despacho encontrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-transparent">
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filtro|default:'' }}">&laquo;</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filtro|default:'' }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

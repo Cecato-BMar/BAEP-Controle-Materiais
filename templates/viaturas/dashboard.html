@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block title %}Gestão de Frota — BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 fw-bold"><i class="fas fa-car-side me-2 text-warning"></i>Gestão de Frota</h3>
+        <small class="text-muted">Painel de controle operacional da frota de viaturas</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold">
+            <i class="fas fa-arrow-right me-1"></i> Despachar Viatura
+        </a>
+        <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-plus me-1"></i> Nova Viatura
+        </a>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-success bg-opacity-10" style="width:52px;height:52px">
+                    <i class="fas fa-check-circle fa-lg text-success"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Disponíveis</div>
+                    <div class="fs-2 fw-bold text-success">{{ disponiveis }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning bg-opacity-10" style="width:52px;height:52px">
+                    <i class="fas fa-road fa-lg text-warning"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Em Uso</div>
+                    <div class="fs-2 fw-bold text-warning">{{ em_uso }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger bg-opacity-10" style="width:52px;height:52px">
+                    <i class="fas fa-wrench fa-lg text-danger"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Manutenção</div>
+                    <div class="fs-2 fw-bold text-danger">{{ manutencao }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10" style="width:52px;height:52px">
+                    <i class="fas fa-car fa-lg text-secondary"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Total Frota</div>
+                    <div class="fs-2 fw-bold text-secondary">{{ total }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Despachos Ativos -->
+    <div class="col-lg-8">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-arrow-right me-2 text-warning"></i>Viaturas em Policiamento (Despachadas)</span>
+                <a href="{% url 'viaturas:lista_despachos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Viatura</th>
+                                <th>Motorista</th>
+                                <th>Encarregado</th>
+                                <th>Saída</th>
+                                <th>Km Saída</th>
+                                <th class="text-end">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in despachos_ativos %}
+                            <tr>
+                                <td><span class="badge bg-warning text-dark fw-bold">{{ d.viatura.prefixo }}</span><div class="small text-muted">{{ d.viatura.modelo.nome }}</div></td>
+                                <td>{{ d.motorista.qra }}</td>
+                                <td>{{ d.encarregado.qra|default:"—" }}</td>
+                                <td><small>{{ d.data_saida|date:"d/m H:i" }}</small></td>
+                                <td>{{ d.km_saida }} km</td>
+                                <td class="text-end">
+                                    <a href="{% url 'viaturas:retorno_despacho' d.pk %}" class="btn btn-xs btn-success btn-sm">
+                                        <i class="fas fa-undo me-1"></i>Retorno
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Nenhuma viatura despachada no momento.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manutenções Abertas -->
+    <div class="col-lg-4">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-wrench me-2 text-danger"></i>Oficina (Em Manutenção)</span>
+                <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for m in manutencoes_abertas %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger me-2">{{ m.viatura.prefixo }}</span>
+                            <small class="text-muted">{{ m.tipo|title }} — {{ m.oficina }}</small>
+                        </div>
+                        <small class="text-muted">{{ m.data_inicio|date:"d/m" }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3"><i class="fas fa-check me-1 text-success"></i>Nenhuma em manutenção</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Últimos Abastecimentos -->
+        <div class="card border-0 mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-gas-pump me-2 text-info"></i>Últimos Abastecimentos</span>
+                <a href="{% url 'viaturas:lista_abastecimentos' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for ab in ultimos_abastecimentos %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><span class="badge bg-secondary me-1">{{ ab.viatura.prefixo }}</span><small>{{ ab.quantidade_litros }}L</small></span>
+                            <small class="text-muted">{{ ab.data_abastecimento|date:"d/m H:i" }}</small>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3">Nenhum abastecimento recente</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Atalhos por Tipo -->
+<div class="row g-3 mt-2">
+    <div class="col-12"><h6 class="text-muted text-uppercase fw-bold" style="letter-spacing:1px">Frota por Categoria</h6></div>
+    {% for pt in por_tipo %}
+    <div class="col-md-3 col-6">
+        <a href="{% url 'viaturas:lista_viaturas' %}?tipo={{ pt.modelo__tipo }}" class="text-decoration-none">
+            <div class="card border-0 text-center py-3">
+                <div class="mb-2">
+                    {% if pt.modelo__tipo == '4_RODAS' %}<i class="fas fa-car fa-2x text-primary"></i>
+                    {% elif pt.modelo__tipo == 'MOTO' %}<i class="fas fa-motorcycle fa-2x text-success"></i>
+                    {% elif pt.modelo__tipo == 'EMBARCACAO' %}<i class="fas fa-ship fa-2x text-info"></i>
+                    {% elif pt.modelo__tipo == 'CAMINHAO' %}<i class="fas fa-truck fa-2x text-warning"></i>
+                    {% else %}<i class="fas fa-car-side fa-2x text-secondary"></i>{% endif %}
+                </div>
+                <div class="fw-bold fs-4">{{ pt.total }}</div>
+                <div class="small text-muted">{{ pt.modelo__tipo|title }}</div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
