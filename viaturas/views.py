@@ -9,6 +9,16 @@ from decimal import Decimal
 from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
                     AbastecimentoForm, ManutencaoForm, MarcaViaturaForm, ModeloViaturaForm)
+from reserva_baep.decorators import require_module_permission
+
+FROTA_GROUPS = ['frota', 'reserva_armas']  # grupos com acesso ao módulo
+
+
+def _has_frota_permission(user):
+    """Verifica se o usuário tem acesso ao módulo de frota."""
+    if user.is_superuser:
+        return True
+    return user.groups.filter(name__in=FROTA_GROUPS).exists()
 
 
 # =============================================================================
@@ -16,6 +26,7 @@ from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
 # =============================================================================
 
 @login_required
+@require_module_permission('frota')
 def dashboard_frota(request):
     total = Viatura.objects.count()
     disponiveis = Viatura.objects.filter(status='DISPONIVEL').count()
@@ -61,6 +72,7 @@ def dashboard_frota(request):
 # =============================================================================
 
 @login_required
+@require_module_permission('frota')
 def lista_viaturas(request):
     qs = Viatura.objects.select_related('modelo', 'modelo__marca').all()
     tipo = request.GET.get('tipo')
@@ -95,6 +107,7 @@ def lista_viaturas(request):
 
 
 @login_required
+@require_module_permission('frota')
 def criar_viatura(request):
     if request.method == 'POST':
         form = ViaturaForm(request.POST)
@@ -109,6 +122,7 @@ def criar_viatura(request):
 
 
 @login_required
+@require_module_permission('frota')
 def editar_viatura(request, pk):
     viatura = get_object_or_404(Viatura, pk=pk)
     if request.method == 'POST':
@@ -124,6 +138,7 @@ def editar_viatura(request, pk):
 
 
 @login_required
+@require_module_permission('frota')
 def detalhe_viatura(request, pk):
     viatura = get_object_or_404(Viatura.objects.select_related('modelo', 'modelo__marca'), pk=pk)
     despachos = viatura.despachos.select_related('motorista', 'encarregado', 'registrado_por').order_by('-data_saida')[:10]
@@ -156,6 +171,7 @@ def detalhe_viatura(request, pk):
 # =============================================================================
 
 @login_required
+@require_module_permission('frota')
 def lista_despachos(request):
     qs = DespachoViatura.objects.select_related('viatura', 'motorista', 'encarregado', 'registrado_por').order_by('-data_saida')
     status = request.GET.get('status', 'ativos')
@@ -171,6 +187,7 @@ def lista_despachos(request):
 
 
 @login_required
+@require_module_permission('frota')
 def criar_despacho(request):
     if request.method == 'POST':
         form = DespachoSaidaForm(request.POST)
@@ -190,6 +207,7 @@ def criar_despacho(request):
 
 
 @login_required
+@require_module_permission('frota')
 def retorno_despacho(request, pk):
     despacho = get_object_or_404(DespachoViatura, pk=pk, data_retorno__isnull=True)
     if request.method == 'POST':
@@ -217,6 +235,7 @@ def retorno_despacho(request, pk):
 # =============================================================================
 
 @login_required
+@require_module_permission('frota')
 def lista_abastecimentos(request):
     qs = Abastecimento.objects.select_related('viatura', 'motorista').order_by('-data_abastecimento')
     viatura_id = request.GET.get('viatura')
@@ -231,6 +250,7 @@ def lista_abastecimentos(request):
 
 
 @login_required
+@require_module_permission('frota')
 def criar_abastecimento(request):
     if request.method == 'POST':
         form = AbastecimentoForm(request.POST)
@@ -255,6 +275,7 @@ def criar_abastecimento(request):
 # =============================================================================
 
 @login_required
+@require_module_permission('frota')
 def lista_manutencoes(request):
     qs = Manutencao.objects.select_related('viatura').order_by('-data_inicio')
     status = request.GET.get('status', 'abertas')
@@ -268,6 +289,7 @@ def lista_manutencoes(request):
 
 
 @login_required
+@require_module_permission('frota')
 def criar_manutencao(request):
     if request.method == 'POST':
         form = ManutencaoForm(request.POST)
@@ -288,6 +310,7 @@ def criar_manutencao(request):
 
 
 @login_required
+@require_module_permission('frota')
 def editar_manutencao(request, pk):
     man = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
