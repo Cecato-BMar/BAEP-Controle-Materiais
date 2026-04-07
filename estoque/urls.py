@@ -32,25 +32,30 @@ urlpatterns = [
     # =========================================================================
     # Subcategorias
     # =========================================================================
+    path('subcategorias/', views.lista_subcategorias, name='lista_subcategorias'),
     path('subcategorias/nova/', views.criar_subcategoria, name='criar_subcategoria'),
+    path('subcategorias/<int:pk>/editar/', views.editar_subcategoria, name='editar_subcategoria'),
 
     # =========================================================================
     # Unidades de Medida (PAP §1)
     # =========================================================================
     path('unidades-medida/', views.lista_unidades_medida, name='lista_unidades_medida'),
     path('unidades-medida/nova/', views.criar_unidade_medida, name='criar_unidade_medida'),
+    path('unidades-medida/<int:pk>/editar/', views.editar_unidade_medida, name='editar_unidade_medida'),
 
     # =========================================================================
     # Unidades de Fornecimento (PAP §1 — Admin)
     # =========================================================================
     path('unidades-fornecimento/', views.lista_unidades_fornecimento, name='lista_unidades_fornecimento'),
     path('unidades-fornecimento/nova/', views.criar_unidade_fornecimento, name='criar_unidade_fornecimento'),
+    path('unidades-fornecimento/<int:pk>/editar/', views.editar_unidade_fornecimento, name='editar_unidade_fornecimento'),
 
     # =========================================================================
     # Cores (PAP §1)
     # =========================================================================
     path('cores/', views.lista_cores, name='lista_cores'),
     path('cores/nova/', views.criar_cor, name='criar_cor'),
+    path('cores/<int:pk>/editar/', views.editar_cor, name='editar_cor'),
 
     # =========================================================================
     # Conta Patrimonial (PAP §1)
@@ -71,6 +76,7 @@ urlpatterns = [
     # =========================================================================
     path('localizacoes/', views.lista_localizacoes, name='lista_localizacoes'),
     path('localizacoes/nova/', views.criar_localizacao, name='criar_localizacao'),
+    path('localizacoes/<int:pk>/editar/', views.editar_localizacao, name='editar_localizacao'),
 
     # =========================================================================
     # Militar Requisitante (PAP §1)
@@ -85,6 +91,7 @@ urlpatterns = [
     path('fornecedores/', views.lista_fornecedores, name='lista_fornecedores'),
     path('fornecedores/novo/', views.criar_fornecedor, name='criar_fornecedor'),
     path('fornecedores/<int:pk>/', views.detalhe_fornecedor, name='detalhe_fornecedor'),
+    path('fornecedores/<int:pk>/editar/', views.editar_fornecedor, name='editar_fornecedor'),
 
     # =========================================================================
     # Materiais de Consumo / Produtos (PAP §1)

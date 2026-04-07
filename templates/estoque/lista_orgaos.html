@@ -1,0 +1,27 @@
+{% extends 'estoque/lista_generica.html' %}
+{% block table_rows %}
+{% for o in page_obj %}
+<tr>
+    <td><code>{{ o.sigla }}</code></td>
+    <td class="fw-bold">{{ o.nome }}</td>
+    <td class="text-center">
+        {% if o.ativo %}
+            <span class="badge bg-success shadow-sm px-3 rounded-pill">Ativo</span>
+        {% else %}
+            <span class="badge bg-danger shadow-sm px-3 rounded-pill">Inativo</span>
+        {% endif %}
+    </td>
+    <td class="text-end">
+        <a href="{% url 'estoque:editar_orgao_requisitante' o.id %}" class="btn btn-xs btn-outline-secondary btn-sm rounded-circle shadow-sm">
+            <i class="fas fa-pencil-alt text-primary"></i>
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center text-muted py-5 animate__animated animate__pulse animate__infinite">
+        <i class="fas fa-search me-2"></i>Nenhum órgão/unidade localizado.
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}

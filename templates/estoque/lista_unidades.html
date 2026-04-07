@@ -1,6 +1,6 @@
 {% extends 'estoque/lista_generica.html' %}
 {% block table_rows %}
-{% for o in page_obj|default:objetos %}
+{% for o in page_obj %}
 <tr>
     {% if o.sigla %}<td><code>{{ o.sigla }}</code></td>{% endif %}
     <td class="fw-bold">{{ o.nome }}</td>
@@ -13,7 +13,11 @@
         {% endif %}
     </td>
     <td class="text-end">
-        <a href="#" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt"></i></a>
+        {% if o.sigla %}
+            <a href="{% url 'estoque:editar_unidade_medida' o.id %}" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt text-primary"></i></a>
+        {% else %}
+            <a href="{% url 'estoque:editar_unidade_fornecimento' o.id %}" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt text-primary"></i></a>
+        {% endif %}
     </td>
 </tr>
 {% endfor %}

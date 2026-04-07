@@ -137,15 +137,17 @@
                         <tr>
                             <td>{{ mov.data_hora|date:"d/m/Y H:i" }}</td>
                             <td>
-                                {% if mov.tipo == 'ENTRADA' %}
+                                {% if mov.tipo_movimentacao == 'ENTRADA' %}
                                 <i class="fas fa-arrow-circle-down text-success me-1"></i>
-                                {% else %}
+                                {% elif mov.tipo_movimentacao == 'SAIDA' %}
                                 <i class="fas fa-arrow-circle-up text-danger me-1"></i>
+                                {% else %}
+                                <i class="fas fa-sync text-warning me-1"></i>
                                 {% endif %}
                                 {{ mov.get_subtipo_display }}
                             </td>
-                            <td class="text-center fw-bold">{{ mov.quantidade }}</td>
-                            <td>{{ mov.usuario.username }} / {{ mov.militar_requisitante|default:"—" }}</td>
+                            <td class="text-center fw-bold">{{ mov.quantidade|floatformat:0 }}</td>
+                            <td>{{ mov.usuario.username }} {% if mov.militar_requisitante %}/ {{ mov.militar_requisitante.qra }}{% endif %}</td>
                             <td>{{ mov.nota_fiscal|default:mov.documento_referencia|default:"—" }}</td>
                         </tr>
                         {% endfor %}

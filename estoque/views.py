@@ -277,6 +277,28 @@ def lista_categorias(request):
 @login_required
 @user_passes_test(is_admin)
 @require_module_permission('materiais')
+def lista_subcategorias(request):
+    subcategorias = Subcategoria.objects.select_related('categoria').all()
+    termo = request.GET.get('q')
+    if termo:
+        subcategorias = subcategorias.filter(
+            Q(nome__icontains=termo) |
+            Q(codigo__icontains=termo) |
+            Q(categoria__nome__icontains=termo)
+        )
+    paginator = Paginator(subcategorias, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'estoque/lista_subcategorias.html', {
+        'page_obj': page, 
+        'termo': termo,
+        'titulo': 'Subcategorias',
+        'table_headers': ['Código', 'Nome', 'Categoria Pai']
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_module_permission('materiais')
 def criar_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -302,10 +324,26 @@ def criar_subcategoria(request):
             messages.success(request, _('Subcategoria criada com sucesso!'))
             if request.GET.get('popup'):
                 return render(request, 'estoque/close_popup.html')
-            return render(request, 'estoque/close_popup.html') # Subcategoria sempre via popup no momento
+            return redirect('estoque:lista_categorias')
     else:
         form = SubcategoriaForm()
-    return render(request, 'estoque/form_subcategoria.html', {'form': form})
+    return render(request, 'estoque/form_subcategoria.html', {'form': form, 'titulo': 'Nova Subcategoria'})
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_module_permission('materiais')
+def editar_subcategoria(request, pk):
+    obj = get_object_or_404(Subcategoria, pk=pk)
+    if request.method == 'POST':
+        form = SubcategoriaForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Subcategoria atualizada!'))
+            return redirect('estoque:lista_categorias')
+    else:
+        form = SubcategoriaForm(instance=obj)
+    return render(request, 'estoque/form_subcategoria.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 @login_required
@@ -353,7 +391,23 @@ def criar_unidade_medida(request):
             return redirect('estoque:lista_unidades_medida')
     else:
         form = UnidadeMedidaForm()
-    return render(request, 'estoque/form_unidade_medida.html', {'form': form})
+    return render(request, 'estoque/form_unidade_medida.html', {'form': form, 'titulo': 'Nova Unidade de Medida'})
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_module_permission('materiais')
+def editar_unidade_medida(request, pk):
+    obj = get_object_or_404(UnidadeMedida, pk=pk)
+    if request.method == 'POST':
+        form = UnidadeMedidaForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Unidade de medida atualizada!'))
+            return redirect('estoque:lista_unidades_medida')
+    else:
+        form = UnidadeMedidaForm(instance=obj)
+    return render(request, 'estoque/form_unidade_medida.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 # =============================================================================
@@ -387,7 +441,23 @@ def criar_unidade_fornecimento(request):
             return redirect('estoque:lista_unidades_fornecimento')
     else:
         form = UnidadeFornecimentoForm()
-    return render(request, 'estoque/form_unidade_fornecimento.html', {'form': form})
+    return render(request, 'estoque/form_unidade_fornecimento.html', {'form': form, 'titulo': 'Nova Unidade de Fornecimento'})
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_module_permission('materiais')
+def editar_unidade_fornecimento(request, pk):
+    obj = get_object_or_404(UnidadeFornecimento, pk=pk)
+    if request.method == 'POST':
+        form = UnidadeFornecimentoForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Unidade de fornecimento atualizada!'))
+            return redirect('estoque:lista_unidades_fornecimento')
+    else:
+        form = UnidadeFornecimentoForm(instance=obj)
+    return render(request, 'estoque/form_unidade_fornecimento.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 # =============================================================================
@@ -419,7 +489,23 @@ def criar_cor(request):
             return redirect('estoque:lista_cores')
     else:
         form = CorForm()
-    return render(request, 'estoque/form_cor.html', {'form': form})
+    return render(request, 'estoque/form_cor.html', {'form': form, 'titulo': 'Nova Cor'})
+
+
+@login_required
+@user_passes_test(is_materiais)
+@require_module_permission('materiais')
+def editar_cor(request, pk):
+    obj = get_object_or_404(Cor, pk=pk)
+    if request.method == 'POST':
+        form = CorForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Cor atualizada!'))
+            return redirect('estoque:lista_cores')
+    else:
+        form = CorForm(instance=obj)
+    return render(request, 'estoque/form_cor.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 # =============================================================================
@@ -547,7 +633,23 @@ def criar_localizacao(request):
             return redirect('estoque:lista_localizacoes')
     else:
         form = LocalizacaoFisicaForm()
-    return render(request, 'estoque/form_localizacao.html', {'form': form})
+    return render(request, 'estoque/form_localizacao.html', {'form': form, 'titulo': 'Nova Localização'})
+
+
+@login_required
+@user_passes_test(is_materiais)
+@require_module_permission('materiais')
+def editar_localizacao(request, pk):
+    obj = get_object_or_404(LocalizacaoFisica, pk=pk)
+    if request.method == 'POST':
+        form = LocalizacaoFisicaForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Localização atualizada!'))
+            return redirect('estoque:lista_localizacoes')
+    else:
+        form = LocalizacaoFisicaForm(instance=obj)
+    return render(request, 'estoque/form_localizacao.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 # =============================================================================
@@ -563,7 +665,12 @@ def lista_militares_requisitantes(request):
         qs = qs.filter(Q(re__icontains=termo) | Q(qra__icontains=termo) | Q(nome_completo__icontains=termo))
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'estoque/lista_militares.html', {'page_obj': page, 'termo': termo})
+    return render(request, 'estoque/lista_militares.html', {
+        'page_obj': page, 
+        'termo': termo,
+        'titulo': 'Militares Requisitantes',
+        'table_headers': ['RE', 'QRA', 'Nome Completo', 'Órgão/Seção', 'Status']
+    })
 
 
 @login_required
@@ -634,7 +741,23 @@ def criar_fornecedor(request):
             return redirect('estoque:lista_fornecedores')
     else:
         form = FornecedorForm()
-    return render(request, 'estoque/form_fornecedor.html', {'form': form})
+    return render(request, 'estoque/form_fornecedor.html', {'form': form, 'titulo': 'Novo Fornecedor'})
+
+
+@login_required
+@user_passes_test(is_materiais)
+@require_module_permission('materiais')
+def editar_fornecedor(request, pk):
+    obj = get_object_or_404(Fornecedor, pk=pk)
+    if request.method == 'POST':
+        form = FornecedorForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Fornecedor atualizado!'))
+            return redirect('estoque:lista_fornecedores')
+    else:
+        form = FornecedorForm(instance=obj)
+    return render(request, 'estoque/form_fornecedor.html', {'form': form, 'titulo': f'Editar {obj.nome}', 'objeto': obj})
 
 
 @login_required

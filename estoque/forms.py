@@ -33,13 +33,15 @@ class CategoriaForm(forms.ModelForm):
             Row(
                 Column('codigo', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
-                Column('ativo', css_class='form-group col-md-3 mb-0'),
+                Column('ativo', css_class='form-group col-md-3 mb-0 pt-4'),
                 css_class='row'
             ),
             'descricao',
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_categorias" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_categorias" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Categoria</button>'
+                     '</div>'),
             )
         )
 
@@ -92,13 +94,15 @@ class UnidadeMedidaForm(forms.ModelForm):
             Row(
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
-                Column('ativo', css_class='form-group col-md-3 mb-0'),
+                Column('ativo', css_class='form-group col-md-3 mb-0 pt-4'),
                 css_class='row'
             ),
             'descricao',
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_unidades_medida" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_unidades_medida" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Unidade</button>'
+                     '</div>'),
             )
         )
 
@@ -143,12 +147,14 @@ class CorForm(forms.ModelForm):
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
-                Column('ativo', css_class='form-group col-md-4 mb-0'),
+                Column('ativo', css_class='form-group col-md-4 mb-0 pt-4'),
                 css_class='row'
             ),
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_cores" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_cores" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Cor</button>'
+                     '</div>'),
             )
         )
 
@@ -166,12 +172,14 @@ class ContaPatrimonialForm(forms.ModelForm):
             Row(
                 Column('codigo', css_class='form-group col-md-4 mb-0'),
                 Column('descricao', css_class='form-group col-md-5 mb-0'),
-                Column('ativo', css_class='form-group col-md-3 mb-0'),
+                Column('ativo', css_class='form-group col-md-3 mb-0 pt-4'),
                 css_class='row'
             ),
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_contas_patrimoniais" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_contas_patrimoniais" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Conta</button>'
+                     '</div>'),
             )
         )
 
@@ -189,12 +197,14 @@ class OrgaoRequisitanteForm(forms.ModelForm):
             Row(
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
                 Column('nome', css_class='form-group col-md-6 mb-0'),
-                Column('ativo', css_class='form-group col-md-3 mb-0'),
+                Column('ativo', css_class='form-group col-md-3 mb-0 pt-4'),
                 css_class='row'
             ),
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_orgaos_requisitantes" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_orgaos_requisitantes" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Órgão</button>'
+                     '</div>'),
             )
         )
 
@@ -214,13 +224,15 @@ class LocalizacaoFisicaForm(forms.ModelForm):
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
-                Column('ativo', css_class='form-group col-md-4 mb-0'),
+                Column('ativo', css_class='form-group col-md-4 mb-0 pt-4'),
                 css_class='row'
             ),
             'descricao',
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_localizacoes" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_localizacoes" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Localização</button>'
+                     '</div>'),
             )
         )
 
@@ -276,7 +288,7 @@ class FornecedorForm(forms.ModelForm):
             Row(
                 Column('documento', css_class='form-group col-md-4 mb-0'),
                 Column('inscricao_estadual', css_class='form-group col-md-4 mb-0'),
-                Column('ativo', css_class='form-group col-md-4 mb-0'),
+                Column('ativo', css_class='form-group col-md-4 mb-0 pt-4'),
                 css_class='row'
             ),
             Row(
@@ -284,16 +296,21 @@ class FornecedorForm(forms.ModelForm):
                 Column('email', css_class='form-group col-md-8 mb-0'),
                 css_class='row'
             ),
-            'endereco',
+            Row(
+                Column('endereco', css_class='form-group col-md-12 mb-0'),
+                css_class='row'
+            ),
             Row(
                 Column('cidade', css_class='form-group col-md-6 mb-0'),
                 Column('estado', css_class='form-group col-md-2 mb-0'),
                 Column('cep', css_class='form-group col-md-4 mb-0'),
                 css_class='row'
             ),
-            FormActions(
-                HTML('<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>'),
-                HTML('<a href="{% url "estoque:lista_fornecedores" %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>')
+            Div(
+                HTML('<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top w-100">'
+                     '<a href="{% url "estoque:lista_fornecedores" %}" class="btn btn-outline-secondary px-4">Cancelar</a>'
+                     '<button type="submit" class="btn btn-primary fw-bold px-5"><i class="fas fa-save me-1"></i> Salvar Fornecedor</button>'
+                     '</div>'),
             )
         )
 
@@ -337,15 +354,6 @@ class ProdutoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Helper para adicionar botão "+" nos dropdowns via Popup
-        def add_button(url_name, title):
-            from django.urls import reverse
-            try:
-                url = reverse(url_name) + '?popup=1'
-                return HTML(f'<button type="button" onclick="abrirPopup(\'{url}\')" class="btn btn-outline-primary btn-sm ms-1" title="{title}" style="height: 38px; min-width: 38px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-plus"></i></button>')
-            except:
-                return HTML('')
-
         self.helper = FormHelper()
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-tag me-2"></i>Identificação</h6>'),
@@ -353,34 +361,13 @@ class ProdutoForm(forms.ModelForm):
                 Column('codigo', css_class='form-group col-md-3 mb-0'),
                 Column('codigo_barras', css_class='form-group col-md-3 mb-0'),
                 Column('status', css_class='form-group col-md-3 mb-0'),
-                Column(
-                    Div(
-                        Field('categoria', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_categoria', 'Nova Categoria'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-3 mb-0'
-                ),
+                Column('categoria', css_class='form-group col-md-3 mb-0'),
                 css_class='row'
             ),
             Row(
                 Column('nome', css_class='form-group col-md-5 mb-0'),
-                Column(
-                    Div(
-                        Field('subcategoria', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_subcategoria', 'Nova Subcategoria'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-4 mb-0'
-                ),
-                Column(
-                    Div(
-                        Field('unidade_medida', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_unidade_medida', 'Nova Unidade'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-3 mb-0'
-                ),
+                Column('subcategoria', css_class='form-group col-md-4 mb-0'),
+                Column('unidade_medida', css_class='form-group col-md-3 mb-0'),
                 css_class='row'
             ),
             'descricao',
@@ -409,41 +396,13 @@ class ProdutoForm(forms.ModelForm):
                 Column('estoque_minimo', css_class='form-group col-md-3 mb-0'),
                 Column('estoque_maximo', css_class='form-group col-md-3 mb-0'),
                 Column('valor_unitario', css_class='form-group col-md-3 mb-0'),
-                Column(
-                    Div(
-                        Field('unidade_fornecimento', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_unidade_fornecimento', 'Nova Unidade Fornec.'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-3 mb-0'
-                ),
+                Column('unidade_fornecimento', css_class='form-group col-md-3 mb-0'),
                 css_class='row'
             ),
             Row(
-                Column(
-                    Div(
-                        Field('fornecedor_padrao', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_fornecedor', 'Novo Fornecedor'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-4 mb-0'
-                ),
-                Column(
-                    Div(
-                        Field('localizacao_fisica', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_localizacao', 'Nova Localização'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-4 mb-0'
-                ),
-                Column(
-                    Div(
-                        Field('conta_patrimonial', wrapper_class='flex-grow-1'),
-                        add_button('estoque:criar_conta_patrimonial', 'Nova Conta Patrim.'),
-                        css_class='d-flex align-items-start'
-                    ),
-                    css_class='form-group col-md-4 mb-0'
-                ),
+                Column('fornecedor_padrao', css_class='form-group col-md-4 mb-0'),
+                Column('localizacao_fisica', css_class='form-group col-md-4 mb-0'),
+                Column('conta_patrimonial', css_class='form-group col-md-4 mb-0'),
                 css_class='row'
             ),
             Row(

@@ -1,6 +1,6 @@
 {% extends 'estoque/lista_generica.html' %}
 {% block table_rows %}
-{% for o in page_obj|default:objetos %}
+{% for o in page_obj %}
 <tr>
     <td><code>{{ o.codigo }}</code></td>
     <td class="fw-bold">{{ o.descricao }}</td>

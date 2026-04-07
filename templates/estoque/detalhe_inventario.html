@@ -1,49 +1,134 @@
-{% extends 'estoque/base.html' %}
-{% block estoque_content %}
-<div class="row align-items-center mb-4">
+{% extends 'base.html' %}
+{% load estoque_tags %}
+{% block title %}Inventário {{ inventario.numero }} — PAP §1.5{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4 animate__animated animate__fadeIn">
     <div class="col-md-8">
-        <h3 class="fw-bold"><i class="fas fa-clipboard-list me-2"></i> Inventário {{ inventario.numero }}</h3>
-        <p class="mb-0 text-muted">{{ inventario.get_tipo_inventario_display }} | Responsável: {{ inventario.responsavel.get_full_name }}</p>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'estoque:lista_inventarios' %}">Inventários</a></li>
+                <li class="breadcrumb-item active">Detalhes</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-clipboard-check me-2 text-primary"></i> 
+            Inventário: {{ inventario.numero }}
+        </h2>
+        <p class="mb-0 text-muted">
+            <span class="badge bg-secondary me-2">{{ inventario.get_tipo_inventario_display }}</span>
+            <span class="text-uppercase fw-bold" style="font-size: 0.75rem;">Responsável:</span> {{ inventario.responsavel.get_full_name|default:inventario.responsavel.username }}
+        </p>
     </div>
     <div class="col-md-4 text-end">
         {% if inventario.status == 'PLANEJADO' %}
-        <a href="{% url 'estoque:iniciar_inventario' inventario.pk %}" class="btn btn-success"><i class="fas fa-play me-1"></i> Iniciar Contagem</a>
+            <a href="{% url 'estoque:iniciar_inventario' inventario.pk %}" class="btn btn-success fw-bold px-4 rounded-pill shadow-sm">
+                <i class="fas fa-play me-1"></i> Iniciar Contagem
+            </a>
+        {% elif inventario.status == 'EM_ANDAMENTO' %}
+            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm animate__animated animate__pulse animate__infinite">
+                <i class="fas fa-spinner fa-spin me-1"></i> EM ANDAMENTO
+            </span>
+        {% else %}
+            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">
+                <i class="fas fa-check-double me-1"></i> CONCLUÍDO
+            </span>
         {% endif %}
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white"><h6 class="mb-0 fw-bold">Itens do Inventário</h6></div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover table-sm">
-                <thead><tr><th>Material</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead>
-                <tbody>
-                    {% for item in itens %}
-                    <tr>
-                        <td>{{ item.produto.nome }}</td>
-                        <td>{{ item.quantidade_sistema }}</td>
-                        <td>{{ item.quantidade_contada|default:"—" }}</td>
-                        <td class="fw-bold {% if item.diferenca != 0 %}text-danger{% endif %}">{{ item.diferenca|default:"—" }}</td>
-                        <td><span class="badge {% if item.status_contagem == 'CONTADO' %}bg-success{% else %}bg-warning{% endif %}">{{ item.get_status_display }}</span></td>
-                        <td>
-                            <form method="post" action="{% url 'estoque:contar_item_inventario' item.pk %}" class="row g-1">
-                                {% csrf_token %}
-                                <div class="col-auto">
-                                    <input type="number" name="quantidade_contada" class="form-control form-control-sm" style="width: 80px;" required>
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg overflow-hidden animate__animated animate__fadeInUp" style="border-radius: 20px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+            <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-tasks me-2 text-warning"></i>Itens para Conferência</h5>
+                <div class="progress w-25 bg-white bg-opacity-20" style="height: 10px; border-radius: 5px;">
+                    <div class="progress-bar bg-warning" style="width: {{ inventario.percentual_conclusao }}%;"></div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small fw-bold text-uppercase">
+                        <tr>
+                            <th class="px-4">Material</th>
+                            <th class="text-center">Qtd Sistema</th>
+                            <th class="text-center">Qtd Contada</th>
+                            <th class="text-center">Divergência</th>
+                            <th class="text-center">Status</th>
+                            <th class="px-4 text-end" style="width: 250px;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td class="px-4">
+                                <div class="fw-bold">{{ item.produto.nome }}</div>
+                                <small class="text-muted">{{ item.produto.codigo }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ item.quantidade_sistema|floatformat:0 }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if item.quantidade_contada != None %}
+                                    <span class="fw-bold">{{ item.quantidade_contada|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-muted opacity-50">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.quantidade_contada != None %}
+                                    {% if item.quantidade_contada == item.quantidade_sistema %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">Ok</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
+                                            {{ item.quantidade_contada|subtract:item.quantidade_sistema }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {% if item.status_contagem == 'CONTADO' %}bg-success{% else %}bg-warning{% endif %} px-3 rounded-pill shadow-xs">
+                                    {{ item.get_status_contagem_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 text-end">
+                                {% if inventario.status == 'EM_ANDAMENTO' %}
+                                <form method="post" action="{% url 'estoque:contar_item_inventario' item.pk %}" class="d-flex gap-1 justify-content-end">
+                                    {% csrf_token %}
+                                    <input type="number" name="quantidade_contada" class="form-control form-control-sm text-center" 
+                                           style="width: 70px; border-radius: 8px;" 
+                                           value="{{ item.quantidade_contada|default:'' }}" 
+                                           placeholder="Qtd" required>
+                                    <button type="submit" class="btn btn-sm btn-dark px-3 rounded-pill">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted opacity-50">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                    <p>Inventário sem itens ou não iniciado.</p>
                                 </div>
-                                <div class="col-auto">
-                                    <button type="submit" class="btn btn-sm btn-primary">Ok</button>
-                                </div>
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="text-center py-4">Inventário não iniciado ou vazio.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1); }
+    .table tbody tr:hover { background-color: rgba(241, 196, 15, 0.05); }
+    .shadow-xs { box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+</style>
 {% endblock %}

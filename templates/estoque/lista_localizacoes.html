@@ -1,6 +1,6 @@
 {% extends 'estoque/lista_generica.html' %}
 {% block table_rows %}
-{% for o in page_obj|default:objetos %}
+{% for o in page_obj %}
 <tr>
     <td class="fw-bold">{{ o.nome }}</td>
     <td class="small">{{ o.descricao|default:"-" }}</td>
@@ -12,7 +12,7 @@
         {% endif %}
     </td>
     <td class="text-end">
-        <a href="#" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt"></i></a>
+        <a href="{% url 'estoque:editar_localizacao' o.id %}" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt text-primary"></i></a>
     </td>
 </tr>
 {% endfor %}

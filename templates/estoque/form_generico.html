@@ -1,74 +1,44 @@
-{% extends 'estoque/base.html' %}
+{% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}{{ titulo|default:"Cadastro de Material" }}{% endblock %}
+{% block title %}{{ titulo|default:"Cadastro — Sistema Integrado BAEP" }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .form-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-    }
-    
-    .form-header {
-        background: linear-gradient(135deg, var(--secondary-color) 0%, #1a252f 100%);
-        padding: 2rem 1.5rem;
-        border-bottom: 3px solid var(--primary-color);
-    }
-    
-    .form-header h2 {
-        color: var(--primary-color);
-        font-weight: 800;
-        margin-bottom: 0;
-        letter-spacing: -0.5px;
-    }
-    
-    .btn-submit {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #d4ac0d 100%);
-        border: none;
-        color: #000;
-        font-weight: 700;
-        padding: 0.8rem 2rem;
-        border-radius: 12px;
-        transition: all 0.3s;
-        box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
-    }
-    
-    .btn-submit:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
-        color: #000;
-    }
-</style>
-{% endblock %}
-
-{% block estoque_content %}
-<div class="row justify-content-center animate__animated animate__fadeInUp">
-    <div class="col-md-8 col-lg-7">
-        <div class="form-card">
-            <div class="form-header text-center">
-                <h2>
-                    <i class="fas fa-edit me-2"></i>
-                    {{ titulo|default:"Formulário de Cadastro" }}
-                </h2>
+{% block content %}
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-xl-9 col-lg-10">
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+            <!-- Header do Formulário -->
+            <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #1a2a6c 0%, #2a4858 100%);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-1"><i class="fas fa-edit me-2 text-warning"></i>{{ titulo|default:"Formulário de Cadastro" }}</h2>
+                        <p class="mb-0 opacity-75">Preencha os campos abaixo com atenção para manter a integridade dos dados.</p>
+                    </div>
+                    <div class="d-none d-md-block text-end">
+                        <span class="badge bg-white bg-opacity-20 rounded-pill px-3 py-2 fw-bold text-uppercase" style="letter-spacing: 1px;">Gestão Técnica PAP</span>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-4 p-lg-5">
+
+            <!-- Corpo do Formulário -->
+            <div class="card-body p-4 p-md-5">
                 <form method="post" enctype="multipart/form-data" class="modern-form">
                     {% csrf_token %}
+                    
                     {% if form.helper %}
                         {% crispy form %}
                     {% else %}
-                        {{ form|crispy }}
-                        <div class="d-flex justify-content-end gap-3 mt-5">
-                            <a href="javascript:history.back()" class="btn btn-light px-4 border">
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                {{ form|crispy }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 rounded-pill">
                                 <i class="fas fa-times me-1"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-submit">
+                            <button type="submit" class="btn btn-warning fw-bold px-5 rounded-pill shadow-sm">
                                 <i class="fas fa-save me-1"></i> Salvar Registro
                             </button>
                         </div>
@@ -76,14 +46,58 @@
                 </form>
             </div>
         </div>
-        
-        {% if help_text %}
-        <div class="alert alert-light border shadow-sm mt-4 p-3 rounded-pill text-center">
-            <small class="text-muted fw-500">
-                <i class="fas fa-info-circle me-1 text-primary"></i> {{ help_text }}
-            </small>
+
+        <!-- Rodapé Auxiliar -->
+        <div class="mt-4 text-center">
+            <p class="text-muted small">
+                <i class="fas fa-info-circle me-1 text-primary"></i> 
+                Este registro ficará disponível para seleção nos formulários de movimentação e cadastro de materiais.
+            </p>
         </div>
-        {% endif %}
     </div>
 </div>
+
+<style>
+    /* Estilização Premium para Crispy Forms */
+    .modern-form .form-control, 
+    .modern-form .form-select {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+        background-color: #f8f9fa;
+    }
+
+    .modern-form .form-control:focus, 
+    .modern-form .form-select:focus {
+        background-color: #fff;
+        border-color: #f1c40f;
+        box-shadow: 0 0 0 0.25rem rgba(241, 196, 15, 0.15);
+    }
+
+    .modern-form label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-form .form-check-input:checked {
+        background-color: #f1c40f;
+        border-color: #f1c40f;
+    }
+
+    .sidebar-heading {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #adb5bd;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 1rem;
+        letter-spacing: 1px;
+    }
+</style>
 {% endblock %}
