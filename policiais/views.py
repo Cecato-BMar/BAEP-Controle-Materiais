@@ -7,6 +7,7 @@ from django.db.models import Q, ProtectedError
 from django.core.paginator import Paginator
 from .models import Policial
 from .forms import PolicialForm, PolicialSearchForm
+from django.http import JsonResponse
 import xlrd
 from django.db import transaction
 import os
@@ -201,3 +202,26 @@ def excluir_policial(request, policial_id):
             return redirect('policiais:detalhe_policial', policial_id=policial.id)
             
     return redirect('policiais:lista_policiais')
+@login_required
+@require_module_permission('reserva_armas')
+def buscar_policiais_ajax(request):
+    """View para busca Ajax de policiais (Efetivo)"""
+    q_raw = request.GET.get('q', '').strip()
+    if not q_raw:
+        return JsonResponse({'results': []})
+    
+    q_clean = ''.join(filter(str.isalnum, q_raw))
+    
+    policiais = Policial.objects.filter(
+        Q(nome__icontains=q_raw) | 
+        Q(re__icontains=q_raw) | 
+        Q(re__icontains=q_clean),
+        situacao='ATIVO'
+    ).order_by('nome')[:15]
+    
+    results = [{
+        'id': p.pk,
+        'text': f"{p.re} - {p.get_posto_display()} {p.nome}",
+    } for p in policiais]
+    
+    return JsonResponse({'results': results})

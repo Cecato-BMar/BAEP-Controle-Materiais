@@ -35,6 +35,14 @@
                         <div class="col-md-4 fw-bold">Tipo:</div>
                         <div class="col-md-8">{{ material.get_tipo_display }}</div>
                     </div>
+                    {% if material.categoria %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Categoria:</div>
+                        <div class="col-md-8">
+                            <span class="badge bg-light text-dark border"><i class="fas fa-tag me-1 text-primary"></i>{{ material.get_categoria_display }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Status:</div>
                         <div class="col-md-8">
@@ -54,8 +62,22 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4 fw-bold">Data de Aquisição:</div>
-                        <div class="col-md-8">{{ material.data_aquisicao|date:"d/m/Y" }}</div>
+                        <div class="col-md-4 fw-bold">Localização:</div>
+                        <div class="col-md-8">
+                            {% if material.localizacao_fisica %}
+                                <span class="text-primary font-weight-bold"><i class="fas fa-map-marker-alt me-1"></i>{{ material.localizacao_fisica.nome }}</span>
+                            {% else %}
+                                <span class="text-muted">Não definida</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Estado:</div>
+                        <div class="col-md-8">{{ material.get_estado_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Data de Cadastro:</div>
+                        <div class="col-md-8">{{ material.data_cadastro|date:"d/m/Y" }}</div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 fw-bold">Última Movimentação:</div>

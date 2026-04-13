@@ -559,9 +559,42 @@
             }
         });
         
-        // Eventos de mudança para o policial
-        $('#id_policial').change(function() {
-            carregarInfoPolicial($(this).val());
+        // Configura o Select2 com Ajax para buscar policiais
+        $('#id_policial, #filtro-policial').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Digite RE ou nome do policial...',
+            allowClear: true,
+            minimumInputLength: 2,
+            ajax: {
+                url: '{% url "policiais:buscar_policiais_ajax" %}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
+
+        // Eventos de mudança para o policial principal
+        $('#id_policial').on('select2:select', function(e) {
+            carregarInfoPolicial(e.params.data.id);
+        });
+        
+        $('#id_policial').on('select2:clear', function(e) {
+            carregarInfoPolicial(null);
+        });
+
+        // Evento de mudança para o filtro
+        $('#filtro-policial').on('change', function() {
+            carregarMateriaisPendentes();
         });
         
         // Inicialização

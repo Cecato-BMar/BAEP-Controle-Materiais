@@ -23,37 +23,78 @@
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
         <form method="get" class="row gx-2 gy-1 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="termo_busca" class="form-label small mb-0">Identificação</label>
                 <input type="text" class="form-control form-control-sm" id="termo_busca" name="termo_busca" value="{{ request.GET.termo_busca|default:'' }}" placeholder="Nome, Número...">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="tipo" class="form-label small mb-0">Tipo</label>
                 <select class="form-select form-select-sm" id="tipo" name="tipo">
                     <option value="">Todos</option>
                     {% for tipo_choice in form.tipo.field.choices %}
+                        {% if tipo_choice.0 %}
                         <option value="{{ tipo_choice.0 }}" {% if request.GET.tipo == tipo_choice.0 %}selected{% endif %}>
                             {{ tipo_choice.1 }}
                         </option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <label for="categoria" class="form-label small mb-0">Categoria</label>
+                <select class="form-select form-select-sm" id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    {% for cat_choice in form.categoria.field.choices %}
+                        {% if cat_choice.0 %}
+                        <option value="{{ cat_choice.0 }}" {% if request.GET.categoria == cat_choice.0 %}selected{% endif %}>
+                            {{ cat_choice.1 }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
                 <label for="status" class="form-label small mb-0">Status</label>
                 <select class="form-select form-select-sm" id="status" name="status">
                     <option value="">Todos</option>
                     {% for status_choice in form.status.field.choices %}
+                        {% if status_choice.0 %}
                         <option value="{{ status_choice.0 }}" {% if request.GET.status == status_choice.0 %}selected{% endif %}>
                             {{ status_choice.1 }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="estado" class="form-label small mb-0">Estado</label>
+                <select class="form-select form-select-sm" id="estado" name="estado">
+                    <option value="">Todos</option>
+                    {% for estado_choice in form.estado.field.choices %}
+                        {% if estado_choice.0 %}
+                        <option value="{{ estado_choice.0 }}" {% if request.GET.estado == estado_choice.0 %}selected{% endif %}>
+                            {{ estado_choice.1 }}
+                        </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="localizacao" class="form-label small mb-0">Localização</label>
+                <select class="form-select form-select-sm" id="localizacao" name="localizacao">
+                    <option value="">Todas</option>
+                    {% for loc in form.localizacao.field.queryset %}
+                        <option value="{{ loc.id }}" {% if request.GET.localizacao == loc.id|stringformat:"s" %}selected{% endif %}>
+                            {{ loc.nome }}
                         </option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+            <div class="col-md-12 d-flex gap-2 mt-2 justify-content-end">
+                <button type="submit" class="btn btn-primary btn-sm px-4">
                     <i class="fas fa-search me-1"></i> Filtrar
                 </button>
-                <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-secondary btn-sm flex-grow-1" title="Limpar Filtros">
+                <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-secondary btn-sm px-4" title="Limpar Filtros">
                     <i class="fas fa-undo me-1"></i> Limpar
                 </a>
             </div>
@@ -71,6 +112,8 @@
                     <tr>
                         <th>Identificação</th>
                         <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Localização / CIA</th>
                         <th>Status</th>
                         <th>Cadastro</th>
                         <th>Última Atualização</th>
@@ -82,6 +125,20 @@
                     <tr>
                         <td class="fw-bold">{{ material.nome }} <small class="text-muted">({{ material.numero }})</small></td>
                         <td class="small">{{ material.get_tipo_display }}</td>
+                        <td class="small">
+                            {% if material.categoria %}
+                                <span class="badge bg-light text-dark border"><i class="fas fa-tag me-1 text-primary"></i>{{ material.get_categoria_display }}</span>
+                            {% else %}
+                                <span class="text-muted">---</span>
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if material.localizacao_fisica %}
+                                <span class="text-primary"><i class="fas fa-map-marker-alt me-1"></i>{{ material.localizacao_fisica.nome }}</span>
+                            {% else %}
+                                <span class="text-muted">---</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if material.status == 'DISPONIVEL' %}
                             <span class="badge badge-disponivel rounded-pill">Disponível</span>

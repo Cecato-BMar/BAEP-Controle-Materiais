@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.apps import apps
 
 class Material(models.Model):
     ESTADO_CHOICES = [
@@ -27,7 +28,18 @@ class Material(models.Model):
         ('OUTROS', 'Outros'),
     ]
     
+    CATEGORIA_CHOICES = [
+        ('PISTOLA', 'Pistola'),
+        ('FUZIL', 'Fuzil'),
+        ('CAL_12', 'Calibre 12'),
+        ('SUBMETRALHADORA', 'Submetralhadora'),
+        ('LANCADOR', 'Lançador'),
+        ('CHOQUE', 'Menos que Letal / Choque'),
+        ('OUTROS', 'Outros'),
+    ]
+    
     tipo = models.CharField(_('Tipo'), max_length=20, choices=TIPO_CHOICES)
+    categoria = models.CharField(_('Categoria'), max_length=30, choices=CATEGORIA_CHOICES, default='OUTROS', blank=True, null=True)
     nome = models.CharField(_('Nome'), max_length=100)
     numero = models.CharField(_('Número'), max_length=50, unique=True)
     quantidade = models.PositiveIntegerField(_('Quantidade Total'))
@@ -39,6 +51,7 @@ class Material(models.Model):
     data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
     data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
     imagem = models.ImageField(_('Imagem'), upload_to='materiais/', blank=True, null=True)
+    localizacao_fisica = models.ForeignKey('estoque.LocalizacaoFisica', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Localização Física'))
     
     class Meta:
         verbose_name = _('Material')

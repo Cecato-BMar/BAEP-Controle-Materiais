@@ -1314,9 +1314,11 @@ def exportar_recibo_saida_pdf(request):
     elements.append(Spacer(1, 0.3*cm))
     
     # Info Recibo
+    local_data_hora = timezone.localtime(mov.data_hora)
     info_data = [
-        [Paragraph(f"<b>Controle:</b> #{mov.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {mov.data_movimentacao.strftime('%d/%m/%Y')}", body_style)],
-        [Paragraph(f"<b>Usuário:</b> {mov.usuario.username}", body_style), Paragraph(f"<b>Finalidade:</b> {mov.subtipo}", body_style)]
+        [Paragraph(f"<b>Controle:</b> #{mov.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {local_data_hora.strftime('%d/%m/%Y')}", body_style)],
+        [Paragraph(f"<b>Hora:</b> {local_data_hora.strftime('%H:%M')}", body_style), Paragraph(f"<b>Usuário:</b> {mov.usuario.username}", body_style)],
+        [Paragraph(f"<b>Finalidade:</b> {mov.subtipo}", body_style), Paragraph("", body_style)]
     ]
     info_table = Table(info_data, colWidths=[6.4*cm, 6.4*cm])
     info_table.setStyle(TableStyle([
@@ -1399,14 +1401,17 @@ def exportar_recibo_saida_pdf(request):
     ]))
     elements.append(entrega_table)
     
-    # Rodapé fixo
-    def add_footer(canvas, doc):
+    # Elementos fixos da página (Apenas Rodapé)
+    def draw_page_elements(canvas, doc):
         canvas.saveState()
+        
+        # 1. Rodapé Textual
         canvas.setFont('Helvetica', 6)
         canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Controle de Estoque PAP §3 - BAEP - Página {doc.page}")
+
         canvas.restoreState()
 
-    doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    doc.build(elements, onFirstPage=draw_page_elements, onLaterPages=draw_page_elements)
     
     pdf = buffer.getvalue()
     buffer.close()

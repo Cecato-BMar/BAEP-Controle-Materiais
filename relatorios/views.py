@@ -236,7 +236,7 @@ def gerar_relatorio_situacao_atual(request):
             elements.append(Spacer(1, 0.5*cm))
             
             # Data e hora
-            data_hora = timezone.now().strftime('%d/%m/%Y %H:%M')
+            data_hora = timezone.localtime(timezone.now()).strftime('%d/%m/%Y %H:%M')
             elements.append(Paragraph(f'Gerado em: {data_hora}', normal_style))
             elements.append(Paragraph(f'Gerado por: {request.user.get_full_name() or request.user.username}', normal_style))
             elements.append(Spacer(1, 1*cm))
@@ -427,7 +427,7 @@ def gerar_relatorio_materiais(request):
             elements.append(Spacer(1, 0.3*cm))
             
             # Informações de geração
-            data_hora = timezone.now().strftime('%d/%m/%Y às %H:%M')
+            data_hora = timezone.localtime(timezone.now()).strftime('%d/%m/%Y às %H:%M')
             elements.append(Paragraph(f'<b>Gerado em:</b> {data_hora}', normal_style))
             elements.append(Paragraph(f'<b>Gerado por:</b> {request.user.get_full_name() or request.user.username}', normal_style))
             elements.append(Spacer(1, 0.5*cm))
@@ -756,7 +756,7 @@ def gerar_relatorio_materiais(request):
             
             # Associa o arquivo ao relatório
             with open(temp_path, 'rb') as f:
-                relatorio.arquivo_pdf.save(f'relatorio_materiais_{timezone.now().strftime("%Y%m%d%H%M%S")}.pdf', 
+                relatorio.arquivo_pdf.save(f'relatorio_materiais_{timezone.localtime(timezone.now()).strftime("%Y%m%d%H%M%S")}.pdf', 
                                           io.BytesIO(f.read()))
             
             # Remove o arquivo temporário
@@ -765,7 +765,7 @@ def gerar_relatorio_materiais(request):
             messages.success(request, _('Relatório gerado com sucesso!'))
             return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
     else:
-        form = RelatorioMateriaisForm(initial={'titulo': f'Relatório de Materiais - {timezone.now().strftime("%d/%m/%Y")}'})    
+        form = RelatorioMateriaisForm(initial={'titulo': f'Relatório de Materiais - {timezone.localtime(timezone.now()).strftime("%d/%m/%Y")}'})    
     
     return render(request, 'relatorios/form_relatorio_materiais.html', {'form': form})
 

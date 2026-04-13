@@ -8,11 +8,16 @@ def api_materiais(request):
     """
     API para listar todos os materiais
     """
-    # Filtragem opcional por status
+    # Filtragem opcional
     status = request.GET.get('status', None)
     tipo = request.GET.get('tipo', None)
+    categoria = request.GET.get('categoria', None)
+    estado = request.GET.get('estado', None)
+    localizacao = request.GET.get('localizacao', None)
     termo = request.GET.get('termo', None)
     disponivel = request.GET.get('disponivel', None)
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 10))
     
     materiais = Material.objects.all()
     
@@ -20,44 +25,58 @@ def api_materiais(request):
     if status:
         materiais = materiais.filter(status=status)
     
-    # Filtra por tipo se especificado
     if tipo:
         materiais = materiais.filter(tipo=tipo)
+        
+    if categoria:
+        materiais = materiais.filter(categoria=categoria)
+        
+    if estado:
+        materiais = materiais.filter(estado=estado)
+        
+    if localizacao:
+        materiais = materiais.filter(localizacao_fisica_id=localizacao)
     
-    # Filtra por termo de busca se especificado
     if termo:
         materiais = materiais.filter(
             Q(nome__icontains=termo) | 
             Q(numero__icontains=termo)
         )
     
-    # Filtra apenas materiais disponíveis se solicitado
     if disponivel and disponivel.lower() == 'true':
         materiais = materiais.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
     
-    # Ordena os materiais por tipo e nome
     materiais = materiais.order_by('tipo', 'nome')
+    
+    # Paginação
+    from django.core.paginator import Paginator
+    paginator = Paginator(materiais, page_size)
+    page_obj = paginator.get_page(page)
     
     materiais_lista = [{
         'id': m.id,
         'nome': m.nome,
-        'identificacao': m.numero,  # Usando numero como identificacao
         'numero': m.numero,
-        'tipo': m.tipo,
         'tipo_display': m.get_tipo_display(),
-        'status': m.status,
+        'categoria_display': m.get_categoria_display() if m.categoria else "",
         'status_display': m.get_status_display(),
-        'quantidade_total': m.quantidade,  # Corrigido para quantidade
         'quantidade_disponivel': m.quantidade_disponivel,
-        'quantidade_em_uso': m.quantidade_em_uso,
-        'estado': m.estado,
-        'estado_display': m.get_estado_display()
-    } for m in materiais]
+        'estado_display': m.get_estado_display(),
+        'localizacao_nome': m.localizacao_fisica.nome if m.localizacao_fisica else "---"
+    } for m in page_obj]
     
-    # Garante que a resposta seja um array JSON válido
-    response = JsonResponse(materiais_lista, safe=False)
-    response['Content-Type'] = 'application/json'
-    return response
+    data = {
+        'results': materiais_lista,
+        'pagination': {
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'number': page_obj.number,
+            'num_pages': paginator.num_pages,
+            'total_items': paginator.count
+        }
+    }
+    
+    return JsonResponse(data)
 
 @login_required
 def api_material_detalhe(request, material_id):

@@ -199,9 +199,13 @@ def nova_retirada(request):
     # Usando filter() para garantir que apenas materiais com status DISPONIVEL e quantidade_disponivel > 0 sejam listados
     materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0).order_by('tipo', 'nome')
     
+    from estoque.models import LocalizacaoFisica
+    localizacoes = LocalizacaoFisica.objects.filter(ativo=True)
+    
     return render(request, 'movimentacoes/form_retirada.html', {
         'form': form,
         'materiais': materiais_disponiveis,
+        'localizacoes': localizacoes,
     })
 
 @login_required
@@ -440,9 +444,10 @@ def gerar_recibo_retirada(request):
     elements.append(Spacer(1, 0.3*cm))
     
     # Info Recibo
+    local_data_hora = timezone.localtime(mov_principal.data_hora)
     info_data = [
-        [Paragraph(f"<b>Nº do Recibo:</b> #{mov_principal.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {mov_principal.data_hora.strftime('%d/%m/%Y')}", body_style)],
-        [Paragraph(f"<b>Hora:</b> {mov_principal.data_hora.strftime('%H:%M')}", body_style), Paragraph(f"<b>Registrado por:</b> {mov_principal.registrado_por.username}", body_style)]
+        [Paragraph(f"<b>Nº do Recibo:</b> #{mov_principal.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {local_data_hora.strftime('%d/%m/%Y')}", body_style)],
+        [Paragraph(f"<b>Hora:</b> {local_data_hora.strftime('%H:%M')}", body_style), Paragraph(f"<b>Registrado por:</b> {mov_principal.registrado_por.username}", body_style)]
     ]
     info_table = Table(info_data, colWidths=[6.4*cm, 6.4*cm])
     info_table.setStyle(TableStyle([
@@ -533,23 +538,17 @@ def gerar_recibo_retirada(request):
     ]))
     elements.append(entrega_table)
     
-    # Rodapé fixo
-    def add_footer(canvas, doc):
+    # Elementos fixos da página (Apenas Rodapé)
+    def draw_page_elements(canvas, doc):
         canvas.saveState()
+        
+        # 1. Rodapé Textual
         canvas.setFont('Helvetica', 6)
         canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Documento gerado automaticamente pelo Sistema Reserva BAEP - Página {doc.page}")
-        # Logo se existir
-        try:
-            from django.contrib.staticfiles import finders
-            logo_path = finders.find('img/logo_baep.png')
-            if logo_path:
-                img = ImageReader(logo_path)
-                canvas.drawImage(img, 1*cm, A5[1]-1.5*cm, width=0.8*cm, height=0.8*cm, mask='auto')
-        except:
-            pass
+        
         canvas.restoreState()
 
-    doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    doc.build(elements, onFirstPage=draw_page_elements, onLaterPages=draw_page_elements)
     
     pdf = buffer.getvalue()
     buffer.close()

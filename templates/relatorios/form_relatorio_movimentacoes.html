@@ -136,7 +136,29 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('#id_policial, #id_material').select2({ placeholder: "Todos", allowClear: true });
+        $('#id_material').select2({ placeholder: "Todos", allowClear: true });
+        
+        $('#id_policial').select2({
+            placeholder: "Digite RE ou nome...",
+            allowClear: true,
+            minimumInputLength: 2,
+            ajax: {
+                url: '{% url "policiais:buscar_policiais_ajax" %}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
     });
 </script>
 {% endblock %}

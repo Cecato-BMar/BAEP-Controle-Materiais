@@ -3,11 +3,12 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Div
 from .models import Material
+from estoque.models import LocalizacaoFisica
 
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['tipo', 'nome', 'numero', 'quantidade', 'estado', 'status', 'observacoes', 'imagem']
+        fields = ['tipo', 'categoria', 'nome', 'numero', 'quantidade', 'estado', 'status', 'localizacao_fisica', 'observacoes', 'imagem']
         widgets = {
             'observacoes': forms.Textarea(attrs={'rows': 3}),
         }
@@ -21,8 +22,9 @@ class MaterialForm(forms.ModelForm):
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(
             Row(
-                Column('tipo', css_class='form-group col-md-6 mb-0'),
-                Column('nome', css_class='form-group col-md-6 mb-0'),
+                Column('tipo', css_class='form-group col-md-4 mb-0'),
+                Column('categoria', css_class='form-group col-md-4 mb-0'),
+                Column('nome', css_class='form-group col-md-4 mb-0'),
                 css_class='form-row'
             ),
             Row(
@@ -31,8 +33,9 @@ class MaterialForm(forms.ModelForm):
                 css_class='form-row'
             ),
             Row(
-                Column('estado', css_class='form-group col-md-6 mb-0'),
-                Column('status', css_class='form-group col-md-6 mb-0'),
+                Column('estado', css_class='form-group col-md-4 mb-0'),
+                Column('status', css_class='form-group col-md-4 mb-0'),
+                Column('localizacao_fisica', css_class='form-group col-md-4 mb-0'),
                 css_class='form-row'
             ),
             'observacoes',
@@ -54,10 +57,26 @@ class MaterialSearchForm(forms.Form):
         required=False,
         choices=[(None, _('Todos'))] + Material.TIPO_CHOICES
     )
+    categoria = forms.ChoiceField(
+        label=_('Categoria'),
+        required=False,
+        choices=[('', _('Todos'))] + Material.CATEGORIA_CHOICES
+    )
     status = forms.ChoiceField(
         label=_('Status'),
         required=False,
-        choices=[(None, _('Todos'))] + Material.STATUS_CHOICES
+        choices=[('', _('Todos'))] + Material.STATUS_CHOICES
+    )
+    estado = forms.ChoiceField(
+        label=_('Estado'),
+        required=False,
+        choices=[('', _('Todos'))] + Material.ESTADO_CHOICES
+    )
+    localizacao = forms.ModelChoiceField(
+        label=_('Localização / CIA'),
+        queryset=LocalizacaoFisica.objects.all(),
+        required=False,
+        empty_label=_('Todas')
     )
     
     def __init__(self, *args, **kwargs):
@@ -68,6 +87,7 @@ class MaterialSearchForm(forms.Form):
         self.helper.layout = Layout(
             'termo_busca',
             'tipo',
+            'categoria',
             'status',
             Submit('submit', _('Buscar'), css_class='btn btn-primary ml-2')
         )
