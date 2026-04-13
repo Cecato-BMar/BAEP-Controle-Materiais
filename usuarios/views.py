@@ -204,10 +204,16 @@ def excluir_usuario(request, pk):
     
     if request.method == 'POST':
         username = usuario.username
+        print(f"Tentando excluir usuario: {username} (ID: {pk})")
         try:
             usuario.delete()
+            print(f"Usuario {username} excluido com sucesso.")
             messages.success(request, _(f'Usuário {username} excluído com sucesso!'))
-        except ProtectedError:
-            messages.error(request, _(f'Não é possível excluir o usuário {username} pois ele possui registros (movimentações, etc) vinculados. Você pode apenas desativá-lo.'))
+        except ProtectedError as e:
+            print(f"Erro de protecao ao excluir {username}: {e}")
+            messages.error(request, _(f'Não é possível excluir o usuário {username} pois ele possui registros vinculados (movimentações, etc). Você pode apenas desativá-lo.'))
+        except Exception as e:
+            print(f"Erro inesperado ao excluir {username}: {e}")
+            messages.error(request, _(f'Erro ao excluir usuário: {e}'))
     
     return redirect('usuarios:lista_usuarios')

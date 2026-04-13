@@ -9,6 +9,13 @@
         <a href="{% url 'materiais:novo_material' %}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i> Nova Arma
         </a>
+        <form id="formImportXML" method="post" action="{% url 'materiais:importar_armas_xml' %}" enctype="multipart/form-data" style="display: none;">
+            {% csrf_token %}
+            <input type="file" id="arquivo_xml" name="arquivo_xml" accept=".xml,.xlm" onchange="document.getElementById('formImportXML').submit();">
+        </form>
+        <button type="button" class="btn btn-outline-success btn-sm" onclick="document.getElementById('arquivo_xml').click();">
+            <i class="fas fa-file-import me-1"></i> Importar XML
+        </button>
     </div>
 </div>
 

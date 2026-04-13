@@ -140,7 +140,7 @@
                                                 </button>
                                                 <form method="post" action="{% url 'usuarios:excluir_usuario' usuario.id %}">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="btn btn-danger">
+                                                    <button type="submit" class="btn btn-danger" onclick="this.disabled=true; this.innerHTML='Excluindo...'; this.form.submit();">
                                                         <i class="fas fa-trash me-2"></i>Excluir
                                                     </button>
                                                 </form>

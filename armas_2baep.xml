@@ -1,0 +1,2338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListagemArmas orgao="POLICIA MILITAR DO ESTADO DE SAO PAULO" diretoria="DIRETORIA DE LOGISTICA" data="05/03/2025">
+    <Unidade codigo="CPI-6" nome="2. BAEP">
+        <Subunidade nome="SEDE" totalArmas="33">
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220062282</NumeroPatrimonio>
+                <NumeroDeSerie>BNCP364</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222058850</NumeroPatrimonio>
+                <NumeroDeSerie>BVRC624</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222060239</NumeroPatrimonio>
+                <NumeroDeSerie>BVPH013</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222060352</NumeroPatrimonio>
+                <NumeroDeSerie>BVPH126</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220065914</NumeroPatrimonio>
+                <NumeroDeSerie>BNCT996</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220023283</NumeroPatrimonio>
+                <NumeroDeSerie>BMZT975</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220023802</NumeroPatrimonio>
+                <NumeroDeSerie>BMZV494</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074823</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP925</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>219013746</NumeroPatrimonio>
+                <NumeroDeSerie>BKXV208</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.787,63</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074013</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP115</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074447</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP549</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220059957</NumeroPatrimonio>
+                <NumeroDeSerie>BNCM039</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210093339</NumeroPatrimonio>
+                <NumeroDeSerie>SDM08411</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210093065</NumeroPatrimonio>
+                <NumeroDeSerie>SDM07337</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210093094</NumeroPatrimonio>
+                <NumeroDeSerie>SDM07366</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208015615</NumeroPatrimonio>
+                <NumeroDeSerie>SAY23048</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208015621</NumeroPatrimonio>
+                <NumeroDeSerie>SAY23054</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208006311</NumeroPatrimonio>
+                <NumeroDeSerie>SAY25175</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.851,00</Valor>
+                <UGE>180224</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208032440</NumeroPatrimonio>
+                <NumeroDeSerie>SBP10217</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208032451</NumeroPatrimonio>
+                <NumeroDeSerie>SBP10228</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208032457</NumeroPatrimonio>
+                <NumeroDeSerie>SBP10234</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>210190280</NumeroPatrimonio>
+                <NumeroDeSerie>SDW63090</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210147532</NumeroPatrimonio>
+                <NumeroDeSerie>SDU33552</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210147489</NumeroPatrimonio>
+                <NumeroDeSerie>SDU33509</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210199760</NumeroPatrimonio>
+                <NumeroDeSerie>SDY89007</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018624</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26814</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018413</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26603</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022991</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK507</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022993</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK509</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071621</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU309</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222069869</NumeroPatrimonio>
+                <NumeroDeSerie>BVSC763</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071428</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU116</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071392</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU080</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+        </Subunidade>
+        <Subunidade nome="1. CIA AEP" totalArmas="39">
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071454</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU142</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071292</NumeroPatrimonio>
+                <NumeroDeSerie>BVRA980</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222069407</NumeroPatrimonio>
+                <NumeroDeSerie>BVSC301</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222067010</NumeroPatrimonio>
+                <NumeroDeSerie>BVPD384</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071673</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU361</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>214003229</NumeroPatrimonio>
+                <NumeroDeSerie>BRA02063</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210195973</NumeroPatrimonio>
+                <NumeroDeSerie>SDY85166</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180168</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>210190126</NumeroPatrimonio>
+                <NumeroDeSerie>SDW62936</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180177</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208031328</NumeroPatrimonio>
+                <NumeroDeSerie>SBP09569</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180381</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>208032533</NumeroPatrimonio>
+                <NumeroDeSerie>SBP10310</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061054</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN136</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061145</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN227</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061191</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN273</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074449</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP551</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074437</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP539</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074441</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP543</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074428</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP530</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074405</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP507</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074370</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP472</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074371</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP473</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074372</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP474</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074373</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP475</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074375</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP477</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074377</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP479</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074378</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP480</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074401</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP503</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074384</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP486</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074382</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP484</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074017</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP119</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074008</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP110</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074009</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP111</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074010</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP112</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074034</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP136</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005471</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03286</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215066885</NumeroPatrimonio>
+                <NumeroDeSerie>BRA06773</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067066</NumeroPatrimonio>
+                <NumeroDeSerie>BRA06954</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220062316</NumeroPatrimonio>
+                <NumeroDeSerie>BNCP398</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061874</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN956</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061779</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN861</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+        </Subunidade>
+        <Subunidade nome="2. CIA AEP" totalArmas="31">
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067151</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07039</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067162</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07050</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005447</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03262</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005580</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03395</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067272</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07160</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067320</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07208</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>95002952</NumeroPatrimonio>
+                <NumeroDeSerie>51298</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>300,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210177677</NumeroPatrimonio>
+                <NumeroDeSerie>SDU38767</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018655</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26845</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180198</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>212053504</NumeroPatrimonio>
+                <NumeroDeSerie>SEZ13946</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.901,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210177228</NumeroPatrimonio>
+                <NumeroDeSerie>SDU38318</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180177</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210176002</NumeroPatrimonio>
+                <NumeroDeSerie>SDU37092</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180186</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>209003356</NumeroPatrimonio>
+                <NumeroDeSerie>SBW97697</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>209037275</NumeroPatrimonio>
+                <NumeroDeSerie>SCR78691</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074024</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP126</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074025</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP127</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074012</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP114</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074016</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP118</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074021</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP123</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074022</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP124</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074394</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP496</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074379</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP481</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074376</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP478</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074374</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP476</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074365</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP467</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074410</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP512</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074427</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP529</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074420</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP522</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074391</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP493</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074417</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP519</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074431</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP533</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+        </Subunidade>
+        <Subunidade nome="3. CIA AEP" totalArmas="75">
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>214003236</NumeroPatrimonio>
+                <NumeroDeSerie>BRA02070</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 11</CodigoMaterial>
+                <NumeroPatrimonio>211105803</NumeroPatrimonio>
+                <NumeroDeSerie>AKE3229520</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>RETRÁTIL</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 11</CodigoMaterial>
+                <NumeroPatrimonio>211105804</NumeroPatrimonio>
+                <NumeroDeSerie>AKE3229521</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>RETRÁTIL</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067321</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07209</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067323</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07211</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067345</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07233</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067383</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07271</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067388</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07276</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067402</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07290</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067447</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07335</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067504</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07392</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067513</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07401</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215067516</NumeroPatrimonio>
+                <NumeroDeSerie>BRA07404</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.424,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005640</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03455</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005647</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03462</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>215005656</NumeroPatrimonio>
+                <NumeroDeSerie>BRA03471</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>5.350,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044442</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043192</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044435</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043185</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044422</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043172</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044412</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043162</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044384</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043134</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044385</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043135</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044395</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043145</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044373</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043123</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044380</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043130</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 12</CodigoMaterial>
+                <NumeroPatrimonio>214044381</NumeroPatrimonio>
+                <NumeroDeSerie>ANE4043131</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>CORONHA</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074026</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP128</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074761</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP863</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220042815</NumeroPatrimonio>
+                <NumeroDeSerie>BNDB507</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220062243</NumeroPatrimonio>
+                <NumeroDeSerie>BNCP325</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220062060</NumeroPatrimonio>
+                <NumeroDeSerie>BNCP142</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220062116</NumeroPatrimonio>
+                <NumeroDeSerie>BNCP198</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061327</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN409</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061098</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN180</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061062</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN144</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061001</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN083</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220061016</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN098</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>220060924</NumeroPatrimonio>
+                <NumeroDeSerie>BNCN006</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>891,86</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218075659</NumeroPatrimonio>
+                <NumeroDeSerie>BKTR762</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074868</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP970</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074869</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP971</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074829</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP931</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074830</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP932</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074839</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP941</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074836</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP938</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074853</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP955</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074854</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP956</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074862</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP964</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074849</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP951</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074858</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP960</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074859</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP961</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074814</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP916</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074815</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP917</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074825</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP927</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074826</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP928</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074805</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP907</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074803</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP905</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074793</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP895</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074796</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP898</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074797</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP899</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074779</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP881</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074772</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP874</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074774</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP876</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074769</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP871</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074462</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP564</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>209041023</NumeroPatrimonio>
+                <NumeroDeSerie>SCR79427</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>210191524</NumeroPatrimonio>
+                <NumeroDeSerie>SDW64022</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180176</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210200033</NumeroPatrimonio>
+                <NumeroDeSerie>SDY87280</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180224</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210200724</NumeroPatrimonio>
+                <NumeroDeSerie>SDY87821</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.631,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071462</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU150</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071476</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU164</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071176</NumeroPatrimonio>
+                <NumeroDeSerie>BVRA864</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071431</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU119</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071385</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU073</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>222071841</NumeroPatrimonio>
+                <NumeroDeSerie>BVPU529</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>2.246,98</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+        </Subunidade>
+        <Subunidade nome="4. CIA AEP" totalArmas="3">
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>216072512</NumeroPatrimonio>
+                <NumeroDeSerie>BRA10005</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>7.630,82</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>216071899</NumeroPatrimonio>
+                <NumeroDeSerie>BRA09392</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>7.630,82</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018445</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26635</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+        </Subunidade>
+        <Subunidade nome="EM" totalArmas="109">
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044067</NumeroPatrimonio>
+                <NumeroDeSerie>C10527</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044161</NumeroPatrimonio>
+                <NumeroDeSerie>C10621</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044162</NumeroPatrimonio>
+                <NumeroDeSerie>C10622</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044163</NumeroPatrimonio>
+                <NumeroDeSerie>C10623</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044164</NumeroPatrimonio>
+                <NumeroDeSerie>C10624</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044165</NumeroPatrimonio>
+                <NumeroDeSerie>C10625</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044201</NumeroPatrimonio>
+                <NumeroDeSerie>C10661</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044202</NumeroPatrimonio>
+                <NumeroDeSerie>C10662</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 10 1 1</CodigoMaterial>
+                <NumeroPatrimonio>223044203</NumeroPatrimonio>
+                <NumeroDeSerie>C10663</NumeroDeSerie>
+                <Descricao>LANCADOR AM-640</Descricao>
+                <Valor>6.606,30</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010052</NumeroPatrimonio>
+                <NumeroDeSerie>03973-K</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010053</NumeroPatrimonio>
+                <NumeroDeSerie>03974-L</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010054</NumeroPatrimonio>
+                <NumeroDeSerie>03975-M</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010055</NumeroPatrimonio>
+                <NumeroDeSerie>03976-N</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010056</NumeroPatrimonio>
+                <NumeroDeSerie>03977-P</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010057</NumeroPatrimonio>
+                <NumeroDeSerie>03978-Q</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010065</NumeroPatrimonio>
+                <NumeroDeSerie>03986-Q</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010068</NumeroPatrimonio>
+                <NumeroDeSerie>03989-T</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010070</NumeroPatrimonio>
+                <NumeroDeSerie>03991-M</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010071</NumeroPatrimonio>
+                <NumeroDeSerie>03992-N</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 13</CodigoMaterial>
+                <NumeroPatrimonio>224010072</NumeroPatrimonio>
+                <NumeroDeSerie>03993-P</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>M3</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>224031481</NumeroPatrimonio>
+                <NumeroDeSerie>X2900F88M</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.914,85</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>212054455</NumeroPatrimonio>
+                <NumeroDeSerie>SEZ11819</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.901,00</Valor>
+                <UGE>180186</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210103506</NumeroPatrimonio>
+                <NumeroDeSerie>SDM10473</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180159</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074004</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP106</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>216072508</NumeroPatrimonio>
+                <NumeroDeSerie>BRA10001</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>7.630,82</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 5 14</CodigoMaterial>
+                <NumeroPatrimonio>218006446</NumeroPatrimonio>
+                <NumeroDeSerie>BRA10384</NumeroDeSerie>
+                <Descricao>FUZIL</Descricao>
+                <Valor>5,56</Valor>
+                <UGE>8.959,19</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045201</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E845</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045202</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E859</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045203</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E857</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045204</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EC80</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045205</NumeroPatrimonio>
+                <NumeroDeSerie>X2900ECAY</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045206</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E7FN</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045207</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EC8P</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221045208</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EC8R</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.197,55</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042713</NumeroPatrimonio>
+                <NumeroDeSerie>X2900ED74</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042714</NumeroPatrimonio>
+                <NumeroDeSerie>X2900ED7K</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042715</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDCE</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042716</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDDC</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042717</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EA08</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042718</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EA15</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042719</NumeroPatrimonio>
+                <NumeroDeSerie>X2900ED83</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042720</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDD5</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042721</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDEY</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042722</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDH4</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042723</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E9XV</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042724</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EA07</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042725</NumeroPatrimonio>
+                <NumeroDeSerie>X2900ED38</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042726</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDD1</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042727</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDE4</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042728</NumeroPatrimonio>
+                <NumeroDeSerie>X2900EDK8</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042729</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E52H</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 7 1 4</CodigoMaterial>
+                <NumeroPatrimonio>221042730</NumeroPatrimonio>
+                <NumeroDeSerie>X2900E57T</NumeroDeSerie>
+                <Descricao>TASER CLASS III - X2</Descricao>
+                <Valor>6.001,81</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074821</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP923</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074763</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP865</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074430</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP532</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074433</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP535</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218073999</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP101</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>209037738</NumeroPatrimonio>
+                <NumeroDeSerie>SCR80154</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 19</CodigoMaterial>
+                <NumeroPatrimonio>210109691</NumeroPatrimonio>
+                <NumeroDeSerie>SDM12696</NumeroDeSerie>
+                <Descricao>PISTOLA .40 24/7 PRO TACT</Descricao>
+                <Valor>1.599,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018617</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26807</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074035</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP137</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074015</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP117</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074018</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP120</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074006</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP108</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074007</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP109</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074795</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP897</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074843</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP945</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074848</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP950</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022994</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK510</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022995</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK511</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022996</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK512</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022997</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK513</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022998</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK514</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022999</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK515</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 23</CodigoMaterial>
+                <NumeroPatrimonio>223022992</NumeroPatrimonio>
+                <NumeroDeSerie>BYEK508</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G23 G5 .40</Descricao>
+                <Valor>2.363,16</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074833</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP935</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074819</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP921</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074827</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP929</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074807</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP909</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074765</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP867</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074770</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP872</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074771</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP873</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074787</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP889</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074872</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP974</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218075666</NumeroPatrimonio>
+                <NumeroDeSerie>BKTR769</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218075668</NumeroPatrimonio>
+                <NumeroDeSerie>BKTR771</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074038</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP140</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074005</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP107</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074404</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP506</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074398</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP500</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074429</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP531</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074366</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP468</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>211040343</NumeroPatrimonio>
+                <NumeroDeSerie>AJK3142027</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>1.556,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 9</CodigoMaterial>
+                <NumeroPatrimonio>211018250</NumeroPatrimonio>
+                <NumeroDeSerie>SDZ26440</NumeroDeSerie>
+                <Descricao>PISTOLA CAL .40 PT-640</Descricao>
+                <Valor>1.537,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 3 9</CodigoMaterial>
+                <NumeroPatrimonio>209025924</NumeroPatrimonio>
+                <NumeroDeSerie>BV03919</NumeroDeSerie>
+                <Descricao>CARABINA CALIBRE .30</Descricao>
+                <Valor>5.239,00</Valor>
+                <UGE>1</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>96002724</NumeroPatrimonio>
+                <NumeroDeSerie>A141714</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>461,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>96002660</NumeroPatrimonio>
+                <NumeroDeSerie>A140497</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>461,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>96002662</NumeroPatrimonio>
+                <NumeroDeSerie>A140499</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>461,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>96004002</NumeroPatrimonio>
+                <NumeroDeSerie>A139197</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>461,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>96004003</NumeroPatrimonio>
+                <NumeroDeSerie>A139198</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>461,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 4 10</CodigoMaterial>
+                <NumeroPatrimonio>196000211</NumeroPatrimonio>
+                <NumeroDeSerie>121611</NumeroDeSerie>
+                <Descricao>CAL</Descricao>
+                <Valor>12</Valor>
+                <UGE>300,00</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 14 11</CodigoMaterial>
+                <NumeroPatrimonio>207002337</NumeroPatrimonio>
+                <NumeroDeSerie>XG07916</NumeroDeSerie>
+                <Descricao>METRALHADORA FAMAE CAL.40</Descricao>
+                <Valor>4.992,00</Valor>
+                <UGE>1</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 18</CodigoMaterial>
+                <NumeroPatrimonio>208011533</NumeroPatrimonio>
+                <NumeroDeSerie>SAY15817</NumeroDeSerie>
+                <Descricao>PISTOLA .40 - 24/7 PRO</Descricao>
+                <Valor>1.473,00</Valor>
+                <UGE>180154</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074458</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP560</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074459</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP561</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074780</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP882</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074454</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP556</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074452</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP554</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+            <Arma>
+                <CodigoMaterial>2 4 5 2 20</CodigoMaterial>
+                <NumeroPatrimonio>218074019</NumeroPatrimonio>
+                <NumeroDeSerie>BKTP121</NumeroDeSerie>
+                <Descricao>PISTOLA GLOCK G22 G5 .40</Descricao>
+                <Valor>1.789,70</Valor>
+                <UGE>180340</UGE>
+            </Arma>
+        </Subunidade>
+        <TotalGeral>290</TotalGeral>
+    </Unidade>
+</ListagemArmas>
