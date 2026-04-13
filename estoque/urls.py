@@ -142,4 +142,5 @@ urlpatterns = [
     path('ajax/buscar-lotes/', views.buscar_lotes_ajax, name='buscar_lotes_ajax'),
     path('ajax/buscar-militar/', views.buscar_militar_por_re_ajax, name='buscar_militar_por_re_ajax'),
     path('ajax/saldo-produto/', views.buscar_saldo_produto_ajax, name='buscar_saldo_produto_ajax'),
+    path('ajax/buscar-militares/', views.buscar_militares_ajax, name='buscar_militares_ajax'),
 ]

@@ -256,7 +256,7 @@ def criar_saida_material(request):
 @user_passes_test(is_admin)
 @require_module_permission('materiais')
 def lista_categorias(request):
-    categorias = Categoria.objects.select_related('categoria_pai').all()
+    categorias = Categoria.objects.all()
     termo = request.GET.get('q')
     if termo:
         categorias = categorias.filter(
@@ -270,7 +270,7 @@ def lista_categorias(request):
         'page_obj': page, 
         'termo': termo,
         'titulo': 'Categorias',
-        'table_headers': ['Código', 'Nome']
+        'table_headers': ['Código', 'Nome', 'Status']
     })
 
 
@@ -1239,9 +1239,13 @@ def buscar_lotes_ajax(request):
 @require_GET
 def buscar_militar_por_re_ajax(request):
     """Busca policial por RE na tabela POLICIAIS (PAP §3)"""
-    re = request.GET.get('re', '').strip()
+    re_raw = request.GET.get('re', '').strip()
+    # Limpa RE de pontos e traços
+    re_clean = ''.join(filter(str.isalnum, re_raw))
+    
     try:
-        militar = Policial.objects.get(re=re, situacao='ATIVO')
+        # Tenta busca exata pelo RE limpo
+        militar = Policial.objects.get(re=re_clean, situacao='ATIVO')
         return JsonResponse({
             'id': militar.pk,
             're': militar.re,
@@ -1249,7 +1253,17 @@ def buscar_militar_por_re_ajax(request):
             'nome_completo': militar.nome,
         })
     except Policial.DoesNotExist:
-        return JsonResponse({'error': f'RE {re} não encontrado na tabela de Policiais'}, status=404)
+        # Tenta busca pelo RE como digitado se falhar
+        try:
+            militar = Policial.objects.get(re=re_raw, situacao='ATIVO')
+            return JsonResponse({
+                'id': militar.pk,
+                're': militar.re,
+                'qra': f"{militar.posto} {militar.nome}",
+                'nome_completo': militar.nome,
+            })
+        except Policial.DoesNotExist:
+            return JsonResponse({'error': f'RE {re_raw} não encontrado na tabela de Policiais'}, status=404)
 
 
 @login_required
@@ -1402,3 +1416,29 @@ def exportar_recibo_saida_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="recibo_saida_{mov.pk}.pdf"'
     return response
+
+
+@login_required
+@require_GET
+def buscar_militares_ajax(request):
+    """Busca policiais por RE ou nome para autocomplete inteligente (PAP)"""
+    q_raw = request.GET.get('q', '').strip()
+    if not q_raw:
+        return JsonResponse({'results': []})
+    
+    q_clean = ''.join(filter(str.isalnum, q_raw))
+    
+    qs = Policial.objects.filter(
+        Q(re__icontains=q_raw) | Q(re__icontains=q_clean) | Q(nome__icontains=q_raw),
+        situacao='ATIVO'
+    ).order_by('nome')[:15]
+    
+    data = [{
+        'id': m.pk,
+        're': m.re,
+        'qra': f"{m.posto} {m.nome}",
+        'text': f"{m.re} — {m.posto} {m.nome}", # Usado pelo Select2
+        'nome_completo': m.nome,
+    } for m in qs]
+    
+    return JsonResponse({'results': data})

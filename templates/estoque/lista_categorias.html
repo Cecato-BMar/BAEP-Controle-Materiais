@@ -4,7 +4,6 @@
 <tr>
     <td><code>{{ o.codigo }}</code></td>
     <td class="fw-bold">{{ o.nome }}</td>
-    {% if o.categoria_pai %}<td>{{ o.categoria_pai.nome }}</td>{% endif %}
     <td class="text-center">
         {% if o.ativo %}
             <span class="badge bg-success">Ativo</span>
