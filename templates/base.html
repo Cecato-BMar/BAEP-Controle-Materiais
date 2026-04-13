@@ -486,7 +486,7 @@
                 {% endif %}
 
                 <!-- Módulo Frota de Viaturas -->
-                {% if user.is_superuser or user|has_group:'frota' or user|has_group:'reserva_armas' %}
+                {% if user.is_superuser or user|has_group:'frota' %}
                 <div class="sidebar-heading">Frota de Viaturas</div>
                 <li class="nav-item">
                     <a class="nav-link {% if 'frota' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'viaturas:dashboard' %}">
