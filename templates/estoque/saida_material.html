@@ -47,8 +47,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const produtoSelect = document.getElementById('id_produto_saida');
-  const reBusca = document.getElementById('id_re_busca');
   const militarSelect = document.getElementById('id_militar_select');
+  const militarAdmSelect = document.getElementById('id_militar_administrativo');
   const saldoBox = document.getElementById('saldo-disponivel-box');
   const saldoValor = document.getElementById('saldo-valor');
   const qtdInput = document.querySelector('[name="quantidade"]');
@@ -70,9 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }).catch(() => {});
   }
 
-  if (produtoSelect) {
-    produtoSelect.addEventListener('change', () => buscarSaldo(produtoSelect.value));
-    if (produtoSelect.value) buscarSaldo(produtoSelect.value);
+  if (produtoSelect && produtoSelect.value) {
+    buscarSaldo(produtoSelect.value);
   }
 
   // Validar quantidade vs saldo
@@ -95,18 +94,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Configuração do Select2 para busca inteligente de Policiais (RE ou QRA)
-  $(militarSelect).select2({
+  // Configuração do Select2 para busca inteligente de Materiais
+  $(produtoSelect).select2({
     theme: 'bootstrap-5',
-    placeholder: 'Busque por RE ou Nome...',
+    placeholder: 'Busque por Código ou Nome do Material...',
     allowClear: true,
     ajax: {
-      url: "{% url 'estoque:buscar_militares_ajax' %}",
+      url: "{% url 'estoque:buscar_produtos_ajax' %}",
       dataType: 'json',
       delay: 300,
       data: function (params) {
         return {
-          q: params.term // termo de busca
+          q: params.term
         };
       },
       processResults: function (data) {
@@ -116,47 +115,69 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       cache: true
     },
-    minimumInputLength: 2,
+    minimumInputLength: 1,
     language: {
-      inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
-      noResults: function() { return "Nenhum policial encontrado."; },
+      inputTooShort: function() { return "Digite pelo menos 1 caractere..."; },
+      noResults: function() { return "Material não encontrado."; },
       searching: function() { return "Buscando..."; }
     }
   });
 
-  // Mantém a funcionalidade do campo RE apenas como atalho de busca rápida
-  if (reBusca) {
-    reBusca.addEventListener('input', function() {
-      const q = this.value.trim();
-      if (q.length >= 2) {
-        // Opcional: Você pode disparar o Select2 aqui ou apenas avisar
-        // Mas o Select2 no campo principal já resolve 100% da necessidade inteligente
-      }
-    });
+  // Gatilho para buscar saldo ao selecionar material via Select2
+  $(produtoSelect).on('select2:select', function (e) {
+    buscarSaldo(e.params.data.id);
+  });
 
-    reBusca.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const re = this.value.trim();
-        if (!re) return;
-        
-        fetch(`{% url 'estoque:buscar_militar_por_re_ajax' %}?re=${encodeURIComponent(re)}`)
-          .then(r => r.json())
-          .then(data => {
-            if (data.id) {
-              // Seleciona e adiciona dinamicamente no Select2
-              const option = new Option(data.text || `${data.re} — ${data.qra}`, data.id, true, true);
-              $(militarSelect).append(option).trigger('change');
-              reBusca.classList.remove('is-invalid');
-              reBusca.classList.add('is-valid');
-            } else {
-              reBusca.classList.add('is-invalid');
-            }
-          })
-          .catch(() => reBusca.classList.add('is-invalid'));
-      }
-    });
-  }
+  $(produtoSelect).on('select2:clear', function (e) {
+    saldoBox.style.display = 'none';
+    if (qtdInput) qtdInput.removeAttribute('max');
+  });
+
+  // Configuração do Select2 para busca inteligente de Policiais (Efetivo BAEP)
+  $(militarSelect).select2({
+    theme: 'bootstrap-5',
+    placeholder: 'Busque no Efetivo BAEP...',
+    allowClear: true,
+    ajax: {
+      url: "{% url 'estoque:buscar_militares_ajax' %}",
+      dataType: 'json',
+      delay: 300,
+      data: function (params) {
+        return { q: params.term };
+      },
+      processResults: function (data) {
+        return { results: data.results };
+      },
+      cache: true
+    },
+    minimumInputLength: 2,
+    language: {
+      inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; }
+    }
+  });
+
+  // Configuração do Select2 para busca inteligente de Militares Administrativos
+  $(militarAdmSelect).select2({
+    theme: 'bootstrap-5',
+    placeholder: 'Busque nos Cadastros Adm...',
+    allowClear: true,
+    ajax: {
+      url: "{% url 'estoque:buscar_militares_adm_ajax' %}",
+      dataType: 'json',
+      delay: 300,
+      data: function (params) {
+        return { q: params.term };
+      },
+      processResults: function (data) {
+        return { results: data.results };
+      },
+      cache: true
+    },
+    minimumInputLength: 2,
+    language: {
+      inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; }
+    }
+  });
 });
 </script>
 {% endblock %}

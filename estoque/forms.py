@@ -536,23 +536,12 @@ class EntradaMaterialForm(forms.ModelForm):
 class SaidaMaterialForm(forms.ModelForm):
     """Formulário de Saída conforme PAP §3"""
 
-    re_busca = forms.CharField(
-        label=_('Buscar por RE'),
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Digite o RE e pressione Enter',
-            'id': 'id_re_busca',
-            'autocomplete': 'off',
-        }),
-        help_text=_('O QRA será preenchido automaticamente.')
-    )
 
     class Meta:
         model = MovimentacaoEstoque
         fields = [
             'produto', 'subtipo', 'data_movimentacao',
-            'orgao_requisitante', 'militar_requisitante',
+            'orgao_requisitante', 'militar_requisitante', 'militar_administrativo',
             'quantidade', 'observacoes',
         ]
         widgets = {
@@ -562,6 +551,7 @@ class SaidaMaterialForm(forms.ModelForm):
                 attrs={'type': 'date', 'max': timezone.now().date().isoformat()}),
             'orgao_requisitante': forms.Select(attrs={'class': 'form-select'}),
             'militar_requisitante': forms.Select(attrs={'class': 'form-select', 'id': 'id_militar_select'}),
+            'militar_administrativo': forms.Select(attrs={'class': 'form-select', 'id': 'id_militar_administrativo'}),
             'observacoes': forms.Textarea(attrs={'rows': 2}),
         }
 
@@ -569,6 +559,7 @@ class SaidaMaterialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['militar_requisitante'].label = _('Policial Requisitante')
         self.fields['militar_requisitante'].queryset = Policial.objects.filter(situacao='ATIVO')
+        self.fields['militar_administrativo'].queryset = MilitarRequisitante.objects.filter(ativo=True)
         
         self.fields['subtipo'].choices = [
             ('REQUISICAO', 'Requisição'),
@@ -581,10 +572,13 @@ class SaidaMaterialForm(forms.ModelForm):
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (PAP §3)</h6>'),
             Row(
-                Column('produto', css_class='form-group col-md-5 mb-0'),
-                Column('subtipo', css_class='form-group col-md-3 mb-0'),
-                Column('data_movimentacao', css_class='form-group col-md-2 mb-0'),
-                Column('quantidade', css_class='form-group col-md-2 mb-0'),
+                Column('produto', css_class='form-group col-md-6 mb-3'),
+                Column('subtipo', css_class='form-group col-md-6 mb-3'),
+                css_class='row'
+            ),
+            Row(
+                Column('data_movimentacao', css_class='form-group col-md-6 mb-3'),
+                Column('quantidade', css_class='form-group col-md-6 mb-0'),
                 css_class='row'
             ),
             HTML('<div id="saldo-disponivel-box" class="alert alert-info py-2 mb-3" style="display:none">'
@@ -592,9 +586,12 @@ class SaidaMaterialForm(forms.ModelForm):
                  '</div>'),
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3 mt-2"><i class="fas fa-user-shield me-2"></i>Requisitante</h6>'),
             Row(
-                Column('orgao_requisitante', css_class='form-group col-md-4 mb-0'),
-                Column('re_busca', css_class='form-group col-md-3 mb-0'),
-                Column('militar_requisitante', css_class='form-group col-md-5 mb-0'),
+                Column('orgao_requisitante', css_class='form-group col-md-12 mb-3'),
+                css_class='row'
+            ),
+            Row(
+                Column('militar_requisitante', css_class='form-group col-md-6 mb-3'),
+                Column('militar_administrativo', css_class='form-group col-md-6 mb-3'),
                 css_class='row'
             ),
             'observacoes',

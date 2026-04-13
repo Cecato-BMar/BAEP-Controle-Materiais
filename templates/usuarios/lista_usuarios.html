@@ -113,7 +113,7 @@
                                     <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    {% if user.is_superuser and user.id != usuario.id %}
+                                    {% if (user.is_superuser or user.perfil.nivel_acesso == 'ADMIN') and user.id != usuario.id %}
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id }}">
                                         <i class="fas fa-trash"></i>
                                     </button>

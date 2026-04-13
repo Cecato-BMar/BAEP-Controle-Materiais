@@ -13,6 +13,7 @@ staticfiles/
 .venv/
 venv/
 ENV/
+python_env/
 
 # IDE
 .vscode/

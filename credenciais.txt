@@ -4,6 +4,6 @@ URL do Sistema: http://127.0.0.1:8000/
 Painel de Administração (Django Admin): http://127.0.0.1:8000/admin/
 
 == Usuário Administrador (Superuser) ==
-Login: admin
-Senha: baep1234
-E-mail: admin@baep.com.br
+Login: master
+Senha: C3c4t0118
+E-mail: master@baep.com.br

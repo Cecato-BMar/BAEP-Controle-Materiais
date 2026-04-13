@@ -586,7 +586,10 @@ class MovimentacaoEstoque(models.Model):
                                             verbose_name=_('Órgão Requisitante'))
     militar_requisitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL,
                                               null=True, blank=True,
-                                              verbose_name=_('Policial Requisitante'))
+                                              verbose_name=_('Policial do Efetivo (BAEP)'))
+    militar_administrativo = models.ForeignKey(MilitarRequisitante, on_delete=models.SET_NULL,
+                                                null=True, blank=True,
+                                                verbose_name=_('Militar Cadastrado (Adm)'))
 
     # Quantidades e Valores
     quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2,

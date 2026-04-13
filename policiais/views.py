@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from reserva_baep.decorators import require_module_permission
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from django.core.paginator import Paginator
 from .models import Policial
 from .forms import PolicialForm, PolicialSearchForm
@@ -183,5 +183,21 @@ def importar_policiais_excel(request):
             messages.success(request, f"Importação concluída: {cont_sucesso} novos, {cont_atualizado} atualizados.")
         except Exception as e:
             messages.error(request, f"Erro durante o processamento dos dados: {e}")
+            
+    return redirect('policiais:lista_policiais')
+
+@login_required
+@require_module_permission('reserva_armas')
+def excluir_policial(request, policial_id):
+    policial = get_object_or_404(Policial, pk=policial_id)
+    
+    if request.method == 'POST':
+        nome = policial.nome
+        try:
+            policial.delete()
+            messages.success(request, _(f'Policial {nome} excluído com sucesso!'))
+        except ProtectedError:
+            messages.error(request, _(f'Não é possível excluir o policial {nome} pois ele possui movimentações registradas. Você pode apenas alterá-lo para INATIVO.'))
+            return redirect('policiais:detalhe_policial', policial_id=policial.id)
             
     return redirect('policiais:lista_policiais')

@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
           saldoValor.textContent = data.saldo;
           saldoUnidade.textContent = data.unidade;
           saldoInfo.style.display = '';
-          saldoNome.textContent = produtoSelect.options[produtoSelect.selectedIndex].text;
+          const data = $(produtoSelect).select2('data')[0];
+          saldoNome.textContent = data ? data.text : (produtoSelect.options[produtoSelect.selectedIndex] ? produtoSelect.options[produtoSelect.selectedIndex].text : '');
           // Sugerir unidade de fornecimento padrão
           const ufSelect = document.querySelector('[name="unidade_fornecimento"]');
           if (ufSelect && data.unidade_fornecimento) {
@@ -93,9 +94,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  if (produtoSelect) {
-    produtoSelect.addEventListener('change', () => atualizarSaldo(produtoSelect.value));
-    if (produtoSelect.value) atualizarSaldo(produtoSelect.value);
+  // Configuração do Select2 para busca inteligente de Materiais
+  $(produtoSelect).select2({
+    theme: 'bootstrap-5',
+    placeholder: 'Busque por Código ou Nome do Material...',
+    allowClear: true,
+    ajax: {
+      url: "{% url 'estoque:buscar_produtos_ajax' %}",
+      dataType: 'json',
+      delay: 300,
+      data: function (params) {
+        return {
+          q: params.term
+        };
+      },
+      processResults: function (data) {
+        return {
+          results: data.results
+        };
+      },
+      cache: true
+    },
+    minimumInputLength: 1,
+    language: {
+      inputTooShort: function() { return "Digite pelo menos 1 caractere..."; },
+      noResults: function() { return "Material não encontrado."; },
+      searching: function() { return "Buscando..."; }
+    }
+  });
+
+  // Gatilho para buscar saldo ao selecionar material via Select2
+  $(produtoSelect).on('select2:select', function (e) {
+    atualizarSaldo(e.params.data.id);
+  });
+
+  $(produtoSelect).on('select2:clear', function (e) {
+    saldoInfo.style.display = 'none';
+  });
+
+  if (produtoSelect && produtoSelect.value) {
+    atualizarSaldo(produtoSelect.value);
   }
   if (qtd) {
     qtd.addEventListener('input', calcularTotal);

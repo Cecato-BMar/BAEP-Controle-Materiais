@@ -31,8 +31,19 @@
                             <i class="fas fa-user-shield text-info"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-navy">{{ policial.nome|default:"Recebedor não identificado" }}</div>
-                            <small class="text-muted">RE: {{ policial.re|default:"-" }} | Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}</small>
+                             <div class="fw-bold text-navy">
+                                {% if mov.militar_requisitante %}
+                                    {{ mov.militar_requisitante.posto }} {{ mov.militar_requisitante.nome }}
+                                {% elif mov.militar_administrativo %}
+                                    {{ mov.militar_administrativo.qra }}
+                                {% else %}
+                                    Recebedor não identificado
+                                {% endif %}
+                             </div>
+                             <small class="text-muted">
+                                RE: {{ mov.militar_requisitante.re|default:mov.militar_administrativo.re|default:"-" }} | 
+                                Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}
+                             </small>
                         </div>
                     </div>
                 </div>

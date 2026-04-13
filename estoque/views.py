@@ -1238,13 +1238,11 @@ def buscar_lotes_ajax(request):
 @login_required
 @require_GET
 def buscar_militar_por_re_ajax(request):
-    """Busca policial por RE na tabela POLICIAIS (PAP §3)"""
+    """Busca policial por RE na tabela POLICIAIS (Efetivo BAEP)"""
     re_raw = request.GET.get('re', '').strip()
-    # Limpa RE de pontos e traços
     re_clean = ''.join(filter(str.isalnum, re_raw))
     
     try:
-        # Tenta busca exata pelo RE limpo
         militar = Policial.objects.get(re=re_clean, situacao='ATIVO')
         return JsonResponse({
             'id': militar.pk,
@@ -1253,17 +1251,7 @@ def buscar_militar_por_re_ajax(request):
             'nome_completo': militar.nome,
         })
     except Policial.DoesNotExist:
-        # Tenta busca pelo RE como digitado se falhar
-        try:
-            militar = Policial.objects.get(re=re_raw, situacao='ATIVO')
-            return JsonResponse({
-                'id': militar.pk,
-                're': militar.re,
-                'qra': f"{militar.posto} {militar.nome}",
-                'nome_completo': militar.nome,
-            })
-        except Policial.DoesNotExist:
-            return JsonResponse({'error': f'RE {re_raw} não encontrado na tabela de Policiais'}, status=404)
+        return JsonResponse({'error': f'RE {re_raw} não encontrado no efetivo.'}, status=404)
 
 
 @login_required
@@ -1292,7 +1280,7 @@ def confirmacao_saida_material(request):
     
     return render(request, 'estoque/confirmacao_saida.html', {
         'mov': mov,
-        'policial': mov.militar_requisitante,
+        'policial': mov.militar_requisitante, # Agora é MilitarRequisitante
     })
 
 
@@ -1338,16 +1326,26 @@ def exportar_recibo_saida_pdf(request):
     
     # Dados do Requisitante
     elements.append(Paragraph("DADOS DO REQUISITANTE", section_title))
-    p = mov.militar_requisitante
-    if p:
+    p_efetivo = mov.militar_requisitante
+    p_adm = mov.militar_administrativo
+
+    if p_efetivo:
         pol_data = [
-            [Paragraph(f"<b>Nome:</b> {p.nome}", body_style)],
-            [Paragraph(f"<b>RE:</b> {p.re}          <b>Posto/Grad:</b> {p.get_posto_display()}", body_style)]
+            [Paragraph(f"<b>Nome:</b> {p_efetivo.nome}", body_style)],
+            [Paragraph(f"<b>RE:</b> {p_efetivo.re}          <b>Posto:</b> {p_efetivo.get_posto_display()}", body_style)]
         ]
+        re_para_assinatura = p_efetivo.re
+    elif p_adm:
+        pol_data = [
+            [Paragraph(f"<b>Nome:</b> {p_adm.nome_completo or p_adm.qra}", body_style)],
+            [Paragraph(f"<b>RE:</b> {p_adm.re}          <b>QRA:</b> {p_adm.qra}", body_style)]
+        ]
+        re_para_assinatura = p_adm.re
     else:
         pol_data = [
             [Paragraph(f"<b>Órgão:</b> {mov.orgao_requisitante.nome if mov.orgao_requisitante else 'Não informado'}", body_style)]
         ]
+        re_para_assinatura = "________________"
         
     pol_table = Table(pol_data, colWidths=[12.8*cm])
     pol_table.setStyle(TableStyle([
@@ -1379,7 +1377,7 @@ def exportar_recibo_saida_pdf(request):
     sig_data = [
         ["________________________________", "________________________________"],
         ["Assinatura do Recebedor", "Data e Hora Recebimento"],
-        [f"RE/Nome: {'________________' if not p else p.re}", "___/___/_____  ___:___"]
+        [f"RE/Nome: {re_para_assinatura}", "___/___/_____  ___:___"]
     ]
     sig_table = Table(sig_data, colWidths=[6.4*cm, 6.4*cm])
     sig_table.setStyle(TableStyle([
@@ -1421,7 +1419,7 @@ def exportar_recibo_saida_pdf(request):
 @login_required
 @require_GET
 def buscar_militares_ajax(request):
-    """Busca policiais por RE ou nome para autocomplete inteligente (PAP)"""
+    """Busca policiais por RE ou nome apenas na tabela POLICIAIS (Efetivo BAEP)"""
     q_raw = request.GET.get('q', '').strip()
     if not q_raw:
         return JsonResponse({'results': []})
@@ -1433,12 +1431,36 @@ def buscar_militares_ajax(request):
         situacao='ATIVO'
     ).order_by('nome')[:15]
     
-    data = [{
+    results = [{
         'id': m.pk,
         're': m.re,
         'qra': f"{m.posto} {m.nome}",
-        'text': f"{m.re} — {m.posto} {m.nome}", # Usado pelo Select2
-        'nome_completo': m.nome,
+        'text': f"{m.re} — {m.posto} {m.nome}",
     } for m in qs]
     
-    return JsonResponse({'results': data})
+    return JsonResponse({'results': results})
+
+
+@login_required
+@require_GET
+def buscar_militares_adm_ajax(request):
+    """Busca policiais na tabela MilitarRequisitante (Cadastros Administrativos)"""
+    q_raw = request.GET.get('q', '').strip()
+    if not q_raw:
+        return JsonResponse({'results': []})
+    
+    q_clean = ''.join(filter(str.isalnum, q_raw))
+    
+    qs = MilitarRequisitante.objects.filter(
+        Q(re__icontains=q_raw) | Q(re__icontains=q_clean) | Q(qra__icontains=q_raw) | Q(nome_completo__icontains=q_raw),
+        ativo=True
+    ).order_by('qra')[:15]
+    
+    results = [{
+        'id': m.pk,
+        're': m.re,
+        'qra': m.qra,
+        'text': f"{m.re} — {m.qra}",
+    } for m in qs]
+    
+    return JsonResponse({'results': results})

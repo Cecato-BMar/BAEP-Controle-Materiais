@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from django.core.paginator import Paginator
 from .models import Perfil
 from .forms import (
@@ -204,7 +204,10 @@ def excluir_usuario(request, pk):
     
     if request.method == 'POST':
         username = usuario.username
-        usuario.delete()
-        messages.success(request, _(f'Usuário {username} excluído com sucesso!'))
+        try:
+            usuario.delete()
+            messages.success(request, _(f'Usuário {username} excluído com sucesso!'))
+        except ProtectedError:
+            messages.error(request, _(f'Não é possível excluir o usuário {username} pois ele possui registros (movimentações, etc) vinculados. Você pode apenas desativá-lo.'))
     
     return redirect('usuarios:lista_usuarios')
