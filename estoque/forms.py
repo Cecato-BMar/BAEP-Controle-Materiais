@@ -29,6 +29,7 @@ class CategoriaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('codigo', css_class='form-group col-md-3 mb-0'),
@@ -59,6 +60,7 @@ class SubcategoriaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('categoria', css_class='form-group col-md-4 mb-0'),
@@ -90,6 +92,7 @@ class UnidadeMedidaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
@@ -120,6 +123,7 @@ class UnidadeFornecimentoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-6 mb-0'),
@@ -144,6 +148,7 @@ class CorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
@@ -168,6 +173,7 @@ class ContaPatrimonialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('codigo', css_class='form-group col-md-4 mb-0'),
@@ -193,6 +199,7 @@ class OrgaoRequisitanteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('sigla', css_class='form-group col-md-3 mb-0'),
@@ -221,6 +228,7 @@ class LocalizacaoFisicaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
@@ -249,6 +257,7 @@ class MilitarRequisitanteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('re', css_class='form-group col-md-3 mb-0'),
@@ -279,6 +288,7 @@ class FornecedorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('nome', css_class='form-group col-md-8 mb-0'),
@@ -355,6 +365,7 @@ class ProdutoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-tag me-2"></i>Identificação</h6>'),
             Row(
@@ -489,6 +500,7 @@ class EntradaMaterialForm(forms.ModelForm):
         self.fields['data_movimentacao'].widget.attrs['max'] = timezone.now().date().isoformat()
 
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-down text-success me-2"></i>Dados da Entrada (PAP §2)</h6>'),
             Row(
@@ -569,6 +581,7 @@ class SaidaMaterialForm(forms.ModelForm):
         self.fields['data_movimentacao'].widget.attrs['max'] = timezone.now().date().isoformat()
 
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (PAP §3)</h6>'),
             Row(
@@ -643,6 +656,7 @@ class PainelEstoqueFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.form_method = 'get'
         self.helper.layout = Layout(
             Row(
@@ -681,6 +695,7 @@ class LoteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('produto', css_class='form-group col-md-6 mb-0'),
@@ -732,6 +747,7 @@ class InventarioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('numero', css_class='form-group col-md-3 mb-0'),
@@ -765,6 +781,7 @@ class ItemInventarioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('produto', css_class='form-group col-md-4 mb-0'),
@@ -803,6 +820,7 @@ class AjusteEstoqueForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('produto', css_class='form-group col-md-4 mb-0'),
@@ -851,6 +869,7 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('produto', css_class='form-group col-md-4 mb-0'),
@@ -881,6 +900,7 @@ class NumeroSerieForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('produto', css_class='form-group col-md-6 mb-0'),

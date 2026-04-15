@@ -32,3 +32,14 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('select').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}

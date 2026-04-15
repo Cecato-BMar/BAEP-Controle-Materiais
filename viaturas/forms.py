@@ -19,6 +19,7 @@ class ViaturaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Div(
                 Row(
@@ -58,6 +59,7 @@ class DespachoSaidaForm(forms.ModelForm):
         # Apenas viaturas disponíveis
         self.fields['viatura'].queryset = Viatura.objects.filter(status='DISPONIVEL')
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('viatura', css_class='col-md-4'),
@@ -82,6 +84,7 @@ class DespachoRetornoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('km_retorno', css_class='col-md-4'),
@@ -103,6 +106,7 @@ class AbastecimentoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('viatura', css_class='col-md-4'),
@@ -137,6 +141,7 @@ class ManutencaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('viatura', css_class='col-md-5'),
