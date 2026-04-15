@@ -720,7 +720,7 @@ def gerar_relatorio_materiais(request):
                 elements.append(Spacer(1, 0.5*cm))
             
             # Rodapé
-            elements.append(Paragraph('--- Relatório gerado automaticamente pelo Sistema de Reserva BAEP ---', normal_style))
+            elements.append(Paragraph('--- Relatório gerado automaticamente pelo SIS LOGÍSTICA 2ºBAEP ---', normal_style))
             
             # Gera o PDF
             def _on_page(canvas_, doc_):
@@ -1069,7 +1069,7 @@ def gerar_relatorio_movimentacoes(request):
                 elements.append(Spacer(1, 0.5*cm))
             
             # Rodapé
-            elements.append(Paragraph('--- Relatório gerado automaticamente pelo Sistema de Reserva BAEP ---', normal_style))
+            elements.append(Paragraph('--- Relatório gerado automaticamente pelo SIS LOGÍSTICA 2ºBAEP ---', normal_style))
             
             # Gera o PDF
             def _on_page(canvas_, doc_):

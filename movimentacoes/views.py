@@ -544,7 +544,7 @@ def gerar_recibo_retirada(request):
         
         # 1. Rodapé Textual
         canvas.setFont('Helvetica', 6)
-        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Documento gerado automaticamente pelo Sistema Reserva BAEP - Página {doc.page}")
+        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Documento gerado automaticamente pelo SIS LOGÍSTICA 2ºBAEP - Página {doc.page}")
         
         canvas.restoreState()
 

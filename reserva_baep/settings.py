@@ -169,7 +169,7 @@ EMAIL_PORT = 1025
 EMAIL_USE_TLS = False
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'Sistema Reserva BAEP <noreply@reservabaep.com.br>'
+DEFAULT_FROM_EMAIL = 'SIS LOGÍSTICA 2ºBAEP <noreply@reservabaep.com.br>'
 
 # Para produção, configure o servidor SMTP
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -178,4 +178,4 @@ DEFAULT_FROM_EMAIL = 'Sistema Reserva BAEP <noreply@reservabaep.com.br>'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'seu-email@gmail.com'
 # EMAIL_HOST_PASSWORD = 'sua-senha-ou-app-password'
-# DEFAULT_FROM_EMAIL = 'Sistema Reserva BAEP <seu-email@gmail.com>'
+# DEFAULT_FROM_EMAIL = 'SIS LOGÍSTICA 2ºBAEP <seu-email@gmail.com>'
