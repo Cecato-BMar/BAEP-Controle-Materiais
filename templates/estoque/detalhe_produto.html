@@ -9,12 +9,15 @@
         <h2 class="mb-0 fw-bold">{{ produto.nome }}</h2>
         <p class="text-muted mb-0">
             <span class="badge bg-secondary me-2">Cód: {{ produto.codigo }}</span>
-            <span class="badge bg-outline-secondary">SIAFÍSICO: {{ produto.codigo_siafisico|default:"—" }}</span>
-            <span class="badge bg-outline-secondary">CAT MAT: {{ produto.codigo_cat_mat|default:"—" }}</span>
+            <span class="badge bg-secondary me-2 text-white">SIAFÍSICO: {{ produto.codigo_siafisico|default:"—" }}</span>
+            <span class="badge bg-secondary text-white">CAT MAT: {{ produto.codigo_cat_mat|default:"—" }}</span>
         </p>
     </div>
     <div class="col-md-4 text-end">
         <div class="btn-group shadow-sm">
+            <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" target="_blank" class="btn btn-dark">
+                <i class="fas fa-file-pdf me-1"></i> PDF
+            </a>
             <a href="{% url 'estoque:editar_produto' produto.pk %}" class="btn btn-warning">
                 <i class="fas fa-edit me-1"></i> Editar
             </a>
@@ -37,7 +40,7 @@
                     <div class="card-body">
                         <i class="fas fa-database fa-2x text-primary mb-3"></i>
                         <h3 class="fw-bold mb-0 {% if precisa_reposicao %}text-danger animate__animated animate__pulse animate__infinite{% endif %}">
-                            {{ saldo }}
+                            {{ saldo|floatformat:2 }}
                         </h3>
                         <p class="small text-muted text-uppercase mb-0">Saldo em Estoque</p>
                         <small class="text-muted">{{ produto.unidade_medida.sigla|default:"Unidade" }}</small>
@@ -48,7 +51,7 @@
                 <div class="card border-0 shadow-sm text-center py-4 bg-white">
                     <div class="card-body">
                         <i class="fas fa-money-bill-wave fa-2x text-success mb-3"></i>
-                        <h3 class="fw-bold mb-0">R$ {{ produto.preco_medio|default:produto.valor_unitario|default:"0,00" }}</h3>
+                        <h3 class="fw-bold mb-0">R$ {{ produto.preco_medio|default:produto.valor_unitario|default:"0,00"|floatformat:2 }}</h3>
                         <p class="small text-muted text-uppercase mb-0">Preço Médio (PAP)</p>
                         <small class="text-muted">Cotação: {{ produto.data_cotacao|default:"—" }}</small>
                     </div>
@@ -58,7 +61,7 @@
                 <div class="card border-0 shadow-sm text-center py-4 bg-white">
                     <div class="card-body">
                         <i class="fas fa-chart-line fa-2x text-info mb-3"></i>
-                        <h3 class="fw-bold mb-0">{{ produto.consumo_medio|default:"—" }}</h3>
+                        <h3 class="fw-bold mb-0">{{ produto.consumo_medio|default:"—"|floatformat:2 }}</h3>
                         <p class="small text-muted text-uppercase mb-0">Consumo Médio</p>
                         <small class="text-muted">Mês Atual</small>
                     </div>
@@ -68,7 +71,7 @@
                 <div class="card border-0 shadow-sm text-center py-4 bg-white">
                     <div class="card-body">
                         <i class="fas fa-hourglass-half fa-2x text-warning mb-3"></i>
-                        <h3 class="fw-bold mb-0">{{ produto.autonomia|default:"—" }}</h3>
+                        <h3 class="fw-bold mb-0">{{ produto.autonomia|default:"—"|floatformat:0 }}</h3>
                         <p class="small text-muted text-uppercase mb-0">Autonomia</p>
                         <small class="text-muted">Dias restantes</small>
                     </div>
@@ -88,12 +91,12 @@
                             <tr><th class="text-muted w-25">Categoria</th><td>{{ produto.categoria.nome }}</td></tr>
                             <tr><th class="text-muted">Unid. Medida</th><td>{{ produto.unidade_medida.nome }} ({{ produto.unidade_medida.sigla }})</td></tr>
                             <tr><th class="text-muted">Fornecimento</th><td>{{ produto.unidade_fornecimento.nome|default:"—" }}</td></tr>
-                            <tr><th class="text-muted">Conta Patrimonial</th><td>{{ produto.conta_patrimonial|default:"—" }}</td></tr>
+                            <tr><th class="text-muted">Conta Patrimonial</th><td>{{ produto.conta_patrimonial.codigo|default:"—" }}</td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">
                         <table class="table table-sm table-borderless">
-                            <tr><th class="text-muted w-25">Estoque Mínimo</th><td>{{ produto.estoque_minimo }}</td></tr>
+                            <tr><th class="text-muted w-25">Estoque Mínimo</th><td>{{ produto.estoque_minimo|floatformat:2 }}</td></tr>
                             <tr><th class="text-muted">Localização</th><td>{{ produto.localizacao_fisica.nome|default:"—" }}</td></tr>
                             <tr><th class="text-muted">Nº de Empenho</th><td>{{ produto.empenho|default:"—" }}</td></tr>
                             <tr><th class="text-muted">Controla Validade</th><td>{% if produto.controla_validade %}Sim ({{ produto.prazo_validade_meses }} m){% else %}Não{% endif %}</td></tr>
@@ -197,6 +200,9 @@
             <div class="card-body p-2 list-group list-group-flush">
                 <a href="{% url 'estoque:painel_controle' %}?material={{ produto.pk }}" class="list-group-item list-group-item-action small py-2 px-3">
                     <i class="fas fa-sliders-h me-2 text-primary"></i>Ver no Painel §4
+                </a>
+                <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" target="_blank" class="list-group-item list-group-item-action small py-2 px-3 fw-bold text-navy">
+                    <i class="fas fa-file-pdf me-2 text-danger"></i>Gerar Ficha Individual (§1)
                 </a>
                 <a href="{% url 'estoque:relatorio_estoque_materiais' %}?data_inicio={{ month_ago }}" class="list-group-item list-group-item-action small py-2 px-3">
                     <i class="fas fa-file-invoice me-2 text-info"></i>Gerar Ficha §5.1

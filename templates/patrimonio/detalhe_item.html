@@ -1,0 +1,132 @@
+{% extends 'patrimonio/base.html' %}
+
+{% block patrimonio_content %}
+<div class="row g-4">
+    <!-- Bloco de Informações do Item -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    {% if item.status == 'DISPONIVEL' %}<span class="badge bg-success mb-2 px-3">DISPONÍVEL</span>
+                    {% elif item.status == 'EM_USO' %}<span class="badge bg-warning text-dark mb-2 px-3">EM CAUTELA</span>
+                    {% elif item.status == 'MANUTENCAO' %}<span class="badge bg-danger mb-2 px-3">MANUTENÇÃO</span>
+                    {% else %}<span class="badge bg-secondary mb-2 px-3">{{ item.get_status_display|upper }}</span>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1">{{ item.numero_patrimonio }}</h4>
+                <p class="text-muted small mb-3">{{ item.bem.nome }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'patrimonio:registrar_movimentacao' %}?item={{ item.pk }}" class="btn btn-primary fw-bold">
+                        <i class="fas fa-exchange-alt me-2"></i>Registrar Movimentação
+                    </a>
+                    <a href="{% url 'patrimonio:editar_item' item.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Editar Cadastro
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer bg-light p-0">
+                <div class="row g-0 text-center border-top">
+                    <div class="col-6 p-3 border-end">
+                        <small class="text-muted d-block text-uppercase x-small fw-bold">Conservação</small>
+                        <span class="fw-bold">{{ item.get_estado_conservacao_display }}</span>
+                    </div>
+                    <div class="col-6 p-3">
+                        <small class="text-muted d-block text-uppercase x-small fw-bold">Aquisição</small>
+                        <span class="fw-bold">{{ item.data_aquisicao|date:"d/m/Y"|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-info-circle text-muted me-2"></i>Ficha Técnica</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <tbody class="small">
+                        <tr><td class="ps-4 text-muted py-2">Categoria</td><td class="fw-bold text-end pe-4">{{ item.bem.categoria.nome }}</td></tr>
+                        <tr><td class="ps-4 text-muted py-2">Série (S/N)</td><td class="fw-bold text-end pe-4">{{ item.numero_serie|default:"—" }}</td></tr>
+                        <tr><td class="ps-4 text-muted py-2">Marca</td><td class="fw-bold text-end pe-4">{{ item.bem.marca|default:"—" }}</td></tr>
+                        <tr><td class="ps-4 text-muted py-2">Referência</td><td class="fw-bold text-end pe-4">{{ item.bem.modelo_referencia|default:"—" }}</td></tr>
+                        <tr><td class="ps-4 text-muted py-2">Localização</td><td class="fw-bold text-end pe-4 text-primary">{{ item.localizacao|default:"Geral" }}</td></tr>
+                        <tr><td class="ps-4 text-muted py-2">NF / Doc</td><td class="fw-bold text-end pe-4">{{ item.nota_fiscal|default:"—" }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Movimentações -->
+    <div class="col-lg-8">
+        {% if item.status == 'EM_USO' %}
+        <div class="card border-0 shadow-sm mb-4 bg-warning bg-opacity-10 border-start border-warning border-4">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-warning p-2"><i class="fas fa-user-shield text-white fa-lg"></i></div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Cautelarmente com: {{ item.responsavel_atual.qra }}</h6>
+                        <small class="text-muted">RE {{ item.responsavel_atual.re }} — {{ item.responsavel_atual.graduacao }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-clock text-muted me-2"></i>Histórico de Movimentações</h6>
+                <span class="badge bg-light text-dark border">{{ historico.count }} registros</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0 align-middle">
+                        <thead class="table-light x-small text-uppercase fw-bold text-muted">
+                            <tr>
+                                <th class="ps-4">Data/Hora</th>
+                                <th>Tipo</th>
+                                <th>Pessoa / Destino</th>
+                                <th>Registrado Por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mov in historico %}
+                            <tr>
+                                <td class="ps-4 small">{{ mov.data_hora|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="badge x-small {% if mov.tipo == 'CAUTELA' %}bg-warning text-dark{% elif mov.tipo == 'DEVOLUCAO' %}bg-success{% elif mov.tipo == 'BAIXA' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ mov.get_tipo_display }}
+                                    </span>
+                                </td>
+                                <td class="small">
+                                    {% if mov.policial %}<i class="fas fa-user-circle me-1 opacity-50"></i>{{ mov.policial.qra }}
+                                    {% elif mov.local_destino %}<i class="fas fa-map-marker-alt me-1 opacity-50"></i>{{ mov.local_destino }}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="small text-muted">{{ mov.registrado_por.username }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">Nenhum histórico registrado para este item.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if item.observacoes %}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white py-3"><h6 class="mb-0 fw-bold text-muted small">OBSERVAÇÕES ADICIONAIS</h6></div>
+            <div class="card-body small text-secondary">
+                {{ item.observacoes|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .bg-light { background-color: #f8f9fa !important; }
+</style>
+{% endblock %}

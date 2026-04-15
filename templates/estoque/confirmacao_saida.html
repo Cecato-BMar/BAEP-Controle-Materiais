@@ -22,7 +22,7 @@
                         </div>
                         <div>
                             <div class="fw-bold text-navy">{{ mov.produto.nome }}</div>
-                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{ mov.quantidade:g }}</small>
+                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{ mov.quantidade|floatformat }}</small>
                         </div>
                     </div>
                     
@@ -41,8 +41,15 @@
                                 {% endif %}
                              </div>
                              <small class="text-muted">
-                                RE: {{ mov.militar_requisitante.re|default:mov.militar_administrativo.re|default:"-" }} | 
-                                Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}
+                                 RE: 
+                                 {% if mov.militar_requisitante %}
+                                    {{ mov.militar_requisitante.re }}
+                                 {% elif mov.militar_administrativo %}
+                                    {{ mov.militar_administrativo.re }}
+                                 {% else %}
+                                    -
+                                 {% endif %}
+                                 | Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}
                              </small>
                         </div>
                     </div>

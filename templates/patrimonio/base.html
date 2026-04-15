@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestão de Patrimônio — 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+            <li class="breadcrumb-item active"><i class="fas fa-landmark me-1"></i> Patrimônio</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header (Optional, mostly handled in sub-templates) -->
+    {% block patrimonio_content %}{% endblock %}
+</div>
+
+<style>
+    .breadcrumb { background: transparent; padding: 0.5rem 0; font-size: 0.9rem; }
+    .breadcrumb-item a { color: #6c757d; text-decoration: none; }
+    .breadcrumb-item.active { color: #212529; font-weight: 600; }
+</style>
+{% endblock %}

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'relatorios',
     'estoque',
     'viaturas',
+    'patrimonio',
 ]
 
 MIDDLEWARE = [

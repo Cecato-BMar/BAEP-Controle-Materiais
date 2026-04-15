@@ -164,8 +164,32 @@ class ModeloViaturaForm(forms.ModelForm):
         model = ModeloViatura
         fields = ['marca', 'nome', 'tipo', 'ativo']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('marca', css_class='col-md-6'),
+                Column('nome', css_class='col-md-6'),
+            ),
+            Row(
+                Column('tipo', css_class='col-md-8'),
+                Column('ativo', css_class='col-md-4 d-flex align-items-center mt-3'),
+            ),
+        )
+
 
 class MarcaViaturaForm(forms.ModelForm):
     class Meta:
         model = MarcaViatura
         fields = ['nome', 'ativo']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('nome', css_class='col-md-8'),
+                Column('ativo', css_class='col-md-4 d-flex align-items-center mt-3'),
+            ),
+        )

@@ -110,8 +110,8 @@
                             {% for item in alertas_estoque_minimo %}
                             <tr>
                                 <td class="small">{{ item.nome }}<br><code class="text-muted">{{ item.codigo }}</code></td>
-                                <td class="text-center fw-bold text-danger">{{ item.saldo_calculado }}</td>
-                                <td class="text-center small text-muted">{{ item.estoque_minimo }}</td>
+                                <td class="text-center fw-bold text-danger">{{ item.saldo_calculado|floatformat:2 }}</td>
+                                <td class="text-center small text-muted">{{ item.estoque_minimo|floatformat:2 }}</td>
                                 <td class="text-end">
                                     <a href="{% url 'estoque:criar_entrada_material' %}?produto={{ item.pk }}" class="btn btn-xs btn-outline-success btn-sm"><i class="fas fa-plus"></i></a>
                                 </td>
@@ -182,7 +182,7 @@
                                     {{ mov.get_subtipo_display }}
                                 </span>
                                 <p class="fw-bold mb-0">{{ mov.produto.nome }}</p>
-                                <p class="text-muted mb-0 small">Qtd: {{ mov.quantidade }} | Por: {{ mov.usuario.get_full_name|default:mov.usuario.username }}</p>
+                                <p class="text-muted mb-0 small">Qtd: {{ mov.quantidade|floatformat:2 }} | Por: {{ mov.usuario.get_full_name|default:mov.usuario.username }}</p>
                             </div>
                             <span class="text-muted x-small">{{ mov.data_hora|date:"d/m/Y H:i" }}</span>
                         </div>

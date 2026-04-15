@@ -32,6 +32,7 @@ urlpatterns = [
     path('relatorios/', include('relatorios.urls')),
     path('estoque/', include('estoque.urls')),
     path('frota/', include('viaturas.urls', namespace='viaturas')),
+    path('patrimonio/', include('patrimonio.urls')),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('termos/', views.termos, name='termos'),
     path('privacidade/', views.privacidade, name='privacidade'),

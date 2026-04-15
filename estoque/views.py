@@ -18,7 +18,7 @@ from decimal import Decimal
 
 # ReportLab para PDFs
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A5
+from reportlab.lib.pagesizes import A5, A4
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -205,7 +205,11 @@ def criar_entrada_material(request):
         else:
             messages.error(request, _('Corrija os erros abaixo.'))
     else:
-        form = EntradaMaterialForm()
+        initial_data = {}
+        produto_id = request.GET.get('produto')
+        if produto_id:
+            initial_data['produto'] = get_object_or_404(Produto, pk=produto_id)
+        form = EntradaMaterialForm(initial=initial_data)
 
     return render(request, 'estoque/entrada_material.html', {
         'form': form,
@@ -240,7 +244,11 @@ def criar_saida_material(request):
         else:
             messages.error(request, _('Corrija os erros abaixo.'))
     else:
-        form = SaidaMaterialForm()
+        initial_data = {}
+        produto_id = request.GET.get('produto')
+        if produto_id:
+            initial_data['produto'] = get_object_or_404(Produto, pk=produto_id)
+        form = SaidaMaterialForm(initial=initial_data)
 
     return render(request, 'estoque/saida_material.html', {
         'form': form,
@@ -821,6 +829,142 @@ def lista_produtos(request):
 @login_required
 @user_passes_test(is_materiais)
 @require_module_permission('materiais')
+def importar_produtos(request):
+    """Importa Proutos, Categorias e Subcategorias a partir de arquivo XML ou Excel"""
+    if request.method == 'POST' and request.FILES.get('arquivo_importacao'):
+        arquivo = request.FILES['arquivo_importacao']
+        nome_arquivo = arquivo.name.lower()
+        
+        produtos_importados = 0
+        erros = 0
+        
+        try:
+            if nome_arquivo.endswith('.xlsx') or nome_arquivo.endswith('.xls'):
+                import pandas as pd
+                df = pd.read_excel(arquivo)
+                
+                # Trata strings vazias e NaN
+                df = df.fillna('')
+                
+                for _, row in df.iterrows():
+                    try:
+                        # Extração de campos básicos
+                        # Mapeamento para suportar nomes de colunas comuns
+                        colunas_row = {str(k).lower().strip(): v for k, v in row.items()}
+                        
+                        codigo = colunas_row.get('codigo', colunas_row.get('código', ''))
+                        nome = colunas_row.get('nome', colunas_row.get('produto', colunas_row.get('descricao', '')))
+                        
+                        if not nome or not codigo:
+                            erros += 1
+                            continue
+                            
+                        nome_categoria = colunas_row.get('categoria', 'GERAL')
+                        nome_subcategoria = colunas_row.get('subcategoria', '')
+                        unidade_sigla = colunas_row.get('unidade', colunas_row.get('um', 'UN'))
+                        
+                        # Processa Categoria
+                        cat, _ = Categoria.objects.get_or_create(
+                            nome=nome_categoria,
+                            defaults={'codigo': f"CAT-{nome_categoria[:3].upper()}"}
+                        )
+                        
+                        # Processa Subcategoria
+                        subcat = None
+                        if nome_subcategoria:
+                            subcat, _ = Subcategoria.objects.get_or_create(
+                                categoria=cat,
+                                nome=nome_subcategoria,
+                                defaults={'codigo': f"SUB-{nome_subcategoria[:3].upper()}"}
+                            )
+                            
+                        # Processa Unidade de Medida
+                        unidade, _ = UnidadeMedida.objects.get_or_create(
+                            sigla=unidade_sigla,
+                            defaults={'nome': unidade_sigla}
+                        )
+                        
+                        # Processa Produto
+                        Produto.objects.update_or_create(
+                            codigo=codigo,
+                            defaults={
+                                'nome': nome[:200],
+                                'categoria': cat,
+                                'subcategoria': subcat,
+                                'unidade_medida': unidade,
+                                'status': 'ATIVO',
+                                'criado_por': request.user,
+                                '_current_user': request.user
+                            }
+                        )
+                        produtos_importados += 1
+                        
+                    except Exception as e:
+                        print(f"Erro linha Excel: {e}")
+                        erros += 1
+
+            elif nome_arquivo.endswith('.xml'):
+                import xml.etree.ElementTree as ET
+                tree = ET.parse(arquivo)
+                root = tree.getroot()
+                
+                items = root.findall('.//produto') or root.findall('.//item')
+                for item in items:
+                    try:
+                        codigo = item.findtext('codigo') or item.findtext('código') or item.get('codigo', '')
+                        nome = item.findtext('nome') or item.findtext('descricao') or item.get('nome', '')
+                        
+                        if not nome or not codigo:
+                            erros += 1
+                            continue
+                            
+                        cat_nome = item.findtext('categoria') or 'GERAL'
+                        subcat_nome = item.findtext('subcategoria') or ''
+                        unidade_sigla = item.findtext('unidade') or item.findtext('um') or 'UN'
+                        
+                        cat, _ = Categoria.objects.get_or_create(nome=cat_nome, defaults={'codigo': f"CAT-{cat_nome[:3].upper()}"})
+                        subcat = None
+                        if subcat_nome:
+                            subcat, _ = Subcategoria.objects.get_or_create(categoria=cat, nome=subcat_nome, defaults={'codigo': f"SUB-{subcat_nome[:3].upper()}"})
+                        
+                        unidade, _ = UnidadeMedida.objects.get_or_create(sigla=unidade_sigla, defaults={'nome': unidade_sigla})
+                        
+                        Produto.objects.update_or_create(
+                            codigo=codigo,
+                            defaults={
+                                'nome': nome[:200],
+                                'categoria': cat,
+                                'subcategoria': subcat,
+                                'unidade_medida': unidade,
+                                'status': 'ATIVO',
+                                'criado_por': request.user,
+                                '_current_user': request.user
+                            }
+                        )
+                        produtos_importados += 1
+                    except Exception as e:
+                        print(f"Erro item XML: {e}")
+                        erros += 1
+            else:
+                messages.error(request, _('Formato de arquivo não suportado. Utilize .xlsx, .xls ou .xml.'))
+                return redirect('estoque:lista_produtos')
+                
+            if produtos_importados > 0:
+                messages.success(request, _(f'Importação concluída! {produtos_importados} produtos processados.'))
+            if erros > 0:
+                messages.warning(request, _(f'{erros} linhas/itens foram ignorados devido a erros de formatação.'))
+                
+        except Exception as e:
+            messages.error(request, _(f'Erro fatal durante a importação: {str(e)}'))
+            
+        return redirect('estoque:lista_produtos')
+        
+    return render(request, 'estoque/importar_produtos.html', {'titulo': 'Importar Materiais (Upload)'})
+
+
+@login_required
+@user_passes_test(is_materiais)
+@require_module_permission('materiais')
 def criar_produto(request):
     if request.method == 'POST':
         form = ProdutoForm(request.POST, request.FILES)
@@ -860,6 +1004,124 @@ def detalhe_produto(request, pk):
         'month_ago': month_ago,
     }
     return render(request, 'estoque/detalhe_produto.html', context)
+    
+
+@login_required
+@require_module_permission('materiais')
+def ficha_individual_pdf(request, pk):
+    """Gera ficha técnica individual do material em PDF (A4) — PAP §1"""
+    produto = get_object_or_404(
+        Produto.objects.select_related('categoria', 'unidade_medida', 'unidade_fornecimento',
+                                        'localizacao_fisica', 'conta_patrimonial'),
+        pk=pk
+    )
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, alignment=1, spaceAfter=20, textColor=colors.navy)
+    section_style = ParagraphStyle('SectionStyle', parent=styles['Heading2'], fontSize=12, spaceBefore=15, spaceAfter=10, borderPadding=5, backColor=colors.lightgrey)
+    
+    # Cabeçalho
+    elements.append(Paragraph(f"2º BAEP — POLÍCIA MILITAR DO ESTADO DE SÃO PAULO", styles['Normal']))
+    elements.append(Paragraph(f"CONTROLE DE MATERIAIS DE CONSUMO E PERMANENTE", styles['Normal']))
+    elements.append(Spacer(1, 0.5*cm))
+    elements.append(Paragraph(f"FICHA TÉCNICA INDIVIDUAL DO MATERIAL — PAP §1", title_style))
+    
+    # Dados Principais
+    data = [
+        [Paragraph(f"<b>NOME DO MATERIAL:</b> {produto.nome.upper()}", styles['Normal']), ""],
+        [Paragraph(f"<b>CÓDIGO PAP:</b> {produto.codigo}", styles['Normal']), Paragraph(f"<b>SIAFÍSICO:</b> {produto.codigo_siafisico or '—'}", styles['Normal'])],
+        [Paragraph(f"<b>CAT MAT:</b> {produto.codigo_cat_mat or '—'}", styles['Normal']), Paragraph(f"<b>CÓD. BARRAS:</b> {produto.codigo_barras or '—'}", styles['Normal'])],
+    ]
+    t = Table(data, colWidths=[9*cm, 8*cm])
+    t.setStyle(TableStyle([
+        ('SPAN', (0,0), (1,0)),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('LINEBELOW', (0,2), (-1,2), 1, colors.black),
+    ]))
+    elements.append(t)
+    
+    # Ficha Técnica
+    elements.append(Paragraph("1. DADOS TÉCNICOS E LOCALIZAÇÃO", section_style))
+    
+    tech_data = [
+        ["Categoria:", produto.categoria.nome if produto.categoria else "—", "Estoque Mínimo:", f"{produto.estoque_minimo:.2f}"],
+        ["Unid. Medida:", f"{produto.unidade_medida.nome} ({produto.unidade_medida.sigla})", "Localização:", produto.localizacao_fisica.nome if produto.localizacao_fisica else "—"],
+        ["Fornecimento:", produto.unidade_fornecimento.nome if produto.unidade_fornecimento else "—", "Nº de Empenho:", produto.empenho or "—"],
+        ["Conta Patrim.:", produto.conta_patrimonial.codigo if produto.conta_patrimonial else "—", "Controla Validade:", "Sim" if produto.controla_validade else "Não"],
+    ]
+    tt = Table(tech_data, colWidths=[3.5*cm, 5*cm, 3.5*cm, 5*cm])
+    tt.setStyle(TableStyle([
+        ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+        ('FONTNAME', (2,0), (2,-1), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    elements.append(tt)
+    
+    # Indicadores
+    elements.append(Paragraph("2. INDICADORES DE ESTOQUE E AUTONOMIA", section_style))
+    
+    saldo = produto.saldo_calculado
+    consumo = produto.consumo_medio()
+    autonomia = produto.autonomia()
+    
+    # Formatação de decimais para evitar estouro
+    saldo_fmt = f"{saldo:.2f} {produto.unidade_medida.sigla}"
+    preco_val = produto.preco_medio or produto.valor_unitario or Decimal('0')
+    preco_fmt = f"R$ {preco_val:.2f}"
+    consumo_fmt = f"{consumo:.2f}" if consumo is not None else "0"
+    autonomia_fmt = f"{autonomia:.0f}" if autonomia is not None else "—"
+    
+    indicadores = [
+        ["SALDO EM ESTOQUE", "PREÇO MÉDIO (PAP)", "CONSUMO MÉDIO", "AUTONOMIA"],
+        [saldo_fmt, preco_fmt, consumo_fmt, f"{autonomia_fmt} dias"]
+    ]
+    ti = Table(indicadores, colWidths=[4.25*cm]*4)
+    ti.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.navy),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('PADDING', (0,0), (-1,-1), 10),
+    ]))
+    elements.append(ti)
+    
+    # Alertas
+    if saldo <= produto.estoque_minimo or produto.cotacao_vencida:
+        elements.append(Spacer(1, 0.5*cm))
+        elements.append(Paragraph("3. ALERTAS E OBSERVAÇÕES", section_style))
+        if saldo <= produto.estoque_minimo:
+            elements.append(Paragraph("<b>• ATENÇÃO:</b> Saldo atual abaixo do estoque mínimo de segurança.", styles['Normal']))
+        if produto.cotacao_vencida:
+            elements.append(Paragraph("<b>• ALERTA:</b> Cotação vencida há mais de 180 dias. Necessário re-cotar conforme PAP §4.", styles['Normal']))
+    
+    # Descrição
+    if produto.descricao:
+        elements.append(Spacer(1, 0.5*cm))
+        elements.append(Paragraph("4. DESCRIÇÃO ADICIONAL", section_style))
+        elements.append(Paragraph(produto.descricao, styles['Normal']))
+    
+    # Rodapé
+    elements.append(Spacer(1, 2*cm))
+    hr_table = Table([[""]], colWidths=[17*cm])
+    hr_table.setStyle(TableStyle([('LINEABOVE', (0,0), (-1,0), 1, colors.black)]))
+    elements.append(hr_table)
+    elements.append(Paragraph(f"Responsável pelo Setor de Almoxarifado/Materiais — BAEP", styles['Normal']))
+    elements.append(Paragraph(f"Relatório gerado em: {timezone.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    filename = f"ficha_tecnica_{produto.codigo}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required

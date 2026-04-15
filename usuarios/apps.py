@@ -11,5 +11,7 @@ class UsuariosConfig(AppConfig):
             Group.objects.get_or_create(name='reserva_armas')
             Group.objects.get_or_create(name='materiais')
             Group.objects.get_or_create(name='administracao')
+            Group.objects.get_or_create(name='frota')
+            Group.objects.get_or_create(name='patrimonio')
         except Exception:
             pass

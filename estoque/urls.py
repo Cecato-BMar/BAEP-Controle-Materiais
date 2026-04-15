@@ -98,8 +98,11 @@ urlpatterns = [
     # =========================================================================
     path('materiais/', views.lista_produtos, name='lista_produtos'),
     path('materiais/novo/', views.criar_produto, name='criar_produto'),
+    path('materiais/importar/', views.importar_produtos, name='importar_produtos'),
     path('materiais/<int:pk>/', views.detalhe_produto, name='detalhe_produto'),
+    path('materiais/<int:pk>/ficha-pdf/', views.ficha_individual_pdf, name='ficha_individual_pdf'),
     path('materiais/<int:pk>/editar/', views.editar_produto, name='editar_produto'),
+
 
     # =========================================================================
     # Movimentações (histórico completo)

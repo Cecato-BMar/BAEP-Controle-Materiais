@@ -25,4 +25,12 @@ urlpatterns = [
     path('manutencoes/', views.lista_manutencoes, name='lista_manutencoes'),
     path('manutencoes/nova/', views.criar_manutencao, name='criar_manutencao'),
     path('manutencoes/<int:pk>/editar/', views.editar_manutencao, name='editar_manutencao'),
+
+    # Marcas e Modelos (Auxiliares)
+    path('marcas/', views.lista_marcas, name='lista_marcas'),
+    path('marcas/nova/', views.criar_marca, name='criar_marca'),
+    path('marcas/<int:pk>/editar/', views.editar_marca, name='editar_marca'),
+    path('modelos/', views.lista_modelos, name='lista_modelos'),
+    path('modelos/novo/', views.criar_modelo, name='criar_modelo'),
+    path('modelos/<int:pk>/editar/', views.editar_modelo, name='editar_modelo'),
 ]

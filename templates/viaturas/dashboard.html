@@ -187,4 +187,38 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Cadastros Auxiliares -->
+<div class="card border-0 mt-4 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-cogs me-2 text-secondary"></i>Configurações e Cadastros Auxiliares</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{% url 'viaturas:lista_marcas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate">
+                    <div>
+                        <i class="fas fa-industry me-3 text-warning"></i>
+                        <span class="fw-bold">Marcas</span>
+                    </div>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'viaturas:lista_modelos' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate">
+                    <div>
+                        <i class="fas fa-car-side me-3 text-warning"></i>
+                        <span class="fw-bold">Modelos</span>
+                    </div>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-translate { transition: transform 0.2s; }
+    .hover-translate:hover { transform: translateY(-3px); background-color: #fff; }
+</style>
 {% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ titulo }} — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-industry me-2 text-warning"></i>{{ titulo }}</h4>
+        <small class="text-muted">Cadastro auxiliar de fabricantes/marcas</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:lista_marcas' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Listagem de Marcas</a>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'viaturas:lista_marcas' %}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-warning fw-bold px-4"><i class="fas fa-save me-1"></i>Salvar Marca</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

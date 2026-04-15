@@ -327,3 +327,86 @@ def editar_manutencao(request, pk):
     else:
         form = ManutencaoForm(instance=man)
     return render(request, 'viaturas/form_manutencao.html', {'form': form, 'titulo': 'Editar Manutenção', 'manutencao': man})
+
+# =============================================================================
+# MARCAS E MODELOS (AUXILIARES)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_marcas(request):
+    qs = MarcaViatura.objects.annotate(count_modelos=Count('modelos')).all()
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_marcas.html', {'page_obj': page})
+
+
+@login_required
+@require_module_permission('frota')
+def criar_marca(request):
+    if request.method == 'POST':
+        form = MarcaViaturaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Marca cadastrada com sucesso!')
+            return redirect('viaturas:lista_marcas')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = MarcaViaturaForm()
+    return render(request, 'viaturas/form_marca.html', {'form': form, 'titulo': 'Nova Marca'})
+
+
+@login_required
+@require_module_permission('frota')
+def editar_marca(request, pk):
+    marca = get_object_or_404(MarcaViatura, pk=pk)
+    if request.method == 'POST':
+        form = MarcaViaturaForm(request.POST, instance=marca)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Marca {marca.nome} atualizada!')
+            return redirect('viaturas:lista_marcas')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = MarcaViaturaForm(instance=marca)
+    return render(request, 'viaturas/form_marca.html', {'form': form, 'titulo': f'Editar {marca.nome}'})
+
+
+@login_required
+@require_module_permission('frota')
+def lista_modelos(request):
+    qs = ModeloViatura.objects.select_related('marca').annotate(count_viaturas=Count('viaturas')).all()
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_modelos.html', {'page_obj': page})
+
+
+@login_required
+@require_module_permission('frota')
+def criar_modelo(request):
+    if request.method == 'POST':
+        form = ModeloViaturaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Modelo cadastrado com sucesso!')
+            return redirect('viaturas:lista_modelos')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = ModeloViaturaForm()
+    return render(request, 'viaturas/form_modelo.html', {'form': form, 'titulo': 'Novo Modelo'})
+
+
+@login_required
+@require_module_permission('frota')
+def editar_modelo(request, pk):
+    modelo = get_object_or_404(ModeloViatura, pk=pk)
+    if request.method == 'POST':
+        form = ModeloViaturaForm(request.POST, instance=modelo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Modelo {modelo.nome} atualizado!')
+            return redirect('viaturas:lista_modelos')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = ModeloViaturaForm(instance=modelo)
+    return render(request, 'viaturas/form_modelo.html', {'form': form, 'titulo': f'Editar {modelo.nome}'})

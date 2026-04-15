@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Marcas de Viaturas — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-industry me-2 text-warning"></i>Marcas de Viaturas</h4>
+        <small class="text-muted">Cadastro auxiliar — {{ page_obj.paginator.count }} marca(s) encontrada(s)</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:lista_modelos' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-car-side me-1"></i>Modelos</a>
+        <a href="{% url 'viaturas:criar_marca' %}" class="btn btn-warning btn-sm fw-bold">
+            <i class="fas fa-plus me-1"></i> Nova Marca
+        </a>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-3">Nome da Marca</th>
+                        <th class="text-center">Total de Modelos</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end pe-3">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in page_obj %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-dark">{{ m.nome }}</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">{{ m.count_modelos }}</span></td>
+                        <td class="text-center">
+                            {% if m.ativo %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Ativo</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'viaturas:editar_marca' m.pk %}" class="btn btn-xs btn-outline-secondary btn-sm" title="Editar"><i class="fas fa-pencil-alt"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-5 text-muted">Nenhuma marca cadastrada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-transparent">
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            {% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1); }
+</style>
+{% endblock %}

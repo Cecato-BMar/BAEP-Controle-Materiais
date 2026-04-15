@@ -7,6 +7,17 @@ from crispy_forms.layout import Layout, Submit, Row, Column, Div
 from .models import Perfil
 from policiais.models import Policial
 
+class GroupMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        labels = {
+            'reserva_armas': 'Reserva de Armas (Tático)',
+            'materiais': 'Estoque e Materiais (PAP)',
+            'administracao': 'Administração do Sistema',
+            'frota': 'Gestão de Frota (VTRs)',
+            'patrimonio': 'Gestão de Patrimônio'
+        }
+        return labels.get(obj.name, obj.name.replace('_', ' ').title())
+
 class CustomAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,7 +39,7 @@ class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(label=_('Nome'), max_length=30, required=True)
     last_name = forms.CharField(label=_('Sobrenome'), max_length=150, required=True)
-    modulos = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
+    modulos = GroupMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
     
     class Meta:
         model = User
@@ -92,7 +103,7 @@ class PerfilForm(forms.ModelForm):
 
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField(required=True)
-    modulos = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
+    modulos = GroupMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False, label=_('Módulos de Acesso'))
     
     class Meta:
         model = User

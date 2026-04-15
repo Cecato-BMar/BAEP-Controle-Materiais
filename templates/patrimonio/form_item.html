@@ -1,0 +1,31 @@
+{% extends 'patrimonio/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block patrimonio_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 fw-bold"><i class="fas fa-barcode text-primary me-2"></i>{{ titulo }}</h3>
+        <p class="text-muted small">Preencha os dados do bem permanente para registro</p>
+    </div>
+    <a href="{% url 'patrimonio:lista_itens' %}" class="btn btn-outline-secondary btn-sm fw-bold">
+        <i class="fas fa-arrow-left me-1"></i> Voltar para Lista
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% crispy form %}
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'patrimonio:lista_itens' %}" class="btn btn-light px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold">Salvar Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

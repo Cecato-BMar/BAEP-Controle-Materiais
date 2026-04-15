@@ -1,0 +1,65 @@
+{% extends 'patrimonio/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block patrimonio_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-0 fw-bold"><i class="fas fa-file-import text-primary me-2"></i>{{ titulo }}</h3>
+                <p class="text-muted small">Importe toda a carga patrimonial diretamente do XML do SILP (Sistema Integrado de Logística e Patrimonial).</p>
+            </div>
+            <a href="{% url 'patrimonio:lista_bens' %}" class="btn btn-outline-secondary btn-sm fw-bold">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm border-top border-primary border-4">
+            <div class="card-body p-5">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-5 text-center">
+                        <div class="p-4 bg-light rounded border border-dashed mb-3">
+                            <i class="fas fa-cloud-upload-alt fa-4x text-primary opacity-50 mb-3"></i>
+                            <h5>Selecione o arquivo para importação</h5>
+                            <p class="text-muted small">São suportados arquivos <strong>.xml</strong> (SILP), <strong>.xlsx</strong> e <strong>.xls</strong></p>
+                            
+                            <input class="form-control form-control-lg mt-3" type="file" id="arquivo_importacao" name="arquivo_importacao" accept=".xlsx,.xls,.xml" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-primary border-0 shadow-sm small">
+                        <h6 class="fw-bold"><i class="fas fa-database me-2"></i>Formato XML do SILP (recomendado):</h6>
+                        <p class="mb-2">O sistema lê automaticamente o arquivo <strong>LCM (Listagem de Controle de Material)</strong> exportado do SILP da PMESP. A importação processa:</p>
+                        <ul class="mb-0">
+                            <li><strong>Categorias</strong> — criadas automaticamente (ex: Segurança e Contenção, Informática...)</li>
+                            <li><strong>Subcategorias</strong> — registradas na descrição dos bens</li>
+                            <li><strong>Bens (Catálogo)</strong> — tipos de equipamento (ex: ALGEMA DE AÇO, NOTEBOOK...)</li>
+                            <li><strong>Itens Individuais</strong> — cada unidade patrimoniada com Nº Patrimônio, Nº Série, Valor e Data de Inclusão</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning border-0 shadow-sm small">
+                        <h6 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Atenção:</h6>
+                        <ul class="mb-0">
+                            <li>Itens com o mesmo <strong>Nº de Patrimônio</strong> serão atualizados (não duplicados).</li>
+                            <li>O arquivo do SILP contém <strong>todos os itens</strong> da unidade. Em arquivos grandes, a importação pode levar alguns minutos.</li>
+                            <li>Itens sem Nº Patrimônio ou sem Nome serão ignorados.</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'patrimonio:lista_bens' %}" class="btn btn-light px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="fas fa-upload me-2"></i>Iniciar Importação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; }
+</style>
+{% endblock %}

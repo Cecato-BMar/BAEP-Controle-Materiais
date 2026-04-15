@@ -1,0 +1,34 @@
+{% extends 'patrimonio/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block patrimonio_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 fw-bold"><i class="fas fa-exchange-alt text-primary me-2"></i>{{ titulo }}</h3>
+        <p class="text-muted small">Registrar transferência, cautela ou devolução de bem</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm border-top border-primary border-4">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {% crispy form %}
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'patrimonio:dashboard' %}" class="btn btn-light px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="fas fa-check me-2"></i>Confirmar Movimentação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="alert alert-info border-0 mt-4 shadow-sm small">
+            <i class="fas fa-info-circle me-2"></i>
+            Ao registrar uma <strong>Cautela</strong>, o status do item será alterado para <span class="badge bg-warning text-dark">Em Uso</span>. 
+            Ao registrar uma <strong>Devolução</strong>, o status voltará para <span class="badge bg-success">Disponível</span>.
+        </div>
+    </div>
+</div>
+{% endblock %}
