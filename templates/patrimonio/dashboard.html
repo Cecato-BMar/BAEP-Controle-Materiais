@@ -82,12 +82,40 @@
     </div>
 </div>
 
+<!-- Gráficos -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i> Distribuição por Status</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar text-success me-2"></i> Patrimônio por Categoria</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <!-- Coluna Esquerda: Categorias e Status -->
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i> Patrimônio por Categoria</h6>
+                <h6 class="mb-0 fw-bold"><i class="fas fa-tags text-primary me-2"></i> Listagem de Categorias</h6>
                 <a href="{% url 'patrimonio:lista_itens' %}" class="btn btn-xs btn-outline-primary btn-sm">Ver todos</a>
             </div>
             <div class="card-body p-0">
@@ -108,7 +136,7 @@
         </div>
 
         <div class="row g-3">
-            <div class="col-md-3">
+            <div class="col-6 col-md-4">
                 <a href="{% url 'patrimonio:novo_item' %}" class="card border-0 shadow-sm text-decoration-none hover-lift h-100">
                     <div class="card-body text-center py-4">
                         <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
@@ -117,7 +145,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-4">
                 <a href="{% url 'patrimonio:registrar_movimentacao' %}" class="card border-0 shadow-sm text-decoration-none hover-lift h-100">
                     <div class="card-body text-center py-4">
                         <i class="fas fa-exchange-alt fa-3x text-primary mb-3"></i>
@@ -126,7 +154,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-4">
                 <a href="{% url 'patrimonio:lista_bens' %}" class="card border-0 shadow-sm text-decoration-none hover-lift h-100">
                     <div class="card-body text-center py-4">
                         <i class="fas fa-list-ul fa-3x text-info mb-3"></i>
@@ -135,7 +163,16 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-4">
+                <a href="{% url 'relatorios:gerar_relatorio_patrimonio' %}" class="card border-0 shadow-sm text-decoration-none hover-lift h-100">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                        <h6 class="fw-bold text-dark mb-1">Gerar Relatórios</h6>
+                        <small class="text-muted">Inventário Geral e Histórico em PDF</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4">
                 <a href="{% url 'patrimonio:importar_bens' %}" class="card border-0 shadow-sm text-decoration-none hover-lift h-100 border-start border-warning border-3">
                     <div class="card-body text-center py-4">
                         <i class="fas fa-file-import fa-3x text-warning mb-3"></i>
@@ -184,3 +221,72 @@
     .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
 </style>
 {% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de Status (Pie)
+        const ctxStatus = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'pie',
+            data: {
+                labels: {{ status_labels|safe }},
+                datasets: [{
+                    data: {{ status_data|safe }},
+                    backgroundColor: [
+                        '#28a745', // Disponível
+                        '#ffc107', // Em Uso
+                        '#dc3545', // Manutenção
+                        '#6c757d', // Baixado
+                        '#fd7e14'  // Extraviado
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Categorias (Bar)
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCat, {
+            type: 'bar',
+            data: {
+                labels: {{ cat_labels|safe }},
+                datasets: [{
+                    label: 'Itens por Categoria',
+                    data: {{ cat_data|safe }},
+                    backgroundColor: '#007bff',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+

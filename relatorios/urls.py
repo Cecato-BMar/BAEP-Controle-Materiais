@@ -12,4 +12,5 @@ urlpatterns = [
     path('materiais/', views.gerar_relatorio_materiais, name='gerar_relatorio_materiais'),
     path('movimentacoes/', views.gerar_relatorio_movimentacoes, name='gerar_relatorio_movimentacoes'),
     path('movimentacoes-estoque/', views.gerar_relatorio_estoque_movimentacoes, name='gerar_relatorio_estoque_movimentacoes'),
+    path('patrimonio/', views.gerar_relatorio_patrimonio, name='gerar_relatorio_patrimonio'),
 ]

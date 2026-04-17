@@ -6,6 +6,8 @@ from crispy_forms.layout import Layout, Submit, Row, Column, Div
 from .models import Relatorio
 from materiais.models import Material
 from policiais.models import Policial
+from estoque.models import Produto
+from patrimonio.models import ItemPatrimonial, CategoriaPatrimonio
 
 
 class RelatorioDownloadForm(forms.Form):
@@ -82,10 +84,16 @@ class RelatorioMateriaisForm(forms.Form):
         max_length=100
     )
     
+    status = forms.ChoiceField(
+        label=_('Status'),
+        required=False,
+        choices=[('', _('Todos'))] + Material.STATUS_CHOICES
+    )
+    
     tipo_material = forms.ChoiceField(
         label=_('Tipo de Material'),
         required=False,
-        choices=[(None, _('Todos'))] + Material.TIPO_CHOICES
+        choices=[(None, _('Todos'))] + list(Material.TIPO_CHOICES)
     )
     
     observacoes = forms.CharField(
@@ -217,8 +225,6 @@ class RelatorioMovimentacoesForm(forms.Form):
         
         return cleaned_data
 
-from estoque.models import Produto
-
 class RelatorioEstoqueMovimentacoesForm(forms.Form):
     titulo = forms.CharField(
         label=_('Título do Relatório'),
@@ -284,4 +290,51 @@ class RelatorioEstoqueMovimentacoesForm(forms.Form):
         if not self.initial.get('data_fim'):
             self.initial['data_fim'] = timezone.now().date()
         if not self.initial.get('data_inicio'):
-            self.initial['data_inicio'] = timezone.now().date()
+            self.initial['data_inicio'] = timezone.now().date()
+
+class RelatorioPatrimonioForm(forms.Form):
+    titulo = forms.CharField(
+        label=_('Título do Relatório'),
+        max_length=100,
+        initial=_('Inventário Geral de Patrimônio')
+    )
+    
+    status = forms.ChoiceField(
+        label=_('Filtrar por Status'),
+        choices=[('', 'Todos')] + ItemPatrimonial.STATUS_CHOICES,
+        required=False
+    )
+    
+    categoria = forms.ModelChoiceField(
+        label=_('Filtrar por Categoria'),
+        queryset=CategoriaPatrimonio.objects.all(),
+        required=False,
+        empty_label='Todas as Categorias'
+    )
+    
+    observacoes = forms.CharField(
+        label=_('Observações'),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(
+            'titulo',
+            Row(
+                Column('status', css_class='form-group col-md-6 mb-0'),
+                Column('categoria', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'observacoes',
+            Div(
+                Submit('submit', _('Gerar Relatório'), css_class='btn btn-primary'),
+                css_class='text-center mt-3'
+            )
+        )

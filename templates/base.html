@@ -580,6 +580,52 @@
                     </div>
                 </li>
                 {% endif %}
+                <!-- Módulo Patrimônio (Bens Permanentes) -->
+                {% if user.is_superuser or user|has_group:'patrimonio' %}
+                <div class="sidebar-heading">Gestão de Patrimônio</div>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'patrimonio' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                        href="{% url 'patrimonio:dashboard' %}">
+                        <i class="fas fa-landmark"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'patrimonio' in request.path and request.resolver_match.url_name != 'dashboard' %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapsePatrimonio" role="button">
+                        <span><i class="fas fa-barcode"></i> Bens Permanentes</span>
+                        <i class="fas fa-chevron-down small opacity-50"></i>
+                    </a>
+                    <div class="collapse {% if 'patrimonio' in request.path and request.resolver_match.url_name != 'dashboard' %}show{% endif %}" id="collapsePatrimonio">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'itens' in request.path %}active{% endif %}"
+                                    href="{% url 'patrimonio:lista_itens' %}">
+                                    <i class="fas fa-list text-primary"></i> Itens Inventariados
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'movimentacao' in request.path %}active{% endif %}"
+                                    href="{% url 'patrimonio:registrar_movimentacao' %}">
+                                    <i class="fas fa-exchange-alt text-warning"></i> Registrar Movimentação
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'catalogo' in request.path %}active{% endif %}"
+                                    href="{% url 'patrimonio:lista_bens' %}">
+                                    <i class="fas fa-book text-success"></i> Catálogo de Bens
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link small {% if 'relatorios/patrimonio' in request.path %}active{% endif %}"
+                                    href="{% url 'relatorios:gerar_relatorio_patrimonio' %}">
+                                    <i class="fas fa-file-pdf text-danger"></i> Relatórios de Patrimônio
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+
 
                 <!-- Administração -->
                 {% if user.is_superuser or user|has_group:'administracao' %}

@@ -22,12 +22,14 @@ from reportlab.lib.units import inch, cm
 from .models import Relatorio
 from .forms import (
     RelatorioSituacaoAtualForm, RelatorioMateriaisForm, 
-    RelatorioMovimentacoesForm, RelatorioEstoqueMovimentacoesForm
+    RelatorioMovimentacoesForm, RelatorioEstoqueMovimentacoesForm,
+    RelatorioPatrimonioForm
 )
 from estoque.models import MovimentacaoEstoque, Produto
 from materiais.models import Material
 from movimentacoes.models import Movimentacao, Retirada, Devolucao
 from policiais.models import Policial
+from patrimonio.models import ItemPatrimonial
 
 
 def _draw_logo(canvas_, doc_):
@@ -49,11 +51,23 @@ def _draw_logo(canvas_, doc_):
         return
 
 @login_required
-@require_module_permission('reserva_armas')
 def lista_relatorios(request):
-    relatorios = Relatorio.objects.all().order_by('-data_geracao')
+    # Determina quais módulos o usuário pode acessar
+    modulos_acesso = []
+    if request.user.is_superuser or request.user.groups.filter(name='reserva_armas').exists():
+        modulos_acesso.append('RESERVA')
+    if request.user.is_superuser or request.user.groups.filter(name='patrimonio').exists():
+        modulos_acesso.append('PATRIMONIO')
+    if request.user.is_superuser or request.user.groups.filter(name='estoque').exists():
+        modulos_acesso.append('ESTOQUE')
+
+    if not modulos_acesso:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Você não tem acesso a nenhum módulo de relatórios.")
+
+    relatorios = Relatorio.objects.filter(modulo__in=modulos_acesso).order_by('-data_geracao')
     
-    # Filtragem
+    # Filtragem adicional
     tipo = request.GET.get('tipo')
     titulo = request.GET.get('titulo')
     data_inicio = request.GET.get('data_inicio')
@@ -113,9 +127,22 @@ def lista_relatorios(request):
     })
 
 @login_required
-@require_module_permission('reserva_armas')
 def detalhe_relatorio(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
+    
+    # Verifica permissão específica para o módulo do relatório
+    modulo_map = {
+        'RESERVA': 'reserva_armas',
+        'PATRIMONIO': 'patrimonio',
+        'ESTOQUE': 'estoque'
+    }
+    required_group = modulo_map.get(relatorio.modulo)
+    
+    if not request.user.is_superuser:
+        if not request.user.groups.filter(name=required_group).exists():
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied(f"Acesso negado: Este relatório pertence ao módulo {relatorio.get_modulo_display()}.")
+
     preview_data = None
     preview_type = None
     # Se não existe PDF, buscar dados para pré-visualização
@@ -155,6 +182,13 @@ def detalhe_relatorio(request, relatorio_id):
                 movs = movs.filter(data_hora__lte=relatorio.periodo_fim)
             preview_data = list(movs.values_list('data_hora', 'tipo', 'material__identificacao', 'policial__nome', 'quantidade'))
             preview_type = 'movimentacoes'
+        elif relatorio.tipo == 'PATRIMONIO_INVENTARIO':
+            from patrimonio.models import ItemPatrimonial
+            itens = ItemPatrimonial.objects.select_related('bem', 'localizacao').all().order_by('numero_patrimonio')
+            preview_data = [['Patrimônio', 'Bem', 'Status', 'Localização']]
+            for item in itens[:10]: # Limita o preview
+                preview_data.append([item.numero_patrimonio, item.bem.nome, item.get_status_display(), item.localizacao.nome if item.localizacao else '-'])
+            preview_type = 'patrimonio'
     return render(request, 'relatorios/detalhe_relatorio.html', {
         'relatorio': relatorio,
         'preview_data': preview_data,
@@ -162,9 +196,17 @@ def detalhe_relatorio(request, relatorio_id):
     })
 
 @login_required
-@require_module_permission('reserva_armas')
 def download_relatorio(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
+    
+    # Verifica permissão baseada no módulo
+    modulo_map = {'RESERVA': 'reserva_armas', 'PATRIMONIO': 'patrimonio', 'ESTOQUE': 'estoque'}
+    required_group = modulo_map.get(relatorio.modulo)
+    
+    if not request.user.is_superuser:
+        if not request.user.groups.filter(name=required_group).exists():
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied(f"Sem permissão para baixar relatórios do módulo {relatorio.get_modulo_display()}.")
     
     if not relatorio.arquivo_pdf or not os.path.exists(relatorio.arquivo_pdf.path):
         messages.error(request, _('Arquivo PDF não encontrado.'))
@@ -179,9 +221,17 @@ def download_relatorio(request, relatorio_id):
     )
 
 @login_required
-@require_module_permission('reserva_armas')
 def download_relatorio_arquivo(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
+    
+    # Verifica permissão baseada no módulo
+    modulo_map = {'RESERVA': 'reserva_armas', 'PATRIMONIO': 'patrimonio', 'ESTOQUE': 'estoque'}
+    required_group = modulo_map.get(relatorio.modulo)
+    
+    if not request.user.is_superuser:
+        if not request.user.groups.filter(name=required_group).exists():
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied(f"Sem permissão para acessar relatórios do módulo {relatorio.get_modulo_display()}.")
     
     if not relatorio.arquivo_pdf or not os.path.exists(relatorio.arquivo_pdf.path):
         messages.error(request, _('Arquivo PDF não encontrado.'))
@@ -337,6 +387,7 @@ def gerar_relatorio_situacao_atual(request):
             relatorio = Relatorio(
                 titulo=titulo,
                 tipo='SITUACAO_ATUAL',
+                modulo='RESERVA',
                 gerado_por=request.user,
                 observacoes=form.cleaned_data.get('observacoes', ''),
                 periodo_inicio=timezone.now(),
@@ -743,6 +794,7 @@ def gerar_relatorio_materiais(request):
             relatorio = Relatorio(
                 titulo=titulo,
                 tipo=tipo_relatorio,
+                modulo='RESERVA',
                 gerado_por=request.user,
                 observacoes=observacoes,
                 periodo_inicio=timezone.now(),
@@ -1098,6 +1150,7 @@ def gerar_relatorio_movimentacoes(request):
             relatorio = Relatorio(
                 titulo=titulo,
                 tipo=tipo_relatorio,
+                modulo='RESERVA',
                 gerado_por=request.user,
                 observacoes=observacoes,
                 periodo_inicio=data_inicio,
@@ -1238,6 +1291,7 @@ def gerar_relatorio_estoque_movimentacoes(request):
             relatorio = Relatorio.objects.create(
                 titulo=titulo,
                 tipo='MOVIMENTACOES_PERIODO',
+                modulo='ESTOQUE',
                 gerado_por=request.user,
                 periodo_inicio=timezone.make_aware(datetime.datetime.combine(data_inicio, datetime.time.min)) if data_inicio else None,
                 periodo_fim=timezone.make_aware(datetime.datetime.combine(data_fim, datetime.time.max)) if data_fim else None,
@@ -1252,3 +1306,138 @@ def gerar_relatorio_estoque_movimentacoes(request):
         form = RelatorioEstoqueMovimentacoesForm()
     
     return render(request, 'relatorios/form_relatorio_estoque_movimentacoes.html', {'form': form})
+
+
+@login_required
+@require_module_permission('patrimonio')
+def gerar_relatorio_patrimonio(request):
+    if request.method == 'POST':
+        form = RelatorioPatrimonioForm(request.POST)
+        if form.is_valid():
+            titulo = form.cleaned_data.get('titulo')
+            status = form.cleaned_data.get('status')
+            categoria = form.cleaned_data.get('categoria')
+            observacoes = form.cleaned_data.get('observacoes', '')
+            
+            # Filtra os itens
+            itens = ItemPatrimonial.objects.select_related('bem', 'bem__categoria', 'localizacao', 'responsavel_atual').all()
+            
+            if status:
+                itens = itens.filter(status=status)
+            if categoria:
+                itens = itens.filter(bem__categoria=categoria)
+                
+            # Gera o relatório PDF
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=1*cm, rightMargin=1*cm, topMargin=2*cm, bottomMargin=2*cm)
+            elements = []
+            
+            # Estilos
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=16, alignment=1, spaceAfter=20)
+            subtitle_style = ParagraphStyle('Subtitle', parent=styles['Heading2'], fontSize=12, spaceAfter=10)
+            normal_style = styles['Normal']
+            
+            # Título e Cabeçalho
+            elements.append(Paragraph(titulo, title_style))
+            elements.append(Paragraph(f"<b>Data de Geração:</b> {timezone.now().strftime('%d/%m/%Y %H:%M')}", normal_style))
+            elements.append(Paragraph(f"<b>Gerado por:</b> {request.user.get_full_name() or request.user.username}", normal_style))
+            
+            filtros = []
+            if status: filtros.append(f"Status: {dict(ItemPatrimonial.STATUS_CHOICES).get(status)}")
+            if categoria: filtros.append(f"Categoria: {categoria.nome}")
+            if filtros:
+                elements.append(Paragraph(f"<b>Filtros:</b> {', '.join(filtros)}", normal_style))
+            
+            elements.append(Spacer(1, 1*cm))
+            
+            # Resumo
+            elements.append(Paragraph("Resumo do Inventário", subtitle_style))
+            total = itens.count()
+            data_resumo = [
+                ['Status', 'Quantidade'],
+            ]
+            for s_code, s_name in ItemPatrimonial.STATUS_CHOICES:
+                count = itens.filter(status=s_code).count()
+                if count > 0 or not status:
+                    data_resumo.append([s_name, count])
+            
+            data_resumo.append(['TOTAL', total])
+            
+            table_resumo = Table(data_resumo, colWidths=[6*cm, 3*cm])
+            table_resumo.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.grey),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
+            ]))
+            elements.append(table_resumo)
+            elements.append(Spacer(1, 1*cm))
+            
+            # Tabela de Itens
+            elements.append(Paragraph("Detalhamento dos Itens", subtitle_style))
+            data_itens = [
+                ['Patrimônio', 'Bem / Descrição', 'Série', 'Status', 'Localização']
+            ]
+            
+            for item in itens:
+                data_itens.append([
+                    item.numero_patrimonio,
+                    Paragraph(f"<b>{item.bem.nome}</b><br/><small>{item.bem.categoria.nome}</small>", styles['Normal']),
+                    item.numero_serie or '-',
+                    item.get_status_display(),
+                    item.localizacao.nome if item.localizacao else '-'
+                ])
+            
+            table_itens = Table(data_itens, colWidths=[3*cm, 7*cm, 3*cm, 3*cm, 3*cm])
+            table_itens.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2c3e50')),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+                ('FONTSIZE', (0,0), (-1,-1), 8),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ]))
+            elements.append(table_itens)
+            
+            if observacoes:
+                elements.append(Spacer(1, 1*cm))
+                elements.append(Paragraph("Observações", subtitle_style))
+                elements.append(Paragraph(observacoes, normal_style))
+            
+            # Gera o PDF
+            def _on_page(canvas_, doc_):
+                canvas_.saveState()
+                _draw_logo(canvas_, doc_)
+                canvas_.restoreState()
+
+            doc.build(elements, onFirstPage=_on_page, onLaterPages=_on_page)
+            pdf = buffer.getvalue()
+            buffer.close()
+            
+            # Salva no banco
+            relatorio = Relatorio(
+                titulo=titulo,
+                tipo='PATRIMONIO_INVENTARIO',
+                modulo='PATRIMONIO',
+                gerado_por=request.user,
+                observacoes=observacoes,
+                data_geracao=timezone.now()
+            )
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                temp_file.write(pdf)
+                temp_path = temp_file.name
+            
+            with open(temp_path, 'rb') as f:
+                relatorio.arquivo_pdf.save(f"inventario_patrimonio_{timezone.now().strftime('%Y%m%d%H%M')}.pdf", io.BytesIO(f.read()))
+            
+            os.unlink(temp_path)
+            
+            messages.success(request, _('Relatório de Patrimônio gerado com sucesso!'))
+            return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
+    else:
+        form = RelatorioPatrimonioForm()
+        
+    return render(request, 'relatorios/form_relatorio_patrimonio.html', {'form': form})

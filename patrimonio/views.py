@@ -22,6 +22,15 @@ def dashboard_patrimonio(request):
     
     por_categoria = CategoriaPatrimonio.objects.annotate(total=Count('bens__itens')).filter(total__gt=0)
     
+    # Dados para Gráficos
+    status_counts_qs = ItemPatrimonial.objects.values('status').annotate(total=Count('id'))
+    status_map = dict(ItemPatrimonial.STATUS_CHOICES)
+    status_labels = [status_map.get(s['status']) for s in status_counts_qs]
+    status_data = [s['total'] for s in status_counts_qs]
+    
+    cat_labels = [c.nome for c in por_categoria]
+    cat_data = [c.total for c in por_categoria]
+    
     context = {
         'total_itens': total_itens,
         'em_uso': em_uso,
@@ -30,6 +39,10 @@ def dashboard_patrimonio(request):
         'valor_total': valor_total,
         'ultimas_movimentacoes': ultimas_movimentacoes,
         'por_categoria': por_categoria,
+        'status_labels': status_labels,
+        'status_data': status_data,
+        'cat_labels': cat_labels,
+        'cat_data': cat_data,
     }
     return render(request, 'patrimonio/dashboard.html', context)
 

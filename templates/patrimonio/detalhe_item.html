@@ -65,8 +65,8 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle bg-warning p-2"><i class="fas fa-user-shield text-white fa-lg"></i></div>
                     <div>
-                        <h6 class="mb-0 fw-bold">Cautelarmente com: {{ item.responsavel_atual.qra }}</h6>
-                        <small class="text-muted">RE {{ item.responsavel_atual.re }} — {{ item.responsavel_atual.graduacao }}</small>
+                        <h6 class="mb-0 fw-bold">Cautelarmente com: {{ item.responsavel_atual.nome }}</h6>
+                        <small class="text-muted">RE {{ item.responsavel_atual.re }} — {{ item.responsavel_atual.get_posto_display }}</small>
                     </div>
                 </div>
             </div>
@@ -99,7 +99,7 @@
                                     </span>
                                 </td>
                                 <td class="small">
-                                    {% if mov.policial %}<i class="fas fa-user-circle me-1 opacity-50"></i>{{ mov.policial.qra }}
+                                    {% if mov.policial %}<i class="fas fa-user-circle me-1 opacity-50"></i>{{ mov.policial.nome }}
                                     {% elif mov.local_destino %}<i class="fas fa-map-marker-alt me-1 opacity-50"></i>{{ mov.local_destino }}
                                     {% else %}—{% endif %}
                                 </td>

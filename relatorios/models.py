@@ -12,10 +12,17 @@ class Relatorio(models.Model):
         ('MOVIMENTACOES_PERIODO', 'Movimentações por Período'),
         ('MOVIMENTACOES_POLICIAL', 'Movimentações por Policial'),
         ('MOVIMENTACOES_MATERIAL', 'Movimentações por Material'),
+        ('PATRIMONIO_INVENTARIO', 'Patrimônio: Inventário Geral'),
+        ('PATRIMONIO_MOVIMENTACOES', 'Patrimônio: Histórico de Movimentações'),
     ]
     
     titulo = models.CharField(_('Título'), max_length=100)
     tipo = models.CharField(_('Tipo'), max_length=30, choices=TIPO_CHOICES)
+    modulo = models.CharField(_('Módulo'), max_length=20, choices=[
+        ('RESERVA', 'Reserva de Armas'),
+        ('ESTOQUE', 'Almoxarifado/Estoque'),
+        ('PATRIMONIO', 'Patrimônio'),
+    ], default='RESERVA')
     data_geracao = models.DateTimeField(_('Data de Geração'), default=timezone.now)
     periodo_inicio = models.DateTimeField(_('Período - Início'), blank=True, null=True)
     periodo_fim = models.DateTimeField(_('Período - Fim'), blank=True, null=True)
