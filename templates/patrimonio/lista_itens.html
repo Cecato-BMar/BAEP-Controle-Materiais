@@ -73,7 +73,7 @@
                     </td>
                     <td>
                         {% if item.status == 'EM_USO' %}
-                            <div class="small fw-bold"><i class="fas fa-user-circle text-warning me-1"></i> {{ item.responsavel_atual.qra }}</div>
+                            <div class="small fw-bold"><i class="fas fa-user-circle text-warning me-1"></i> {{ item.responsavel_atual.nome }}</div>
                             <div class="x-small text-muted">Em cautela individual</div>
                         {% else %}
                             <div class="small"><i class="fas fa-map-marker-alt text-muted me-1"></i> {{ item.localizacao|default:"Não definido" }}</div>

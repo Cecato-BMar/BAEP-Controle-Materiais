@@ -98,8 +98,8 @@
                             {% for d in despachos_ativos %}
                             <tr>
                                 <td><span class="badge bg-warning text-dark fw-bold">{{ d.viatura.prefixo }}</span><div class="small text-muted">{{ d.viatura.modelo.nome }}</div></td>
-                                <td>{{ d.motorista.qra }}</td>
-                                <td>{{ d.encarregado.qra|default:"—" }}</td>
+                                <td>{{ d.motorista.nome }}</td>
+                                <td>{{ d.encarregado.nome|default:"—" }}</td>
                                 <td><small>{{ d.data_saida|date:"d/m H:i" }}</small></td>
                                 <td>{{ d.km_saida }} km</td>
                                 <td class="text-end">

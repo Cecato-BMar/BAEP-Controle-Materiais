@@ -58,7 +58,7 @@
                         <td>{{ ab.odometro|floatformat:0 }} km</td>
                         <td class="fw-bold text-info">{{ ab.quantidade_litros|floatformat:2 }} L</td>
                         <td>{% if ab.valor_total %}R$ {{ ab.valor_total|floatformat:2 }}{% else %}—{% endif %}</td>
-                        <td>{{ ab.motorista.qra|default:"—" }}</td>
+                        <td>{{ ab.motorista.nome|default:"—" }}</td>
                         <td><small>{{ ab.posto_fornecedor|default:"" }} {% if ab.cupom_fiscal %}<code>{{ ab.cupom_fiscal }}</code>{% endif %}</small></td>
                     </tr>
                     {% empty %}

@@ -7,9 +7,26 @@
         <h4 class="mb-0 fw-bold"><i class="fas fa-car-side me-2 text-warning"></i>Frota de Viaturas</h4>
         <small class="text-muted">Cadastro geral — {{ page_obj.paginator.count }} viatura(s) encontrada(s)</small>
     </div>
-    <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-warning btn-sm fw-bold">
-        <i class="fas fa-plus me-1"></i> Nova Viatura
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:lista_checklists' %}" class="btn btn-outline-dark btn-sm fw-bold">
+            <i class="fas fa-tasks me-1"></i> Ver Checklists
+        </a>
+        <a href="{% url 'viaturas:importar_viaturas' %}" class="btn btn-outline-success btn-sm fw-bold">
+            <i class="fas fa-file-import me-1"></i> Importar Dados
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-file-pdf me-1"></i> Relatórios
+            </button>
+            <ul class="dropdown-menu shadow">
+                <li><a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_viaturas' %}" target="_blank"><i class="fas fa-car me-2 text-primary"></i>Relatório Geral da Frota</a></li>
+                <li><a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_manutencoes' %}" target="_blank"><i class="fas fa-tools me-2 text-primary"></i>Relatório de Manutenções</a></li>
+            </ul>
+        </div>
+        <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-warning btn-sm fw-bold">
+            <i class="fas fa-plus me-1"></i> Nova Viatura
+        </a>
+    </div>
 </div>
 
 <!-- Filtros -->
@@ -53,6 +70,7 @@
                         <th>Prefixo</th>
                         <th>Tipo</th>
                         <th>Modelo/Marca</th>
+                        <th>Patrimônio</th>
                         <th>Placa</th>
                         <th>Ano</th>
                         <th>Odômetro</th>
@@ -77,6 +95,7 @@
                         <td>
                             <span class="fw-semibold">{{ v.modelo.marca.nome }} {{ v.modelo.nome }}</span>
                         </td>
+                        <td><small>{{ v.numero_patrimonio|default:"—" }}</small></td>
                         <td><code>{{ v.placa|default:"—" }}</code></td>
                         <td>{{ v.ano_fabricacao|default:"—" }}</td>
                         <td>{{ v.odometro_atual|floatformat:0 }} km</td>
@@ -88,6 +107,7 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
+                            <a href="{% url 'viaturas:criar_checklist' %}?viatura={{ v.pk }}" class="btn btn-xs btn-outline-success btn-sm" title="Novo Checklist"><i class="fas fa-check-square"></i></a>
                             <a href="{% url 'viaturas:detalhe_viatura' v.pk %}" class="btn btn-xs btn-outline-primary btn-sm" title="Detalhes"><i class="fas fa-eye"></i></a>
                             <a href="{% url 'viaturas:editar_viatura' v.pk %}" class="btn btn-xs btn-outline-secondary btn-sm" title="Editar"><i class="fas fa-pencil-alt"></i></a>
                             {% if v.status == 'DISPONIVEL' %}

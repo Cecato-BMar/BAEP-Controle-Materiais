@@ -35,7 +35,7 @@
                                 {% if mov.militar_requisitante %}
                                     {{ mov.militar_requisitante.posto }} {{ mov.militar_requisitante.nome }}
                                 {% elif mov.militar_administrativo %}
-                                    {{ mov.militar_administrativo.qra }}
+                                    {{ mov.militar_administrativo.nome }}
                                 {% else %}
                                     Recebedor não identificado
                                 {% endif %}

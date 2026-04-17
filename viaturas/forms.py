@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina
+from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field, HTML
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura
 
 
 class ViaturaForm(forms.ModelForm):
@@ -90,6 +90,7 @@ class DespachoSaidaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['encarregado'].label = "Comandante de Equipe"
         # Apenas viaturas disponíveis
         self.fields['viatura'].queryset = Viatura.objects.filter(status='DISPONIVEL')
         self.helper = FormHelper()
@@ -233,5 +234,99 @@ class MarcaViaturaForm(forms.ModelForm):
             Row(
                 Column('nome', css_class='col-md-8'),
                 Column('ativo', css_class='col-md-4 d-flex align-items-center mt-3'),
+            ),
+        )
+
+
+class ImportarFrotaForm(forms.Form):
+    arquivo = forms.FileField(
+        label='Arquivo (XML ou XLSX)',
+        help_text='Selecione o arquivo exportado do sistema SILP ou planilha de controle.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'import-form'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Field('arquivo', css_class='form-control'),
+            Submit('submit', 'Iniciar Importação', css_class='btn btn-primary w-100 mt-3')
+        )
+
+
+class ChecklistViaturaForm(forms.ModelForm):
+    class Meta:
+        model = ChecklistViatura
+        fields = [
+            'viatura', 'policial', 'tipo', 'odometro',
+            'limpeza_interna', 'limpeza_externa', 'conservacao_estofados',
+            'niveis_fluidos', 'pneus_condicoes', 'pneu_estepe', 'freio_estacionamento',
+            'farois_lanternas', 'setas_emergencia', 'giroflex_sirene', 'painel_instrumentos',
+            'extintor_incendio', 'triangulo_macaco_chave', 'cones_sinalizacao', 
+            'documentacao_crlv', 'kit_primeiros_socorros',
+            'avarias_lataria', 'observacoes_gerais'
+        ]
+        widgets = {
+            'avarias_lataria': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Descreva detalhadamente quaisquer danos...'}),
+            'observacoes_gerais': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Row(
+                    Column('viatura', css_class='col-md-4'),
+                    Column('policial', css_class='col-md-4'),
+                    Column('tipo', css_class='col-md-2'),
+                    Column('odometro', css_class='col-md-2'),
+                ),
+                css_class='section-header mb-4 p-3 bg-light rounded shadow-sm'
+            ),
+            
+            Row(
+                Column(
+                    Div(
+                        HTML('<h6 class="fw-bold text-primary mb-3"><i class="fas fa-broom me-2"></i>Conservação e Limpeza</h6>'),
+                        'limpeza_interna', 'limpeza_externa', 'conservacao_estofados',
+                        css_class='card p-3 mb-3 border-start border-primary border-4 shadow-sm'
+                    ),
+                    css_class='col-md-6'
+                ),
+                Column(
+                    Div(
+                        HTML('<h6 class="fw-bold text-success mb-3"><i class="fas fa-cogs me-2"></i>Mecânica e Rodagem</h6>'),
+                        'niveis_fluidos', 'pneus_condicoes', 'pneu_estepe', 'freio_estacionamento',
+                        css_class='card p-3 mb-3 border-start border-success border-4 shadow-sm'
+                    ),
+                    css_class='col-md-6'
+                ),
+            ),
+            
+            Row(
+                Column(
+                    Div(
+                        HTML('<h6 class="fw-bold text-warning mb-3"><i class="fas fa-bolt me-2"></i>Elétrica e Sinalização</h6>'),
+                        'farois_lanternas', 'setas_emergencia', 'giroflex_sirene', 'painel_instrumentos',
+                        css_class='card p-3 mb-3 border-start border-warning border-4 shadow-sm'
+                    ),
+                    css_class='col-md-6'
+                ),
+                Column(
+                    Div(
+                        HTML('<h6 class="fw-bold text-info mb-3"><i class="fas fa-toolbox me-2"></i>Equipamentos e Docs</h6>'),
+                        'extintor_incendio', 'triangulo_macaco_chave', 'cones_sinalizacao', 'documentacao_crlv', 'kit_primeiros_socorros',
+                        css_class='card p-3 mb-3 border-start border-info border-4 shadow-sm'
+                    ),
+                    css_class='col-md-6'
+                ),
+            ),
+
+            Row(
+                Column('avarias_lataria', css_class='col-md-6'),
+                Column('observacoes_gerais', css_class='col-md-6'),
             ),
         )

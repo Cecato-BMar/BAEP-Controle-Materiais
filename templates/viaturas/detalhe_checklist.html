@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load viaturas_extras %}
+{% block title %}Checklist {{ checklist.viatura.prefixo }} | BAEP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-9">
+        <!-- Barra de Ações Superior -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <a href="{% url 'viaturas:lista_checklists' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+            <button onclick="window.print()" class="btn btn-dark">
+                <i class="fas fa-print me-1"></i> Imprimir Checklist
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-lg p-0 bg-white" id="printableChecklist">
+            <!-- Cabeçalho Oficial -->
+            <div class="card-header bg-white border-bottom-0 p-4 text-center">
+                <i class="fas fa-shield-alt fa-3x mb-3 text-secondary"></i>
+                <h4 class="fw-bold mb-0">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h4>
+                <h5 class="mb-0">2º Batalhão de Ações Especiais de Polícia</h5>
+                <div class="badge bg-light text-dark border mt-2">Checklist de Inspeção de Viatura #{{ checklist.id }}</div>
+            </div>
+
+            <div class="card-body p-4 pt-0">
+                <!-- Informações Básicas -->
+                <div class="row mb-4 g-3">
+                    <div class="col-md-3">
+                        <div class="border rounded p-2 text-center bg-light">
+                            <small class="text-muted d-block text-uppercase fw-bold">Viatura</small>
+                            <span class="fs-5 fw-bold">{{ checklist.viatura.prefixo }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted d-block text-uppercase fw-bold">Data/Hora</small>
+                            <span class="fw-bold">{{ checklist.data_hora|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted d-block text-uppercase fw-bold">Odômetro</small>
+                            <span class="fw-bold">{{ checklist.odometro|floatformat:1 }} km</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted d-block text-uppercase fw-bold">Tipo</small>
+                            <span class="fw-bold">{{ checklist.get_tipo_display }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fas fa-list-check me-2"></i>Itens Inspecionados</h5>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                    <!-- Item Check -->
+                    {% with items="limpeza_interna:Limpeza Interna,limpeza_externa:Limpeza Externa,conservacao_estofados:Conservação Estofados,niveis_fluidos:Níveis de Óleo/Água,pneus_condicoes:Condição dos Pneus,pneu_estepe:Pneu Estepe,freio_estacionamento:Freio de Estacionamento,farois_lanternas:Faróis e Lanternas,setas_emergencia:Setas e Pisca-Alerta,giroflex_sirene:Giroflex e Sirene,painel_instrumentos:Painel de Instrumentos,extintor_incendio:Extintor de Incêndio,triangulo_macaco_chave:Equip. de Troca Pneu,cones_sinalizacao:Cones de Sinalização,documentacao_crlv:Documentação (CRLV),kit_primeiros_socorros:Kit Prim. Socorros" %}
+                    {% for item_raw in items|split_string:"," %}
+                        {% with item=item_raw|split_string:":" %}
+                            <div class="col">
+                                <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                    <span>{{ item.1 }}</span>
+                                    {% if checklist|get_attribute:item.0 %}
+                                        <span class="text-success fw-bold text-uppercase small"><i class="fas fa-check-circle me-1"></i>OK</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold text-uppercase small"><i class="fas fa-times-circle me-1"></i>Irregular</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                </div>
+
+                <!-- Avarias e Obs -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="p-3 bg-light border rounded mb-3">
+                            <h6 class="fw-bold mb-2">Avarias na Lataria/Pintura:</h6>
+                            <p class="mb-0">{{ checklist.avarias_lataria|default:"Nenhuma avaria registrada." }}</p>
+                        </div>
+                        <div class="p-3 bg-light border rounded">
+                            <h6 class="fw-bold mb-2">Observações Gerais:</h6>
+                            <p class="mb-0">{{ checklist.observacoes_gerais|default:"Sem observações adicionais." }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rodapé / Assinaturas -->
+                <div class="row mt-5 pt-5 text-center g-5">
+                    <div class="col-md-6">
+                        <p class="mb-0 border-top pt-2 mx-5">{{ checklist.policial.nome_completo_graduacao }}</p>
+                        <small class="text-muted d-block mt-1">Avaliador (Assinatura)</small>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-0 border-top pt-2 mx-5">_____________________________</p>
+                        <small class="text-muted d-block mt-1">Logística / Almoxarifado</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-light text-center small text-muted p-4 border-top-0">
+                Impresso em {% now "d/m/Y H:i:s" %} por {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        .content-main { background: white !important; padding: 0 !important; }
+        .card { shadow: none !important; border: 0 !important; }
+        body { background: white !important; }
+    }
+    
+    .border-start-4 { border-left-width: 4px !important; }
+</style>
+{% endblock %}

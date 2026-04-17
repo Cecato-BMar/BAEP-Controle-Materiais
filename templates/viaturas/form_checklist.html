@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Novo Checklist | BAEP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card border-0 shadow-lg animate__animated animate__fadeIn">
+            <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0 fw-bold"><i class="fas fa-tasks me-2 text-success"></i>Avaliação Técnica de Viatura</h4>
+                    <p class="mb-0 text-white-50 mt-1 small">Preencha todos os campos para registrar a inspeção operacional.</p>
+                </div>
+                <div class="text-end border-start ps-4">
+                    <span class="d-block small text-white-50">Data da Inspeção</span>
+                    <span class="fw-bold fs-5">{% now "d/m/Y" %}</span>
+                </div>
+            </div>
+            
+            <div class="card-body p-4 bg-light">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% crispy form %}
+                    
+                    <div class="card border-0 shadow-sm mt-4 overflow-hidden">
+                        <div class="card-body bg-white p-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'viaturas:lista_checklists' %}" class="btn btn-link text-secondary text-decoration-none">
+                                    <i class="fas fa-times me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow">
+                                    <i class="fas fa-save me-2"></i> Salvar Checklist Completo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos Adicionais para Checkboxes do Crispy de forma Premium */
+    .form-check {
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+    
+    .form-check:hover {
+        border-color: #198754;
+        background-color: #f8fffb;
+    }
+
+    .form-check-input:checked + .form-check-label {
+        font-weight: 600;
+        color: #198754;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    .section-header {
+        border-left: 4px solid #198754;
+    }
+
+    .border-start-primary { border-left-color: #0d6efd !important; border-left-width: 4px !important; }
+    .border-start-success { border-left-color: #198754 !important; border-left-width: 4px !important; }
+    .border-start-warning { border-left-color: #ffc107 !important; border-left-width: 4px !important; }
+    .border-start-info { border-left-color: #0dcaf_f !important; border-left-width: 4px !important; }
+</style>
+{% endblock %}

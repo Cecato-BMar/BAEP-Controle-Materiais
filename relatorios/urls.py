@@ -13,4 +13,7 @@ urlpatterns = [
     path('movimentacoes/', views.gerar_relatorio_movimentacoes, name='gerar_relatorio_movimentacoes'),
     path('movimentacoes-estoque/', views.gerar_relatorio_estoque_movimentacoes, name='gerar_relatorio_estoque_movimentacoes'),
     path('patrimonio/', views.gerar_relatorio_patrimonio, name='gerar_relatorio_patrimonio'),
+    path('frota/', views.gerar_relatorio_viaturas, name='gerar_relatorio_viaturas'),
+    path('manutencoes/', views.gerar_relatorio_manutencoes, name='gerar_relatorio_manutencoes'),
+    path('viatura/<int:viatura_id>/', views.gerar_relatorio_individual_viatura, name='gerar_relatorio_individual_viatura'),
 ]

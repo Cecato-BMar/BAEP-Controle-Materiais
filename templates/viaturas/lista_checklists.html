@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Checklists de Viaturas | BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-clipboard-check me-2 text-success"></i>Checklists da Frota</h4>
+        <small class="text-muted">Inspeções operacionais e de rotina</small>
+    </div>
+    <a href="{% url 'viaturas:criar_checklist' %}" class="btn btn-primary d-flex align-items-center gap-2">
+        <i class="fas fa-plus"></i> Novo Checklist
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row gx-2 align-items-center">
+            <div class="col-auto flex-grow-1">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Buscar por prefixo ou policial..." value="{{ q|default:'' }}">
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary btn-sm px-4">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Data/Hora</th>
+                    <th>Viatura</th>
+                    <th>Tipo</th>
+                    <th>Avaliador</th>
+                    <th>Odômetro</th>
+                    <th class="text-center">Danos?</th>
+                    <th class="text-end pe-4">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for checklist in page_obj %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-bold">{{ checklist.data_hora|date:"d/m/Y" }}</div>
+                        <small class="text-muted">{{ checklist.data_hora|date:"H:i" }}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-dark">{{ checklist.viatura.prefixo }}</span>
+                    </td>
+                    <td>
+                        {% if checklist.tipo == 'SAIDA' %}
+                            <span class="text-primary"><i class="fas fa-sign-out-alt me-1"></i>Saída</span>
+                        {% elif checklist.tipo == 'RETORNO' %}
+                            <span class="text-success"><i class="fas fa-sign-in-alt me-1"></i>Retorno</span>
+                        {% else %}
+                            <span class="text-info"><i class="fas fa-sync me-1"></i>Rotina</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ checklist.policial.nome_guerra }}</td>
+                    <td>{{ checklist.odometro|floatformat:1 }} <small>km</small></td>
+                    <td class="text-center">
+                        {% if checklist.avarias_lataria %}
+                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Sim</span>
+                        {% else %}
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3">Não</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'viaturas:detalhe_checklist' checklist.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <img src="https://illustrations.popsy.co/gray/data-analysis.svg" alt="Sem dados" style="height: 120px;" class="mb-3 opacity-50">
+                        <p class="text-muted">Nenhum checklist encontrado.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white border-top-0 py-3">
+        {% include 'includes/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

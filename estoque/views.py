@@ -261,7 +261,7 @@ def criar_saida_material(request):
 # =============================================================================
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def lista_categorias(request):
     categorias = Categoria.objects.all()
@@ -283,7 +283,7 @@ def lista_categorias(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def lista_subcategorias(request):
     subcategorias = Subcategoria.objects.select_related('categoria').all()
@@ -305,7 +305,7 @@ def lista_subcategorias(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def criar_categoria(request):
     if request.method == 'POST':
@@ -322,7 +322,7 @@ def criar_categoria(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def criar_subcategoria(request):
     if request.method == 'POST':
@@ -339,7 +339,7 @@ def criar_subcategoria(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def editar_subcategoria(request, pk):
     obj = get_object_or_404(Subcategoria, pk=pk)
@@ -355,7 +355,7 @@ def editar_subcategoria(request, pk):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def editar_categoria(request, pk):
     obj = get_object_or_404(Categoria, pk=pk)
@@ -386,7 +386,7 @@ def lista_unidades_medida(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def criar_unidade_medida(request):
     if request.method == 'POST':
@@ -403,7 +403,7 @@ def criar_unidade_medida(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def editar_unidade_medida(request, pk):
     obj = get_object_or_404(UnidadeMedida, pk=pk)
@@ -423,7 +423,7 @@ def editar_unidade_medida(request, pk):
 # =============================================================================
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def lista_unidades_fornecimento(request):
     qs = UnidadeFornecimento.objects.all()
@@ -436,7 +436,7 @@ def lista_unidades_fornecimento(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def criar_unidade_fornecimento(request):
     if request.method == 'POST':
@@ -453,7 +453,7 @@ def criar_unidade_fornecimento(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_materiais)
 @require_module_permission('materiais')
 def editar_unidade_fornecimento(request, pk):
     obj = get_object_or_404(UnidadeFornecimento, pk=pk)
@@ -1434,9 +1434,11 @@ def exportar_produtos_csv(request):
         writer.writerow([
             p.codigo, p.nome, p.categoria.nome if p.categoria else '',
             p.codigo_siafisico or '', p.codigo_cat_mat or '',
-            p.saldo_calculado,
+            f"{p.saldo_calculado:.2f}".replace('.', ','),
             p.unidade_medida.sigla if p.unidade_medida else '',
-            p.estoque_minimo, p.preco_medio, p.data_cotacao or '',
+            f"{p.estoque_minimo:.2f}".replace('.', ','), 
+            f"{p.preco_medio:.2f}".replace('.', ','),
+            p.data_cotacao or '',
             str(p.conta_patrimonial) if p.conta_patrimonial else '',
             p.get_status_display()
         ])
@@ -1463,9 +1465,9 @@ def buscar_produtos_ajax(request):
         Q(nome__icontains=q) | Q(codigo__icontains=q),
         status='ATIVO'
     )[:15]
-    data = [{'id': p.pk, 'text': f'{p.codigo} — {p.nome}', 'saldo': str(p.saldo_calculado),
+    data = [{'id': p.pk, 'text': f'{p.codigo} — {p.nome}', 'saldo': f"{p.saldo_calculado:.2f}",
               'unidade': p.unidade_medida.sigla if p.unidade_medida else '',
-              'preco': str(p.preco_medio)} for p in qs]
+              'preco': f"{p.preco_medio:.2f}"} for p in qs]
     return JsonResponse({'results': data})
 
 
@@ -1480,7 +1482,7 @@ def buscar_produto_por_qr_ajax(request):
             'id': p.pk,
             'codigo': p.codigo,
             'nome': p.nome,
-            'saldo': str(p.saldo_calculado),
+            'saldo': f"{p.saldo_calculado:.2f}",
         })
     except Produto.DoesNotExist:
         return JsonResponse({'error': 'Produto não encontrado'}, status=404)
@@ -1524,8 +1526,8 @@ def buscar_saldo_produto_ajax(request):
     try:
         produto = Produto.objects.get(pk=produto_id)
         return JsonResponse({
-            'saldo': str(produto.saldo_calculado),
-            'estoque_minimo': str(produto.estoque_minimo),
+            'saldo': f"{produto.saldo_calculado:.2f}",
+            'estoque_minimo': f"{produto.estoque_minimo:.2f}",
             'precisa_reposicao': produto.precisa_reposicao,
             'unidade': produto.unidade_medida.sigla if produto.unidade_medida else '',
             'unidade_fornecimento': produto.unidade_fornecimento.nome if produto.unidade_fornecimento else 'Unidade',
@@ -1624,7 +1626,7 @@ def exportar_recibo_saida_pdf(request):
         ['Descrição do Material', 'Unidade', 'Qtd'],
         [Paragraph(f"<b>{mov.produto.nome}</b><br/>{mov.produto.codigo}", body_style), 
          str(mov.produto.unidade_medida.sigla if mov.produto.unidade_medida else 'UN'), 
-         f"{mov.quantidade:g}"]
+         f"{mov.quantidade:.2f}"]
     ]
     
     mat_table = Table(mat_data, colWidths=[7.8*cm, 3*cm, 2*cm])

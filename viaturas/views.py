@@ -6,11 +6,16 @@ from django.db.models import Q, Sum, Count
 from django.core.paginator import Paginator
 from decimal import Decimal
 
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
                     AbastecimentoForm, ManutencaoForm, MarcaViaturaForm, 
-                    ModeloViaturaForm, OficinaForm)
+                    ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm)
 from reserva_baep.decorators import require_module_permission
+
+import xml.etree.ElementTree as ET
+import pandas as pd
+from django.db import transaction
+import io
 
 FROTA_GROUPS = ['frota', 'reserva_armas']  # grupos com acesso ao módulo
 
@@ -487,3 +492,175 @@ def editar_oficina(request, pk):
     else:
         form = OficinaForm(instance=oficina)
     return render(request, 'viaturas/form_oficina.html', {'form': form, 'titulo': f'Editar {oficina.nome}'})
+
+@login_required
+@require_module_permission('frota')
+def importar_viaturas(request):
+    if request.method == 'POST':
+        form = ImportarFrotaForm(request.POST, request.FILES)
+        if form.is_valid():
+            arquivo = request.FILES['arquivo']
+            extensao = arquivo.name.split('.')[-1].lower()
+            
+            criados = 0
+            atualizados = 0
+            erros = []
+            
+            try:
+                with transaction.atomic():
+                    if extensao == 'xml':
+                        tree = ET.parse(arquivo)
+                        root = tree.getroot()
+                        for v_elem in root.findall('.//Viatura'):
+                            data = {
+                                'marca_modelo': v_elem.findtext('MarcaModelo'),
+                                'placa': v_elem.findtext('Placa'),
+                                'chassi': v_elem.findtext('Chassi'),
+                                'renavam': v_elem.findtext('Renavam'),
+                                'ano_fabricacao': v_elem.findtext('AnoFabricacao'),
+                                'numero_patrimonio': v_elem.findtext('NumeroPatrimonio'),
+                                'prefixo': v_elem.findtext('Prefixo'),
+                                'situacao': v_elem.findtext('Situacao'),
+                            }
+                            
+                            res = _processar_viatura_import(data)
+                            if res == 'criado': criados += 1
+                            elif res == 'atualizado': atualizados += 1
+                    
+                    elif extensao in ['xlsx', 'xls']:
+                        df = pd.read_excel(arquivo)
+                        for _, row in df.iterrows():
+                            # Mapeamento básico para planilhas
+                            data = {
+                                'marca_modelo': row.get('MarcaModelo') or row.get('Modelo'),
+                                'placa': row.get('Placa'),
+                                'chassi': row.get('Chassi'),
+                                'renavam': row.get('Renavam'),
+                                'ano_fabricacao': row.get('AnoFabricacao'),
+                                'numero_patrimonio': row.get('NumeroPatrimonio') or row.get('Patrimonio'),
+                                'prefixo': row.get('Prefixo'),
+                                'situacao': row.get('Situacao') or row.get('Status'),
+                            }
+                            if not data['prefixo'] and not data['placa']:
+                                continue
+                                
+                            res = _processar_viatura_import(data)
+                            if res == 'criado': criados += 1
+                            elif res == 'atualizado': atualizados += 1
+                    
+                messages.success(request, f'Importação concluída! {criados} novas viaturas, {atualizados} atualizadas.')
+                return redirect('viaturas:lista_viaturas')
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao processar arquivo: {str(e)}')
+    else:
+        form = ImportarFrotaForm()
+        
+    return render(request, 'viaturas/importar_viaturas.html', {'form': form})
+
+def _processar_viatura_import(data):
+    """Função auxiliar para processar uma linha de importação."""
+    prefixo = data.get('prefixo') or f"S/P-{data.get('placa')}"
+    if not prefixo: return 'erro'
+    
+    # Tratar Marca e Modelo
+    mm = data.get('marca_modelo', 'IGNORADO/DESCONHECIDO')
+    if '/' in mm:
+        marca_nome, modelo_nome = mm.split('/', 1)
+    else:
+        marca_nome, modelo_nome = 'OUTROS', mm
+        
+    marca, _ = MarcaViatura.objects.get_or_create(nome=marca_nome.strip().upper())
+    
+    # Tenta inferir tipo
+    tipo = '4_RODAS'
+    if any(x in modelo_nome.upper() for x in ['MOTO', 'NXR', 'XT', 'LANDER', 'TRIUMPH', 'BMW G']):
+        tipo = 'MOTO'
+    elif any(x in modelo_nome.upper() for x in ['CARGO', 'BUS', 'ONIBUS', 'CAMINHAO']):
+        tipo = 'CAMINHAO'
+        
+    modelo, _ = ModeloViatura.objects.get_or_create(
+        marca=marca, 
+        nome=modelo_nome.strip().upper(),
+        defaults={'tipo': tipo}
+    )
+    
+    # Mapear Situação
+    status = 'DISPONIVEL'
+    situacao = str(data.get('situacao', '')).upper()
+    if 'DESCARGA' in situacao or 'BAIXA' in situacao:
+        status = 'BAIXADA'
+    elif 'MANUT' in situacao or 'OFICINA' in situacao:
+        status = 'MANUTENCAO'
+        
+    obj, created = Viatura.objects.update_or_create(
+        prefixo=prefixo,
+        defaults={
+            'placa': data.get('placa'),
+            'chassi': data.get('chassi'),
+            'renavam': data.get('renavam'),
+            'numero_patrimonio': data.get('numero_patrimonio'),
+            'modelo': modelo,
+            'ano_fabricacao': int(data.get('ano_fabricacao')) if data.get('ano_fabricacao') and str(data.get('ano_fabricacao')).isdigit() else None,
+            'status': status
+        }
+    )
+    return 'criado' if created else 'atualizado'
+
+
+@login_required
+@require_module_permission('frota')
+def lista_checklists(request):
+    q = request.GET.get('q', '')
+    checklists = ChecklistViatura.objects.all()
+    
+    if q:
+        checklists = checklists.filter(
+            Q(viatura__prefixo__icontains=q) | 
+            Q(policial__nome_completo__icontains=q) |
+            Q(policial__nome_guerra__icontains=q)
+        )
+    
+    paginator = Paginator(checklists, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'viaturas/lista_checklists.html', {
+        'page_obj': page_obj,
+        'q': q
+    })
+
+@login_required
+@require_module_permission('frota')
+def criar_checklist(request):
+    viatura_id = request.GET.get('viatura')
+    initial_data = {}
+    if viatura_id:
+        viatura = get_object_or_404(Viatura, pk=viatura_id)
+        initial_data['viatura'] = viatura
+        initial_data['odometro'] = viatura.odometro_atual
+
+    if request.method == 'POST':
+        form = ChecklistViaturaForm(request.POST)
+        if form.is_valid():
+            checklist = form.save(commit=False)
+            checklist.registrado_por = request.user
+            checklist.save()
+            
+            # Opcional: Atualizar odômetro da viatura se o do checklist for maior
+            if checklist.odometro > checklist.viatura.odometro_atual:
+                checklist.viatura.odometro_atual = checklist.odometro
+                checklist.viatura.save()
+                
+            messages.success(request, 'Checklist registrado com sucesso!')
+            return redirect('viaturas:lista_checklists')
+    else:
+        form = ChecklistViaturaForm(initial=initial_data)
+
+    return render(request, 'viaturas/form_checklist.html', {'form': form})
+
+@login_required
+@require_module_permission('frota')
+def detalhe_checklist(request, pk):
+    checklist = get_object_or_404(ChecklistViatura, pk=pk)
+    return render(request, 'viaturas/detalhe_checklist.html', {'checklist': checklist})

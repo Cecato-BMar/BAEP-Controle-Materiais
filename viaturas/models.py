@@ -61,6 +61,7 @@ class Viatura(models.Model):
     placa = models.CharField(_('Placa'), max_length=15, blank=True, null=True, unique=True)
     chassi = models.CharField(_('Chassi/Nº de Série'), max_length=100, blank=True, null=True)
     renavam = models.CharField(_('RENAVAM'), max_length=30, blank=True, null=True)
+    numero_patrimonio = models.CharField(_('Nº Patrimônio'), max_length=50, blank=True, null=True, unique=True)
     
     modelo = models.ForeignKey(ModeloViatura, on_delete=models.PROTECT, related_name='viaturas')
     ano_fabricacao = models.PositiveIntegerField(_('Ano de Fabricação'), blank=True, null=True)
@@ -195,7 +196,54 @@ class Manutencao(models.Model):
     def custo_total(self):
         return self.custo_pecas + self.custo_mao_obra
 
+class ChecklistViatura(models.Model):
+    """Checklist completo para avaliação da viatura (Inspeção Operacional)"""
+    TIPO_CHECKLIST = [
+        ('SAIDA', 'Saída de Serviço'),
+        ('RETORNO', 'Retorno de Serviço'),
+        ('ROTINA', 'Inspeção de Rotina/Semanal'),
+    ]
+
+    viatura = models.ForeignKey(Viatura, on_delete=models.CASCADE, related_name='checklists')
+    policial = models.ForeignKey('policiais.Policial', on_delete=models.PROTECT, verbose_name="Avaliador")
+    tipo = models.CharField(_('Tipo de Checklist'), max_length=20, choices=TIPO_CHECKLIST, default='SAIDA')
+    data_hora = models.DateTimeField(auto_now_add=True)
+    odometro = models.DecimalField(_('Odômetro Atual'), max_digits=10, decimal_places=1)
+
+    # Conservação e Limpeza
+    limpeza_interna = models.BooleanField(_('Limpeza Interna OK?'), default=True)
+    limpeza_externa = models.BooleanField(_('Limpeza Externa OK?'), default=True)
+    conservacao_estofados = models.BooleanField(_('Estofados/Bancos OK?'), default=True)
+
+    # Mecânica e Fluídos
+    niveis_fluidos = models.BooleanField(_('Níveis de Óleo/Água OK?'), default=True)
+    pneus_condicoes = models.BooleanField(_('Pneus em boas condições?'), default=True)
+    pneu_estepe = models.BooleanField(_('Pneu Estepe presente/cheio?'), default=True)
+    freio_estacionamento = models.BooleanField(_('Freio de Mão OK?'), default=True)
+
+    # Elétrica e Sinalização
+    farois_lanternas = models.BooleanField(_('Faróis e Lanternas OK?'), default=True)
+    setas_emergencia = models.BooleanField(_('Setas/Pisca-alerta OK?'), default=True)
+    giroflex_sirene = models.BooleanField(_('Giroflex e Sirene OK?'), default=True)
+    painel_instrumentos = models.BooleanField(_('Instrumentos do Painel OK?'), default=True)
+
+    # Equipamentos e Acessórios
+    extintor_incendio = models.BooleanField(_('Extintor (Carga/Validade) OK?'), default=True)
+    triangulo_macaco_chave = models.BooleanField(_('Triângulo/Macaco/Chave Roda OK?'), default=True)
+    cones_sinalizacao = models.BooleanField(_('Cones de Sinalização OK?'), default=True)
+    documentacao_crlv = models.BooleanField(_('Documentação (CRLV) OK?'), default=True)
+    kit_primeiros_socorros = models.BooleanField(_('Kit Primeiros Socorros OK?'), default=True)
+
+    # Registro de Danos
+    avarias_lataria = models.TextField(_('Avarias na Lataria/Pintura'), blank=True, null=True, help_text="Descreva riscos, mossas ou quebras")
+    observacoes_gerais = models.TextField(_('Observações Gerais'), blank=True, null=True)
+
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+
     class Meta:
-        verbose_name = _('Manutenção')
-        verbose_name_plural = _('Manutenções')
-        ordering = ['-data_inicio']
+        verbose_name = _('Checklist de Viatura')
+        verbose_name_plural = _('Checklists de Viaturas')
+        ordering = ['-data_hora']
+
+    def __str__(self):
+        return f"Checklist {self.viatura.prefixo} - {self.get_tipo_display()} ({self.data_hora.strftime('%d/%m/%Y')})"

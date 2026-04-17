@@ -2,90 +2,156 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Relatório de Patrimônio — SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Inventário de Patrimônio — SIS LOGÍSTICA BAEP{% endblock %}
 
 {% block content %}
-<div class="container py-4 animate__animated animate__fadeIn">
+<div class="container py-5 animate__animated animate__fadeIn">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
-                <div class="card-header bg-primary text-dark p-4">
-                    <div class="d-flex align-items-center">
-                         <div class="bg-white bg-opacity-40 rounded-circle p-3 me-3">
-                            <i class="fas fa-barcode fa-2x"></i>
+        <div class="col-lg-9">
+            <!-- Card Principal -->
+            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: #fff;">
+                <!-- Header com Gradiente Premium -->
+                <div class="card-header border-0 p-4 p-md-5" style="background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); background-size: 200% 200%; animation: gradientBG 10s ease infinite;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-4 backdrop-blur shadow-sm">
+                                <i class="fas fa-boxes-stacked fa-2x text-white"></i>
+                            </div>
+                            <div class="text-white">
+                                <h2 class="fw-bold mb-1 tracking-tight">Inventário de Patrimônio</h2>
+                                <p class="mb-0 opacity-80 small text-uppercase fw-semibold tracking-wider">Gestão de Bens Permanentes • 2º BAEP</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="fw-bold mb-1">Inventário de Bens Permanentes</h3>
-                            <p class="text-dark-50 mb-0 small text-uppercase fw-bold">Gestão Patrimonial BAEP</p>
+                        <div class="bg-white bg-opacity-10 backdrop-blur rounded-pill px-4 py-2 border border-white border-opacity-20 d-none d-sm-block">
+                            <span class="text-white small fw-bold"><i class="far fa-calendar-alt me-2"></i>{% now "d/m/Y" %}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        <div class="form-group-custom mb-4">
-                            <label class="fw-bold text-dark mb-2"><i class="fas fa-file-signature me-1"></i> Nome do Relatório</label>
-                            {{ form.titulo|as_crispy_field }}
-                        </div>
+                    <div class="row g-5">
+                        <!-- Coluna do Formulário -->
+                        <div class="col-lg-12">
+                            <form method="post" novalidate class="premium-form">
+                                {% csrf_token %}
+                                
+                                <div class="section-title mb-4 pb-2 border-bottom border-light">
+                                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-sliders me-2 text-primary"></i>Configurações do Relatório</h5>
+                                </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6 form-group-custom">
-                                <label class="fw-bold text-dark mb-2"><i class="fas fa-filter me-1"></i> Status</label>
-                                {{ form.status|as_crispy_field }}
-                            </div>
-                            <div class="col-md-6 form-group-custom">
-                                <label class="fw-bold text-dark mb-2"><i class="fas fa-tags me-1"></i> Categoria</label>
-                                {{ form.categoria|as_crispy_field }}
-                            </div>
-                        </div>
+                                {% crispy form %}
 
-                        <div class="form-group-custom mb-4">
-                            <label class="fw-bold text-dark mb-2"><i class="fas fa-comment-alt me-1"></i> Observações Adicionais</label>
-                            {{ form.observacoes|as_crispy_field }}
-                        </div>
+                                <div class="info-alert mt-4 p-4 rounded-4 bg-light border-start border-primary border-4 shadow-sm">
+                                    <div class="d-flex">
+                                        <div class="text-primary me-3">
+                                            <i class="fas fa-lightbulb fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1">Dica de Geração</h6>
+                                            <p class="small text-muted mb-0">
+                                                Para um inventário completo, deixe os filtros de "Status" e "Categoria" em branco. 
+                                                O arquivo gerado incluirá códigos QR para fácil conferência física.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div class="bg-primary bg-opacity-5 rounded-4 p-4 mb-4 border-start border-primary border-4">
-                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-info-circle me-2"></i>Conteúdo do Relatório</h6>
-                            <ul class="small text-muted mb-0">
-                                <li>Resumo estatístico por status de conservação e uso</li>
-                                <li>Lista detalhada de itens com número de patrimônio e série</li>
-                                <li>Localização cadastrada e responsável atual (se houver)</li>
-                            </ul>
+                                <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none px-0">
+                                        <i class="fas fa-arrow-left me-2"></i>Voltar à Central
+                                    </a>
+                                    <button type="submit" class="btn btn-dark btn-lg rounded-pill px-5 fw-bold shadow-hover transition-all">
+                                        <i class="fas fa-rocket me-2"></i>GERAR RELATÓRIO PDF
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none small">
-                                <i class="fas fa-chevron-left me-1"></i> Voltar à Central
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow">
-                                <i class="fas fa-file-pdf me-2"></i> GERAR INVENTÁRIO
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
+            </div>
+            
+            <!-- Footer da Página -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="fas fa-shield-halved me-1"></i> Sistema de Controle Logístico — 2º Batalhão de Ações Especiais de Polícia
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .form-group-custom .asteriskField { display: none; }
-    label { display: none !important; }
-    .form-group-custom label { display: block !important; }
-    .row label { display: block !important; }
-    input[type="text"], textarea, select { border-radius: 12px !important; border: 1px solid #eee !important; padding: 12px !important; color: #2c3e50; font-weight: 500; }
-    input:focus, textarea:focus, select:focus { border-color: #f1c40f !important; box-shadow: 0 0 0 0.25rem rgba(241, 196, 15, 0.1) !important; }
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .tracking-tight { letter-spacing: -0.5px; }
+    .tracking-wider { letter-spacing: 1.5px; }
+
+    /* Estilização Premium Crispy Forms */
+    .premium-form .form-control, 
+    .premium-form .form-select,
+    .premium-form .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 12px 16px !important;
+        background-color: #f8fafc !important;
+        transition: all 0.2s ease-in-out !important;
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .premium-form .form-control:focus, 
+    .premium-form .form-select:focus {
+        border-color: #3b82f6 !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+        outline: none;
+    }
+
+    .premium-form label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+    }
+
+    .shadow-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .asteriskField {
+        color: #ef4444;
+    }
 </style>
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('.select2').select2({
-            theme: 'bootstrap-5',
-            width: '100%'
-        });
+        if ($.fn.select2) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
     });
 </script>
 {% endblock %}

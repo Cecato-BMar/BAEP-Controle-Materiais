@@ -5,58 +5,151 @@
 {% block title %}Relatório de Estoque — MATERIAL DE CONSUMO BAEP{% endblock %}
 
 {% block content %}
-<div class="container py-4 animate__animated animate__fadeIn">
-    <div class="mb-4 d-flex justify-content-between align-items-center">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-decoration-none">Relatórios</a></li>
-                <li class="breadcrumb-item active">Movimentações de Estoque</li>
-            </ol>
-        </nav>
-        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-            <i class="fas fa-times me-1"></i> Cancelar
-        </a>
-    </div>
-
+<div class="container py-5 animate__animated animate__fadeIn">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
-                <div class="card-header bg-navy text-white p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
-                            <i class="fas fa-boxes fa-2x"></i>
+        <div class="col-lg-9">
+            <!-- Card Principal -->
+            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: #fff;">
+                <!-- Header com Gradiente Temático (Azul/Ciano) -->
+                <div class="card-header border-0 p-4 p-md-5" style="background: linear-gradient(135deg, #0f172a, #1a2a6c, #0d9488); background-size: 200% 200%; animation: gradientBG 12s ease infinite;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-4 backdrop-blur shadow-sm">
+                                <i class="fas fa-boxes fa-2x text-white"></i>
+                            </div>
+                            <div class="text-white">
+                                <h2 class="fw-bold mb-1 tracking-tight">Relatórios de Estoque</h2>
+                                <p class="mb-0 opacity-80 small text-uppercase fw-semibold tracking-wider">Gestão de Consumo e Logística • 2º BAEP</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="fw-bold mb-1">Relatórios de Estoque</h3>
-                            <p class="text-white-50 mb-0 small text-uppercase fw-bold">Gestão de Consumo e Logística</p>
+                        <div class="bg-white bg-opacity-10 backdrop-blur rounded-pill px-4 py-2 border border-white border-opacity-20 d-none d-sm-block">
+                            <span class="text-white small fw-bold"><i class="fas fa-warehouse me-2"></i>ESTOQUE CENTRAL</span>
                         </div>
                     </div>
                 </div>
+
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" novalidate id="form-report">
+                    <form method="post" novalidate id="form-report" class="premium-form">
                         {% csrf_token %}
-                        {% crispy form %}
+                        
+                        <div class="section-title mb-4 pb-2 border-bottom border-light">
+                            <h5 class="fw-bold text-dark mb-0"><i class="fas fa-filter me-2 text-primary"></i>Filtros de Exportação</h5>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-12">
+                                {% crispy form %}
+                            </div>
+                        </div>
+
+                        <!-- Info Card -->
+                        <div class="mt-4 p-4 rounded-4 bg-light border-0 shadow-sm d-flex align-items-center">
+                            <div class="bg-white rounded-circle p-3 shadow-sm me-3">
+                                <i class="fas fa-file-excel text-success fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Formato de Saída</h6>
+                                <p class="small text-muted mb-0">O sistema gerará um documento PDF otimizado para impressão com tabelas de consumo e custo total.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none px-0 transition-all">
+                                <i class="fas fa-chevron-left me-2"></i>Voltar à Central
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-hover transition-all">
+                                <i class="fas fa-file-pdf me-2"></i>GERAR RELATÓRIO PDF
+                            </button>
+                        </div>
                     </form>
                 </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i> Os dados refletem o estado atual do estoque disponível em tempo real.
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .bg-navy { background-color: #1a2a6c; }
-    .text-navy { color: #1a2a6c; }
-    .asteriskField { display: none; }
-    .form-control, .form-select { border-radius: 12px !important; border: 1px solid #eee !important; padding: 12px !important; margin-bottom: 5px; }
-    .btn-navy { background-color: #1a2a6c; color: white; border: 0; }
-    .btn-navy:hover { background-color: #0f1a4a; color: white; }
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .tracking-tight { letter-spacing: -0.5px; }
+    .tracking-wider { letter-spacing: 1.5px; }
+
+    /* Estilização Premium Crispy Forms */
+    .premium-form .form-control, 
+    .premium-form .form-select,
+    .premium-form .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 12px 16px !important;
+        background-color: #f8fafc !important;
+        transition: all 0.2s ease-in-out !important;
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .premium-form .form-control:focus, 
+    .premium-form .form-select:focus {
+        border-color: #3b82f6 !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+        outline: none;
+    }
+
+    .premium-form label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        display: block !important;
+    }
+
+    .shadow-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .asteriskField {
+        color: #ef4444;
+    }
 </style>
-{% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('.select2').select2({ placeholder: "Todos", allowClear: true });
+        if ($.fn.select2) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: "Todos os itens",
+                allowClear: true
+            });
+        }
     });
 </script>
+{% endblock %}
 {% endblock %}

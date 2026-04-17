@@ -150,7 +150,7 @@
                                 {{ mov.get_subtipo_display }}
                             </td>
                             <td class="text-center fw-bold">{{ mov.quantidade|floatformat:0 }}</td>
-                            <td>{{ mov.usuario.username }} {% if mov.militar_requisitante %}/ {{ mov.militar_requisitante.qra }}{% endif %}</td>
+                            <td>{{ mov.usuario.username }} {% if mov.militar_requisitante %}/ {{ mov.militar_requisitante.nome }}{% endif %}</td>
                             <td>{{ mov.nota_fiscal|default:mov.documento_referencia|default:"—" }}</td>
                         </tr>
                         {% endfor %}

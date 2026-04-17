@@ -4,7 +4,7 @@
 {% for militar in page_obj %}
 <tr>
     <td class="fw-bold"><code>{{ militar.re }}</code></td>
-    <td class="fw-bold">{{ militar.qra }}</td>
+    <td class="fw-bold">{{ militar.nome }}</td>
     <td>{{ militar.nome_completo|default:"—" }}</td>
     <td><span class="badge bg-outline-info text-info border border-info px-3 rounded-pill">{{ militar.orgao.sigla|default:"—" }}</span></td>
     <td class="text-center">

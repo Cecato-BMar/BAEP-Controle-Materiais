@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, ChecklistViatura
+
+@admin.register(ChecklistViatura)
+class ChecklistViaturaAdmin(admin.ModelAdmin):
+    list_display = ('viatura', 'tipo', 'policial', 'data_hora', 'odometro')
+    list_filter = ('tipo', 'data_hora', 'viatura')
+    search_fields = ('viatura__prefixo', 'policial__nome_guerra')
+    readonly_fields = ('data_hora', 'registrado_por')
 
 @admin.register(MarcaViatura)
 class MarcaViaturaAdmin(admin.ModelAdmin):

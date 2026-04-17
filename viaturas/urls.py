@@ -9,6 +9,7 @@ urlpatterns = [
     # CRUD Viaturas
     path('viaturas/', views.lista_viaturas, name='lista_viaturas'),
     path('viaturas/nova/', views.criar_viatura, name='criar_viatura'),
+    path('viaturas/importar/', views.importar_viaturas, name='importar_viaturas'),
     path('viaturas/<int:pk>/', views.detalhe_viatura, name='detalhe_viatura'),
     path('viaturas/<int:pk>/editar/', views.editar_viatura, name='editar_viatura'),
 
@@ -40,4 +41,9 @@ urlpatterns = [
     path('oficinas/', views.lista_oficinas, name='lista_oficinas'),
     path('oficinas/nova/', views.criar_oficina, name='criar_oficina'),
     path('oficinas/<int:pk>/editar/', views.editar_oficina, name='editar_oficina'),
+
+    # Checklists
+    path('checklists/', views.lista_checklists, name='lista_checklists'),
+    path('checklists/novo/', views.criar_checklist, name='criar_checklist'),
+    path('checklists/<int:pk>/', views.detalhe_checklist, name='detalhe_checklist'),
 ]
