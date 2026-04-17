@@ -436,16 +436,8 @@ def importar_bens(request):
                 'erros': 0,
             }
             messages.error(request, f'Erro durante a importação: {str(e)}')
-<<<<<<< HEAD
+        return redirect('patrimonio:importar_bens')
 
-        return render(request, 'patrimonio/importar_bens.html', {
-            'titulo': 'Importar Patrimônio (SILP/XML)',
-            'resultado': resultado,
-        })
-=======
-            
-        return redirect('patrimonio:importar_bens') # Redireciona para a mesma tela para ver o resumo
->>>>>>> c2aee60 (Funcionalidades de Oficinas implementadas e Renomeado PAP para MATERIAL DE CONSUMO)
         
     ultimo_import = request.session.get('ultimo_import_patrimonio')
     return render(request, 'patrimonio/importar_bens.html', {
