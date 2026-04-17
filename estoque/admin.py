@@ -9,7 +9,7 @@ from .models import (
 
 
 # =============================================================================
-# CADASTROS MESTRES PAP
+# CADASTROS MESTRES MATERIAL DE CONSUMO
 # =============================================================================
 
 @admin.register(Cor)
@@ -121,7 +121,7 @@ class ProdutoAdmin(admin.ModelAdmin):
         ('Identificação', {
             'fields': ('codigo', 'codigo_barras', 'nome', 'descricao', 'categoria', 'subcategoria', 'status')
         }),
-        ('Licitação / PAP', {
+        ('Licitação / MATERIAL DE CONSUMO', {
             'fields': ('empenho', 'codigo_siafisico', 'codigo_cat_mat', 'termo_referencia', 'processo_sei',
                        'preco_medio', 'data_cotacao', 'cotacao_vencida',
                        'data_inicio_projeto', 'tempo_reposicao', 'historico_subcategoria')
@@ -202,12 +202,12 @@ class MovimentacaoEstoqueAdmin(admin.ModelAdmin):
         ('Quantidades e Valores', {
             'fields': ('quantidade', 'valor_unitario', 'valor_total')
         }),
-        ('Dados de Entrada (PAP §2)', {
+        ('Dados de Entrada (MATERIAL DE CONSUMO §2)', {
             'fields': ('cor', 'unidade_medida', 'unidade_fornecimento',
                        'conta_patrimonial', 'localizacao_fisica', 'fornecedor',
                        'nota_fiscal', 'documento_referencia')
         }),
-        ('Dados de Saída (PAP §3)', {
+        ('Dados de Saída (MATERIAL DE CONSUMO §3)', {
             'fields': ('orgao_requisitante', 'militar_requisitante')
         }),
         ('Observações', {

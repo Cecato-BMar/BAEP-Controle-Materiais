@@ -6,9 +6,10 @@ from django.db.models import Q, Sum, Count
 from django.core.paginator import Paginator
 from decimal import Decimal
 
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
-                    AbastecimentoForm, ManutencaoForm, MarcaViaturaForm, ModeloViaturaForm)
+                    AbastecimentoForm, ManutencaoForm, MarcaViaturaForm, 
+                    ModeloViaturaForm, OficinaForm)
 from reserva_baep.decorators import require_module_permission
 
 FROTA_GROUPS = ['frota', 'reserva_armas']  # grupos com acesso ao módulo
@@ -277,7 +278,7 @@ def criar_abastecimento(request):
 @login_required
 @require_module_permission('frota')
 def lista_manutencoes(request):
-    qs = Manutencao.objects.select_related('viatura').order_by('-data_inicio')
+    qs = Manutencao.objects.select_related('viatura', 'oficina_fk').order_by('-data_inicio')
     status = request.GET.get('status', 'abertas')
     if status == 'abertas':
         qs = qs.filter(data_conclusao__isnull=True)
@@ -290,6 +291,30 @@ def lista_manutencoes(request):
 
 @login_required
 @require_module_permission('frota')
+def detalhe_manutencao(request, pk):
+    man = get_object_or_404(Manutencao.objects.select_related('viatura', 'oficina_fk', 'registrado_por'), pk=pk)
+    return render(request, 'viaturas/detalhe_manutencao.html', {'manutencao': man})
+
+
+@login_required
+@require_module_permission('frota')
+def concluir_manutencao(request, pk):
+    man = get_object_or_404(Manutencao, pk=pk, data_conclusao__isnull=True)
+    man.data_conclusao = timezone.now().date()
+    man.status = 'CONCLUIDA'
+    man.save()
+    
+    # Libera a viatura para DISPONIVEL
+    viatura = man.viatura
+    viatura.status = 'DISPONIVEL'
+    viatura.save()
+    
+    messages.success(request, f'Manutenção da viatura {viatura.prefixo} marcada como concluída!')
+    return redirect('viaturas:lista_manutencoes')
+
+
+@login_required
+@require_module_permission('frota')
 def criar_manutencao(request):
     if request.method == 'POST':
         form = ManutencaoForm(request.POST)
@@ -297,10 +322,14 @@ def criar_manutencao(request):
             man = form.save(commit=False)
             man.registrado_por = request.user
             man.save()
-            # Atualiza status da viatura para manutenção se não concluída
-            if not man.data_conclusao:
+            # Atualiza status da viatura para manutenção se for o caso
+            if man.status in ['ABERTA', 'AGUARDANDO_PECA']:
                 man.viatura.status = 'MANUTENCAO'
                 man.viatura.save()
+            elif man.status == 'CONCLUIDA':
+                man.viatura.status = 'DISPONIVEL'
+                man.viatura.save()
+                
             messages.success(request, 'Manutenção registrada com sucesso!')
             return redirect('viaturas:lista_manutencoes')
         messages.error(request, 'Corrija os erros abaixo.')
@@ -317,10 +346,14 @@ def editar_manutencao(request, pk):
         form = ManutencaoForm(request.POST, instance=man)
         if form.is_valid():
             m = form.save()
-            # Se manutenção foi concluída, libera a viatura
-            if m.data_conclusao and m.viatura.status == 'MANUTENCAO':
+            # Se manutenção foi concluída ou cancelada, libera a viatura
+            if m.status in ['CONCLUIDA', 'CANCELADA']:
                 m.viatura.status = 'DISPONIVEL'
                 m.viatura.save()
+            elif m.status in ['ABERTA', 'AGUARDANDO_PECA']:
+                m.viatura.status = 'MANUTENCAO'
+                m.viatura.save()
+                
             messages.success(request, 'Manutenção atualizada!')
             return redirect('viaturas:lista_manutencoes')
         messages.error(request, 'Corrija os erros abaixo.')
@@ -410,3 +443,47 @@ def editar_modelo(request, pk):
     else:
         form = ModeloViaturaForm(instance=modelo)
     return render(request, 'viaturas/form_modelo.html', {'form': form, 'titulo': f'Editar {modelo.nome}'})
+
+
+# =============================================================================
+# OFICINAS
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_oficinas(request):
+    qs = Oficina.objects.annotate(total_manutencoes=Count('manutencoes')).all()
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_oficinas.html', {'page_obj': page})
+
+
+@login_required
+@require_module_permission('frota')
+def criar_oficina(request):
+    if request.method == 'POST':
+        form = OficinaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Oficina cadastrada com sucesso!')
+            return redirect('viaturas:lista_oficinas')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = OficinaForm()
+    return render(request, 'viaturas/form_oficina.html', {'form': form, 'titulo': 'Nova Oficina'})
+
+
+@login_required
+@require_module_permission('frota')
+def editar_oficina(request, pk):
+    oficina = get_object_or_404(Oficina, pk=pk)
+    if request.method == 'POST':
+        form = OficinaForm(request.POST, instance=oficina)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Oficina {oficina.nome} atualizada!')
+            return redirect('viaturas:lista_oficinas')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = OficinaForm(instance=oficina)
+    return render(request, 'viaturas/form_oficina.html', {'form': form, 'titulo': f'Editar {oficina.nome}'})

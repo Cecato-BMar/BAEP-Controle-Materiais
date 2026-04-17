@@ -127,7 +127,7 @@
                                     {% if m.data_conclusao %}<small>{{ m.data_conclusao|date:"d/m/Y" }}</small>
                                     {% else %}<span class="badge bg-warning text-dark">Aberta</span>{% endif %}
                                 </td>
-                                <td>{{ m.oficina }}</td>
+                                <td>{{ m.oficina_fk|default:m.oficina }}</td>
                                 <td>R$ {{ m.custo_total|floatformat:2 }}</td>
                             </tr>
                             {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma manutenção registrada.</td></tr>

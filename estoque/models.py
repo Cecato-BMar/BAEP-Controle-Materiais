@@ -11,11 +11,11 @@ from io import BytesIO
 
 
 # =============================================================================
-# TABELAS DE PADRONIZAÇÃO (PAP §1)
+# TABELAS DE PADRONIZAÇÃO (MATERIAL DE CONSUMO §1)
 # =============================================================================
 
 class Cor(models.Model):
-    """Tabela de cores parametrizável (PAP §1 - Cor)"""
+    """Tabela de cores parametrizável (MATERIAL DE CONSUMO §1 - Cor)"""
     nome = models.CharField(_('Nome'), max_length=50, unique=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
@@ -30,7 +30,7 @@ class Cor(models.Model):
 
 
 class UnidadeFornecimento(models.Model):
-    """Unidade de fornecimento (PAP §1 — separada de UnidadeMedida para evitar confusão).
+    """Unidade de fornecimento (MATERIAL DE CONSUMO §1 — separada de UnidadeMedida para evitar confusão).
     Valor padrão: UNIDADE. Cadastro restrito a administradores."""
     nome = models.CharField(_('Nome'), max_length=100, unique=True)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
@@ -57,7 +57,7 @@ class UnidadeFornecimento(models.Model):
 
 
 class ContaPatrimonial(models.Model):
-    """Conta patrimonial (PAP §1)"""
+    """Conta patrimonial (MATERIAL DE CONSUMO §1)"""
     codigo = models.CharField(_('Código'), max_length=30, unique=True)
     descricao = models.CharField(_('Descrição'), max_length=200)
     ativo = models.BooleanField(_('Ativo'), default=True)
@@ -73,7 +73,7 @@ class ContaPatrimonial(models.Model):
 
 
 class OrgaoRequisitante(models.Model):
-    """Órgão requisitante (PAP §1)"""
+    """Órgão requisitante (MATERIAL DE CONSUMO §1)"""
     nome = models.CharField(_('Nome'), max_length=100, unique=True)
     sigla = models.CharField(_('Sigla'), max_length=20, blank=True, null=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
@@ -91,7 +91,7 @@ class OrgaoRequisitante(models.Model):
 
 
 class LocalizacaoFisica(models.Model):
-    """Localização física no almoxarifado (PAP §1)"""
+    """Localização física no almoxarifado (MATERIAL DE CONSUMO §1)"""
     nome = models.CharField(_('Nome'), max_length=100, unique=True)
     descricao = models.TextField(_('Descrição'), blank=True, null=True)
     ativo = models.BooleanField(_('Ativo'), default=True)
@@ -107,7 +107,7 @@ class LocalizacaoFisica(models.Model):
 
 
 class MilitarRequisitante(models.Model):
-    """Militar requisitante (PAP §1 — RE + QRA com busca automática)"""
+    """Militar requisitante (MATERIAL DE CONSUMO §1 — RE + QRA com busca automática)"""
     re = models.CharField(_('RE'), max_length=20, unique=True)
     qra = models.CharField(_('QRA (Nome de Guerra)'), max_length=100)
     nome_completo = models.CharField(_('Nome Completo'), max_length=200, blank=True, null=True)
@@ -167,7 +167,7 @@ class Subcategoria(models.Model):
 
 
 class UnidadeMedida(models.Model):
-    """Unidade de medida do item (PAP §1 — ex: ml, kg, pacote 100g).
+    """Unidade de medida do item (MATERIAL DE CONSUMO §1 — ex: ml, kg, pacote 100g).
     Distinta de UnidadeFornecimento."""
     sigla = models.CharField(_('Sigla'), max_length=20, unique=True)
     nome = models.CharField(_('Nome'), max_length=100)
@@ -214,12 +214,12 @@ class Fornecedor(models.Model):
 
 
 # =============================================================================
-# MATERIAL DE CONSUMO (refatoração de Produto conforme PAP §1)
+# MATERIAL DE CONSUMO (refatoração de Produto conforme MATERIAL DE CONSUMO §1)
 # =============================================================================
 
 class Produto(models.Model):
     """Material de Consumo — model central do estoque.
-    Expandido with campos obrigatórios do PAP §1 (Cadastro de Materiais de Consumo)."""
+    Expandido with campos obrigatórios do MATERIAL DE CONSUMO §1 (Cadastro de Materiais de Consumo)."""
 
     STATUS_CHOICES = [
         ('ATIVO', 'Ativo'),
@@ -228,7 +228,7 @@ class Produto(models.Model):
         ('EM_DESENVOLVIMENTO', 'Em Desenvolvimento'),
     ]
 
-    # --- Identificação (PAP §1) ---
+    # --- Identificação (MATERIAL DE CONSUMO §1) ---
     codigo = models.CharField(_('Código Único'), max_length=50, unique=True,
                                help_text=_('Código único do material. Ex: MAT-001'))
     codigo_barras = models.CharField(_('Código de Barras'), max_length=100,
@@ -239,7 +239,7 @@ class Produto(models.Model):
     descricao = models.TextField(_('Descrição'), blank=True, null=True,
                                   help_text=_('Conforme Termo de Referência'))
 
-    # --- Classificação PAP §1 ---
+    # --- Classificação MATERIAL DE CONSUMO §1 ---
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='produtos',
                                    verbose_name=_('Categoria'))
     subcategoria = models.ForeignKey(Subcategoria, on_delete=models.PROTECT, related_name='produtos',
@@ -249,7 +249,7 @@ class Produto(models.Model):
     codigo_cat_mat = models.CharField(_('Código CAT MAT'), max_length=50, blank=True, null=True,
                                        help_text=_('Conforme Termo de Referência'))
     
-    # --- Aquisição / Licitação PAP §1 ---
+    # --- Aquisição / Licitação MATERIAL DE CONSUMO §1 ---
     empenho = models.CharField(_('Nº de Empenho'), max_length=100, blank=True, null=True)
     preco_medio = models.DecimalField(_('Preço Médio'), max_digits=12, decimal_places=4,
                                        default=Decimal('0.00'),
@@ -268,7 +268,7 @@ class Produto(models.Model):
                                                blank=True, null=True,
                                                help_text=_('Registrar atualizações da subcategoria'))
 
-    # --- Unidades PAP §1 ---
+    # --- Unidades MATERIAL DE CONSUMO §1 ---
     unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.PROTECT,
                                         verbose_name=_('Unidade de Medida do Item'),
                                         null=True, blank=True)
@@ -301,7 +301,7 @@ class Produto(models.Model):
     prazo_validade_meses = models.PositiveIntegerField(_('Prazo Validade (meses)'), null=True, blank=True)
     controla_numero_serie = models.BooleanField(_('Controla Número de Série'), default=False)
 
-    # --- Vínculos PAP ---
+    # --- Vínculos MATERIAL DE CONSUMO ---
     fornecedor_padrao = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True,
                                            related_name='produtos_fornecidos',
                                            verbose_name=_('Fornecedor Padrão'))
@@ -366,11 +366,11 @@ class Produto(models.Model):
             except Exception:
                 pass
 
-    # --- Properties de Negócio (PAP §4) ---
+    # --- Properties de Negócio (MATERIAL DE CONSUMO §4) ---
 
     @property
     def saldo_calculado(self):
-        """Saldo real: SOMA(entradas) - SOMA(saídas). PAP §4.3"""
+        """Saldo real: SOMA(entradas) - SOMA(saídas). MATERIAL DE CONSUMO §4.3"""
         from django.db.models import Sum, Q
         TIPOS_ENTRADA = ['COMPRA_NOVA', 'DEVOLUCAO_ENTRADA']
         TIPOS_SAIDA = ['REQUISICAO', 'DESCARTE']
@@ -400,14 +400,14 @@ class Produto(models.Model):
 
     @property
     def cotacao_vencida(self):
-        """Alerta se cotação tem mais de 180 dias. PAP §4.8"""
+        """Alerta se cotação tem mais de 180 dias. MATERIAL DE CONSUMO §4.8"""
         if self.data_cotacao:
             return (timezone.now().date() - self.data_cotacao).days > 180
         return False
 
     @property
     def tempo_reposicao_calculado(self):
-        """PAP §4.8: Data Entrada - Data Início Projeto"""
+        """MATERIAL DE CONSUMO §4.8: Data Entrada - Data Início Projeto"""
         if self.data_inicio_projeto:
             # Busca a primeira entrada
             primeira_entrada = self.movimentacoes_estoque.filter(
@@ -418,7 +418,7 @@ class Produto(models.Model):
         return self.tempo_reposicao
 
     def consumo_medio(self, data_inicio=None, data_fim=None):
-        """PAP §4.5: consumo médio no período (saídas / dias)"""
+        """MATERIAL DE CONSUMO §4.5: consumo médio no período (saídas / dias)"""
         from django.db.models import Sum
         qs = self.movimentacoes_estoque.filter(subtipo__in=['REQUISICAO', 'DESCARTE'])
         if data_inicio:
@@ -439,7 +439,7 @@ class Produto(models.Model):
         return total_saidas / Decimal(str(dias))
 
     def autonomia(self, data_inicio=None, data_fim=None):
-        """PAP §4.6: quantidade / consumo médio"""
+        """MATERIAL DE CONSUMO §4.6: quantidade / consumo médio"""
         cm = self.consumo_medio(data_inicio, data_fim)
         if cm == 0:
             return None  # Infinito / sem consumo
@@ -447,7 +447,7 @@ class Produto(models.Model):
 
 
 # =============================================================================
-# LOTES (PEPS — PAP §1.3)
+# LOTES (PEPS — MATERIAL DE CONSUMO §1.3)
 # =============================================================================
 
 class Lote(models.Model):
@@ -514,12 +514,12 @@ class NumeroSerie(models.Model):
 
 
 # =============================================================================
-# MOVIMENTAÇÃO DE ESTOQUE (PAP §2 Entrada / §3 Saída)
+# MOVIMENTAÇÃO DE ESTOQUE (MATERIAL DE CONSUMO §2 Entrada / §3 Saída)
 # =============================================================================
 
 class MovimentacaoEstoque(models.Model):
     """Registro de movimentações. Saldo é sempre DERIVADO daqui — nunca atualizar
-    estoque_atual diretamente. PAP §1.2, §2, §3."""
+    estoque_atual diretamente. MATERIAL DE CONSUMO §1.2, §2, §3."""
 
     TIPO_MOVIMENTACAO_CHOICES = [
         ('ENTRADA', 'Entrada'),
@@ -527,7 +527,7 @@ class MovimentacaoEstoque(models.Model):
         ('AJUSTE', 'Ajuste de Estoque'),
     ]
 
-    # Subtipos PAP §1 (não permitir cadastro manual além destes)
+    # Subtipos MATERIAL DE CONSUMO §1 (não permitir cadastro manual além destes)
     SUBTIPO_CHOICES = [
         # Entradas
         ('COMPRA_NOVA', 'Compra Nova'),
@@ -553,15 +553,15 @@ class MovimentacaoEstoque(models.Model):
     numero_serie = models.ForeignKey(NumeroSerie, on_delete=models.SET_NULL, null=True, blank=True,
                                       related_name='movimentacoes', verbose_name=_('Número de Série'))
 
-    # Tipo e subtipo PAP
+    # Tipo e subtipo MATERIAL DE CONSUMO
     tipo_movimentacao = models.CharField(_('Tipo'), max_length=20, choices=TIPO_MOVIMENTACAO_CHOICES)
     subtipo = models.CharField(_('Subtipo'), max_length=30, choices=SUBTIPO_CHOICES,
                                 help_text=_('Compra Nova / Devolução / Requisição / Descarte'))
 
-    # Data (PAP §2.3, §3 — calendário travado por padrão)
+    # Data (MATERIAL DE CONSUMO §2.3, §3 — calendário travado por padrão)
     data_movimentacao = models.DateField(_('Data da Movimentação'), default=timezone.now)
 
-    # Campos de Entrada PAP §2
+    # Campos de Entrada MATERIAL DE CONSUMO §2
     cor = models.ForeignKey(Cor, on_delete=models.SET_NULL, null=True, blank=True,
                              verbose_name=_('Cor'))
     unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.SET_NULL,
@@ -580,7 +580,7 @@ class MovimentacaoEstoque(models.Model):
                                     related_name='movimentacoes_estoque',
                                     verbose_name=_('Fornecedor'))
 
-    # Campos de Saída PAP §3
+    # Campos de Saída MATERIAL DE CONSUMO §3
     orgao_requisitante = models.ForeignKey(OrgaoRequisitante, on_delete=models.SET_NULL,
                                             null=True, blank=True,
                                             verbose_name=_('Órgão Requisitante'))
@@ -626,7 +626,7 @@ class MovimentacaoEstoque(models.Model):
                 f"{self.quantidade} — {self.data_movimentacao.strftime('%d/%m/%Y')}")
 
     def clean(self):
-        """Validações de negócio (PAP Observações)"""
+        """Validações de negócio (MATERIAL DE CONSUMO Observações)"""
         super().clean()
         # Subtipo deve ser coerente com tipo
         if self.subtipo in self.SUBTIPOS_ENTRADA and self.tipo_movimentacao != 'ENTRADA':
@@ -634,7 +634,7 @@ class MovimentacaoEstoque(models.Model):
         if self.subtipo in self.SUBTIPOS_SAIDA and self.tipo_movimentacao != 'SAIDA':
             raise ValidationError({'subtipo': _('Subtipo de saída incompatível com tipo de movimentação.')})
 
-        # PAP: Saída não pode ser maior que saldo disponível
+        # MATERIAL DE CONSUMO: Saída não pode ser maior que saldo disponível
         if self.subtipo in self.SUBTIPOS_SAIDA and self.produto_id:
             from django.db.models import Sum
             saldo = self.produto.saldo_calculado
@@ -643,7 +643,7 @@ class MovimentacaoEstoque(models.Model):
                 raise ValidationError({
                     'quantidade': _(
                         f'Quantidade de saída ({quantidade_nova}) é maior que o saldo disponível ({saldo}). '
-                        f'Operação bloqueada conforme PAP.'
+                        f'Operação bloqueada conforme MATERIAL DE CONSUMO.'
                     )
                 })
 
@@ -671,7 +671,7 @@ class MovimentacaoEstoque(models.Model):
 
 
 # =============================================================================
-# INVENTÁRIO ROTATIVO (PAP §1.5)
+# INVENTÁRIO ROTATIVO (MATERIAL DE CONSUMO §1.5)
 # =============================================================================
 
 class Inventario(models.Model):

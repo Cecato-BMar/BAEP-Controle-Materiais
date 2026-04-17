@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina
 
 
 class ViaturaForm(forms.ModelForm):
@@ -43,6 +43,40 @@ class ViaturaForm(forms.ModelForm):
                     Column('observacoes', css_class='col-12'),
                 ),
             )
+        )
+
+
+class OficinaForm(forms.ModelForm):
+    class Meta:
+        model = Oficina
+        fields = ['nome', 'cnpj', 'endereco', 'cidade', 'telefone', 
+                  'contato_responsavel', 'especialidade', 'ativo']
+        widgets = {
+            'endereco': forms.TextInput(attrs={'placeholder': 'Rua, número, bairro...'}),
+            'cnpj': forms.TextInput(attrs={'placeholder': '00.000.000/0000-00'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('nome', css_class='col-md-8'),
+                Column('cnpj', css_class='col-md-4'),
+            ),
+            Row(
+                Column('endereco', css_class='col-md-8'),
+                Column('cidade', css_class='col-md-4'),
+            ),
+            Row(
+                Column('telefone', css_class='col-md-4'),
+                Column('contato_responsavel', css_class='col-md-4'),
+                Column('especialidade', css_class='col-md-4'),
+            ),
+            Row(
+                Column('ativo', css_class='col-md-3 mt-3'),
+            ),
         )
 
 
@@ -129,8 +163,8 @@ class AbastecimentoForm(forms.ModelForm):
 class ManutencaoForm(forms.ModelForm):
     class Meta:
         model = Manutencao
-        fields = ['viatura', 'tipo', 'data_inicio', 'data_conclusao',
-                  'odometro', 'descricao', 'oficina',
+        fields = ['viatura', 'tipo', 'status', 'data_inicio', 'data_conclusao',
+                  'odometro', 'descricao', 'oficina_fk',
                   'custo_pecas', 'custo_mao_obra', 'ordem_servico']
         widgets = {
             'data_inicio': forms.DateInput(attrs={'type': 'date'}),
@@ -144,15 +178,16 @@ class ManutencaoForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
-                Column('viatura', css_class='col-md-5'),
+                Column('viatura', css_class='col-md-4'),
                 Column('tipo', css_class='col-md-3'),
-                Column('ordem_servico', css_class='col-md-4'),
+                Column('status', css_class='col-md-2'),
+                Column('ordem_servico', css_class='col-md-3'),
             ),
             Row(
                 Column('data_inicio', css_class='col-md-3'),
                 Column('data_conclusao', css_class='col-md-3'),
                 Column('odometro', css_class='col-md-3'),
-                Column('oficina', css_class='col-md-3'),
+                Column('oficina_fk', css_class='col-md-3'),
             ),
             Row(
                 Column('descricao', css_class='col-12'),

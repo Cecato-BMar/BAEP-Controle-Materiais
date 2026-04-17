@@ -1,7 +1,7 @@
 {% extends 'estoque/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Registrar Saída de Material — PAP §3{% endblock %}
+{% block title %}Registrar Saída de Material — MATERIAL DE CONSUMO §3{% endblock %}
 
 {% block estoque_content %}
 <div class="row justify-content-center">
@@ -12,7 +12,7 @@
         <i class="fas fa-arrow-up fa-lg"></i>
         <div>
           <div class="fw-bold fs-5">Registrar Saída de Material</div>
-          <small class="opacity-75">PAP §3 — Tabela de Saída de Materiais de Consumo</small>
+          <small class="opacity-75">MATERIAL DE CONSUMO §3 — Tabela de Saída de Materiais de Consumo</small>
         </div>
       </div>
       <div class="card-body">
@@ -25,12 +25,12 @@
       </div>
     </div>
 
-    <!-- Regras PAP -->
+    <!-- Regras MATERIAL DE CONSUMO -->
     <div class="card border-0 shadow-sm mt-3">
       <div class="card-body py-2">
         <small class="text-muted">
           <i class="fas fa-exclamation-triangle me-1 text-danger"></i>
-          <strong>PAP — Regras obrigatórias:</strong>
+          <strong>MATERIAL DE CONSUMO — Regras obrigatórias:</strong>
           A saída não pode exceder o saldo disponível.
           Digite o RE para localizar o militar automaticamente.
           A baixa ocorre em tempo real ao salvar.

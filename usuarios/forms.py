@@ -11,7 +11,7 @@ class GroupMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         labels = {
             'reserva_armas': 'Reserva de Armas (Tático)',
-            'materiais': 'Estoque e Materiais (PAP)',
+            'materiais': 'Estoque e Materiais (MATERIAL DE CONSUMO)',
             'administracao': 'Administração do Sistema',
             'frota': 'Gestão de Frota (VTRs)',
             'patrimonio': 'Gestão de Patrimônio'

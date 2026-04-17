@@ -1,6 +1,6 @@
 {% extends 'estoque/base.html' %}
 
-{% block title %}Relatório de Estoque de Materiais — PAP §5.1{% endblock %}
+{% block title %}Relatório de Estoque de Materiais — MATERIAL DE CONSUMO §5.1{% endblock %}
 
 {% block estoque_content %}
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
@@ -36,14 +36,14 @@
       <div class="fw-bold mt-2 fs-6 text-uppercase">RELATÓRIO DE ESTOQUE DE MATERIAIS DE CONSUMO</div>
       {% if titulo_extra %}<div class="fw-bold text-danger">{{ titulo_extra }}</div>{% endif %}
       <div class="text-muted small">
-        Ref.: PAP — Controle de Estoque | Emissão: {{ data_emissao|date:"d/m/Y H:i" }}
+        Ref.: MATERIAL DE CONSUMO — Controle de Estoque | Emissão: {{ data_emissao|date:"d/m/Y H:i" }}
         {% if data_inicio and data_fim %}
         | Período: {{ data_inicio }} a {{ data_fim }}
         {% endif %}
       </div>
     </div>
 
-    <!-- Tabela PAP §5.1 -->
+    <!-- Tabela MATERIAL DE CONSUMO §5.1 -->
     <div class="table-responsive">
       <table class="table table-bordered table-sm relatorio-table">
         <thead class="table-dark">

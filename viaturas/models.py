@@ -137,15 +137,43 @@ class Abastecimento(models.Model):
         verbose_name_plural = _('Abastecimentos')
         ordering = ['-data_abastecimento']
 
+class Oficina(models.Model):
+    """Cadastro de Oficinas e Oficinas Especializadas"""
+    nome = models.CharField(_('Nome/Razão Social'), max_length=150)
+    cnpj = models.CharField(_('CNPJ'), max_length=20, blank=True, null=True)
+    endereco = models.CharField(_('Endereço'), max_length=255, blank=True, null=True)
+    cidade = models.CharField(_('Cidade'), max_length=100, default='Santos')
+    telefone = models.CharField(_('Telefone/WhatsApp'), max_length=50, blank=True, null=True)
+    contato_responsavel = models.CharField(_('Nome do Contato'), max_length=100, blank=True, null=True)
+    especialidade = models.CharField(_('Especialidade'), max_length=100, blank=True, null=True, help_text="Ex: Funilaria, Mecânica Diesel, Elétrica")
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Oficina')
+        verbose_name_plural = _('Oficinas')
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
 class Manutencao(models.Model):
     """Controle de Manutenções Preventivas e Corretivas"""
     TIPO_MANUTENCAO = [
         ('PREVENTIVA', 'Preventiva (Revisão, Óleo, Pneus)'),
         ('CORRETIVA', 'Corretiva (Quebra, Acidente)'),
     ]
+
+    STATUS_CHOICES = [
+        ('ABERTA', 'Em Aberto'),
+        ('AGUARDANDO_PECA', 'Aguardando Peça'),
+        ('CONCLUIDA', 'Concluída'),
+        ('CANCELADA', 'Cancelada'),
+    ]
     
     viatura = models.ForeignKey(Viatura, on_delete=models.PROTECT, related_name='manutencoes')
     tipo = models.CharField(_('Tipo de Manutenção'), max_length=20, choices=TIPO_MANUTENCAO)
+    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='ABERTA')
     
     data_inicio = models.DateField(_('Data de Início'))
     data_conclusao = models.DateField(_('Data de Conclusão'), blank=True, null=True)
@@ -153,7 +181,8 @@ class Manutencao(models.Model):
     odometro = models.DecimalField(_('Odômetro na Manutenção'), max_digits=10, decimal_places=1)
     
     descricao = models.TextField(_('Descrição dos Serviços/Peças'))
-    oficina = models.CharField(_('Oficina/Empresa'), max_length=150)
+    oficina = models.CharField(_('Oficina (Texto)'), max_length=150, blank=True, null=True)
+    oficina_fk = models.ForeignKey(Oficina, on_delete=models.SET_NULL, null=True, blank=True, related_name='manutencoes', verbose_name=_('Oficina (Cadastrada)'))
     
     custo_pecas = models.DecimalField(_('Custo Peças (R$)'), max_digits=10, decimal_places=2, default=0)
     custo_mao_obra = models.DecimalField(_('Custo Mão de Obra (R$)'), max_digits=10, decimal_places=2, default=0)

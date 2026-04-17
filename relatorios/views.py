@@ -1185,7 +1185,7 @@ def gerar_relatorio_movimentacoes(request):
 @login_required
 @require_module_permission('materiais')
 def gerar_relatorio_estoque_movimentacoes(request):
-    """Gera relatório de movimentações do estoque (PAP §2/§3)"""
+    """Gera relatório de movimentações do estoque (MATERIAL DE CONSUMO §2/§3)"""
     if request.method == 'POST':
         form = RelatorioEstoqueMovimentacoesForm(request.POST)
         if form.is_valid():

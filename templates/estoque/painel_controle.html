@@ -1,7 +1,7 @@
 {% extends 'estoque/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Painel de Controle Estratégico — PAP §4{% endblock %}
+{% block title %}Painel de Controle Estratégico — MATERIAL DE CONSUMO §4{% endblock %}
 
 {% block estoque_content %}
 <!-- Cabeçalho de Resumo (KPIs) -->
@@ -14,7 +14,7 @@
                 </div>
                 <div class="p-3">
                     <h3 class="fw-bold mb-0">{{ todos_materiais|length }}</h3>
-                    <p class="text-muted small mb-0 font-weight-bold">Total de Itens PAP</p>
+                    <p class="text-muted small mb-0 font-weight-bold">Total de Itens MATERIAL DE CONSUMO</p>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
 <!-- Seção de Filtro Estratégico -->
 <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
     <div class="card-header bg-white py-3">
-        <h5 class="mb-0 fw-bold"><i class="fas fa-search me-2 text-primary"></i>Análise Individualizada de Material (PAP §4)</h5>
+        <h5 class="mb-0 fw-bold"><i class="fas fa-search me-2 text-primary"></i>Análise Individualizada de Material (MATERIAL DE CONSUMO §4)</h5>
     </div>
     <div class="card-body bg-light">
         <form method="get" class="row g-3 align-items-end">
@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <!-- Coluna de Métricas PAP -->
+        <!-- Coluna de Métricas MATERIAL DE CONSUMO -->
         <div class="col-md-8">
             <div class="row g-3">
                 <div class="col-md-6 col-lg-4">
@@ -191,7 +191,7 @@
         <h5 class="mb-0 fw-bold"><i class="fas fa-table me-2 text-primary"></i>Inventário Geral Estratégico</h5>
         <div class="btn-group">
             <a href="{% url 'estoque:relatorio_estoque_materiais' %}" class="btn btn-sm btn-outline-primary shadow-sm">
-                <i class="fas fa-print me-1"></i> Imprimir PAP
+                <i class="fas fa-print me-1"></i> Imprimir MATERIAL DE CONSUMO
             </a>
             <a href="{% url 'estoque:exportar_produtos_csv' %}" class="btn btn-sm btn-outline-secondary shadow-sm ms-2">
                 <i class="fas fa-file-excel me-1"></i> Exportar

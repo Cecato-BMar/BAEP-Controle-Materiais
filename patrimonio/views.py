@@ -167,7 +167,7 @@ def lista_bens(request):
     if q:
         qs = qs.filter(nome__icontains=q)
     
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
     
     return render(request, 'patrimonio/lista_bens.html', {
@@ -408,6 +408,15 @@ def importar_bens(request):
                 'erros': erros,
             }
             if itens_importados > 0 or bens_catalogo_criados > 0:
+                summary = {
+                    'itens': itens_importados,
+                    'bens': bens_catalogo_criados,
+                    'categorias': categorias_criadas,
+                    'erros': erros,
+                    'data': timezone.now().strftime('%d/%m/%Y %H:%M')
+                }
+                request.session['ultimo_import_patrimonio'] = summary
+                
                 messages.success(request,
                     f'Importação concluída! '
                     f'{itens_importados} itens patrimoniados importados, '
@@ -427,12 +436,21 @@ def importar_bens(request):
                 'erros': 0,
             }
             messages.error(request, f'Erro durante a importação: {str(e)}')
+<<<<<<< HEAD
 
         return render(request, 'patrimonio/importar_bens.html', {
             'titulo': 'Importar Patrimônio (SILP/XML)',
             'resultado': resultado,
         })
+=======
+            
+        return redirect('patrimonio:importar_bens') # Redireciona para a mesma tela para ver o resumo
+>>>>>>> c2aee60 (Funcionalidades de Oficinas implementadas e Renomeado PAP para MATERIAL DE CONSUMO)
         
-    return render(request, 'patrimonio/importar_bens.html', {'titulo': 'Importar Patrimônio (SILP/XML)'})
+    ultimo_import = request.session.get('ultimo_import_patrimonio')
+    return render(request, 'patrimonio/importar_bens.html', {
+        'titulo': 'Importar Patrimônio (SILP/XML)',
+        'ultimo_import': ultimo_import
+    })
 
 

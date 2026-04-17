@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Saída Confirmada — PAP §3 BAEP{% endblock %}
+{% block title %}Saída Confirmada — MATERIAL DE CONSUMO §3 BAEP{% endblock %}
 
 {% block content %}
 <div class="container py-5 animate__animated animate__fadeIn">
@@ -11,7 +11,7 @@
                 <i class="fas fa-check-circle text-success fa-5x"></i>
             </div>
             <h2 class="fw-bold text-navy mb-3">Saída de Material Registrada!</h2>
-            <p class="text-muted mb-5">A movimentação de estoque (PAP §3) foi processada com sucesso. O recibo para assinatura está pronto.</p>
+            <p class="text-muted mb-5">A movimentação de estoque (MATERIAL DE CONSUMO §3) foi processada com sucesso. O recibo para assinatura está pronto.</p>
             
             <div class="card border-0 shadow-sm mb-5 text-start">
                 <div class="card-body p-4">
@@ -58,7 +58,7 @@
             
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
                 <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
-                    <i class="fas fa-print me-2"></i> IMPRIMIR RECIBO (PAP)
+                    <i class="fas fa-print me-2"></i> IMPRIMIR RECIBO (MATERIAL DE CONSUMO)
                 </a>
                 <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
                     <i class="fas fa-history me-2"></i> VER HISTÓRICO

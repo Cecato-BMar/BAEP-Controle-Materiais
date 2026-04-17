@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Detalhe da Manutenção — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">
+            <i class="fas fa-wrench me-2 text-danger"></i>
+            Manutenção: {{ manutencao.viatura.prefixo }}
+            {% if manutencao.status == 'CONCLUIDA' %}
+                <span class="badge bg-success ms-2">Concluída</span>
+            {% elif manutencao.status == 'ABERTA' %}
+                <span class="badge bg-primary ms-2">Em Aberto</span>
+            {% elif manutencao.status == 'AGUARDANDO_PECA' %}
+                <span class="badge bg-warning text-dark ms-2">Aguardando Peça</span>
+            {% elif manutencao.status == 'CANCELADA' %}
+                <span class="badge bg-secondary ms-2">Cancelada</span>
+            {% endif %}
+        </h4>
+        <small class="text-muted">OS Nº: {{ manutencao.ordem_servico|default:"Não informada" }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+        <a href="{% url 'viaturas:editar_manutencao' manutencao.pk %}" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-edit me-1"></i>Editar</a>
+        {% if manutencao.status == 'ABERTA' or manutencao.status == 'AGUARDANDO_PECA' %}
+        <a href="{% url 'viaturas:concluir_manutencao' manutencao.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Concluir Agora</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Descrição dos Serviços</div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space: pre-line;">{{ manutencao.descricao }}</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-coins me-2 text-success"></i>Resumo Financeiro</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="small text-muted">Peças e Materiais</div>
+                        <div class="fs-5 fw-bold">R$ {{ manutencao.custo_pecas|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="small text-muted">Mão de Obra</div>
+                        <div class="fs-5 fw-bold">R$ {{ manutencao.custo_mao_obra|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-md-4 bg-light rounded py-2">
+                        <div class="small text-muted">Custo Total</div>
+                        <div class="fs-4 fw-bold text-dark">R$ {{ manutencao.custo_total|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-car me-2 text-secondary"></i>Dados Técnicos</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <tr><th class="ps-3 text-muted small py-2">Viatura</th><td class="fw-bold">{{ manutencao.viatura.prefixo }}</td></tr>
+                    <tr><th class="ps-3 text-muted small py-2">Odômetro</th><td>{{ manutencao.odometro|floatformat:0 }} km</td></tr>
+                    <tr><th class="ps-3 text-muted small py-2">Tipo</th><td>{{ manutencao.get_tipo_display }}</td></tr>
+                    <tr><th class="ps-3 text-muted small py-2">Início</th><td>{{ manutencao.data_inicio|date:"d/m/Y" }}</td></tr>
+                    <tr><th class="ps-3 text-muted small py-2">Conclusão</th><td>{{ manutencao.data_conclusao|date:"d/m/Y"|default:"—" }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-store me-2 text-info"></i>Oficina / Empresa</div>
+            <div class="card-body">
+                {% if manutencao.oficina_fk %}
+                    <h6 class="fw-bold mb-1">{{ manutencao.oficina_fk.nome }}</h6>
+                    <small class="text-muted d-block"><i class="fas fa-map-marker-alt me-1"></i>{{ manutencao.oficina_fk.cidade }}</small>
+                    <small class="text-muted d-block"><i class="fas fa-phone-alt me-1"></i>{{ manutencao.oficina_fk.telefone|default:"-" }}</small>
+                    <a href="{% url 'viaturas:editar_oficina' manutencao.oficina_fk.pk %}" class="btn btn-link btn-sm p-0 mt-2">Ver cadastro da oficina</a>
+                {% else %}
+                    <h6 class="fw-bold mb-1">{{ manutencao.oficina }}</h6>
+                    <small class="text-muted">(Campo de texto histórico)</small>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light border-0 small text-muted">
+                Registrado por: {{ manutencao.registrado_por.username }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,18 +5,18 @@ app_name = 'estoque'
 
 urlpatterns = [
     # =========================================================================
-    # Dashboard e Painel de Controle (PAP §4)
+    # Dashboard e Painel de Controle (MATERIAL DE CONSUMO §4)
     # =========================================================================
     path('', views.dashboard_estoque, name='dashboard'),
     path('painel/', views.painel_controle_estoque, name='painel_controle'),
 
     # =========================================================================
-    # Entrada de Materiais (PAP §2)
+    # Entrada de Materiais (MATERIAL DE CONSUMO §2)
     # =========================================================================
     path('entrada/', views.criar_entrada_material, name='criar_entrada_material'),
 
     # =========================================================================
-    # Saída de Materiais (PAP §3)
+    # Saída de Materiais (MATERIAL DE CONSUMO §3)
     # =========================================================================
     path('saida/', views.criar_saida_material, name='criar_saida_material'),
     path('saida/confirmacao/', views.confirmacao_saida_material, name='confirmacao_saida_material'),
@@ -37,49 +37,49 @@ urlpatterns = [
     path('subcategorias/<int:pk>/editar/', views.editar_subcategoria, name='editar_subcategoria'),
 
     # =========================================================================
-    # Unidades de Medida (PAP §1)
+    # Unidades de Medida (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('unidades-medida/', views.lista_unidades_medida, name='lista_unidades_medida'),
     path('unidades-medida/nova/', views.criar_unidade_medida, name='criar_unidade_medida'),
     path('unidades-medida/<int:pk>/editar/', views.editar_unidade_medida, name='editar_unidade_medida'),
 
     # =========================================================================
-    # Unidades de Fornecimento (PAP §1 — Admin)
+    # Unidades de Fornecimento (MATERIAL DE CONSUMO §1 — Admin)
     # =========================================================================
     path('unidades-fornecimento/', views.lista_unidades_fornecimento, name='lista_unidades_fornecimento'),
     path('unidades-fornecimento/nova/', views.criar_unidade_fornecimento, name='criar_unidade_fornecimento'),
     path('unidades-fornecimento/<int:pk>/editar/', views.editar_unidade_fornecimento, name='editar_unidade_fornecimento'),
 
     # =========================================================================
-    # Cores (PAP §1)
+    # Cores (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('cores/', views.lista_cores, name='lista_cores'),
     path('cores/nova/', views.criar_cor, name='criar_cor'),
     path('cores/<int:pk>/editar/', views.editar_cor, name='editar_cor'),
 
     # =========================================================================
-    # Conta Patrimonial (PAP §1)
+    # Conta Patrimonial (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('contas-patrimoniais/', views.lista_contas_patrimoniais, name='lista_contas_patrimoniais'),
     path('contas-patrimoniais/nova/', views.criar_conta_patrimonial, name='criar_conta_patrimonial'),
     path('contas-patrimoniais/<int:pk>/editar/', views.editar_conta_patrimonial, name='editar_conta_patrimonial'),
 
     # =========================================================================
-    # Órgão Requisitante (PAP §1)
+    # Órgão Requisitante (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('orgaos-requisitantes/', views.lista_orgaos_requisitantes, name='lista_orgaos_requisitantes'),
     path('orgaos-requisitantes/novo/', views.criar_orgao_requisitante, name='criar_orgao_requisitante'),
     path('orgaos-requisitantes/<int:pk>/editar/', views.editar_orgao_requisitante, name='editar_orgao_requisitante'),
 
     # =========================================================================
-    # Localização Física (PAP §1)
+    # Localização Física (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('localizacoes/', views.lista_localizacoes, name='lista_localizacoes'),
     path('localizacoes/nova/', views.criar_localizacao, name='criar_localizacao'),
     path('localizacoes/<int:pk>/editar/', views.editar_localizacao, name='editar_localizacao'),
 
     # =========================================================================
-    # Militar Requisitante (PAP §1)
+    # Militar Requisitante (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('militares-requisitantes/', views.lista_militares_requisitantes, name='lista_militares_requisitantes'),
     path('militares-requisitantes/novo/', views.criar_militar_requisitante, name='criar_militar_requisitante'),
@@ -94,7 +94,7 @@ urlpatterns = [
     path('fornecedores/<int:pk>/editar/', views.editar_fornecedor, name='editar_fornecedor'),
 
     # =========================================================================
-    # Materiais de Consumo / Produtos (PAP §1)
+    # Materiais de Consumo / Produtos (MATERIAL DE CONSUMO §1)
     # =========================================================================
     path('materiais/', views.lista_produtos, name='lista_produtos'),
     path('materiais/novo/', views.criar_produto, name='criar_produto'),
@@ -111,7 +111,7 @@ urlpatterns = [
     path('movimentacoes/nova/', views.criar_movimentacao, name='criar_movimentacao'),
 
     # =========================================================================
-    # Inventários (PAP §1.5)
+    # Inventários (MATERIAL DE CONSUMO §1.5)
     # =========================================================================
     path('inventarios/', views.lista_inventarios, name='lista_inventarios'),
     path('inventarios/novo/', views.criar_inventario, name='criar_inventario'),
@@ -120,7 +120,7 @@ urlpatterns = [
     path('inventarios/itens/<int:pk>/contar/', views.contar_item_inventario, name='contar_item_inventario'),
 
     # =========================================================================
-    # Relatórios (PAP §5)
+    # Relatórios (MATERIAL DE CONSUMO §5)
     # =========================================================================
     path('relatorios/estoque/', views.relatorio_estoque_materiais, name='relatorio_estoque_materiais'),
     path('relatorios/estoque-baixo/', views.relatorio_estoque_baixo, name='relatorio_estoque_baixo'),

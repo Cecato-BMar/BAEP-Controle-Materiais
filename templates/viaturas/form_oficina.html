@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ titulo }} — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-tools me-2 text-primary"></i>{{ titulo }}</h4>
+        <small class="text-muted">Cadastro completo de prestadores de serviço e fornecedores</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'viaturas:lista_oficinas' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar para Oficinas</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm border-top border-primary border-4">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {% crispy form %}
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'viaturas:lista_oficinas' %}" class="btn btn-light px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold">
+                            <i class="fas fa-save me-2"></i>Salvar Oficina
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

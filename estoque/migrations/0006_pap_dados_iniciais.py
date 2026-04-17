@@ -8,15 +8,15 @@ def criar_dados_iniciais(apps, schema_editor):
     OrgaoRequisitante = apps.get_model('estoque', 'OrgaoRequisitante')
     LocalizacaoFisica = apps.get_model('estoque', 'LocalizacaoFisica')
 
-    # === Cores PAP §1 ===
+    # === Cores MATERIAL DE CONSUMO §1 ===
     cores = ['Amarelo', 'Azul', 'Vermelho', 'Preto', 'Branco', 'Cinza', 'Verde', 'Laranja', 'Rosa', 'Marrom']
     for nome in cores:
         Cor.objects.get_or_create(nome=nome)
 
-    # === Unidade de Fornecimento PAP §1 (padrão: UNIDADE) ===
+    # === Unidade de Fornecimento MATERIAL DE CONSUMO §1 (padrão: UNIDADE) ===
     uf, _ = UnidadeFornecimento.objects.get_or_create(
         nome='Unidade',
-        defaults={'padrao': True, 'descricao': 'Unidade consumível padrão (PAP §2.6)'}
+        defaults={'padrao': True, 'descricao': 'Unidade consumível padrão (MATERIAL DE CONSUMO §2.6)'}
     )
     if not uf.padrao:
         uf.padrao = True
@@ -33,7 +33,7 @@ def criar_dados_iniciais(apps, schema_editor):
     for nome, desc in outras_uf:
         UnidadeFornecimento.objects.get_or_create(nome=nome, defaults={'descricao': desc})
 
-    # === Unidades de Medida do Item PAP §1 ===
+    # === Unidades de Medida do Item MATERIAL DE CONSUMO §1 ===
     umdms = [
         ('UN', 'Unidade', 'Unidade avulsa'),
         ('PCT100G', 'Pacote 100g', 'Pacote de 100 gramas'),
@@ -56,7 +56,7 @@ def criar_dados_iniciais(apps, schema_editor):
     for sigla, nome, desc in umdms:
         UnidadeMedida.objects.get_or_create(sigla=sigla, defaults={'nome': nome, 'descricao': desc})
 
-    # === Órgãos Requisitantes PAP §1 ===
+    # === Órgãos Requisitantes MATERIAL DE CONSUMO §1 ===
     orgaos = [
         ('CMD', '2º BAEP — Comando'),
         ('SUBCMD', '2º BAEP — Subcomando'),
@@ -76,7 +76,7 @@ def criar_dados_iniciais(apps, schema_editor):
     for sigla, nome in orgaos:
         OrgaoRequisitante.objects.get_or_create(sigla=sigla, defaults={'nome': nome})
 
-    # === Localizações Físicas PAP §1 ===
+    # === Localizações Físicas MATERIAL DE CONSUMO §1 ===
     locais = [
         ('Prateleira A', 'Prateleira A do almoxarifado'),
         ('Prateleira B', 'Prateleira B do almoxarifado'),

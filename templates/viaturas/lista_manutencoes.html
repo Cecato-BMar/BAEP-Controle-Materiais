@@ -14,7 +14,7 @@
 <div class="d-flex gap-2 mb-3">
     <a href="?status=abertas" class="btn btn-sm {% if status_filtro == 'abertas' %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}"><i class="fas fa-wrench me-1"></i>Em Aberto</a>
     <a href="?status=concluidas" class="btn btn-sm {% if status_filtro == 'concluidas' %}btn-success fw-bold{% else %}btn-outline-secondary{% endif %}"><i class="fas fa-check me-1"></i>Concluídas</a>
-    <a href="?" class="btn btn-sm {% if not status_filtro %}btn-dark{% else %}btn-outline-dark{% endif %}">Todas</a>
+    <a href="?status=todas" class="btn btn-sm {% if status_filtro == 'todas' %}btn-dark fw-bold{% else %}btn-outline-dark{% endif %}">Todas</a>
 </div>
 
 <div class="card border-0">
@@ -39,20 +39,33 @@
                     <tr>
                         <td><span class="badge bg-dark fw-bold">{{ m.viatura.prefixo }}</span></td>
                         <td>
-                            {% if m.tipo == 'PREVENTIVA' %}<span class="badge bg-info text-dark">Preventiva</span>
-                            {% else %}<span class="badge bg-danger">Corretiva</span>{% endif %}
+                            {% if m.tipo == 'PREVENTIVA' %}<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill"><i class="fas fa-sync-alt me-1"></i>Preventiva</span>
+                            {% else %}<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Corretiva</span>{% endif %}
                         </td>
                         <td><code>{{ m.ordem_servico|default:"—" }}</code></td>
                         <td><small>{{ m.data_inicio|date:"d/m/Y" }}</small></td>
                         <td>
-                            {% if m.data_conclusao %}<small class="text-success">{{ m.data_conclusao|date:"d/m/Y" }}</small>
-                            {% else %}<span class="badge bg-warning text-dark">Em aberto</span>{% endif %}
+                            {% if m.status == 'CONCLUIDA' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="fas fa-check-circle me-1"></i>{{ m.data_conclusao|date:"d/m/Y" }}</span>
+                            {% elif m.status == 'AGUARDANDO_PECA' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill"><i class="fas fa-clock me-1"></i>Pendente</span>
+                            {% elif m.status == 'CANCELADA' %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill"><i class="fas fa-times me-1"></i>Cancelada</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill"><i class="fas fa-wrench me-1"></i>Em aberto</span>
+                            {% endif %}
                         </td>
-                        <td>{{ m.oficina }}</td>
+                        <td>{{ m.oficina_fk|default:m.oficina }}</td>
                         <td>{{ m.odometro|floatformat:0 }} km</td>
-                        <td class="text-end fw-bold">R$ {{ m.custo_total|floatformat:2 }}</td>
+                        <td class="text-end fw-bold text-dark">R$ {{ m.custo_total|floatformat:2 }}</td>
                         <td class="text-end">
-                            <a href="{% url 'viaturas:editar_manutencao' m.pk %}" class="btn btn-xs btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt"></i></a>
+                            <div class="btn-group">
+                                <a href="{% url 'viaturas:detalhe_manutencao' m.pk %}" class="btn btn-sm btn-outline-primary" title="Ver Detalhes"><i class="fas fa-eye"></i></a>
+                                <a href="{% url 'viaturas:editar_manutencao' m.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fas fa-edit"></i></a>
+                                {% if m.status == 'ABERTA' or m.status == 'AGUARDANDO_PECA' %}
+                                <a href="{% url 'viaturas:concluir_manutencao' m.pk %}" class="btn btn-sm btn-outline-success" title="Concluir" onclick="return confirm('Confirmar conclusão desta manutenção e liberar a viatura?')"><i class="fas fa-check"></i></a>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

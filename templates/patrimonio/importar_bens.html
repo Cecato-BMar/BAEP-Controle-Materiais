@@ -100,6 +100,40 @@
                 </form>
             </div>
         </div>
+
+        {% if ultimo_import %}
+        <div class="card border-0 shadow-sm mt-4 bg-light animate__animated animate__fadeInUp">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-history me-2 text-primary"></i>Resultado da Última Importação ({{ ultimo_import.data }})</h6>
+                <div class="row text-center g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="fw-bold text-success mb-0">{{ ultimo_import.itens }}</h4>
+                            <small class="text-muted">Itens Criados</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="fw-bold text-primary mb-0">{{ ultimo_import.bens }}</h4>
+                            <small class="text-muted">Tipos de Bem</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="fw-bold text-info mb-0">{{ ultimo_import.categorias }}</h4>
+                            <small class="text-muted">Categorias</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="fw-bold text-danger mb-0">{{ ultimo_import.erros }}</h4>
+                            <small class="text-muted">Erros/Ignorados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -126,6 +160,7 @@
     .border-dashed { border-style: dashed !important; border-width: 2px !important; }
 </style>
 
+{% block extra_js %}
 <script>
 (function() {
     const form = document.getElementById('import-form');
@@ -178,13 +213,14 @@
         btn.disabled = false;
     }
 
-    form.addEventListener('submit', function() {
-        showOverlay();
-        // Fallback: if server takes too long and we lose response, hide after 10 min
-        setTimeout(hideOverlay, 600000);
-    });
+    if (form) {
+        form.addEventListener('submit', function() {
+            showOverlay();
+            // Fallback: hide after 10 min
+            setTimeout(hideOverlay, 600000);
+        });
+    }
 
-    // If user navigates back (browser back button), ensure overlay is hidden
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             hideOverlay();
@@ -193,3 +229,5 @@
 })();
 </script>
 {% endblock %}
+{% endblock %}
+
