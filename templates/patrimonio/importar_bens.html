@@ -14,9 +14,53 @@
             </a>
         </div>
 
-        <div class="card border-0 shadow-sm border-top border-primary border-4">
+        {% if resultado %}
+        <div class="card border-0 shadow-sm mb-4 {% if resultado.sucesso %}border-top border-success border-4{% else %}border-top border-danger border-4{% endif %}">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-{% if resultado.sucesso %}check-circle text-success{% else %}times-circle text-danger{% endif %} fa-2x me-3"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-2">{% if resultado.sucesso %}Importação Concluída!{% else %}Erro na Importação{% endif %}</h5>
+                        {% if resultado.sucesso %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <h3 class="fw-bold text-primary mb-0">{{ resultado.itens_importados }}</h3>
+                                    <small class="text-muted">Itens Importados</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <h3 class="fw-bold text-info mb-0">{{ resultado.bens_catalogo_criados }}</h3>
+                                    <small class="text-muted">Bens no Catálogo</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-light rounded p-3 text-center">
+                                    <h3 class="fw-bold text-warning mb-0">{{ resultado.categorias_criadas }}</h3>
+                                    <small class="text-muted">Categorias Criadas</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if resultado.erro_geral %}
+                        <div class="alert alert-danger small mb-0">{{ resultado.erro_geral }}</div>
+                        {% endif %}
+                        {% if resultado.erros > 0 %}
+                        <div class="alert alert-warning small mb-0">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ resultado.erros }} linha(s)/item(ns) foram ignorados (dados faltantes ou duplicados).
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="import-form-card" class="card border-0 shadow-sm border-top border-primary border-4">
             <div class="card-body p-5">
-                <form method="post" enctype="multipart/form-data">
+                <form id="import-form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <div class="mb-5 text-center">
@@ -51,7 +95,7 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <a href="{% url 'patrimonio:lista_bens' %}" class="btn btn-light px-4">Cancelar</a>
-                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="fas fa-upload me-2"></i>Iniciar Importação</button>
+                        <button type="submit" id="btn-importar" class="btn btn-primary px-5 fw-bold"><i class="fas fa-upload me-2"></i>Iniciar Importação</button>
                     </div>
                 </form>
             </div>
@@ -59,7 +103,93 @@
     </div>
 </div>
 
+<!-- Loading Overlay -->
+<div id="import-overlay" class="d-none" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;">
+    <div class="card border-0 shadow-lg" style="width:420px;">
+        <div class="card-body p-5 text-center">
+            <div class="mb-4">
+                <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>
+            <h5 class="fw-bold mb-2">Importando dados...</h5>
+            <p class="text-muted small mb-3" id="import-status-msg">Processando o arquivo. Isso pode levar alguns minutos para arquivos grandes.</p>
+            <div class="progress mb-2" style="height:6px;">
+                <div id="import-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:0%"></div>
+            </div>
+            <small class="text-muted" id="import-progress-text">Enviando arquivo...</small>
+        </div>
+    </div>
+</div>
+
 <style>
     .border-dashed { border-style: dashed !important; border-width: 2px !important; }
 </style>
+
+<script>
+(function() {
+    const form = document.getElementById('import-form');
+    const overlay = document.getElementById('import-overlay');
+    const btn = document.getElementById('btn-importar');
+    const progressBar = document.getElementById('import-progress-bar');
+    const progressText = document.getElementById('import-progress-text');
+    const statusMsg = document.getElementById('import-status-msg');
+
+    const phases = [
+        { pct: 15, text: 'Enviando arquivo...', msg: 'Enviando o arquivo para o servidor...' },
+        { pct: 40, text: 'Lendo dados...', msg: 'O servidor está lendo e processando o arquivo...' },
+        { pct: 65, text: 'Importando itens...', msg: 'Criando categorias, bens e itens patrimoniais...' },
+        { pct: 85, text: 'Finalizando...', msg: 'Quase lá! Validando os dados importados...' },
+        { pct: 95, text: 'Concluindo...', msg: 'Salvando resultados no banco de dados...' },
+    ];
+
+    let phaseIndex = 0;
+    let intervalId = null;
+
+    function showOverlay() {
+        overlay.classList.remove('d-none');
+        overlay.style.display = 'flex';
+        btn.disabled = true;
+        phaseIndex = 0;
+        updatePhase();
+        intervalId = setInterval(() => {
+            phaseIndex++;
+            if (phaseIndex < phases.length) {
+                updatePhase();
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 4000);
+    }
+
+    function updatePhase() {
+        if (phaseIndex < phases.length) {
+            const phase = phases[phaseIndex];
+            progressBar.style.width = phase.pct + '%';
+            progressText.textContent = phase.text;
+            statusMsg.textContent = phase.msg;
+        }
+    }
+
+    function hideOverlay() {
+        clearInterval(intervalId);
+        overlay.style.display = 'none';
+        overlay.classList.add('d-none');
+        btn.disabled = false;
+    }
+
+    form.addEventListener('submit', function() {
+        showOverlay();
+        // Fallback: if server takes too long and we lose response, hide after 10 min
+        setTimeout(hideOverlay, 600000);
+    });
+
+    // If user navigates back (browser back button), ensure overlay is hidden
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            hideOverlay();
+        }
+    });
+})();
+</script>
 {% endblock %}

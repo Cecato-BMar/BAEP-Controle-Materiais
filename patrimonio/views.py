@@ -400,8 +400,15 @@ def importar_bens(request):
                 messages.error(request, 'Formato de arquivo não suportado. Utilize .xlsx, .xls ou .xml.')
                 return redirect('patrimonio:lista_bens')
                 
+            resultado = {
+                'sucesso': True,
+                'itens_importados': itens_importados,
+                'bens_catalogo_criados': bens_catalogo_criados,
+                'categorias_criadas': categorias_criadas,
+                'erros': erros,
+            }
             if itens_importados > 0 or bens_catalogo_criados > 0:
-                messages.success(request, 
+                messages.success(request,
                     f'Importação concluída! '
                     f'{itens_importados} itens patrimoniados importados, '
                     f'{bens_catalogo_criados} tipos de bem catalogados, '
@@ -409,11 +416,22 @@ def importar_bens(request):
                 )
             if erros > 0:
                 messages.warning(request, f'{erros} linhas/itens foram ignorados (dados faltantes ou duplicados).')
-                
+
         except Exception as e:
+            resultado = {
+                'sucesso': False,
+                'erro_geral': str(e),
+                'itens_importados': 0,
+                'bens_catalogo_criados': 0,
+                'categorias_criadas': 0,
+                'erros': 0,
+            }
             messages.error(request, f'Erro durante a importação: {str(e)}')
-            
-        return redirect('patrimonio:dashboard')
+
+        return render(request, 'patrimonio/importar_bens.html', {
+            'titulo': 'Importar Patrimônio (SILP/XML)',
+            'resultado': resultado,
+        })
         
     return render(request, 'patrimonio/importar_bens.html', {'titulo': 'Importar Patrimônio (SILP/XML)'})
 
