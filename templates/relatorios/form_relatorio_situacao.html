@@ -2,57 +2,188 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Inventário Tático — SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Situação Geral do Arsenal — SIS LOGÍSTICA 2ºBAEP{% endblock %}
 
 {% block content %}
-<div class="container py-4 animate__animated animate__fadeIn">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
-                <div class="card-header bg-navy text-white p-4">
-                    <div class="d-flex align-items-center">
-                         <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
-                            <i class="fas fa-chart-pie fa-2x"></i>
-                        </div>
-                        <div>
-                            <h3 class="fw-bold mb-1">Situação Geral do Arsenal</h3>
-                            <p class="text-white-50 mb-0 small text-uppercase fw-bold">Compilado em Tempo Real</p>
-                        </div>
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+    
+    <!-- Cabeçalho de Título -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between bg-white p-4 rounded-4 shadow-sm border-start border-4 border-primary">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary btn-sm rounded-circle me-3 shadow-sm border-0 bg-light" title="Voltar">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-navy"><i class="fas fa-shield-alt me-2"></i>Situação Geral do Arsenal</h2>
+                        <p class="text-muted mb-0 text-uppercase small fw-bold">Monitoramento tático e inventário de material bélico</p>
                     </div>
                 </div>
+                <div class="text-end">
+                    <span class="badge bg-primary-light text-primary border border-primary border-opacity-10 px-3 py-2 rounded-pill">ESTADO DE PRONTIDÃO: 100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="card-body p-4 p-md-5">
+    <!-- KPIs em Tempo Real (Live Stats) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-3 p-3" style="background: rgba(26, 42, 108, 0.1);">
+                            <i class="fas fa-boxes-stacked fa-lg" style="color: #1a2a6c;"></i>
+                        </div>
+                        <span class="badge bg-light text-dark">TOTAL</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">{{ stats.total }}</h3>
+                    <p class="text-muted small mb-0">Itens em Carga</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 border-bottom border-4 border-success">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-3 p-3" style="background: rgba(25, 135, 84, 0.1);">
+                            <i class="fas fa-check-circle fa-lg" style="color: #198754;"></i>
+                        </div>
+                        <span class="badge bg-success-light text-success">DISPONÍVEL</span>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-success">{{ stats.disponiveis }}</h3>
+                    <p class="text-muted small mb-0">Prontos para Cautela</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 border-bottom border-4 border-warning">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-3 p-3" style="background: rgba(255, 193, 7, 0.1);">
+                            <i class="fas fa-hand-holding-hand fa-lg" style="color: #ffc107;"></i>
+                        </div>
+                        <span class="badge bg-warning-light text-warning">EM USO</span>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-warning">{{ stats.em_uso }}</h3>
+                    <p class="text-muted small mb-0">Cautelas Ativas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 border-bottom border-4 border-danger">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="rounded-3 p-3" style="background: rgba(220, 53, 69, 0.1);">
+                            <i class="fas fa-tools fa-lg" style="color: #dc3545;"></i>
+                        </div>
+                        <span class="badge bg-danger-light text-danger">MANUTENÇÃO</span>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-danger">{{ stats.manutencao }}</h3>
+                    <p class="text-muted small mb-0">Indisponíveis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulário de Emissão (Lateral) -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 h-100">
+                <div class="card-header bg-navy text-white p-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-file-pdf me-2"></i>Emitir Relatório Oficial</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">Preencha os dados abaixo para gerar o documento PDF assinado eletronicamente.</p>
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
-                        <div class="form-group-custom mb-4">
-                            <label class="fw-bold text-navy mb-2"><i class="fas fa-file-signature me-1"></i> Nome do Relatório</label>
+                        <div class="form-group-custom mb-3">
+                            <label class="fw-bold text-navy small mb-1">Título do Documento</label>
                             {{ form.titulo|as_crispy_field }}
                         </div>
 
                         <div class="form-group-custom mb-4">
-                            <label class="fw-bold text-navy mb-2"><i class="fas fa-comment-alt me-1"></i> Justificativa / Observações</label>
+                            <label class="fw-bold text-navy small mb-1">Observações (Opcional)</label>
                             {{ form.observacoes|as_crispy_field }}
                         </div>
 
-                        <div class="bg-primary bg-opacity-5 rounded-4 p-4 mb-4 border-start border-primary border-4">
-                            <h6 class="fw-bold text-navy mb-2"><i class="fas fa-check-circle me-2"></i>Escopo do Documento</h6>
-                            <ul class="small text-muted mb-0">
-                                <li>Resumo quantitativo por status (Disponível, Uso, Manutenção)</li>
-                                <li>Consolidado por tipo de material bélico</li>
-                                <li>Assinatura automática do solicitante</li>
-                            </ul>
+                        <div class="bg-light rounded-3 p-3 mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked disabled>
+                                <label class="form-check-label small text-muted">Incluir resumo quantitativo</label>
+                            </div>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" checked disabled>
+                                <label class="form-check-label small text-muted">Incluir assinatura digital</label>
+                            </div>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none small">
-                                <i class="fas fa-chevron-left me-1"></i> Voltar à Central
-                            </a>
-                            <button type="submit" class="btn btn-navy btn-lg rounded-pill px-5 shadow">
-                                <i class="fas fa-file-pdf me-2"></i> EMITIR AGORA
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-navy btn-lg w-100 rounded-3 shadow">
+                            <i class="fas fa-print me-2"></i> GERAR RELATÓRIO PDF
+                        </button>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instruções e Informações Adicionais -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-navy mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>Orientações de Inventário</h5>
+                    
+                    <div class="accordion border-0" id="accordionArsenal">
+                        <div class="accordion-item border-0 mb-3 shadow-xs rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                    <i class="fas fa-sync-alt me-2 text-primary"></i> Atualização Automática
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionArsenal">
+                                <div class="accordion-body small text-muted">
+                                    Os dados exibidos nesta página são sincronizados em tempo real com o banco de dados da Reserva de Armas. Qualquer cautela ou devolução registrada no sistema é refletida instantaneamente nos indicadores acima.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0 mb-3 shadow-xs rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                    <i class="fas fa-file-medical me-2 text-success"></i> Validade do Relatório
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionArsenal">
+                                <div class="accordion-body small text-muted">
+                                    O relatório gerado possui validade administrativa para conferência de carga. Recomenda-se a emissão diária no início e término de cada turno de serviço (troca de guarda).
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0 mb-3 shadow-xs rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                    <i class="fas fa-exclamation-triangle me-2 text-danger"></i> Itens em Manutenção
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionArsenal">
+                                <div class="accordion-body small text-muted">
+                                    Materiais com status "MANUTENÇÃO" não são incluídos no relatório de disponibilidade, mas constam no resumo de carga total do Batalhão.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-4 bg-navy text-white shadow-lg">
+                        <div class="row align-items-center">
+                            <div class="col-8">
+                                <h6 class="fw-bold mb-1 text-uppercase">Acesso Rápido ao Arsenal</h6>
+                                <p class="mb-0 small opacity-75">Deseja ver a lista detalhada de cada item?</p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <a href="{% url 'materiais:lista_materiais' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">VER LISTA</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -62,10 +193,28 @@
 <style>
     .bg-navy { background-color: #1a2a6c; }
     .text-navy { color: #1a2a6c; }
+    .btn-navy { background-color: #1a2a6c; color: white; border: 0; transition: all 0.3s; }
+    .btn-navy:hover { background-color: #0f1a4a; color: white; transform: translateY(-2px); }
+    .bg-primary-light { background-color: rgba(13, 110, 253, 0.08); }
+    .bg-success-light { background-color: rgba(25, 135, 84, 0.08); }
+    .bg-warning-light { background-color: rgba(255, 193, 7, 0.08); }
+    .bg-danger-light { background-color: rgba(220, 53, 69, 0.08); }
+    
     .form-group-custom .asteriskField { display: none; }
-    label { display: none !important; }
-    .form-group-custom label { display: block !important; }
-    input[type="text"], textarea { border-radius: 12px !important; border: 1px solid #eee !important; padding: 12px !important; color: #1a2a6c; font-weight: 500; }
-    input:focus, textarea:focus { border-color: #1a2a6c !important; box-shadow: 0 0 0 0.25rem rgba(26, 42, 108, 0.1) !important; }
+    .form-group-custom label { display: block !important; margin-bottom: 5px; }
+    input[type="text"], textarea { 
+        border-radius: 10px !important; 
+        border: 1px solid #e0e0e0 !important; 
+        padding: 12px !important; 
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    input:focus, textarea:focus { 
+        border-color: #1a2a6c !important; 
+        box-shadow: 0 0 0 0.2rem rgba(26, 42, 108, 0.1) !important; 
+    }
+    .shadow-xs { box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .accordion-button:not(.collapsed) { background-color: #f8f9fa; color: #1a2a6c; box-shadow: none; }
+    .accordion-button:focus { box-shadow: none; border-color: rgba(0,0,0,.125); }
 </style>
 {% endblock %}

@@ -5,15 +5,18 @@ from django.contrib.auth.models import User
 
 class Relatorio(models.Model):
     TIPO_CHOICES = [
-        ('SITUACAO_ATUAL', 'Situação Atual'),
-        ('MATERIAIS_EM_USO', 'Materiais em Uso'),
-        ('MATERIAIS_DISPONIVEIS', 'Materiais Disponíveis'),
-        ('MOVIMENTACOES_DIA', 'Movimentações do Dia'),
-        ('MOVIMENTACOES_PERIODO', 'Movimentações por Período'),
-        ('MOVIMENTACOES_POLICIAL', 'Movimentações por Policial'),
-        ('MOVIMENTACOES_MATERIAL', 'Movimentações por Material'),
+        ('SITUACAO_ATUAL', 'Reserva: Situação Atual'),
+        ('MATERIAIS_EM_USO', 'Reserva: Materiais em Uso'),
+        ('MATERIAIS_DISPONIVEIS', 'Reserva: Materiais Disponíveis'),
+        ('MOVIMENTACOES_PERIODO', 'Reserva: Movimentações por Período'),
+        ('ESTOQUE_INVENTARIO', 'Estoque: Inventário Geral'),
+        ('ESTOQUE_CRITICO', 'Estoque: Reposição Crítica'),
+        ('ESTOQUE_MOVIMENTACOES', 'Estoque: Histórico de Movimentações'),
         ('PATRIMONIO_INVENTARIO', 'Patrimônio: Inventário Geral'),
         ('PATRIMONIO_MOVIMENTACOES', 'Patrimônio: Histórico de Movimentações'),
+        ('FROTA_GERAL', 'Frota: Relatório Geral de Viaturas'),
+        ('FROTA_ABASTECIMENTO', 'Frota: Relatório de Abastecimentos'),
+        ('FROTA_MANUTENCAO', 'Frota: Histórico de Manutenções'),
     ]
     
     titulo = models.CharField(_('Título'), max_length=100)
@@ -22,6 +25,7 @@ class Relatorio(models.Model):
         ('RESERVA', 'Reserva de Armas'),
         ('ESTOQUE', 'Almoxarifado/Estoque'),
         ('PATRIMONIO', 'Patrimônio'),
+        ('FROTA', 'Frota de Viaturas'),
     ], default='RESERVA')
     data_geracao = models.DateTimeField(_('Data de Geração'), default=timezone.now)
     periodo_inicio = models.DateTimeField(_('Período - Início'), blank=True, null=True)

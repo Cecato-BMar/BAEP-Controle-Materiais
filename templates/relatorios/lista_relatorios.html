@@ -52,11 +52,15 @@
                 <button class="btn btn-navy w-100 h-100 rounded-3 shadow-sm dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
                     <i class="fas fa-plus-circle me-2"></i>NOVO RELATÓRIO
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-chart-pie me-2 text-info"></i>Situação Atual</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_materiais' %}"><i class="fas fa-boxes me-2 text-primary"></i>Materiais</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_movimentacoes' %}"><i class="fas fa-exchange-alt me-2 text-success"></i>Movimentações (Reserva)</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações (Estoque)</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="min-width: 250px;">
+                    <li class="dropdown-header text-uppercase small fw-bold">Operacional</li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-shield-alt me-2 text-info"></i>Situação Atual (Armas)</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_viaturas' %}"><i class="fas fa-car me-2 text-primary"></i>Relatório de Frota</a></li>
+                    
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="dropdown-header text-uppercase small fw-bold">Logística</li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações Estoque</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_patrimonio' %}"><i class="fas fa-barcode me-2 text-success"></i>Inventário de Patrimônio</a></li>
                 </ul>
             </div>
         </div>
@@ -120,14 +124,16 @@
                             </div>
                         </td>
                         <td>
-                            {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
-                            <span class="badge bg-success-light text-success border border-success border-opacity-10 px-3">Situação Atual</span>
-                            {% elif 'MATERIAIS' in relatorio.tipo %}
-                            <span class="badge bg-primary-light text-primary border border-primary border-opacity-10 px-3">Logística</span>
-                            {% elif 'MOVIMENTACOES' in relatorio.tipo %}
-                            <span class="badge bg-warning-light text-warning border border-warning border-opacity-10 px-3">Fluxo Operacional</span>
+                            {% if relatorio.modulo == 'RESERVA' %}
+                            <span class="badge bg-success-light text-success border border-success border-opacity-10 px-3">Reserva de Armas</span>
+                            {% elif relatorio.modulo == 'FROTA' %}
+                            <span class="badge bg-primary-light text-primary border border-primary border-opacity-10 px-3">Frota de Viaturas</span>
+                            {% elif relatorio.modulo == 'ESTOQUE' %}
+                            <span class="badge bg-warning-light text-warning border border-warning border-opacity-10 px-3">Almoxarifado</span>
+                            {% elif relatorio.modulo == 'PATRIMONIO' %}
+                            <span class="badge bg-info-light text-info border border-info border-opacity-10 px-3">Patrimônio</span>
                             {% else %}
-                            <span class="badge bg-light text-dark px-3">{{ relatorio.get_tipo_display }}</span>
+                            <span class="badge bg-light text-dark px-3">{{ relatorio.get_modulo_display }}</span>
                             {% endif %}
                         </td>
                         <td class="text-center small text-muted">
@@ -192,6 +198,7 @@
     .bg-success-light { background-color: #e8f5e9; }
     .bg-primary-light { background-color: #e3f2fd; }
     .bg-warning-light { background-color: #fff3e0; }
+    .bg-info-light { background-color: #e0f7fa; }
     .avatar-xxs { width: 22px; height: 22px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; border: 1px solid #ddd; }
     .transition-all { transition: all 0.2s ease; }
     .transition-all:hover { background-color: #fcfcfc !important; transform: scale(1.001); }

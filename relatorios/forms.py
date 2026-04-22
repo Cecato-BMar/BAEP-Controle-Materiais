@@ -338,3 +338,25 @@ class RelatorioPatrimonioForm(forms.Form):
                 css_class='text-center mt-3'
             )
         )
+
+class RelatorioFrotaForm(forms.Form):
+    titulo = forms.CharField(label=_('Título'), max_length=100, initial=_('Relatório de Frota'))
+    tipo_relatorio = forms.ChoiceField(
+        label=_('Tipo de Relatório'),
+        choices=[
+            ('FROTA_GERAL', 'Geral da Frota'),
+            ('FROTA_ABASTECIMENTO', 'Abastecimentos'),
+            ('FROTA_MANUTENCAO', 'Manutenções')
+        ]
+    )
+    data_inicio = forms.DateField(label=_('Data Início'), widget=forms.DateInput(attrs={'type': 'date'}), required=False)
+    data_fim = forms.DateField(label=_('Data Fim'), widget=forms.DateInput(attrs={'type': 'date'}), required=False)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'titulo', 'tipo_relatorio',
+            Row(Column('data_inicio'), Column('data_fim')),
+            Div(Submit('submit', _('Gerar PDF'), css_class='btn btn-primary w-100'), css_class='mt-3')
+        )

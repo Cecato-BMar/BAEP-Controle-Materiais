@@ -58,75 +58,114 @@
         }
 
         .sidebar {
-            background-color: var(--sidebar-bg);
+            background: linear-gradient(180deg, #1e272e 0%, #161d23 100%);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            width: 260px;
+            width: 280px;
             z-index: 1000;
             padding-top: 70px;
             overflow-y: auto;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
 
         .sidebar .nav-link {
-            color: var(--sidebar-color) !important;
-            padding: 12px 20px;
-            margin: 4px 12px;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            color: rgba(209, 216, 224, 0.7) !important;
+            padding: 10px 20px;
+            margin: 2px 14px;
+            border-radius: 10px;
+            font-size: 0.88rem;
             font-weight: 500;
             display: flex;
             align-items: center;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
+            position: relative;
         }
 
         .sidebar .nav-link:hover {
-            background-color: var(--sidebar-hover-bg);
+            background-color: rgba(255, 255, 255, 0.05);
             color: white !important;
-            transform: translateX(5px);
+            transform: translateX(4px);
         }
 
         .sidebar .nav-link.active {
-            background-color: rgba(241, 196, 15, 0.1);
+            background: linear-gradient(90deg, rgba(241, 196, 15, 0.15) 0%, rgba(241, 196, 15, 0.02) 100%);
             color: var(--primary-color) !important;
-            border-left: 4px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background-color: var(--primary-color);
+            border-radius: 0 4px 4px 0;
+            box-shadow: 2px 0 10px rgba(241, 196, 15, 0.4);
         }
 
         .sidebar .nav-link i {
             margin-right: 12px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             width: 24px;
             text-align: center;
-            opacity: 0.8;
+            transition: all 0.2s;
+        }
+
+        .sidebar .nav-link:hover i {
+            color: var(--primary-color);
+            transform: scale(1.1);
         }
 
         .sidebar-heading {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.8px;
             font-weight: 700;
-            margin: 25px 32px 10px;
-            color: rgba(255, 255, 255, 0.3);
+            margin: 24px 24px 8px;
+            color: rgba(255, 255, 255, 0.25);
             display: flex;
             align-items: center;
         }
 
-        .sidebar-heading::after {
-            content: "";
-            height: 1px;
-            flex-grow: 1;
-            background: rgba(255, 255, 255, 0.1);
-            margin-left: 10px;
+        .sidebar-heading i {
+            margin-right: 8px;
+            font-size: 0.8rem;
+        }
+
+        .sidebar-submenu {
+            margin-left: 36px;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            padding-left: 4px;
+        }
+
+        .sidebar-submenu .nav-link {
+            padding: 7px 15px;
+            margin: 1px 10px;
+            font-size: 0.82rem;
+            border-radius: 8px;
         }
 
         .main-content {
-            margin-left: 260px;
+            margin-left: 280px;
             padding: 24px;
             min-height: calc(100vh - 70px);
-            transition: all 0.3s;
+            transition: all 0.4s;
         }
 
         .card {
@@ -255,11 +294,11 @@
 
         /* Estilos para o rodapé */
         footer {
-            margin-left: 260px;
+            margin-left: 280px;
             padding: 24px 0;
             background: white;
             border-top: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
+            transition: all 0.4s;
         }
 
         /* Responsividade */
@@ -336,326 +375,184 @@
         <!-- Sidebar Modernizada -->
         <div class="sidebar">
             <ul class="nav flex-column">
-
-                <div class="sidebar-heading">Principal</div>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-                        href="{% url 'home' %}">
-                        <i class="fas fa-home"></i> Início
+                
+                <li class="nav-item mt-2">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                        <i class="fas fa-th-large"></i> Painel Geral
                     </a>
                 </li>
 
-                <!-- Módulo Reserva de Armas -->
+                <!-- MÓDULO OPERACIONAL -->
+                {% if user.is_superuser or user|has_group:'reserva_armas' or user|has_group:'frota' %}
+                <div class="sidebar-heading"><i class="fas fa-shield-alt"></i> Operacional</div>
+                
                 {% if user.is_superuser or user|has_group:'reserva_armas' %}
-                <div class="sidebar-heading">Reserva de Armas</div>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                        href="{% url 'dashboard' %}">
-                        <i class="fas fa-chart-line"></i> Dashboard
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'materiais' in request.path or 'policiais' in request.path or 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseArmas" role="button">
+                        <span><i class="fas fa-gun"></i> Reserva de Armas</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}"
-                        href="{% url 'materiais:lista_materiais' %}">
-                        <i class="fas fa-crosshairs"></i> Armamentos
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'policiais' in request.path %}active{% endif %}"
-                        href="{% url 'policiais:lista_policiais' %}">
-                        <i class="fas fa-user-shield"></i> Policiais
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}"
-                        href="{% url 'movimentacoes:lista_movimentacoes' %}">
-                        <i class="fas fa-exchange-alt"></i> Cautela / Devolução
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'relatorios' in request.path and not 'estoque' in request.path %}active{% endif %}"
-                        href="{% url 'relatorios:lista_relatorios' %}">
-                        <i class="fas fa-file-contract"></i> Relatórios
-                    </a>
-                </li>
-                {% endif %}
-
-                <!-- Módulo Controle de Estoque MATERIAL DE CONSUMO -->
-                {% if user.is_superuser or user|has_group:'materiais' %}
-                <div class="sidebar-heading">Estoque MATERIAL DE CONSUMO (P4)</div>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'estoque' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                        href="{% url 'estoque:dashboard' %}">
-                        <i class="fas fa-warehouse"></i> Dashboard MATERIAL DE CONSUMO
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'painel' in request.path %}active{% endif %}"
-                        href="{% url 'estoque:painel_controle' %}">
-                        <i class="fas fa-sliders-h"></i> Painel de Controle
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'materiais' in request.path and 'estoque' in request.path %}active{% endif %}"
-                        href="{% url 'estoque:lista_produtos' %}">
-                        <i class="fas fa-boxes"></i> Materiais de Consumo
-                    </a>
-                </li>
-
-                <!-- Submenu Movimentações MATERIAL DE CONSUMO -->
-                <li class="nav-item">
-                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'entrada' in request.path or 'saida' in request.path or 'movimentacoes' in request.path and 'estoque' in request.path %}active{% endif %}"
-                        data-bs-toggle="collapse" href="#collapseEstoque" role="button">
-                        <span><i class="fas fa-sync-alt"></i> Movimentações</span>
-                        <i class="fas fa-chevron-down small opacity-50"></i>
-                    </a>
-                    <div class="collapse {% if 'entrada' in request.path or 'saida' in request.path or 'movimentacoes' in request.path and 'estoque' in request.path %}show{% endif %}"
-                        id="collapseEstoque">
-                        <ul class="nav flex-column ms-3">
+                    <div class="collapse {% if 'materiais' in request.path or 'policiais' in request.path or 'movimentacoes' in request.path and not 'estoque' in request.path or 'dashboard' in request.path and not 'estoque' in request.path and not 'frota' in request.path and not 'patrimonio' in request.path %}show{% endif %}" id="collapseArmas">
+                        <ul class="nav flex-column sidebar-submenu">
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'entrada' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:criar_entrada_material' %}">
-                                    <i class="fas fa-plus-circle text-success"></i> Entrada (§2)
-                                </a>
+                                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and not 'estoque' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">Visão Geral</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'saida' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:criar_saida_material' %}">
-                                    <i class="fas fa-minus-circle text-danger"></i> Saída (§3)
-                                </a>
+                                <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}" href="{% url 'materiais:lista_materiais' %}">Armamentos</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'movimentacoes' in request.path and 'estoque' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_movimentacoes' %}">
-                                    <i class="fas fa-history"></i> Histórico MATERIAL DE CONSUMO
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <!-- Submenu Relatórios MATERIAL DE CONSUMO -->
-                <li class="nav-item">
-                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'relatorios' in request.path and 'estoque' in request.path %}active{% endif %}"
-                        data-bs-toggle="collapse" href="#collapseRelatorios" role="button">
-                        <span><i class="fas fa-file-invoice"></i> Relatórios MATERIAL DE CONSUMO</span>
-                        <i class="fas fa-chevron-down small opacity-50"></i>
-                    </a>
-                    <div class="collapse {% if 'relatorios' in request.path and 'estoque' in request.path %}show{% endif %}"
-                        id="collapseRelatorios">
-                        <ul class="nav flex-column ms-3">
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'estoque' in request.path and 'relatorio_estoque' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:relatorio_estoque_materiais' %}">
-                                    <i class="fas fa-file-alt"></i> Estoque (§5.1)
-                                </a>
+                                <a class="nav-link {% if 'policiais' in request.path %}active{% endif %}" href="{% url 'policiais:lista_policiais' %}">Efetivo</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'estoque_baixo' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:relatorio_estoque_baixo' %}">
-                                    <i class="fas fa-exclamation-triangle"></i> Reposição Crítica
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'inventarios' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_inventarios' %}">
-                                    <i class="fas fa-tasks"></i> Inventários
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <!-- Gestão Técnica MATERIAL DE CONSUMO (Auxiliares) -->
-                <li class="nav-item">
-                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'categorias' in request.path or 'fornecedores' in request.path or 'unidades' in request.path or 'cores' in request.path or 'localizacoes' in request.path or 'contas_patrimoniais' in request.path or 'orgaos' in request.path %}active{% endif %}"
-                        data-bs-toggle="collapse" href="#collapseGestaoTecnica" role="button">
-                        <span><i class="fas fa-cogs"></i> Gestão Técnica MATERIAL DE CONSUMO</span>
-                        <i class="fas fa-chevron-down small opacity-50"></i>
-                    </a>
-                    <div class="collapse {% if 'categorias' in request.path or 'fornecedores' in request.path or 'unidades' in request.path or 'cores' in request.path or 'localizacoes' in request.path or 'contas_patrimoniais' in request.path or 'orgaos' in request.path %}show{% endif %}"
-                        id="collapseGestaoTecnica">
-                        <ul class="nav flex-column ms-3">
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'fornecedores' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_fornecedores' %}">
-                                    <i class="fas fa-truck"></i> Fornecedores
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'categorias' in request.path and 'sub' not in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_categorias' %}">
-                                    <i class="fas fa-tags"></i> Categorias
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'subcategorias' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_subcategorias' %}">
-                                    <i class="fas fa-tag"></i> Subcategorias
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'localizacoes' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_localizacoes' %}">
-                                    <i class="fas fa-map-marker-alt"></i> Localizações
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'unidades' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_unidades_medida' %}">
-                                    <i class="fas fa-ruler-combined"></i> Unidades Medida
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'contas_patrimoniais' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_contas_patrimoniais' %}">
-                                    <i class="fas fa-file-invoice-dollar"></i> Contas Patrimoniais
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'cores' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_cores' %}">
-                                    <i class="fas fa-palette"></i> Cores
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'orgaos' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_orgaos_requisitantes' %}">
-                                    <i class="fas fa-building"></i> Órgãos/Unidades
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'militares' in request.path %}active{% endif %}"
-                                    href="{% url 'estoque:lista_militares_requisitantes' %}">
-                                    <i class="fas fa-user-shield"></i> Policiais (Requisitantes)
-                                </a>
+                                <a class="nav-link {% if 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">Cautelas</a>
                             </li>
                         </ul>
                     </div>
                 </li>
                 {% endif %}
 
-                <!-- Módulo Frota de Viaturas -->
                 {% if user.is_superuser or user|has_group:'frota' %}
-                <div class="sidebar-heading">Frota de Viaturas</div>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'frota' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                        href="{% url 'viaturas:dashboard' %}">
-                        <i class="fas fa-car-side"></i> Dashboard Frota
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'viaturas' in request.path or 'despachos' in request.path or 'manutencoes' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseFrota" role="button">
+                        <span><i class="fas fa-car-side"></i> Frota de Viaturas</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'frota' in request.path %}active{% endif %}"
-                        data-bs-toggle="collapse" href="#collapseViaturas" role="button">
-                        <span><i class="fas fa-car"></i> Gestão de Frota</span>
-                        <i class="fas fa-chevron-down small opacity-50"></i>
-                    </a>
-                    <div class="collapse {% if 'frota' in request.path %}show{% endif %}" id="collapseViaturas">
-                        <ul class="nav flex-column ms-3">
+                    <div class="collapse {% if 'viaturas' in request.path or 'despachos' in request.path or 'manutencoes' in request.path or 'abastecimentos' in request.path %}show{% endif %}" id="collapseFrota">
+                        <ul class="nav flex-column sidebar-submenu">
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'viaturas' in request.path and 'frota' in request.path %}active{% endif %}"
-                                    href="{% url 'viaturas:lista_viaturas' %}">
-                                    <i class="fas fa-list text-warning"></i> Viaturas
-                                </a>
+                                <a class="nav-link {% if 'viaturas' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'viaturas:dashboard' %}">Visão Geral</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'despachos' in request.path %}active{% endif %}"
-                                    href="{% url 'viaturas:lista_despachos' %}">
-                                    <i class="fas fa-arrow-right text-success"></i> Despachos
-                                </a>
+                                <a class="nav-link {% if 'viaturas' in request.path and request.resolver_match.url_name != 'dashboard' %}active{% endif %}" href="{% url 'viaturas:lista_viaturas' %}">Viaturas</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'abastecimentos' in request.path %}active{% endif %}"
-                                    href="{% url 'viaturas:lista_abastecimentos' %}">
-                                    <i class="fas fa-gas-pump text-info"></i> Abastecimentos
-                                </a>
+                                <a class="nav-link {% if 'despachos' in request.path %}active{% endif %}" href="{% url 'viaturas:lista_despachos' %}">Despachos</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'manutencoes' in request.path %}active{% endif %}"
-                                    href="{% url 'viaturas:lista_manutencoes' %}">
-                                    <i class="fas fa-wrench text-danger"></i> Manutenções
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'oficinas' in request.path %}active{% endif %}"
-                                    href="{% url 'viaturas:lista_oficinas' %}">
-                                    <i class="fas fa-tools text-primary"></i> Oficinas
-                                </a>
+                                <a class="nav-link {% if 'manutencoes' in request.path %}active{% endif %}" href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a>
                             </li>
                         </ul>
                     </div>
                 </li>
                 {% endif %}
-                <!-- Módulo Patrimônio (Bens Permanentes) -->
+                {% endif %}
+
+                <!-- MÓDULO LOGÍSTICA & SUPRIMENTOS -->
+                {% if user.is_superuser or user|has_group:'materiais' or user|has_group:'patrimonio' %}
+                <div class="sidebar-heading"><i class="fas fa-boxes"></i> Logística & Suprimentos</div>
+                
+                {% if user.is_superuser or user|has_group:'materiais' %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'estoque' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseEstoqueNovo" role="button">
+                        <span><i class="fas fa-warehouse"></i> Estoque de Consumo</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
+                    </a>
+                    <div class="collapse {% if 'estoque' in request.path %}show{% endif %}" id="collapseEstoqueNovo">
+                        <ul class="nav flex-column sidebar-submenu">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'estoque' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'estoque:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'materiais' in request.path and 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:lista_produtos' %}">Materiais</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'entrada' in request.path or 'saida' in request.path %}active{% endif %}" href="{% url 'estoque:lista_movimentacoes' %}">Movimentações</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'inventarios' in request.path %}active{% endif %}" href="{% url 'estoque:lista_inventarios' %}">Inventários</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+
                 {% if user.is_superuser or user|has_group:'patrimonio' %}
-                <div class="sidebar-heading">Gestão de Patrimônio</div>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'patrimonio' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                        href="{% url 'patrimonio:dashboard' %}">
-                        <i class="fas fa-landmark"></i> Dashboard
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'patrimonio' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapsePatrimonioNovo" role="button">
+                        <span><i class="fas fa-barcode"></i> Patrimônio (Permanente)</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'patrimonio' in request.path and request.resolver_match.url_name != 'dashboard' %}active{% endif %}"
-                        data-bs-toggle="collapse" href="#collapsePatrimonio" role="button">
-                        <span><i class="fas fa-barcode"></i> Bens Permanentes</span>
-                        <i class="fas fa-chevron-down small opacity-50"></i>
-                    </a>
-                    <div class="collapse {% if 'patrimonio' in request.path and request.resolver_match.url_name != 'dashboard' %}show{% endif %}" id="collapsePatrimonio">
-                        <ul class="nav flex-column ms-3">
+                    <div class="collapse {% if 'patrimonio' in request.path %}show{% endif %}" id="collapsePatrimonioNovo">
+                        <ul class="nav flex-column sidebar-submenu">
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'itens' in request.path %}active{% endif %}"
-                                    href="{% url 'patrimonio:lista_itens' %}">
-                                    <i class="fas fa-list text-primary"></i> Itens Inventariados
-                                </a>
+                                <a class="nav-link {% if 'patrimonio' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'patrimonio:dashboard' %}">Visão Geral</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'movimentacao' in request.path %}active{% endif %}"
-                                    href="{% url 'patrimonio:registrar_movimentacao' %}">
-                                    <i class="fas fa-exchange-alt text-warning"></i> Registrar Movimentação
-                                </a>
+                                <a class="nav-link {% if 'itens' in request.path %}active{% endif %}" href="{% url 'patrimonio:lista_itens' %}">Itens Inventariados</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link small {% if 'catalogo' in request.path %}active{% endif %}"
-                                    href="{% url 'patrimonio:lista_bens' %}">
-                                    <i class="fas fa-book text-success"></i> Catálogo de Bens
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link small {% if 'relatorios/patrimonio' in request.path %}active{% endif %}"
-                                    href="{% url 'relatorios:gerar_relatorio_patrimonio' %}">
-                                    <i class="fas fa-file-pdf text-danger"></i> Relatórios de Patrimônio
-                                </a>
+                                <a class="nav-link {% if 'catalogo' in request.path %}active{% endif %}" href="{% url 'patrimonio:lista_bens' %}">Catálogo</a>
                             </li>
                         </ul>
                     </div>
                 </li>
                 {% endif %}
+                {% endif %}
 
-
-                <!-- Administração -->
-                {% if user.is_superuser or user|has_group:'administracao' %}
-                <div class="sidebar-heading">Administração</div>
+                <!-- MÓDULO RELATÓRIOS -->
+                <div class="sidebar-heading"><i class="fas fa-file-invoice"></i> Inteligência & Relatórios</div>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}"
-                        href="{% url 'usuarios:lista_usuarios' %}">
-                        <i class="fas fa-users-cog"></i> Gestão de Usuários
+                    <a class="nav-link {% if 'relatorios' in request.path %}active{% endif %}" href="{% url 'relatorios:lista_relatorios' %}">
+                        <i class="fas fa-file-pdf text-danger"></i> Central de Relatórios
                     </a>
                 </li>
+
+                <!-- APOIO TÉCNICO & ADMIN -->
+                <div class="sidebar-heading"><i class="fas fa-cogs"></i> Apoio & Sistema</div>
+                
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center"
+                        data-bs-toggle="collapse" href="#collapseConfig" role="button">
+                        <span><i class="fas fa-tools"></i> Gestão Técnica</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
+                    </a>
+                    <div class="collapse" id="collapseConfig">
+                        <ul class="nav flex-column sidebar-submenu">
+                            {% if user.is_superuser or user|has_group:'materiais' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'estoque:lista_fornecedores' %}">Fornecedores</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'estoque:lista_categorias' %}">Categorias</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'estoque:lista_localizacoes' %}">Localizações</a>
+                            </li>
+                            {% endif %}
+                            {% if user.is_superuser or user|has_group:'frota' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'viaturas:lista_oficinas' %}">Oficinas</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </li>
+
+                {% if user.is_superuser or user|has_group:'administracao' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
+                        <i class="fas fa-user-cog"></i> Usuários
+                    </a>
+                </li>
+                {% endif %}
+
                 {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/" target="_blank">
-                        <i class="fas fa-terminal"></i> Django Admin
+                        <i class="fas fa-database"></i> Django Admin
                     </a>
                 </li>
                 {% endif %}
-                {% endif %}
 
-                <div class="mt-auto mb-4 px-4">
-                    <div class="bg-dark rounded p-3 text-center">
-                        <small class="text-muted d-block mb-2">Versão 2.1.0 MATERIAL DE CONSUMO</small>
-                        <a href="{% url 'ajuda' %}" class="btn btn-xs btn-outline-light btn-sm w-100">
-                            <i class="fas fa-question-circle me-1"></i> Ajuda
+                <div class="mt-4 mb-4 px-4">
+                    <div class="bg-dark rounded-4 p-3 text-center border border-secondary border-opacity-25">
+                        <small class="text-muted d-block mb-2" style="font-size: 0.65rem;">SISTEMA LOGÍSTICA v2.2</small>
+                        <a href="{% url 'ajuda' %}" class="btn btn-xs btn-outline-warning btn-sm w-100 py-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-question-circle me-1"></i> Central de Ajuda
                         </a>
                     </div>
                 </div>

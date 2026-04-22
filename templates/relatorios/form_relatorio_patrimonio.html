@@ -5,151 +5,240 @@
 {% block title %}Inventário de Patrimônio — SIS LOGÍSTICA BAEP{% endblock %}
 
 {% block content %}
-<div class="container py-5 animate__animated animate__fadeIn">
+<div class="container-fluid py-5 px-md-5 animate__animated animate__fadeIn" style="background: #fdfdfd;">
     <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <!-- Card Principal -->
-            <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: #fff;">
-                <!-- Header com Gradiente Premium -->
-                <div class="card-header border-0 p-4 p-md-5" style="background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); background-size: 200% 200%; animation: gradientBG 10s ease infinite;">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-4 backdrop-blur shadow-sm">
-                                <i class="fas fa-boxes-stacked fa-2x text-white"></i>
-                            </div>
-                            <div class="text-white">
-                                <h2 class="fw-bold mb-1 tracking-tight">Inventário de Patrimônio</h2>
-                                <p class="mb-0 opacity-80 small text-uppercase fw-semibold tracking-wider">Gestão de Bens Permanentes • 2º BAEP</p>
-                            </div>
-                        </div>
-                        <div class="bg-white bg-opacity-10 backdrop-blur rounded-pill px-4 py-2 border border-white border-opacity-20 d-none d-sm-block">
-                            <span class="text-white small fw-bold"><i class="far fa-calendar-alt me-2"></i>{% now "d/m/Y" %}</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="col-xl-10">
+            <!-- Breadcrumb Moderno -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">Início</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-muted text-decoration-none">Relatórios</a></li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Patrimônio</li>
+                </ol>
+            </nav>
 
-                <div class="card-body p-4 p-md-5">
-                    <div class="row g-5">
-                        <!-- Coluna do Formulário -->
-                        <div class="col-lg-12">
-                            <form method="post" novalidate class="premium-form">
-                                {% csrf_token %}
-                                
-                                <div class="section-title mb-4 pb-2 border-bottom border-light">
-                                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-sliders me-2 text-primary"></i>Configurações do Relatório</h5>
+            <div class="card border-0 shadow-soft overflow-hidden" style="border-radius: 32px; background: #fff;">
+                <div class="row g-0">
+                    <!-- Coluna Lateral: Contexto e Dicas (Visual Premium) -->
+                    <div class="col-lg-4 d-none d-lg-block p-5 text-white" style="background: linear-gradient(165deg, #0f172a, #1e293b); position: relative;">
+                        <div class="position-relative z-index-2">
+                            <div class="mb-5">
+                                <div class="bg-white bg-opacity-10 rounded-4 p-3 d-inline-block backdrop-blur mb-4 border border-white border-opacity-10">
+                                    <i class="fas fa-landmark-flag fa-2x"></i>
+                                </div>
+                                <h3 class="fw-bold">Gestão Patrimonial</h3>
+                                <p class="opacity-70">Controle e auditoria de bens permanentes e infraestrutura do 2º BAEP.</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate">
+                                    <h6 class="fw-bold mb-2 text-info"><i class="fas fa-qrcode me-2"></i>QR Code Integrado</h6>
+                                    <p class="small opacity-60 mb-0">O relatório gerado inclui códigos para conferência física instantânea via smartphone.</p>
                                 </div>
 
-                                {% crispy form %}
+                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate mt-3">
+                                    <h6 class="fw-bold mb-2 text-warning"><i class="fas fa-file-pdf me-2"></i>Padrão Institucional</h6>
+                                    <p class="small opacity-60 mb-0">Documento formatado para arquivamento oficial e prestação de contas aos órgãos superiores.</p>
+                                </div>
+                            </div>
 
-                                <div class="info-alert mt-4 p-4 rounded-4 bg-light border-start border-primary border-4 shadow-sm">
-                                    <div class="d-flex">
-                                        <div class="text-primary me-3">
-                                            <i class="fas fa-lightbulb fa-lg"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-1">Dica de Geração</h6>
-                                            <p class="small text-muted mb-0">
-                                                Para um inventário completo, deixe os filtros de "Status" e "Categoria" em branco. 
-                                                O arquivo gerado incluirá códigos QR para fácil conferência física.
-                                            </p>
-                                        </div>
+                            <div class="mt-5 pt-5 opacity-40 text-center">
+                                <img src="{% static 'img/brasao_pmesp.png' %}" alt="PMESP" style="max-width: 80px; filter: grayscale(1) brightness(2);">
+                            </div>
+                        </div>
+                        
+                        <!-- Elementos Decorativos de Fundo -->
+                        <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden opacity-10 pointer-events-none">
+                            <i class="fas fa-boxes-stacked position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Principal: Formulário e Dashboard -->
+                    <div class="col-lg-8 p-4 p-md-5">
+                        <div class="d-flex align-items-center justify-content-between mb-5">
+                            <div>
+                                <h2 class="fw-black text-dark mb-1 tracking-tighter">Gerar Inventário</h2>
+                                <p class="text-muted mb-0">Configure os parâmetros do documento PDF</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold small mb-1">
+                                    <i class="fas fa-check-circle me-1"></i>BASE ATUALIZADA
+                                </span>
+                                <span class="text-muted smaller">Última atualização: {% now "H:i" %}</span>
+                            </div>
+                        </div>
+
+                        <!-- Mini Dashboard de Contexto -->
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Total de Bens</p>
+                                    <h4 class="fw-black mb-0 text-primary">{{ items_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Localizações</p>
+                                    <h4 class="fw-black mb-0 text-dark">{{ localizacoes_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Operacionais</p>
+                                    <h4 class="fw-black mb-0 text-success">100%</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post" novalidate class="premium-form">
+                            {% csrf_token %}
+                            
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <div class="form-floating-custom">
+                                        {{ form.titulo|as_crispy_field }}
                                     </div>
                                 </div>
-
-                                <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                    <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none px-0">
-                                        <i class="fas fa-arrow-left me-2"></i>Voltar à Central
-                                    </a>
-                                    <button type="submit" class="btn btn-dark btn-lg rounded-pill px-5 fw-bold shadow-hover transition-all">
-                                        <i class="fas fa-rocket me-2"></i>GERAR RELATÓRIO PDF
-                                    </button>
+                                
+                                <div class="col-md-6">
+                                    {{ form.status|as_crispy_field }}
                                 </div>
-                            </form>
-                        </div>
+                                
+                                <div class="col-md-6">
+                                    {{ form.categoria|as_crispy_field }}
+                                </div>
+                                
+                                <div class="col-12">
+                                    {{ form.observacoes|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <div class="mt-5 d-grid">
+                                <button type="submit" class="btn btn-primary btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale position-relative overflow-hidden group">
+                                    <span class="position-relative z-index-2 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-file-pdf fa-lg me-3"></i>
+                                        PRODUZIR DOCUMENTO OFICIAL
+                                    </span>
+                                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-white opacity-0 group-hover-opacity-10 transition-all"></div>
+                                </button>
+                            </div>
+
+                            <div class="text-center mt-4 pt-2">
+                                <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none small transition-all hover-dark">
+                                    <i class="fas fa-arrow-left me-2"></i>Retornar para todos os relatórios
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Footer da Página -->
-            <div class="text-center mt-4">
-                <p class="text-muted small">
-                    <i class="fas fa-shield-halved me-1"></i> Sistema de Controle Logístico — 2º Batalhão de Ações Especiais de Polícia
-                </p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #64748b;
+        --dark-bg: #0f172a;
+    }
+
+    .fw-black { font-weight: 900; }
+    .tracking-tighter { letter-spacing: -1.5px; }
+    .smaller { font-size: 0.7rem; }
+    .z-index-2 { z-index: 2; }
+    .pointer-events-none { pointer-events: none; }
+
+    .shadow-soft {
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
     }
 
     .backdrop-blur {
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 
-    .tracking-tight { letter-spacing: -0.5px; }
-    .tracking-wider { letter-spacing: 1.5px; }
-
-    /* Estilização Premium Crispy Forms */
+    /* Estilização dos Inputs */
     .premium-form .form-control, 
-    .premium-form .form-select,
-    .premium-form .select2-container--bootstrap-5 .select2-selection {
-        border-radius: 12px !important;
-        border: 1px solid #e2e8f0 !important;
-        padding: 12px 16px !important;
+    .premium-form .form-select {
+        border-radius: 16px !important;
+        border: 2px solid #f1f5f9 !important;
+        padding: 14px 20px !important;
         background-color: #f8fafc !important;
-        transition: all 0.2s ease-in-out !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         font-weight: 500;
-        color: #1e293b;
+        color: #334155;
     }
 
     .premium-form .form-control:focus, 
     .premium-form .form-select:focus {
-        border-color: #3b82f6 !important;
+        border-color: var(--primary-color) !important;
         background-color: #fff !important;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
-        outline: none;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+        transform: translateY(-1px);
     }
 
     .premium-form label {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        font-weight: 700;
-        color: #64748b;
-        margin-bottom: 8px;
-        letter-spacing: 0.5px;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        font-weight: 800 !important;
+        color: var(--secondary-color) !important;
+        margin-bottom: 10px !important;
+        letter-spacing: 1px !important;
+        display: block;
     }
 
-    .shadow-hover:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2) !important;
+    /* Botão XL Customizado */
+    .btn-xl {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+    }
+
+    /* Utilitários de Animação e Hover */
+    .hover-translate:hover {
+        transform: translateX(10px);
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        border-color: #e2e8f0 !important;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.01);
+    }
+
+    .hover-dark:hover {
+        color: #1e293b !important;
+        transform: translateX(-5px);
     }
 
     .transition-all {
         transition: all 0.3s ease;
     }
 
-    .form-group {
-        margin-bottom: 1.5rem;
+    .group:hover .group-hover-opacity-10 {
+        opacity: 0.1;
     }
 
-    .asteriskField {
-        color: #ef4444;
+    /* Ajustes para Responsividade */
+    @media (max-width: 991.98px) {
+        .card { border-radius: 20px; }
     }
 </style>
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
+        // Inicializa Select2 se disponível com tema moderno
         if ($.fn.select2) {
             $('.select2').select2({
                 theme: 'bootstrap-5',
-                width: '100%'
+                width: '100%',
+                containerCssClass: 'rounded-4'
             });
         }
     });
