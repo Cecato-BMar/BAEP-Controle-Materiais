@@ -87,13 +87,13 @@ class EstoqueCriticoProvider(ReportProvider):
     def get_elements(self, filters=None):
         elements = []
         elements.append(Paragraph("Itens com Estoque Abaixo do Mínimo", self.gen.styles['SectionHeader']))
-        produtos = Produto.objects.filter(quantidade__lte=F('estoque_minimo'))
+        produtos = Produto.objects.filter(estoque_atual__lte=F('estoque_minimo'))
         if not produtos.exists():
             elements.append(Paragraph("Não há itens em nível crítico no momento.", self.gen.styles['Normal']))
             return elements
         data = [['Código', 'Material', 'Qtd. Atual', 'Qtd. Mínima', 'Unidade']]
         for p in produtos:
-            data.append([p.codigo, p.nome, str(p.quantidade), str(p.estoque_minimo), p.unidade_medida.sigla if p.unidade_medida else 'un'])
+            data.append([p.codigo, p.nome, str(p.estoque_atual), str(p.estoque_minimo), p.unidade_medida.sigla if p.unidade_medida else 'un'])
         elements.append(self.gen.create_table(data, style_type='DANGER'))
         return elements
 
@@ -164,4 +164,35 @@ class PatrimonioProvider(ReportProvider):
         for it in itens:
             data.append([it.numero_patrimonio, it.bem.nome, it.localizacao.nome if it.localizacao else 'Não Localizado', it.get_status_display()])
         elements.append(self.gen.create_table(data, col_widths=[3.5*cm, 6.5*cm, 3.5*cm, 2.5*cm]))
+        return elements
+
+class EstoqueMovimentacoesProvider(ReportProvider):
+    def get_elements(self, filters=None):
+        elements = []
+        elements.append(Paragraph("Relatório de Fluxo de Insumos (Estoque)", self.gen.styles['SectionHeader']))
+        
+        movs = MovimentacaoEstoque.objects.select_related('produto', 'militar_requisitante', 'fornecedor').all().order_by('-data_movimentacao', '-data_hora')
+        
+        if filters:
+            if filters.get('tipo_movimentacao'):
+                movs = movs.filter(tipo_movimentacao=filters['tipo_movimentacao'])
+            if filters.get('produto'):
+                movs = movs.filter(produto=filters['produto'])
+            if filters.get('data_inicio'):
+                movs = movs.filter(data_movimentacao__gte=filters['data_inicio'])
+            if filters.get('data_fim'):
+                movs = movs.filter(data_movimentacao__lte=filters['data_fim'])
+
+        data = [['Data', 'Tipo', 'Material', 'Qtd', 'V. Unit', 'Militar / Fornecedor']]
+        for m in movs:
+            requisitante = str(m.militar_requisitante) if m.militar_requisitante else (str(m.fornecedor) if m.fornecedor else '-')
+            data.append([
+                m.data_movimentacao.strftime('%d/%m/%Y'),
+                m.get_subtipo_display(),
+                Paragraph(m.produto.nome, self.gen.styles['Normal']),
+                f"{'+' if m.tipo_movimentacao == 'ENTRADA' else '-'}{m.quantidade:.2f}",
+                f"R$ {m.valor_unitario:,.2f}",
+                Paragraph(requisitante, self.gen.styles['Normal'])
+            ])
+        elements.append(self.gen.create_table(data, col_widths=[2.5*cm, 2.5*cm, 4*cm, 2*cm, 2.5*cm, 5*cm]))
         return elements

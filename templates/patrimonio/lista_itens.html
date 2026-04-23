@@ -6,9 +6,14 @@
         <h3 class="mb-0 fw-bold"><i class="fas fa-barcode text-primary me-2"></i>Itens Patrimoniais</h3>
         <p class="text-muted small">Gerenciamento individual de bens móveis e equipamentos</p>
     </div>
-    <a href="{% url 'patrimonio:novo_item' %}" class="btn btn-primary fw-bold shadow-sm">
-        <i class="fas fa-plus me-1"></i> Adicionar Item
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'relatorios:gerar_relatorio_patrimonio' %}" class="btn btn-outline-info fw-bold shadow-sm">
+            <i class="fas fa-file-pdf me-1"></i> Relatório
+        </a>
+        <a href="{% url 'patrimonio:novo_item' %}" class="btn btn-primary fw-bold shadow-sm">
+            <i class="fas fa-plus me-1"></i> Adicionar Item
+        </a>
+    </div>
 </div>
 
 <!-- Filtros -->

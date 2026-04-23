@@ -1,0 +1,71 @@
+
+<style>
+.cat-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:12px}
+.cat-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cat-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.cat-badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0}
+.sub-item{padding:9px 16px;font-size:12px;color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.sub-item:last-child{border-right:none}
+.sub-name{color:var(--color-text-primary);font-size:12px;font-weight:500;margin-bottom:2px}
+.sub-ex{color:var(--color-text-tertiary);font-size:11px;line-height:1.4}
+</style>
+
+<div style="padding:1rem 0">
+
+<div class="cat-card">
+  <div class="cat-header">
+    <div class="cat-dot" style="background:#185FA5"></div>
+    <span class="cat-title">1. Material de escritório</span>
+    <span class="cat-badge" style="background:#E6F1FB;color:#0C447C">4 subcategorias</span>
+  </div>
+  <div class="sub-grid">
+    <div class="sub-item"><div class="sub-name">1.1 Papel e impressão</div><div class="sub-ex">Resma A4, papel ofício, fotocópia</div></div>
+    <div class="sub-item"><div class="sub-name">1.2 Escrita e marcação</div><div class="sub-ex">Caneta, lápis, marca-texto, pincel</div></div>
+    <div class="sub-item"><div class="sub-name">1.3 Toners e cartuchos</div><div class="sub-ex">Toner laser, cartucho jato de tinta</div></div>
+    <div class="sub-item"><div class="sub-name">1.4 Organização e arquivo</div><div class="sub-ex">Pasta, clipe, grampeador, etiqueta, envelope</div></div>
+  </div>
+</div>
+
+<div class="cat-card">
+  <div class="cat-header">
+    <div class="cat-dot" style="background:#0F6E56"></div>
+    <span class="cat-title">2. Material de limpeza e higiene</span>
+    <span class="cat-badge" style="background:#E1F5EE;color:#085041">3 subcategorias</span>
+  </div>
+  <div class="sub-grid">
+    <div class="sub-item"><div class="sub-name">2.1 Produtos de limpeza</div><div class="sub-ex">Desinfetante, multiuso, detergente, álcool</div></div>
+    <div class="sub-item"><div class="sub-name">2.2 Higiene pessoal</div><div class="sub-ex">Sabonete, papel higiênico, toalha descartável</div></div>
+    <div class="sub-item"><div class="sub-name">2.3 Descartáveis e utilidades</div><div class="sub-ex">Saco de lixo, luva descartável, esponja</div></div>
+  </div>
+</div>
+
+<div class="cat-card">
+  <div class="cat-header">
+    <div class="cat-dot" style="background:#854F0B"></div>
+    <span class="cat-title">3. Gêneros alimentícios</span>
+    <span class="cat-badge" style="background:#FAEEDA;color:#633806">3 subcategorias</span>
+  </div>
+  <div class="sub-grid">
+    <div class="sub-item"><div class="sub-name">3.1 Copa / bebidas</div><div class="sub-ex">Café, açúcar, chá, água mineral, copo descartável</div></div>
+    <div class="sub-item"><div class="sub-name">3.2 Copa / alimentos</div><div class="sub-ex">Biscoito, achocolatado, leite em pó, adoçante</div></div>
+    <div class="sub-item"><div class="sub-name">3.3 Rancho / refeitório</div><div class="sub-ex">Gêneros de cozinha para refeições do efetivo</div></div>
+  </div>
+</div>
+
+<div class="cat-card">
+  <div class="cat-header">
+    <div class="cat-dot" style="background:#534AB7"></div>
+    <span class="cat-title">4. Fardamento e EPIs</span>
+    <span class="cat-badge" style="background:#EEEDFE;color:#3C3489">4 subcategorias</span>
+  </div>
+  <div class="sub-grid">
+    <div class="sub-item"><div class="sub-name">4.1 Uniformes e fardas</div><div class="sub-ex">Calça, camisa, farda de serviço, agasalho</div></div>
+    <div class="sub-item"><div class="sub-name">4.2 Acessórios de fardamento</div><div class="sub-ex">Boné, cinto, meia, gravata, distintivo</div></div>
+    <div class="sub-item"><div class="sub-name">4.3 Calçados</div><div class="sub-ex">Coturno, sapato de serviço, bota</div></div>
+    <div class="sub-item"><div class="sub-name">4.4 EPIs</div><div class="sub-ex">Colete, luva, óculos de proteção, capacete</div></div>
+  </div>
+</div>
+
+</div>

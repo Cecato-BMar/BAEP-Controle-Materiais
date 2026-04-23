@@ -1,41 +1,225 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
-{% block title %}Gerar Relatório de Frota - Logística 2ºBAEP{% endblock %}
+{% block title %}Gerar Relatório de Frota — SIS LOGÍSTICA BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-5 px-md-5 animate__animated animate__fadeIn" style="background: #fdfdfd;">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-gradient-primary text-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i> Configurar Relatório de Frota</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="alert alert-info border-0 shadow-sm mb-4">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-info-circle fa-2x me-3"></i>
-                            <div>
-                                <strong>Dica de Engenharia:</strong> Selecione o tipo de relatório e o período desejado. O sistema processará os dados em tempo real para gerar um documento PDF oficial seguindo os padrões do BAEP.
+        <div class="col-xl-10">
+            <!-- Breadcrumb Moderno -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">Início</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-muted text-decoration-none">Relatórios</a></li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Frota</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-soft overflow-hidden" style="border-radius: 32px; background: #fff;">
+                <div class="row g-0">
+                    <!-- Coluna Lateral: Contexto e Dicas -->
+                    <div class="col-lg-4 d-none d-lg-block p-5 text-white" style="background: linear-gradient(165deg, #1e3a8a, #1e40af); position: relative;">
+                        <div class="position-relative z-index-2">
+                            <div class="mb-5">
+                                <div class="bg-white bg-opacity-10 rounded-4 p-3 d-inline-block backdrop-blur mb-4 border border-white border-opacity-10">
+                                    <i class="fas fa-car-side fa-2x"></i>
+                                </div>
+                                <h3 class="fw-bold">Gestão de Frota</h3>
+                                <p class="opacity-70">Monitoramento de quilometragem, manutenções e consumo de combustível do 2º BAEP.</p>
                             </div>
+
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate">
+                                    <h6 class="fw-bold mb-2 text-info"><i class="fas fa-gas-pump me-2"></i>Controle de Cota</h6>
+                                    <p class="small opacity-60 mb-0">Relatórios detalhados para auditoria de abastecimentos por prefixo e motorista.</p>
+                                </div>
+
+                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate mt-3">
+                                    <h6 class="fw-bold mb-2 text-warning"><i class="fas fa-wrench me-2"></i>Histórico Mecânico</h6>
+                                    <p class="small opacity-60 mb-0">Rastreabilidade total de serviços realizados em oficinas credenciadas.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-5 opacity-40 text-center">
+                                <img src="{% static 'img/brasao_pmesp.png' %}" alt="PMESP" style="max-width: 80px; filter: grayscale(1) brightness(2);">
+                            </div>
+                        </div>
+                        
+                        <!-- Elementos Decorativos de Fundo -->
+                        <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden opacity-10 pointer-events-none">
+                            <i class="fas fa-road position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
                         </div>
                     </div>
 
-                    <form method="post" class="needs-validation">
-                        {% csrf_token %}
-                        {% crispy form %}
-                    </form>
-                </div>
-                <div class="card-footer bg-light py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Voltar à Central
-                        </a>
-                        <small class="text-muted">Motor de PDF v2.0 - Alta Performance</small>
+                    <!-- Coluna Principal: Formulário e Dashboard -->
+                    <div class="col-lg-8 p-4 p-md-5">
+                        <div class="d-flex align-items-center justify-content-between mb-5">
+                            <div>
+                                <h2 class="fw-black text-dark mb-1 tracking-tighter">Relatório de Frota</h2>
+                                <p class="text-muted mb-0">Selecione o tipo e o período de análise</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold small mb-1">
+                                    <i class="fas fa-satellite-dish me-1"></i>SISTEMA TELEMÉTRICO
+                                </span>
+                                <span class="text-muted smaller">Status: Operacional</span>
+                            </div>
+                        </div>
+
+                        <!-- Mini Dashboard de Contexto -->
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Viaturas Totais</p>
+                                    <h4 class="fw-black mb-0 text-primary">{{ viaturas_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Disponíveis</p>
+                                    <h4 class="fw-black mb-0 text-success">{{ disponiveis_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Em Manutenção</p>
+                                    <h4 class="fw-black mb-0 text-danger">{{ manutencao_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post" novalidate class="premium-form">
+                            {% csrf_token %}
+                            
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    {{ form.titulo|as_crispy_field }}
+                                </div>
+                                
+                                <div class="col-12">
+                                    {{ form.tipo_relatorio|as_crispy_field }}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    {{ form.data_inicio|as_crispy_field }}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    {{ form.data_fim|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <div class="mt-5 d-grid">
+                                <button type="submit" class="btn btn-navy btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale position-relative overflow-hidden group">
+                                    <span class="position-relative z-index-2 d-flex align-items-center justify-content-center text-white">
+                                        <i class="fas fa-file-pdf fa-lg me-3 text-white"></i>
+                                        GERAR DOCUMENTO TÁTICO
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="text-center mt-4 pt-2">
+                                <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none small transition-all hover-dark">
+                                    <i class="fas fa-arrow-left me-2"></i>Voltar à Central de Inteligência
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    :root {
+        --primary-color: #1e40af;
+        --secondary-color: #64748b;
+        --navy-dark: #1e3a8a;
+    }
+
+    .fw-black { font-weight: 900; }
+    .tracking-tighter { letter-spacing: -1.5px; }
+    .smaller { font-size: 0.7rem; }
+    .z-index-2 { z-index: 2; }
+    .pointer-events-none { pointer-events: none; }
+
+    .shadow-soft {
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Estilização dos Inputs */
+    .premium-form .form-control, 
+    .premium-form .form-select {
+        border-radius: 16px !important;
+        border: 2px solid #f1f5f9 !important;
+        padding: 14px 20px !important;
+        background-color: #f8fafc !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-weight: 500;
+        color: #334155;
+    }
+
+    .premium-form .form-control:focus, 
+    .premium-form .form-select:focus {
+        border-color: var(--primary-color) !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1) !important;
+        transform: translateY(-1px);
+    }
+
+    .premium-form label {
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        font-weight: 800 !important;
+        color: var(--secondary-color) !important;
+        margin-bottom: 10px !important;
+        letter-spacing: 1px !important;
+        display: block;
+    }
+
+    .btn-navy {
+        background: linear-gradient(135deg, #1e3a8a, #1e40af);
+        border: none;
+    }
+
+    .btn-xl {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+
+    .hover-translate:hover {
+        transform: translateX(10px);
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        border-color: #e2e8f0 !important;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.01);
+    }
+
+    .hover-dark:hover {
+        color: #1e293b !important;
+        transform: translateX(-5px);
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    @media (max-width: 991.98px) {
+        .card { border-radius: 20px; }
+    }
+</style>
 {% endblock %}

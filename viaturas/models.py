@@ -116,6 +116,25 @@ class DespachoViatura(models.Model):
     def __str__(self):
         return f"Despacho {self.viatura.prefixo} em {self.data_saida.strftime('%d/%m/%Y %H:%M')}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        # Atualiza o status da Viatura
+        if not self.data_retorno:
+            if self.viatura.status == 'DISPONIVEL':
+                self.viatura.status = 'EM_USO'
+                self.viatura.save(update_fields=['status'])
+        else:
+            if self.viatura.status == 'EM_USO':
+                self.viatura.status = 'DISPONIVEL'
+                self.viatura.save(update_fields=['status'])
+                
+        # Atualiza o odômetro da Viatura
+        km_atual = self.km_retorno if self.km_retorno else self.km_saida
+        if km_atual and km_atual > self.viatura.odometro_atual:
+            self.viatura.odometro_atual = km_atual
+            self.viatura.save(update_fields=['odometro_atual'])
+
 class Abastecimento(models.Model):
     """Registro de Abastecimento/Cotas"""
     viatura = models.ForeignKey(Viatura, on_delete=models.PROTECT, related_name='abastecimentos')
@@ -137,6 +156,12 @@ class Abastecimento(models.Model):
         verbose_name = _('Abastecimento')
         verbose_name_plural = _('Abastecimentos')
         ordering = ['-data_abastecimento']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.odometro and self.odometro > self.viatura.odometro_atual:
+            self.viatura.odometro_atual = self.odometro
+            self.viatura.save(update_fields=['odometro_atual'])
 
 class Oficina(models.Model):
     """Cadastro de Oficinas e Oficinas Especializadas"""
@@ -195,6 +220,27 @@ class Manutencao(models.Model):
     @property
     def custo_total(self):
         return self.custo_pecas + self.custo_mao_obra
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        # Atualiza o status da Viatura
+        if self.status in ['ABERTA', 'AGUARDANDO_PECA']:
+            if self.viatura.status != 'MANUTENCAO':
+                self.viatura.status = 'MANUTENCAO'
+                self.viatura.save(update_fields=['status'])
+        elif self.status in ['CONCLUIDA', 'CANCELADA']:
+            if self.viatura.status == 'MANUTENCAO':
+                # Verifica se não há outras manutenções ativas
+                outras_ativas = self.viatura.manutencoes.filter(status__in=['ABERTA', 'AGUARDANDO_PECA']).exclude(pk=self.pk).exists()
+                if not outras_ativas:
+                    self.viatura.status = 'DISPONIVEL'
+                    self.viatura.save(update_fields=['status'])
+                    
+        # Atualiza odômetro
+        if self.odometro and self.odometro > self.viatura.odometro_atual:
+            self.viatura.odometro_atual = self.odometro
+            self.viatura.save(update_fields=['odometro_atual'])
 
 class ChecklistViatura(models.Model):
     """Checklist completo para avaliação da viatura (Inspeção Operacional)"""

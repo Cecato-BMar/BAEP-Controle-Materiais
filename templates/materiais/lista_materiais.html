@@ -16,6 +16,15 @@
         <button type="button" class="btn btn-outline-success btn-sm" onclick="document.getElementById('arquivo_xml').click();">
             <i class="fas fa-file-import me-1"></i> Importar XML
         </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="btnRelatorios" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-file-pdf me-1"></i> Relatórios
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="btnRelatorios">
+                <li><a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-shield-alt me-2 text-primary"></i> Situação Geral</a></li>
+                <li><a class="dropdown-item" href="{% url 'relatorios:gerar_relatorio_materiais' %}"><i class="fas fa-boxes me-2 text-info"></i> Inventário Detalhado</a></li>
+            </ul>
+        </div>
     </div>
 </div>
 

@@ -345,8 +345,8 @@ class RelatorioFrotaForm(forms.Form):
         label=_('Tipo de Relatório'),
         choices=[
             ('FROTA_GERAL', 'Geral da Frota'),
-            ('FROTA_ABASTECIMENTO', 'Abastecimentos'),
-            ('FROTA_MANUTENCAO', 'Manutenções')
+            ('ABASTECIMENTO', 'Abastecimentos'),
+            ('MANUTENCAO', 'Manutenções')
         ]
     )
     data_inicio = forms.DateField(label=_('Data Início'), widget=forms.DateInput(attrs={'type': 'date'}), required=False)

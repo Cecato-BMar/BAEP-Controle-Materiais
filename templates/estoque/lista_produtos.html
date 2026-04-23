@@ -99,6 +99,7 @@
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold"><i class="fas fa-server me-2 text-primary"></i>Catálogo de Materiais de Consumo (MATERIAL DE CONSUMO §1)</h5>
         <div>
+            <a href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}" class="btn btn-sm btn-outline-info me-2"><i class="fas fa-file-pdf me-1"></i> Relatório</a>
             <a href="{% url 'estoque:importar_produtos' %}" class="btn btn-sm btn-outline-primary me-2"><i class="fas fa-upload me-1"></i> Importar</a>
             <a href="{% url 'estoque:exportar_produtos_csv' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-excel me-1"></i> Exportar CSV</a>
         </div>
