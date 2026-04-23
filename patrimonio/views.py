@@ -132,27 +132,8 @@ def registrar_movimentacao(request):
             mov.registrado_por = request.user
             mov.save()
             
-            # Lógica de atualização de status do item
-            item = mov.item
-            if mov.tipo == 'CAUTELA':
-                item.status = 'EM_USO'
-                item.responsavel_atual = mov.policial
-            elif mov.tipo == 'DEVOLUCAO':
-                item.status = 'DISPONIVEL'
-                item.responsavel_atual = None
-            elif mov.tipo == 'MANUTENCAO_INICIO':
-                item.status = 'MANUTENCAO'
-            elif mov.tipo == 'MANUTENCAO_FIM':
-                item.status = 'DISPONIVEL'
-            elif mov.tipo == 'TRANSFERENCIA':
-                if mov.local_destino:
-                    item.localizacao = mov.local_destino
-            elif mov.tipo == 'BAIXA':
-                item.status = 'BAIXADO'
-                
-            item.save()
             messages.success(request, 'Movimentação registrada com sucesso!')
-            return redirect('patrimonio:detalhe_item', pk=item.pk)
+            return redirect('patrimonio:detalhe_item', pk=mov.item.pk)
     else:
         form = MovimentacaoPatrimonioForm(initial=initial)
         

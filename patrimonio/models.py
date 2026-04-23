@@ -127,3 +127,37 @@ class MovimentacaoPatrimonio(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.item.numero_patrimonio} - {self.data_hora.strftime('%d/%m/%Y')}"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if is_new:
+            item = self.item
+            atualizou = False
+            
+            # Atualiza localização se houver um local de destino, independentemente do tipo de movimentação
+            if self.local_destino:
+                item.localizacao = self.local_destino
+                atualizou = True
+                
+            if self.tipo == 'CAUTELA':
+                item.status = 'EM_USO'
+                item.responsavel_atual = self.policial
+                atualizou = True
+            elif self.tipo == 'DEVOLUCAO':
+                item.status = 'DISPONIVEL'
+                item.responsavel_atual = None
+                atualizou = True
+            elif self.tipo == 'MANUTENCAO_INICIO':
+                item.status = 'MANUTENCAO'
+                atualizou = True
+            elif self.tipo == 'MANUTENCAO_FIM':
+                item.status = 'DISPONIVEL'
+                atualizou = True
+            elif self.tipo == 'BAIXA':
+                item.status = 'BAIXADO'
+                atualizou = True
+                
+            if atualizou:
+                item.save(update_fields=['status', 'responsavel_atual', 'localizacao', 'data_atualizacao'])

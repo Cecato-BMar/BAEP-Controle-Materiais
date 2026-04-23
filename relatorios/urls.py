@@ -16,4 +16,5 @@ urlpatterns = [
     path('frota/', views.gerar_relatorio_viaturas, name='gerar_relatorio_viaturas'),
     path('manutencoes/', views.gerar_relatorio_manutencoes, name='gerar_relatorio_manutencoes'),
     path('viatura/<int:viatura_id>/', views.gerar_relatorio_individual_viatura, name='gerar_relatorio_individual_viatura'),
+    path('patrimonio/<int:item_id>/', views.gerar_relatorio_individual_patrimonio, name='gerar_relatorio_individual_patrimonio'),
 ]

@@ -310,3 +310,71 @@ def gerar_relatorio_individual_viatura(request, viatura_id):
     elements = [Paragraph(f"FICHA TÉCNICA - {viatura.prefixo}", getSampleStyleSheet()['Heading1'])]
     doc.build(elements, onFirstPage=_draw_logo)
     return HttpResponse(buffer.getvalue(), content_type='application/pdf')
+
+@login_required
+@require_module_permission('patrimonio')
+def gerar_relatorio_individual_patrimonio(request, item_id):
+    from patrimonio.models import ItemPatrimonial
+    item = get_object_or_404(ItemPatrimonial, pk=item_id)
+    
+    buffer = io.BytesIO()
+    generator = PDFReportGenerator(buffer, f"FICHA TÉCNICA DO PATRIMÔNIO: {item.numero_patrimonio}", user=request.user)
+    
+    elements = []
+    styles = generator.styles
+    
+    # Detalhes do item
+    elements.append(Paragraph("DADOS GERAIS", styles['SectionHeader']))
+    dados = [
+        ['Número de Patrimônio', item.numero_patrimonio],
+        ['Descrição/Nome', item.bem.nome],
+        ['Categoria', item.bem.categoria.nome],
+        ['Número de Série', item.numero_serie or 'N/A'],
+        ['Marca', item.bem.marca or 'N/A'],
+        ['Modelo', item.bem.modelo_referencia or 'N/A'],
+        ['Status Atual', item.get_status_display()],
+        ['Estado de Conservação', item.get_estado_conservacao_display()],
+        ['Localização Atual', str(item.localizacao) if item.localizacao else 'Geral'],
+        ['Responsável (Cautela)', str(item.responsavel_atual) if item.responsavel_atual else 'N/A'],
+        ['Data de Aquisição', item.data_aquisicao.strftime('%d/%m/%Y') if item.data_aquisicao else 'N/A'],
+    ]
+    
+    t = generator.create_table(dados, col_widths=[6*cm, 10*cm])
+    elements.append(t)
+    elements.append(Spacer(1, 0.5*cm))
+    
+    if item.observacoes:
+        elements.append(Paragraph("OBSERVAÇÕES ADICIONAIS", styles['SectionHeader']))
+        elements.append(Paragraph(item.observacoes, styles['Normal']))
+        elements.append(Spacer(1, 0.5*cm))
+    
+    # Histórico de Movimentações
+    elements.append(Paragraph("HISTÓRICO DE MOVIMENTAÇÕES", styles['SectionHeader']))
+    
+    historico = item.historico.select_related('policial', 'local_destino', 'registrado_por').order_by('-data_hora')
+    
+    if historico.exists():
+        dados_hist = [['Data/Hora', 'Tipo', 'Envolvido/Destino', 'Registrado Por', 'Obs']]
+        for mov in historico:
+            envolvido = str(mov.policial) if mov.policial else (str(mov.local_destino) if mov.local_destino else '-')
+            dados_hist.append([
+                mov.data_hora.strftime('%d/%m/%Y %H:%M'),
+                mov.get_tipo_display(),
+                envolvido,
+                mov.registrado_por.username,
+                mov.observacoes or '-'
+            ])
+            
+        t_hist = generator.create_table(dados_hist, col_widths=[3*cm, 4*cm, 4*cm, 3*cm, 2*cm])
+        elements.append(t_hist)
+    else:
+        elements.append(Paragraph("Nenhuma movimentação registrada para este item.", styles['Normal']))
+    
+    generator.generate(elements)
+    
+    pdf_content = buffer.getvalue()
+    buffer.close()
+    
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="ficha_patrimonio_{item.numero_patrimonio}.pdf"'
+    return response
