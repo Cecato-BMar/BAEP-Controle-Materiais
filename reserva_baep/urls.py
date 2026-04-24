@@ -21,6 +21,8 @@ from django.conf.urls.static import static
 
 from . import views
 
+from django.shortcuts import redirect
+
 urlpatterns = [
     path('', views.home, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -33,11 +35,13 @@ urlpatterns = [
     path('estoque/', include('estoque.urls')),
     path('frota/', include('viaturas.urls', namespace='viaturas')),
     path('patrimonio/', include('patrimonio.urls')),
+    path('telematica/', include('telematica.urls', namespace='telematica')),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('termos/', views.termos, name='termos'),
     path('privacidade/', views.privacidade, name='privacidade'),
     path('sobre/', views.sobre, name='sobre'),
     path('manutencao/', views.manutencao, name='manutencao'),
+    path('mapa-legacy/', lambda r: redirect('telematica:dashboard'), name='mapa_rastreamento'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Serviços de Rede & TI | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-network-wired text-success me-2"></i>Serviços de Rede & Infraestrutura</h1>
+        <p class="text-muted mb-0">Gestão de links de internet, VPNs, servidores e contratos de conectividade.</p>
+    </div>
+    <a href="{% url 'telematica:criar_servico' %}" class="btn btn-success shadow-sm"><i class="fas fa-plus me-1"></i>Novo Serviço</a>
+</div>
+
+<div class="row g-4">
+    {% for servico in servicos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 {% if not servico.status %}opacity-75{% endif %}">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="badge {% if servico.tipo == 'INTERNET' %}bg-primary{% elif servico.tipo == 'VPN' %}bg-info{% else %}bg-secondary{% endif %}">{{ servico.get_tipo_display }}</span>
+                {% if servico.status %}
+                <span class="text-success small fw-bold"><i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Ativo</span>
+                {% else %}
+                <span class="text-danger small fw-bold"><i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i> Inativo</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h5 class="fw-bold mb-1">{{ servico.nome }}</h5>
+                <p class="text-muted small mb-3">{{ servico.fornecedor }}</p>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">IP Público/Gateway:</span>
+                        <span class="fw-bold">{{ servico.ip_publico|default:"-" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Velocidade:</span>
+                        <span class="fw-bold">{{ servico.velocidade|default:"-" }}</span>
+                    </div>
+                    {% if servico.vencimento %}
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Renovação:</span>
+                        <span class="fw-bold {% if servico.vencimento < hoje %}text-danger{% endif %}">{{ servico.vencimento|date:"d/m/Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <p class="small text-muted border-top pt-2">{{ servico.descricao|truncatewords:20 }}</p>
+            </div>
+            <div class="card-footer bg-light border-0 py-2 text-end">
+                <a href="{% url 'telematica:editar_servico' servico.pk %}" class="btn btn-sm btn-link text-secondary"><i class="fas fa-edit me-1"></i>Editar</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="fas fa-plug fa-3x text-muted opacity-25 mb-3"></i>
+        <p class="text-muted">Nenhum serviço de rede registrado.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -383,7 +383,7 @@
                 </li>
 
                 <!-- MÓDULO OPERACIONAL -->
-                {% if user.is_superuser or user|has_group:'reserva_armas' or user|has_group:'frota' %}
+                {% if user.is_superuser or user|has_group:'reserva_armas' or user|has_group:'frota' or user|has_group:'telematica' %}
                 <div class="sidebar-heading"><i class="fas fa-shield-alt"></i> Operacional</div>
                 
                 {% if user.is_superuser or user|has_group:'reserva_armas' %}
@@ -412,7 +412,7 @@
                 </li>
                 {% endif %}
 
-                {% if user.is_superuser or user|has_group:'frota' %}
+                {% if user.is_superuser or user|has_group:'frota' or user|has_group:'telematica' %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'viaturas' in request.path or 'despachos' in request.path or 'manutencoes' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseFrota" role="button">
@@ -432,6 +432,38 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link {% if 'manutencoes' in request.path %}active{% endif %}" href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'agendamentos' in request.path %}active{% endif %}" href="{% url 'viaturas:lista_agendamentos' %}">
+                                    <i class="fas fa-calendar-alt me-1 text-primary opacity-75"></i>Agendamentos
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'telematica' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseTelematica" role="button">
+                        <span><i class="fas fa-satellite-dish"></i> Telemática & TI</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
+                    </a>
+                    <div class="collapse {% if 'telematica' in request.path %}show{% endif %}" id="collapseTelematica">
+                        <ul class="nav flex-column sidebar-submenu">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'telematica' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'telematica:dashboard' %}">Visão Geral</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'equipamentos' in request.path %}active{% endif %}" href="{% url 'telematica:lista_equipamentos' %}">Inventário de TI</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'manutencoes' in request.path %}active{% endif %}" href="{% url 'telematica:lista_manutencoes' %}">Suporte Técnico</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'servicos' in request.path %}active{% endif %}" href="{% url 'telematica:lista_servicos' %}">Redes & Links</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'telematica:lista_categorias' %}">Categorias</a>
                             </li>
                         </ul>
                     </div>
@@ -523,7 +555,7 @@
                                 <a class="nav-link" href="{% url 'estoque:lista_localizacoes' %}">Localizações</a>
                             </li>
                             {% endif %}
-                            {% if user.is_superuser or user|has_group:'frota' %}
+                            {% if user.is_superuser or user|has_group:'frota' or user|has_group:'telematica' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'viaturas:lista_oficinas' %}">Oficinas</a>
                             </li>

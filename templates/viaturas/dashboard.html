@@ -166,6 +166,82 @@
     </div>
 </div>
 
+<!-- Agendamentos de Manutenção -->
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                    Agendamentos de Manutenção
+                    {% if agendamentos_atrasados > 0 %}
+                    <span class="badge bg-danger ms-2">{{ agendamentos_atrasados }} atrasado{{ agendamentos_atrasados|pluralize }}</span>
+                    {% endif %}
+                </span>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'viaturas:criar_agendamento' %}" class="btn btn-sm btn-primary fw-bold">
+                        <i class="fas fa-calendar-plus me-1"></i>Novo
+                    </a>
+                    <a href="{% url 'viaturas:lista_agendamentos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Viatura</th>
+                                <th>Tipo</th>
+                                <th>Data Agendada</th>
+                                <th>Oficina</th>
+                                <th>Motivo</th>
+                                <th class="text-end">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agend in agendamentos %}
+                            <tr class="{% if agend.data_inicio < hoje %}table-danger{% endif %}">
+                                <td><span class="badge bg-dark fw-bold">{{ agend.viatura.prefixo }}</span></td>
+                                <td>
+                                    {% if agend.tipo == 'PREVENTIVA' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill"><i class="fas fa-sync-alt me-1"></i>Preventiva</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Corretiva</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if agend.data_inicio < hoje %}
+                                        <span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }} (Atrasado)</span>
+                                    {% else %}
+                                        <span class="text-success"><i class="fas fa-calendar me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ agend.oficina_fk|default:"—" }}</td>
+                                <td><small class="text-muted">{{ agend.descricao|truncatechars:50 }}</small></td>
+                                <td class="text-end">
+                                    <a href="{% url 'viaturas:converter_agendamento' agend.pk %}"
+                                       class="btn btn-sm btn-success"
+                                       onclick="return confirm('Iniciar manutenção agora para {{ agend.viatura.prefixo }}?')">
+                                        <i class="fas fa-play me-1"></i>Iniciar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-calendar-check fa-2x mb-2 d-block text-success opacity-50"></i>
+                                    Nenhum agendamento pendente.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Atalhos por Tipo -->
 <div class="row g-3 mt-2">
     <div class="col-12"><h6 class="text-muted text-uppercase fw-bold" style="letter-spacing:1px">Frota por Categoria</h6></div>

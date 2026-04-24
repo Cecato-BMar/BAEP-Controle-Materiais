@@ -14,7 +14,8 @@ class GroupMultipleChoiceField(forms.ModelMultipleChoiceField):
             'materiais': 'Estoque e Materiais (MATERIAL DE CONSUMO)',
             'administracao': 'Administração do Sistema',
             'frota': 'Gestão de Frota (VTRs)',
-            'patrimonio': 'Gestão de Patrimônio'
+            'patrimonio': 'Gestão de Patrimônio',
+            'telematica': 'Telemática e TI'
         }
         return labels.get(obj.name, obj.name.replace('_', ' ').title())
 

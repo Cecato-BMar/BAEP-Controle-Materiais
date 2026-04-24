@@ -87,10 +87,30 @@
                             <i class="fas fa-barcode fa-3x"></i>
                         </div>
                         <h3 class="fw-bold mb-3">Patrimônio</h3>
-                        <p class="text-muted small">Controle de bens permanentes, equipamentos de TI, mobiliário e gestão de cautelas individuais.</p>
+                        <p class="text-muted small">Controle de bens permanentes, mobiliário e gestão de cautelas individuais de carga.</p>
                         <div class="mt-4 pt-2">
                              <a href="{% url 'patrimonio:dashboard' %}" class="btn btn-info btn-lg shadow-sm w-100 rounded-pill text-white fw-bold">
                                 <i class="fas fa-landmark me-2"></i> ACESSAR MÓDULO
+                             </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Módulo: Telemática & TI -->
+            {% if user.is_superuser or user|has_group:"frota" %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
+                    <div class="card-body text-center p-5">
+                        <div class="icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg,#007bff,#6610f2)">
+                            <i class="fas fa-satellite-dish fa-3x text-white"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Telemática & TI</h3>
+                        <p class="text-muted small">Gestão de ativos tecnológicos, rádios, terminais de dados (TPD), rede lógica e manutenção especializada.</p>
+                        <div class="mt-4 pt-2">
+                             <a href="{% url 'telematica:dashboard' %}" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold" style="background:linear-gradient(135deg,#007bff,#6610f2)">
+                                <i class="fas fa-microchip me-2"></i> ACESSAR MÓDULO
                              </a>
                         </div>
                     </div>

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Analisar Alerta | Telemática{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-search text-warning me-2"></i>Analisar Alerta</h1>
+  <a href="{% url 'telematica:lista_alertas' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+</div>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card border-{% if alerta.severidade == 'CRITICA' %}danger{% elif alerta.severidade == 'ALTA' %}warning{% else %}info{% endif %}">
+      <div class="card-header"><i class="fas fa-info-circle me-2"></i>Dados do Alerta</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Viatura</dt><dd class="col-sm-8"><strong>{{ alerta.dispositivo.viatura.prefixo }}</strong></dd>
+          <dt class="col-sm-4 text-muted">Tipo</dt><dd class="col-sm-8">{{ alerta.get_tipo_display }}</dd>
+          <dt class="col-sm-4 text-muted">Severidade</dt>
+          <dd class="col-sm-8">
+            <span class="badge {% if alerta.severidade == 'CRITICA' %}bg-danger{% elif alerta.severidade == 'ALTA' %}bg-warning text-dark{% elif alerta.severidade == 'MEDIA' %}bg-info{% else %}bg-secondary{% endif %}">
+              {{ alerta.get_severidade_display }}
+            </span>
+          </dd>
+          <dt class="col-sm-4 text-muted">Status Atual</dt>
+          <dd class="col-sm-8"><span class="badge bg-danger">{{ alerta.get_status_display }}</span></dd>
+          <dt class="col-sm-4 text-muted">Data/Hora</dt><dd class="col-sm-8">{{ alerta.data_hora|date:"d/m/Y H:i:s" }}</dd>
+          {% if alerta.velocidade_registrada %}<dt class="col-sm-4 text-muted">Velocidade</dt><dd class="col-sm-8">{{ alerta.velocidade_registrada }} km/h {% if alerta.velocidade_limite %}(limite: {{ alerta.velocidade_limite }} km/h){% endif %}</dd>{% endif %}
+          <dt class="col-sm-4 text-muted">Descrição</dt><dd class="col-sm-8">{{ alerta.descricao }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-clipboard-check me-2"></i>Registrar Análise</div>
+      <div class="card-body">
+        <form method="post">{% csrf_token %}{% crispy form %}</form>
+      </div>
+    </div>
+    {% if alerta.analisado_por %}
+    <div class="card mt-3 border-success">
+      <div class="card-body py-2">
+        <small class="text-muted">Última análise por <strong>{{ alerta.analisado_por.get_full_name }}</strong> em {{ alerta.data_analise|date:"d/m/Y H:i" }}</small>
+        {% if alerta.observacoes_analise %}<p class="mb-0 mt-1">{{ alerta.observacoes_analise }}</p>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

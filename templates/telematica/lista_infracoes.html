@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Infrações | Telemática{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Infrações de Trânsito</h1>
+    <small class="text-muted">{{ total_abertas }} em aberto · <span class="text-danger">{{ total_vencidas }} com prazo vencido</span></small>
+  </div>
+  <a href="{% url 'telematica:criar_infracao' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i>Registrar Infração</a>
+</div>
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar viatura, nº auto, local..."></div>
+      <div class="col-md-4">
+        <select name="status" class="form-select">
+          <option value="">Todos os Status</option>
+          {% for val, label in status_choices %}<option value="{{ val }}" {% if status_filtro == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i>Filtrar</button></div>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Viatura</th><th>Tipo</th><th>Data</th><th>Local</th><th>Nº Auto</th><th>Valor</th><th>Prazo</th><th>Condutor</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for inf in page_obj %}
+          <tr {% if inf.prazo_vencido %}style="background:#fff0f0;"{% endif %}>
+            <td><strong>{{ inf.viatura.prefixo }}</strong></td>
+            <td style="font-size:.82rem;">{{ inf.get_tipo_display }}</td>
+            <td>{{ inf.data_infracao|date:"d/m/Y" }}</td>
+            <td style="font-size:.82rem;max-width:140px;" class="text-truncate">{{ inf.local }}</td>
+            <td style="font-family:monospace;font-size:.82rem;">{{ inf.auto_infracao|default:"—" }}</td>
+            <td>{% if inf.valor %}R$ {{ inf.valor }}{% else %}—{% endif %}</td>
+            <td>
+              {% if inf.prazo_pagamento %}
+                <span class="{% if inf.prazo_vencido %}text-danger fw-bold{% endif %}">{{ inf.prazo_pagamento|date:"d/m/Y" }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>{{ inf.condutor_provavel.nome_guerra|default:"—" }}</td>
+            <td>
+              <span class="badge {% if inf.status == 'ABERTA' %}bg-danger{% elif inf.status == 'PAGA' %}bg-success{% elif inf.status == 'CONTESTADA' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                {{ inf.get_status_display }}
+              </span>
+            </td>
+            <td><a href="{% url 'telematica:editar_infracao' inf.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="10" class="text-center py-4 text-muted">Nenhuma infração registrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% if page_obj.has_other_pages %}
+<nav class="mt-3"><ul class="pagination justify-content-center">
+  {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>{% endif %}
+  <li class="page-item disabled"><span class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span></li>
+  {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% endblock %}

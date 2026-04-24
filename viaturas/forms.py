@@ -9,7 +9,7 @@ class ViaturaForm(forms.ModelForm):
         model = Viatura
         fields = ['prefixo', 'placa', 'chassi', 'renavam', 'modelo',
                   'ano_fabricacao', 'cor', 'tipo_combustivel', 'capacidade_tanque',
-                  'odometro_atual', 'status', 'observacoes']
+                  'odometro_atual', 'status', 'localizacao', 'observacoes']
         widgets = {
             'observacoes': forms.Textarea(attrs={'rows': 3}),
             'prefixo': forms.TextInput(attrs={'placeholder': 'Ex: E-10201'}),
@@ -35,9 +35,10 @@ class ViaturaForm(forms.ModelForm):
                     Column('cor', css_class='col-md-3'),
                 ),
                 Row(
-                    Column('tipo_combustivel', css_class='col-md-4'),
-                    Column('capacidade_tanque', css_class='col-md-4'),
-                    Column('odometro_atual', css_class='col-md-4'),
+                    Column('tipo_combustivel', css_class='col-md-3'),
+                    Column('capacidade_tanque', css_class='col-md-3'),
+                    Column('odometro_atual', css_class='col-md-3'),
+                    Column('localizacao', css_class='col-md-3'),
                 ),
                 Row(
                     Column('observacoes', css_class='col-12'),
@@ -162,15 +163,91 @@ class AbastecimentoForm(forms.ModelForm):
 
 
 class ManutencaoForm(forms.ModelForm):
+    localizacao_fisica = forms.ChoiceField(
+        choices=Viatura.LOCALIZACAO_CHOICES,
+        label="Onde a viatura ficará estacionada?",
+        help_text="Fisicamente, onde o veículo permanecerá durante a manutenção.",
+        required=False
+    )
+
     class Meta:
         model = Manutencao
         fields = ['viatura', 'tipo', 'status', 'data_inicio', 'data_conclusao',
                   'odometro', 'descricao', 'oficina_fk',
-                  'custo_pecas', 'custo_mao_obra', 'ordem_servico']
+                  'custo_pecas', 'custo_mao_obra', 'ordem_servico',
+                  'servicos_executados_corretamente', 'detalhamento_servicos',
+                  'detalhamento_pecas_garantia', 'nota_fiscal', 'termo_garantia',
+                  'data_validade_garantia', 'km_validade_garantia']
         widgets = {
             'data_inicio': forms.DateInput(attrs={'type': 'date'}),
             'data_conclusao': forms.DateInput(attrs={'type': 'date'}),
-            'descricao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Descreva os serviços realizados e peças trocadas...'}),
+            'data_validade_garantia': forms.DateInput(attrs={'type': 'date'}),
+            'descricao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Qual era o problema/motivo da manutenção?'}),
+            'detalhamento_servicos': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Descreva detalhadamente os serviços executados pela oficina...'}),
+            'detalhamento_pecas_garantia': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Quais peças foram trocadas? Informe detalhes e tempo/km de garantia.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.viatura:
+            self.fields['localizacao_fisica'].initial = self.instance.viatura.localizacao
+        else:
+            self.fields['localizacao_fisica'].initial = 'OFICINA'
+            
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            HTML('<h5 class="mb-3 text-primary"><i class="fas fa-wrench me-2"></i>Dados Gerais da Manutenção</h5>'),
+            Row(
+                Column('viatura', css_class='col-md-3'),
+                Column('tipo', css_class='col-md-3'),
+                Column('status', css_class='col-md-3'),
+                Column('localizacao_fisica', css_class='col-md-3'),
+            ),
+            Row(
+                Column('ordem_servico', css_class='col-md-3'),
+                Column('data_inicio', css_class='col-md-3'),
+                Column('data_conclusao', css_class='col-md-3'),
+                Column('odometro', css_class='col-md-3'),
+            ),
+            Row(
+                Column('oficina_fk', css_class='col-md-4'),
+            ),
+            Row(
+                Column('descricao', css_class='col-12'),
+            ),
+            HTML('<hr class="my-4"><h5 class="mb-3 text-success"><i class="fas fa-check-circle me-2"></i>Controle, Custos e Garantia</h5>'),
+            Row(
+                Column('servicos_executados_corretamente', css_class='col-md-12 mb-3 fw-bold'),
+            ),
+            Row(
+                Column('detalhamento_servicos', css_class='col-md-6'),
+                Column('detalhamento_pecas_garantia', css_class='col-md-6'),
+            ),
+            Row(
+                Column('custo_pecas', css_class='col-md-3'),
+                Column('custo_mao_obra', css_class='col-md-3'),
+                Column('data_validade_garantia', css_class='col-md-3'),
+                Column('km_validade_garantia', css_class='col-md-3'),
+            ),
+            HTML('<hr class="my-4"><h5 class="mb-3 text-info"><i class="fas fa-paperclip me-2"></i>Anexos</h5>'),
+            Row(
+                Column('nota_fiscal', css_class='col-md-6'),
+                Column('termo_garantia', css_class='col-md-6'),
+            ),
+        )
+        
+class AgendamentoManutencaoForm(forms.ModelForm):
+    class Meta:
+        model = Manutencao
+        fields = ['viatura', 'tipo', 'data_inicio', 'oficina_fk', 'descricao']
+        labels = {
+            'data_inicio': 'Data Agendada',
+            'descricao': 'Motivo / Serviço Previsto',
+        }
+        widgets = {
+            'data_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'descricao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Qual é o motivo do agendamento?'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -178,24 +255,17 @@ class ManutencaoForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
+            HTML('<h5 class="mb-3 text-primary"><i class="fas fa-calendar-alt me-2"></i>Agendar Manutenção</h5>'),
             Row(
-                Column('viatura', css_class='col-md-4'),
-                Column('tipo', css_class='col-md-3'),
-                Column('status', css_class='col-md-2'),
-                Column('ordem_servico', css_class='col-md-3'),
+                Column('viatura', css_class='col-md-6'),
+                Column('tipo', css_class='col-md-6'),
             ),
             Row(
-                Column('data_inicio', css_class='col-md-3'),
-                Column('data_conclusao', css_class='col-md-3'),
-                Column('odometro', css_class='col-md-3'),
-                Column('oficina_fk', css_class='col-md-3'),
+                Column('data_inicio', css_class='col-md-6'),
+                Column('oficina_fk', css_class='col-md-6'),
             ),
             Row(
                 Column('descricao', css_class='col-12'),
-            ),
-            Row(
-                Column('custo_pecas', css_class='col-md-4'),
-                Column('custo_mao_obra', css_class='col-md-4'),
             ),
         )
 

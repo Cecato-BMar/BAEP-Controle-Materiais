@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Mapa de Rastreamento | Telemática{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  #map { height: calc(100vh - 200px); min-height: 500px; border-radius: 16px; z-index: 1; }
+  .map-sidebar { position: relative; max-height: calc(100vh - 200px); overflow-y: auto; }
+  .vehicle-item { cursor: pointer; border-radius: 10px; padding: 10px 12px; border: 1px solid #e2e8f0; margin-bottom: 6px; transition: all .2s; }
+  .vehicle-item:hover { background: #f8fafc; border-color: #f1c40f; }
+  .vehicle-item.selected { background: #fffbeb; border-color: #f1c40f; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot-moving { background: #22c55e; animation: pulse 1.5s infinite; }
+  .dot-stopped { background: #ef4444; }
+  .dot-idle { background: #f59e0b; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} }
+  .refresh-btn { position: absolute; top: 10px; right: 10px; z-index: 999; }
+  .map-legend { background: white; padding: 10px 14px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-map-marked-alt text-primary me-2"></i>Mapa de Rastreamento</h1>
+    <small class="text-muted">Posicionamento da frota em tempo real</small>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="badge bg-success fs-6" id="contador-veiculos">{{ posicoes_json|length }} veículos</span>
+    <button class="btn btn-outline-primary btn-sm" id="btn-refresh"><i class="fas fa-sync-alt me-1"></i>Atualizar</button>
+    <a href="{% url 'telematica:dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Painel lateral de viaturas -->
+  <div class="col-md-3">
+    <div class="card p-0 map-sidebar">
+      <div class="card-header py-2"><i class="fas fa-car-side me-2"></i>Viaturas com GPS <span class="badge bg-primary">{{ posicoes_json|length }}</span></div>
+      <div class="p-2" id="lista-viaturas-mapa">
+        {% if posicoes_json %}
+          {% for v in posicoes_json %}
+          <div class="vehicle-item" onclick="focusVehicle({{ v.lat }}, {{ v.lng }}, '{{ v.prefixo }}')" data-lat="{{ v.lat }}" data-lng="{{ v.lng }}">
+            <div class="d-flex align-items-center">
+              <span class="status-dot {% if v.ignicao %}dot-moving{% else %}dot-stopped{% endif %}"></span>
+              <strong class="me-auto">{{ v.prefixo }}</strong>
+              <span class="badge {% if v.ignicao %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:.7rem;">{{ v.velocidade|floatformat:0 }} km/h</span>
+            </div>
+            <small class="text-muted">{{ v.data_hora }}</small>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-4 text-muted"><i class="fas fa-satellite-dish fa-2x mb-2"></i><p>Nenhuma posição registrada.<br><a href="{% url 'telematica:registrar_posicao' %}">Registrar posição manual</a></p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Mapa -->
+  <div class="col-md-9" style="position:relative;">
+    <div id="map"></div>
+    <div class="refresh-btn">
+      <div class="map-legend d-flex gap-3 align-items-center">
+        <span><span class="status-dot dot-moving d-inline-block"></span>Em movimento</span>
+        <span><span class="status-dot dot-stopped d-inline-block"></span>Parado</span>
+        <span><span class="status-dot dot-idle d-inline-block"></span>Motor ocioso</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Info bar inferior -->
+<div class="card mt-3">
+  <div class="card-body py-2">
+    <div class="row text-center">
+      <div class="col"><strong class="text-success" id="qtd-movimento">0</strong><br><small class="text-muted">Em Movimento</small></div>
+      <div class="col"><strong class="text-danger" id="qtd-parado">0</strong><br><small class="text-muted">Parados</small></div>
+      <div class="col"><strong class="text-muted" id="ultima-atualizacao">--:--</strong><br><small class="text-muted">Última Atualização</small></div>
+      <div class="col"><a href="{% url 'telematica:registrar_posicao' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-plus me-1"></i>Registrar Posição Manual</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const posicoes = {{ posicoes_json|safe }};
+
+  // Inicializa mapa centrado em Santos/SP (sede do 2ºBAEP)
+  const map = L.map('map').setView([-23.9618, -46.3322], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  const markers = {};
+
+  function getIcon(ignicao, velocidade) {
+    const color = velocidade > 0 ? '#22c55e' : (ignicao ? '#f59e0b' : '#ef4444');
+    return L.divIcon({
+      className: '',
+      html: `<div style="background:${color};width:32px;height:32px;border-radius:50%;border:3px solid white;
+             box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;">
+             <i class="fas fa-car" style="color:white;font-size:.8rem;"></i></div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+  }
+
+  let emMovimento = 0, parado = 0;
+
+  posicoes.forEach(v => {
+    if (v.velocidade > 0) emMovimento++; else parado++;
+    const marker = L.marker([v.lat, v.lng], { icon: getIcon(v.ignicao, v.velocidade) })
+      .addTo(map)
+      .bindPopup(`<div style="min-width:180px;">
+        <strong class="d-block mb-1">🚔 ${v.prefixo}</strong>
+        <span class="badge ${v.ignicao ? 'bg-success' : 'bg-secondary'} mb-2">${v.ignicao ? 'Ignição ON' : 'Ignição OFF'}</span>
+        <div><i class="fas fa-tachometer-alt"></i> <strong>${parseFloat(v.velocidade).toFixed(0)} km/h</strong></div>
+        <div class="text-muted mt-1" style="font-size:.8rem;">${v.data_hora}</div>
+      </div>`);
+    markers[v.prefixo] = marker;
+  });
+
+  document.getElementById('qtd-movimento').textContent = emMovimento;
+  document.getElementById('qtd-parado').textContent = parado;
+  document.getElementById('ultima-atualizacao').textContent = new Date().toLocaleTimeString('pt-BR');
+
+  if (posicoes.length > 0) {
+    const group = L.featureGroup(Object.values(markers));
+    map.fitBounds(group.getBounds().pad(0.1));
+  }
+
+  function focusVehicle(lat, lng, prefixo) {
+    map.setView([lat, lng], 16);
+    if (markers[prefixo]) markers[prefixo].openPopup();
+    document.querySelectorAll('.vehicle-item').forEach(el => el.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+  }
+
+  // Refresh automático a cada 60s
+  document.getElementById('btn-refresh').addEventListener('click', () => {
+    fetch('{% url "telematica:api_posicoes" %}')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('ultima-atualizacao').textContent = new Date().toLocaleTimeString('pt-BR');
+        document.getElementById('contador-veiculos').textContent = data.total + ' veículos';
+        // Atualiza marcadores
+        data.posicoes.forEach(v => {
+          if (markers[v.prefixo]) {
+            markers[v.prefixo].setLatLng([v.lat, v.lng]);
+            markers[v.prefixo].setIcon(getIcon(v.ignicao, v.velocidade));
+          }
+        });
+      });
+  });
+
+  setInterval(() => document.getElementById('btn-refresh').click(), 60000);
+</script>
+{% endblock %}

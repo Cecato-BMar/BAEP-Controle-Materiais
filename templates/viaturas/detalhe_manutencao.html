@@ -21,6 +21,7 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+        <a href="{% url 'relatorios:gerar_relatorio_individual_manutencao' manutencao.pk %}" target="_blank" class="btn btn-danger btn-sm fw-bold"><i class="fas fa-file-pdf me-1"></i>Ficha (PDF)</a>
         <a href="{% url 'viaturas:editar_manutencao' manutencao.pk %}" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-edit me-1"></i>Editar</a>
         {% if manutencao.status == 'ABERTA' or manutencao.status == 'AGUARDANDO_PECA' %}
         <a href="{% url 'viaturas:concluir_manutencao' manutencao.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Concluir Agora</a>
@@ -34,6 +35,63 @@
             <div class="card-header bg-white fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Descrição dos Serviços</div>
             <div class="card-body">
                 <p class="mb-0" style="white-space: pre-line;">{{ manutencao.descricao }}</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-check-double me-2 text-primary"></i>Controle de Qualidade e Garantia</span>
+                {% if manutencao.servicos_executados_corretamente %}
+                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>Serviço Aprovado</span>
+                {% else %}
+                    <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Não Aprovado/Pendente</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1 fw-bold">Validade Garantia (Data)</small>
+                        <div>{{ manutencao.data_validade_garantia|date:"d/m/Y"|default:"Não informada" }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1 fw-bold">Validade Garantia (Km)</small>
+                        <div>{{ manutencao.km_validade_garantia|default:"Não informada" }} km</div>
+                    </div>
+                </div>
+
+                <small class="text-muted d-block mb-1 fw-bold mt-3">Detalhamento dos Serviços (Pós-Manutenção)</small>
+                <div class="p-2 bg-light rounded text-dark" style="white-space: pre-line;">
+                    {{ manutencao.detalhamento_servicos|default:"Nenhum detalhamento registrado." }}
+                </div>
+
+                <small class="text-muted d-block mb-1 fw-bold mt-3">Peças Trocadas / Condições de Garantia</small>
+                <div class="p-2 bg-light rounded text-dark" style="white-space: pre-line;">
+                    {{ manutencao.detalhamento_pecas_garantia|default:"Nenhum detalhamento de peças/garantia registrado." }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-paperclip me-2 text-info"></i>Anexos Oficiais</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-2 fw-bold">Nota Fiscal</small>
+                        {% if manutencao.nota_fiscal %}
+                            <a href="{{ manutencao.nota_fiscal.url }}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-invoice me-2"></i>Visualizar NF</a>
+                        {% else %}
+                            <span class="text-muted small fst-italic">Sem anexo de Nota Fiscal</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-2 fw-bold">Termo de Garantia</small>
+                        {% if manutencao.termo_garantia %}
+                            <a href="{{ manutencao.termo_garantia.url }}" target="_blank" class="btn btn-outline-info btn-sm"><i class="fas fa-file-contract me-2"></i>Visualizar Garantia</a>
+                        {% else %}
+                            <span class="text-muted small fst-italic">Sem anexo de Garantia</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 

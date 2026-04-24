@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Detalhe Dispositivo | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-satellite-dish text-info me-2"></i>{{ dispositivo.viatura.prefixo }}</h1>
+    <small class="text-muted">{{ dispositivo.get_tipo_display }} · {{ dispositivo.fabricante|default:"" }} {{ dispositivo.modelo_dispositivo|default:"" }}</small>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'telematica:editar_dispositivo' dispositivo.pk %}" class="btn btn-outline-primary"><i class="fas fa-edit me-1"></i>Editar</a>
+    <a href="{% url 'telematica:lista_dispositivos' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Info principal -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-info-circle me-2"></i>Informações do Dispositivo</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5 text-muted">Status</dt>
+          <dd class="col-sm-7">
+            <span class="badge {% if dispositivo.status == 'ATIVO' %}bg-success{% elif dispositivo.status == 'AVARIADO' %}bg-danger{% else %}bg-secondary{% endif %}">
+              {{ dispositivo.get_status_display }}
+            </span>
+          </dd>
+          <dt class="col-sm-5 text-muted">Viatura</dt>
+          <dd class="col-sm-7"><strong>{{ dispositivo.viatura.prefixo }}</strong></dd>
+          <dt class="col-sm-5 text-muted">Tipo</dt>
+          <dd class="col-sm-7">{{ dispositivo.get_tipo_display }}</dd>
+          <dt class="col-sm-5 text-muted">Fabricante</dt>
+          <dd class="col-sm-7">{{ dispositivo.fabricante|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Modelo</dt>
+          <dd class="col-sm-7">{{ dispositivo.modelo_dispositivo|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Nº Série / IMEI</dt>
+          <dd class="col-sm-7" style="font-family:monospace;">{{ dispositivo.numero_serie|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Chip</dt>
+          <dd class="col-sm-7">{{ dispositivo.numero_chip|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Operadora</dt>
+          <dd class="col-sm-7">{{ dispositivo.operadora|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Instalação</dt>
+          <dd class="col-sm-7">{{ dispositivo.data_instalacao|date:"d/m/Y"|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted">Contrato até</dt>
+          <dd class="col-sm-7">
+            {% if dispositivo.data_validade_contrato %}
+              <span class="{% if dispositivo.contrato_vencido %}text-danger fw-bold{% endif %}">
+                {{ dispositivo.data_validade_contrato|date:"d/m/Y" }}
+                {% if dispositivo.contrato_vencido %}<i class="fas fa-exclamation-triangle ms-1"></i>{% endif %}
+              </span>
+            {% else %}—{% endif %}
+          </dd>
+        </dl>
+        {% if dispositivo.observacoes %}<hr><p class="text-muted small mb-0">{{ dispositivo.observacoes }}</p>{% endif %}
+      </div>
+    </div>
+
+    <!-- Últimas manutenções do dispositivo -->
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="fas fa-tools me-2"></i>Manutenções</span>
+        <a href="{% url 'telematica:criar_manutencao_disp' %}" class="btn btn-sm btn-outline-primary">+ Nova</a>
+      </div>
+      <div class="card-body p-0">
+        {% for m in manutencoes %}
+        <div class="p-3 border-bottom">
+          <div class="d-flex justify-content-between"><strong>{{ m.get_tipo_display }}</strong><small class="text-muted">{{ m.data|date:"d/m/Y" }}</small></div>
+          <small class="text-muted">{{ m.tecnico }}</small>
+        </div>
+        {% empty %}<p class="text-center text-muted py-3 mb-0">Nenhuma manutenção registrada.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Coluna direita -->
+  <div class="col-md-8">
+    <!-- Últimos registros de posição -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="fas fa-map-pin me-2"></i>Últimas Posições Registradas</span>
+        <a href="{% url 'telematica:registrar_posicao' %}" class="btn btn-sm btn-outline-success">+ Registrar</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Data/Hora</th><th>Lat / Lng</th><th>Velocidade</th><th>Ignição</th><th>Endereço</th></tr></thead>
+            <tbody>
+              {% for r in ultimos_registros %}
+              <tr>
+                <td style="font-size:.8rem;">{{ r.data_hora|date:"d/m/Y H:i" }}</td>
+                <td style="font-family:monospace;font-size:.78rem;">{{ r.latitude }}, {{ r.longitude }}</td>
+                <td>{{ r.velocidade|floatformat:0 }} km/h</td>
+                <td><span class="badge {% if r.ignicao %}bg-success{% else %}bg-secondary{% endif %}">{% if r.ignicao %}ON{% else %}OFF{% endif %}</span></td>
+                <td style="font-size:.8rem;" class="text-muted">{{ r.endereco_reverso|default:"—"|truncatechars:35 }}</td>
+              </tr>
+              {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem registros de posição.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="fas fa-bell text-danger me-2"></i>Alertas Recentes</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Tipo</th><th>Severidade</th><th>Status</th><th>Data/Hora</th></tr></thead>
+            <tbody>
+              {% for a in alertas %}
+              <tr>
+                <td>{{ a.get_tipo_display }}</td>
+                <td><span class="badge {% if a.severidade == 'CRITICA' %}bg-danger{% elif a.severidade == 'ALTA' %}bg-warning text-dark{% else %}bg-info{% endif %}">{{ a.get_severidade_display }}</span></td>
+                <td><span class="badge {% if a.status == 'ABERTO' %}bg-danger{% elif a.status == 'RESOLVIDO' %}bg-success{% else %}bg-secondary{% endif %}">{{ a.get_status_display }}</span></td>
+                <td style="font-size:.8rem;">{{ a.data_hora|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% empty %}<tr><td colspan="4" class="text-center text-muted py-3">Nenhum alerta.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Percursos -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-route text-success me-2"></i>Últimos Percursos</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Início</th><th>Fim</th><th>Distância</th><th>Vel. Máx.</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for p in percursos %}
+              <tr>
+                <td style="font-size:.8rem;">{{ p.data_inicio|date:"d/m/Y H:i" }}</td>
+                <td style="font-size:.8rem;">{{ p.data_fim|date:"d/m/Y H:i"|default:"Em andamento" }}</td>
+                <td>{{ p.distancia_km|floatformat:1 }} km</td>
+                <td>{{ p.velocidade_maxima|floatformat:0 }} km/h</td>
+                <td><span class="badge {% if p.status == 'EM_ANDAMENTO' %}bg-primary{% else %}bg-success{% endif %}">{{ p.get_status_display }}</span></td>
+              </tr>
+              {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Nenhum percurso registrado.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -29,6 +29,12 @@ urlpatterns = [
     path('manutencoes/<int:pk>/editar/', views.editar_manutencao, name='editar_manutencao'),
     path('manutencoes/<int:pk>/concluir/', views.concluir_manutencao, name='concluir_manutencao'),
 
+    # Agendamentos de Manutenção
+    path('agendamentos/', views.lista_agendamentos, name='lista_agendamentos'),
+    path('agendamentos/novo/', views.criar_agendamento, name='criar_agendamento'),
+    path('agendamentos/<int:pk>/iniciar/', views.converter_agendamento, name='converter_agendamento'),
+    path('agendamentos/<int:pk>/cancelar/', views.cancelar_agendamento, name='cancelar_agendamento'),
+
     # Marcas e Modelos (Auxiliares)
     path('marcas/', views.lista_marcas, name='lista_marcas'),
     path('marcas/nova/', views.criar_marca, name='criar_marca'),

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Inventário de Equipamentos | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-list text-primary me-2"></i>Inventário de Equipamentos</h1>
+        <p class="text-muted mb-0">Controle total de computadores, rádios, celulares e ativos de rede.</p>
+    </div>
+    <a href="{% url 'telematica:criar_equipamento' %}" class="btn btn-primary shadow-sm"><i class="fas fa-plus me-1"></i>Novo Equipamento</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">BUSCAR EQUIPAMENTO</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control border-start-0" placeholder="Nome, Série, Patrimônio ou Marca...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold">CATEGORIA</label>
+                <select name="categoria" class="form-select">
+                    <option value="">Todas as Categorias</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if categoria_filtro == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100"><i class="fas fa-filter me-1"></i>Filtrar Resultados</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light py-3">
+                    <tr>
+                        <th class="ps-4">Ativo / Identificação</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th>Rede / IP</th>
+                        <th>Localização</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equip in page_obj %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="{{ equip.categoria.icone }}"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ equip.hostname|default:equip.numero_serie }}</div>
+                                    <small class="text-muted">{{ equip.marca }} {{ equip.modelo }}</small>
+                                    {% if equip.patrimonio %}
+                                    <div class="badge bg-light text-dark border fw-normal" style="font-size: 0.7rem;">Patr: {{ equip.patrimonio }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ equip.categoria.nome }}</span></td>
+                        <td>
+                            {% if equip.status == 'OPERACIONAL' %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Operacional</span>
+                            {% elif equip.status == 'MANUTENCAO' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Manutenção</span>
+                            {% elif equip.status == 'RESERVA' %}
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">Reserva</span>
+                            {% else %}
+                            <span class="badge bg-secondary text-white">{{ equip.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if equip.endereco_ip %}
+                            <div class="fw-bold small" style="font-family: monospace;">{{ equip.endereco_ip }}</div>
+                            <div class="text-muted small" style="font-size: 0.7rem;">{{ equip.endereco_mac|default:"Sem MAC" }}</div>
+                            {% else %}
+                            <span class="text-muted small">Não Config.</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small fw-bold">{{ equip.setor }}</div>
+                            <div class="text-muted small">{{ equip.usuario_responsavel|default:"Sem usuário" }}</div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'telematica:detalhe_equipamento' equip.pk %}" class="btn btn-sm btn-white border" title="Ver Detalhes"><i class="fas fa-eye text-primary"></i></a>
+                                <a href="{% url 'telematica:editar_equipamento' equip.pk %}" class="btn btn-sm btn-white border" title="Editar"><i class="fas fa-edit text-secondary"></i></a>
+                                <a href="{% url 'telematica:criar_manutencao' %}?equipamento={{ equip.pk }}" class="btn btn-sm btn-white border" title="Abrir Manutenção"><i class="fas fa-tools text-warning"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                                <p>Nenhum equipamento encontrado com os filtros selecionados.</p>
+                                <a href="{% url 'telematica:criar_equipamento' %}" class="btn btn-primary btn-sm">Cadastrar Novo</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}">Anterior</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}">Próxima</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

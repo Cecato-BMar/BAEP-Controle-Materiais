@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Registrar Posição Manual | Telemática{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-map-pin text-success me-2"></i>Registrar Posição Manual</h1>
+  <a href="{% url 'telematica:mapa_rastreamento' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <form method="post">{% csrf_token %}{% crispy form %}</form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

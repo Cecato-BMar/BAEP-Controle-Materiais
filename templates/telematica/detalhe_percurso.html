@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Detalhe do Percurso | Telemática{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  #map-percurso { height: 400px; border-radius: 16px; margin-bottom: 20px; }
+  .path-stat { border-left: 4px solid var(--primary-color); padding-left: 15px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-route text-success me-2"></i>Percurso: {{ percurso.dispositivo.viatura.prefixo }}</h1>
+    <small class="text-muted">{{ percurso.data_inicio|date:"d/m/Y H:i" }} até {{ percurso.data_fim|date:"d/m/Y H:i"|default:"Em andamento" }}</small>
+  </div>
+  <a href="{% url 'telematica:lista_percursos' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+</div>
+
+<div id="map-percurso"></div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="path-stat">
+          <small class="text-muted d-block">Distância Total</small>
+          <span class="fs-4 fw-bold">{{ percurso.distancia_km|floatformat:1 }} km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="path-stat" style="border-color: #3498db;">
+          <small class="text-muted d-block">Duração</small>
+          <span class="fs-4 fw-bold">{{ percurso.duracao_minutos }} min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="path-stat" style="border-color: #e67e22;">
+          <small class="text-muted d-block">Velocidade Máxima</small>
+          <span class="fs-4 fw-bold">{{ percurso.velocidade_maxima|floatformat:0 }} km/h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="path-stat" style="border-color: #e74c3c;">
+          <small class="text-muted d-block">Alertas Gerados</small>
+          <span class="fs-4 fw-bold">{{ percurso.alertas_gerados }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><i class="fas fa-list me-2"></i>Registros de Telemetria</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Velocidade</th>
+            <th>Ignição</th>
+            <th>Endereço</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in registros %}
+          <tr>
+            <td>{{ r.data_hora|date:"H:i:s" }}</td>
+            <td>{{ r.velocidade|floatformat:0 }} km/h</td>
+            <td>
+              <span class="badge {% if r.ignicao %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if r.ignicao %}LIGADA{% else %}DESLIGADA{% endif %}
+              </span>
+            </td>
+            <td><small class="text-muted">{{ r.endereco_reverso|default:"—" }}</small></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map-percurso').setView([-23.9618, -46.3322], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  const pathCoords = [
+    {% for r in registros %}
+      [{{ r.latitude|stringformat:"f" }}, {{ r.longitude|stringformat:"f" }}],
+    {% endfor %}
+  ];
+
+  if (pathCoords.length > 0) {
+    const polyline = L.polyline(pathCoords, {color: 'blue', weight: 4, opacity: 0.7}).addTo(map);
+    map.fitBounds(polyline.getBounds());
+    
+    // Marcador de Início
+    L.marker(pathCoords[0]).addTo(map).bindPopup("Início do Percurso");
+    
+    // Marcador de Fim (se concluído)
+    {% if percurso.status == 'CONCLUIDO' %}
+      L.marker(pathCoords[pathCoords.length - 1]).addTo(map).bindPopup("Fim do Percurso");
+    {% endif %}
+  }
+</script>
+{% endblock %}

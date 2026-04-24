@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Linhas Móveis & Chips | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-id-card text-info me-2"></i>Linhas Móveis & Chips</h1>
+        <p class="text-muted mb-0">Gestão de chips, números de telefone e pacotes de dados para dispositivos móveis.</p>
+    </div>
+    <a href="{% url 'telematica:criar_linha' %}" class="btn btn-info text-white shadow-sm"><i class="fas fa-plus me-1"></i>Nova Linha</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control border-start-0" placeholder="Buscar por número, ICCID ou IMEI...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light py-3">
+                    <tr>
+                        <th class="ps-4">Número / Operadora</th>
+                        <th>ICCID (Chip)</th>
+                        <th>Vínculo</th>
+                        <th>Responsável</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for linha in linhas %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ linha.numero }}</div>
+                            <small class="text-muted text-uppercase">{{ linha.operadora }}</small>
+                        </td>
+                        <td><code class="text-dark">{{ linha.iccid }}</code></td>
+                        <td>
+                            {% if linha.equipamento_vinculado %}
+                            <a href="{% url 'telematica:detalhe_equipamento' linha.equipamento_vinculado.pk %}" class="text-decoration-none">
+                                <i class="{{ linha.equipamento_vinculado.categoria.icone }} me-1"></i>
+                                {{ linha.equipamento_vinculado.hostname|default:linha.equipamento_vinculado.numero_serie }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted small">Disponível</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ linha.policial_responsavel|default:"-" }}</td>
+                        <td>
+                            {% if linha.ativo %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Ativa</span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Inativa</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'telematica:editar_linha' linha.pk %}" class="btn btn-sm btn-white border" title="Editar"><i class="fas fa-edit text-secondary"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">Nenhuma linha cadastrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

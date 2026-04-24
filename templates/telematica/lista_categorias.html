@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Categorias de Equipamentos | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-tags text-primary me-2"></i>Categorias de Ativos</h1>
+        <p class="text-muted mb-0">Organize os equipamentos de TI por tipo e ícone.</p>
+    </div>
+    <a href="{% url 'telematica:criar_categoria' %}" class="btn btn-primary shadow-sm"><i class="fas fa-plus me-1"></i>Nova Categoria</a>
+</div>
+
+<div class="row g-3">
+    {% for cat in categorias %}
+    <div class="col-md-4 col-lg-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center py-4">
+                <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="{{ cat.icone }} fa-2x"></i>
+                </div>
+                <h5 class="fw-bold mb-1">{{ cat.nome }}</h5>
+                <p class="text-muted small">{{ cat.total }} Equipamentos</p>
+                {% if cat.descricao %}
+                <p class="text-muted x-small">{{ cat.descricao }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="text-muted">
+            <i class="fas fa-tags fa-3x mb-3 opacity-25"></i>
+            <p>Nenhuma categoria cadastrada.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

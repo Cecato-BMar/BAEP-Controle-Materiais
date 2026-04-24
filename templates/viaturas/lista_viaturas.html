@@ -74,6 +74,7 @@
                         <th>Placa</th>
                         <th>Ano</th>
                         <th>Odômetro</th>
+                        <th>Localização</th>
                         <th class="text-center">Status</th>
                         <th class="text-end">Ações</th>
                     </tr>
@@ -99,6 +100,7 @@
                         <td><code>{{ v.placa|default:"—" }}</code></td>
                         <td>{{ v.ano_fabricacao|default:"—" }}</td>
                         <td>{{ v.odometro_atual|floatformat:0 }} km</td>
+                        <td><small class="text-muted"><i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ v.get_localizacao_display|default:"—" }}</small></td>
                         <td class="text-center">
                             {% if v.status == 'DISPONIVEL' %}<span class="badge bg-success rounded-pill">Disponível</span>
                             {% elif v.status == 'EM_USO' %}<span class="badge bg-warning text-dark rounded-pill">Em Uso</span>

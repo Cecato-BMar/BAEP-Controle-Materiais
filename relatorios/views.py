@@ -303,13 +303,92 @@ def gerar_relatorio_manutencoes(request):
 @login_required
 @require_module_permission('frota')
 def gerar_relatorio_individual_viatura(request, viatura_id):
-    from viaturas.models import Viatura, Manutencao
+    from viaturas.models import Viatura
     viatura = get_object_or_404(Viatura, pk=viatura_id)
+    
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    elements = [Paragraph(f"FICHA TÉCNICA - {viatura.prefixo}", getSampleStyleSheet()['Heading1'])]
-    doc.build(elements, onFirstPage=_draw_logo)
-    return HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    generator = PDFReportGenerator(buffer, f"FICHA TÉCNICA DA VIATURA: {viatura.prefixo}", user=request.user)
+    
+    elements = []
+    styles = generator.styles
+    
+    # Detalhes da Viatura
+    elements.append(Paragraph("DADOS DA VIATURA", styles['SectionHeader']))
+    dados = [
+        ['Prefixo', viatura.prefixo],
+        ['Placa', viatura.placa or 'N/A'],
+        ['Chassi', viatura.chassi or 'N/A'],
+        ['RENAVAM', viatura.renavam or 'N/A'],
+        ['Número de Patrimônio', viatura.numero_patrimonio or 'N/A'],
+        ['Marca', viatura.modelo.marca.nome],
+        ['Modelo', viatura.modelo.nome],
+        ['Tipo', viatura.tipo],
+        ['Ano de Fabricação', str(viatura.ano_fabricacao) if viatura.ano_fabricacao else 'N/A'],
+        ['Cor', viatura.cor],
+        ['Tipo de Combustível', viatura.get_tipo_combustivel_display()],
+        ['Capacidade do Tanque', f"{viatura.capacidade_tanque} L"],
+        ['Odômetro Atual', f"{viatura.odometro_atual} km"],
+        ['Status Atual', viatura.get_status_display()],
+        ['Localização Atual', viatura.get_localizacao_display() if viatura.localizacao else 'N/A'],
+    ]
+    
+    t = generator.create_table(dados, col_widths=[6*cm, 10*cm])
+    elements.append(t)
+    elements.append(Spacer(1, 0.5*cm))
+    
+    if viatura.observacoes:
+        elements.append(Paragraph("OBSERVAÇÕES ADICIONAIS", styles['SectionHeader']))
+        elements.append(Paragraph(viatura.observacoes, styles['Normal']))
+        elements.append(Spacer(1, 0.5*cm))
+        
+    # Últimos Despachos
+    elements.append(Paragraph("ÚLTIMOS DESPACHOS", styles['SectionHeader']))
+    despachos = viatura.despachos.select_related('motorista').order_by('-data_saida')[:10]
+    
+    if despachos.exists():
+        dados_despachos = [['Data/Hora Saída', 'Motorista', 'Km Saída', 'Data Retorno', 'Km Retorno']]
+        for desp in despachos:
+            dados_despachos.append([
+                desp.data_saida.strftime('%d/%m/%Y %H:%M'),
+                str(desp.motorista.nome) if desp.motorista else 'N/A',
+                str(desp.km_saida),
+                desp.data_retorno.strftime('%d/%m/%Y %H:%M') if desp.data_retorno else 'Em curso',
+                str(desp.km_retorno) if desp.km_retorno else '-'
+            ])
+        t_desp = generator.create_table(dados_despachos, col_widths=[3.5*cm, 4.5*cm, 2*cm, 3.5*cm, 2.5*cm])
+        elements.append(t_desp)
+    else:
+        elements.append(Paragraph("Nenhum despacho registrado para esta viatura.", styles['Normal']))
+        
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Últimas Manutenções
+    elements.append(Paragraph("ÚLTIMAS MANUTENÇÕES", styles['SectionHeader']))
+    manutencoes = viatura.manutencoes.order_by('-data_inicio')[:10]
+    
+    if manutencoes.exists():
+        dados_manut = [['Tipo', 'Início', 'Conclusão', 'Oficina', 'Custo Total']]
+        for manut in manutencoes:
+            dados_manut.append([
+                manut.get_tipo_display(),
+                manut.data_inicio.strftime('%d/%m/%Y'),
+                manut.data_conclusao.strftime('%d/%m/%Y') if manut.data_conclusao else 'Aberta',
+                str(manut.oficina_fk) if manut.oficina_fk else str(manut.oficina or '-'),
+                f"R$ {manut.custo_total:.2f}"
+            ])
+        t_manut = generator.create_table(dados_manut, col_widths=[3.5*cm, 2.5*cm, 2.5*cm, 4.5*cm, 3*cm])
+        elements.append(t_manut)
+    else:
+        elements.append(Paragraph("Nenhuma manutenção registrada para esta viatura.", styles['Normal']))
+    
+    generator.generate(elements)
+    
+    pdf_content = buffer.getvalue()
+    buffer.close()
+    
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="ficha_viatura_{viatura.prefixo}.pdf"'
+    return response
 
 @login_required
 @require_module_permission('patrimonio')
@@ -377,4 +456,87 @@ def gerar_relatorio_individual_patrimonio(request, item_id):
     
     response = HttpResponse(pdf_content, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="ficha_patrimonio_{item.numero_patrimonio}.pdf"'
+    return response
+
+@login_required
+@require_module_permission('frota')
+def gerar_relatorio_individual_manutencao(request, manutencao_id):
+    from viaturas.models import Manutencao
+    manutencao = get_object_or_404(Manutencao, pk=manutencao_id)
+    
+    buffer = io.BytesIO()
+    generator = PDFReportGenerator(buffer, f"FICHA DE MANUTENÇÃO: {manutencao.viatura.prefixo}", user=request.user)
+    
+    elements = []
+    styles = generator.styles
+    
+    # Detalhes da Viatura e Manutencao
+    elements.append(Paragraph("DADOS GERAIS", styles['SectionHeader']))
+    dados = [
+        ['Viatura', manutencao.viatura.prefixo],
+        ['Tipo de Manutenção', manutencao.get_tipo_display()],
+        ['Status', manutencao.get_status_display()],
+        ['Odômetro na Manutenção', f"{manutencao.odometro} km"],
+        ['Data de Início', manutencao.data_inicio.strftime('%d/%m/%Y')],
+        ['Data de Conclusão', manutencao.data_conclusao.strftime('%d/%m/%Y') if manutencao.data_conclusao else 'N/A'],
+        ['Oficina/Empresa', str(manutencao.oficina_fk) if manutencao.oficina_fk else str(manutencao.oficina or 'N/A')],
+        ['Ordem de Serviço (O.S.)', manutencao.ordem_servico or 'N/A'],
+        ['Registrado Por', manutencao.registrado_por.get_full_name() or manutencao.registrado_por.username],
+    ]
+    
+    t = generator.create_table(dados, col_widths=[6*cm, 10*cm])
+    elements.append(t)
+    elements.append(Spacer(1, 0.5*cm))
+
+    # Financeiro
+    elements.append(Paragraph("RESUMO FINANCEIRO", styles['SectionHeader']))
+    dados_fin = [
+        ['Custo com Peças', f"R$ {manutencao.custo_pecas:.2f}"],
+        ['Custo Mão de Obra', f"R$ {manutencao.custo_mao_obra:.2f}"],
+        ['Custo Total', f"R$ {manutencao.custo_total:.2f}"],
+    ]
+    t_fin = generator.create_table(dados_fin, col_widths=[6*cm, 10*cm])
+    elements.append(t_fin)
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Descrições e Auditoria
+    elements.append(Paragraph("DESCRIÇÃO DOS SERVIÇOS (ABERTURA)", styles['SectionHeader']))
+    elements.append(Paragraph(manutencao.descricao or 'Nenhuma descrição inicial registrada.', styles['Normal']))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    elements.append(Paragraph("CONTROLE DE QUALIDADE E GARANTIA", styles['SectionHeader']))
+    aprovado = "SIM" if manutencao.servicos_executados_corretamente else "NÃO / PENDENTE"
+    dados_garantia = [
+        ['Serviço Aprovado?', aprovado],
+        ['Validade Garantia (Data)', manutencao.data_validade_garantia.strftime('%d/%m/%Y') if manutencao.data_validade_garantia else 'N/A'],
+        ['Validade Garantia (Km)', f"{manutencao.km_validade_garantia} km" if manutencao.km_validade_garantia else 'N/A'],
+    ]
+    t_garantia = generator.create_table(dados_garantia, col_widths=[6*cm, 10*cm])
+    elements.append(t_garantia)
+    elements.append(Spacer(1, 0.2*cm))
+    
+    elements.append(Paragraph("DETALHAMENTO DOS SERVIÇOS EXECUTADOS (PÓS-MANUTENÇÃO)", styles['Heading3']))
+    elements.append(Paragraph(manutencao.detalhamento_servicos or 'Nenhum detalhamento pós-manutenção registrado.', styles['Normal']))
+    elements.append(Spacer(1, 0.3*cm))
+    
+    elements.append(Paragraph("PEÇAS TROCADAS / CONDIÇÕES DE GARANTIA", styles['Heading3']))
+    elements.append(Paragraph(manutencao.detalhamento_pecas_garantia or 'Nenhum detalhamento de peças registrado.', styles['Normal']))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Anexos
+    elements.append(Paragraph("ANEXOS OFICIAIS (SISTEMA BAEP)", styles['SectionHeader']))
+    dados_anexos = [
+        ['Nota Fiscal anexada?', 'SIM' if manutencao.nota_fiscal else 'NÃO'],
+        ['Termo de Garantia anexado?', 'SIM' if manutencao.termo_garantia else 'NÃO'],
+    ]
+    t_anexos = generator.create_table(dados_anexos, col_widths=[8*cm, 8*cm])
+    elements.append(t_anexos)
+    
+    generator.generate(elements)
+    
+    pdf_content = buffer.getvalue()
+    buffer.close()
+    
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="ficha_manutencao_OS_{manutencao.ordem_servico or manutencao.pk}.pdf"'
     return response

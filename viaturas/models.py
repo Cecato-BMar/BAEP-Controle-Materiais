@@ -57,6 +57,18 @@ class Viatura(models.Model):
         ('OUTRO', 'Outro'),
     ]
 
+    LOCALIZACAO_CHOICES = [
+        ('1_CIA', '1ª CIA'),
+        ('2_CIA', '2ª CIA'),
+        ('3_CIA', '3ª CIA'),
+        ('4_CIA', '4ª CIA'),
+        ('EM', 'EM'),
+        ('P4', 'P4'),
+        ('MOTOMEC', 'MOTOMEC'),
+        ('OFICINA', 'Oficina'),
+        ('EM_USO', 'Em Uso / Despachada'),
+    ]
+
     prefixo = models.CharField(_('Prefixo da Viatura'), max_length=20, unique=True, help_text="Ex: E-10201")
     placa = models.CharField(_('Placa'), max_length=15, blank=True, null=True, unique=True)
     chassi = models.CharField(_('Chassi/Nº de Série'), max_length=100, blank=True, null=True)
@@ -75,6 +87,7 @@ class Viatura(models.Model):
     
     status = models.CharField(_('Status Atual'), max_length=20, choices=STATUS_CHOICES, default='DISPONIVEL')
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
+    localizacao = models.CharField(_('Localização Atual'), max_length=20, choices=LOCALIZACAO_CHOICES, default='MOTOMEC')
     
     data_cadastro = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
@@ -123,7 +136,8 @@ class DespachoViatura(models.Model):
         if not self.data_retorno:
             if self.viatura.status == 'DISPONIVEL':
                 self.viatura.status = 'EM_USO'
-                self.viatura.save(update_fields=['status'])
+                self.viatura.localizacao = 'EM_USO'
+                self.viatura.save(update_fields=['status', 'localizacao'])
         else:
             if self.viatura.status == 'EM_USO':
                 self.viatura.status = 'DISPONIVEL'
@@ -191,6 +205,7 @@ class Manutencao(models.Model):
     ]
 
     STATUS_CHOICES = [
+        ('AGENDADA', 'Agendada (Futura)'),
         ('ABERTA', 'Em Aberto'),
         ('AGUARDANDO_PECA', 'Aguardando Peça'),
         ('CONCLUIDA', 'Concluída'),
@@ -215,6 +230,19 @@ class Manutencao(models.Model):
     
     ordem_servico = models.CharField(_('O.S. Nº'), max_length=50, blank=True, null=True)
     
+    # Controle e Auditoria da Manutenção
+    servicos_executados_corretamente = models.BooleanField(_('Serviços executados corretamente?'), default=False, help_text='Marque após a verificação/teste da viatura')
+    detalhamento_servicos = models.TextField(_('Detalhamento dos Serviços (Pós-Manutenção)'), blank=True, null=True, help_text='O que foi efetivamente feito na oficina')
+    detalhamento_pecas_garantia = models.TextField(_('Peças Trocadas e Condições de Garantia'), blank=True, null=True)
+    
+    # Anexos
+    nota_fiscal = models.FileField(_('Nota Fiscal (Anexo)'), upload_to='viaturas/manutencao/notas/', blank=True, null=True)
+    termo_garantia = models.FileField(_('Termo de Garantia (Anexo)'), upload_to='viaturas/manutencao/garantias/', blank=True, null=True)
+    
+    # Validades
+    data_validade_garantia = models.DateField(_('Validade da Garantia (Data)'), blank=True, null=True)
+    km_validade_garantia = models.DecimalField(_('Validade da Garantia (Km)'), max_digits=10, decimal_places=1, blank=True, null=True)
+    
     registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
 
     @property
@@ -228,14 +256,16 @@ class Manutencao(models.Model):
         if self.status in ['ABERTA', 'AGUARDANDO_PECA']:
             if self.viatura.status != 'MANUTENCAO':
                 self.viatura.status = 'MANUTENCAO'
-                self.viatura.save(update_fields=['status'])
+                self.viatura.localizacao = 'OFICINA'
+                self.viatura.save(update_fields=['status', 'localizacao'])
         elif self.status in ['CONCLUIDA', 'CANCELADA']:
             if self.viatura.status == 'MANUTENCAO':
                 # Verifica se não há outras manutenções ativas
                 outras_ativas = self.viatura.manutencoes.filter(status__in=['ABERTA', 'AGUARDANDO_PECA']).exclude(pk=self.pk).exists()
                 if not outras_ativas:
                     self.viatura.status = 'DISPONIVEL'
-                    self.viatura.save(update_fields=['status'])
+                    self.viatura.localizacao = 'MOTOMEC'
+                    self.viatura.save(update_fields=['status', 'localizacao'])
                     
         # Atualiza odômetro
         if self.odometro and self.odometro > self.viatura.odometro_atual:

@@ -145,15 +145,23 @@ def lista_bens(request):
     """Catálogo de tipos de bens"""
     qs = BemPatrimonial.objects.select_related('categoria').annotate(num_itens=Count('itens'))
     q = request.GET.get('q')
+    categoria = request.GET.get('categoria')
+    
     if q:
         qs = qs.filter(nome__icontains=q)
+    if categoria:
+        qs = qs.filter(categoria_id=categoria)
     
     paginator = Paginator(qs, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    categorias = CategoriaPatrimonio.objects.all()
+    
     return render(request, 'patrimonio/lista_bens.html', {
         'page_obj': page_obj,
-        'q': q
+        'q': q,
+        'categoria_filtro': categoria,
+        'categorias': categorias,
     })
 
 @login_required

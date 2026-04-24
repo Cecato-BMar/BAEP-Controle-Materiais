@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Alertas Telemáticos | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-0" style="font-size:1.5rem;"><i class="fas fa-bell text-danger me-2"></i>Alertas Telemáticos</h1>
+    <small class="text-muted">{{ total_abertos }} em aberto · {{ total_criticos }} críticos</small>
+  </div>
+  <a href="{% url 'telematica:criar_alerta' %}" class="btn btn-danger"><i class="fas fa-plus me-1"></i>Novo Alerta Manual</a>
+</div>
+
+<!-- Cards rápidos -->
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-3"><div class="card py-2 px-3 text-center border-danger"><div class="fw-bold text-danger fs-4">{{ total_criticos }}</div><small class="text-muted">Críticos</small></div></div>
+  <div class="col-6 col-md-3"><div class="card py-2 px-3 text-center border-warning"><div class="fw-bold text-warning fs-4">{{ total_abertos }}</div><small class="text-muted">Em Aberto</small></div></div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        {{ form.tipo.label_tag }}
+        {{ form.tipo }}
+      </div>
+      <div class="col-md-2">
+        {{ form.severidade.label_tag }}
+        {{ form.severidade }}
+      </div>
+      <div class="col-md-2">
+        {{ form.status.label_tag }}
+        {{ form.status }}
+      </div>
+      <div class="col-md-2">
+        {{ form.data_inicio.label_tag }}
+        {{ form.data_inicio }}
+      </div>
+      <div class="col-md-2">
+        {{ form.data_fim.label_tag }}
+        {{ form.data_fim }}
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i>Filtrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr>
+          <th>Viatura</th><th>Tipo de Alerta</th><th>Severidade</th><th>Status</th><th>Data/Hora</th><th>Velocidade</th><th>Ações</th>
+        </tr></thead>
+        <tbody>
+          {% for alerta in page_obj %}
+          <tr {% if alerta.severidade == 'CRITICA' %}style="background:#fff0f0;"{% elif alerta.severidade == 'ALTA' %}style="background:#fffbeb;"{% endif %}>
+            <td><strong>{{ alerta.dispositivo.viatura.prefixo }}</strong></td>
+            <td>
+              {% if alerta.tipo == 'VELOCIDADE' %}<i class="fas fa-tachometer-alt text-danger me-1"></i>
+              {% elif alerta.tipo == 'SAIDA_AREA' %}<i class="fas fa-draw-polygon text-warning me-1"></i>
+              {% elif alerta.tipo == 'IGNICAO_INDEVIDA' %}<i class="fas fa-key text-info me-1"></i>
+              {% else %}<i class="fas fa-exclamation-circle me-1"></i>{% endif %}
+              {{ alerta.get_tipo_display }}
+            </td>
+            <td>
+              <span class="badge
+                {% if alerta.severidade == 'CRITICA' %}bg-danger
+                {% elif alerta.severidade == 'ALTA' %}bg-warning text-dark
+                {% elif alerta.severidade == 'MEDIA' %}bg-info
+                {% else %}bg-secondary{% endif %}">
+                {{ alerta.get_severidade_display }}
+              </span>
+            </td>
+            <td>
+              <span class="badge
+                {% if alerta.status == 'ABERTO' %}bg-danger
+                {% elif alerta.status == 'EM_ANALISE' %}bg-warning text-dark
+                {% elif alerta.status == 'RESOLVIDO' %}bg-success
+                {% else %}bg-secondary{% endif %}">
+                {{ alerta.get_status_display }}
+              </span>
+            </td>
+            <td style="font-size:.85rem;">{{ alerta.data_hora|date:"d/m/Y H:i" }}</td>
+            <td>
+              {% if alerta.velocidade_registrada %}
+                {{ alerta.velocidade_registrada|floatformat:0 }} km/h
+                {% if alerta.velocidade_limite %}
+                  <small class="text-muted">/ {{ alerta.velocidade_limite|floatformat:0 }}</small>
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'telematica:analisar_alerta' alerta.pk %}" class="btn btn-sm btn-outline-warning" title="Analisar"><i class="fas fa-search"></i></a>
+                {% if alerta.status == 'ABERTO' %}
+                <a href="{% url 'telematica:resolver_alerta' alerta.pk %}" class="btn btn-sm btn-outline-success" title="Resolver rapidamente" onclick="return confirm('Marcar como resolvido?')"><i class="fas fa-check"></i></a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-check-circle text-success fa-2x mb-2"></i><br>Nenhum alerta encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>{% endif %}
+    <li class="page-item disabled"><span class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>{% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
-                    AbastecimentoForm, ManutencaoForm, MarcaViaturaForm, 
+                    AbastecimentoForm, ManutencaoForm, AgendamentoManutencaoForm, MarcaViaturaForm, 
                     ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm)
 from reserva_baep.decorators import require_module_permission
 
@@ -54,7 +54,13 @@ def dashboard_frota(request):
     ).order_by('-data_saida')
 
     # Manutenções em aberto
-    manutencoes_abertas = Manutencao.objects.filter(data_conclusao__isnull=True).select_related('viatura')
+    manutencoes_abertas = Manutencao.objects.filter(status__in=['ABERTA', 'AGUARDANDO_PECA']).select_related('viatura')
+
+    # Agendamentos futuros
+    from django.utils import timezone as tz
+    hoje = tz.now().date()
+    agendamentos = Manutencao.objects.filter(status='AGENDADA').select_related('viatura', 'oficina_fk').order_by('data_inicio')
+    agendamentos_atrasados = agendamentos.filter(data_inicio__lt=hoje).count()
 
     # Últimos abastecimentos
     ultimos_abastecimentos = Abastecimento.objects.select_related('viatura', 'motorista').order_by('-data_abastecimento')[:5]
@@ -69,6 +75,9 @@ def dashboard_frota(request):
         'despachos_ativos': despachos_ativos,
         'manutencoes_abertas': manutencoes_abertas,
         'ultimos_abastecimentos': ultimos_abastecimentos,
+        'agendamentos': agendamentos,
+        'agendamentos_atrasados': agendamentos_atrasados,
+        'hoje': hoje,
     }
     return render(request, 'viaturas/dashboard.html', context)
 
@@ -286,9 +295,9 @@ def lista_manutencoes(request):
     qs = Manutencao.objects.select_related('viatura', 'oficina_fk').order_by('-data_inicio')
     status = request.GET.get('status', 'abertas')
     if status == 'abertas':
-        qs = qs.filter(data_conclusao__isnull=True)
+        qs = qs.filter(status__in=['ABERTA', 'AGUARDANDO_PECA'])
     elif status == 'concluidas':
-        qs = qs.filter(data_conclusao__isnull=False)
+        qs = qs.filter(status__in=['CONCLUIDA', 'CANCELADA'])
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get('page'))
     return render(request, 'viaturas/lista_manutencoes.html', {'page_obj': page, 'status_filtro': status})
@@ -307,12 +316,9 @@ def concluir_manutencao(request, pk):
     man = get_object_or_404(Manutencao, pk=pk, data_conclusao__isnull=True)
     man.data_conclusao = timezone.now().date()
     man.status = 'CONCLUIDA'
-    man.save()
+    man.save() # O método save do modelo Manutencao já cuida de liberar a viatura
     
-    # Libera a viatura para DISPONIVEL
     viatura = man.viatura
-    viatura.status = 'DISPONIVEL'
-    viatura.save()
     
     messages.success(request, f'Manutenção da viatura {viatura.prefixo} marcada como concluída!')
     return redirect('viaturas:lista_manutencoes')
@@ -322,19 +328,18 @@ def concluir_manutencao(request, pk):
 @require_module_permission('frota')
 def criar_manutencao(request):
     if request.method == 'POST':
-        form = ManutencaoForm(request.POST)
+        form = ManutencaoForm(request.POST, request.FILES)
         if form.is_valid():
             man = form.save(commit=False)
             man.registrado_por = request.user
-            man.save()
-            # Atualiza status da viatura para manutenção se for o caso
-            if man.status in ['ABERTA', 'AGUARDANDO_PECA']:
-                man.viatura.status = 'MANUTENCAO'
-                man.viatura.save()
-            elif man.status == 'CONCLUIDA':
-                man.viatura.status = 'DISPONIVEL'
-                man.viatura.save()
-                
+            man.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            
+            # Atualiza localização escolhida na tela
+            local = form.cleaned_data.get('localizacao_fisica')
+            if local and man.viatura.localizacao != local:
+                man.viatura.localizacao = local
+                man.viatura.save(update_fields=['localizacao'])
+            
             messages.success(request, 'Manutenção registrada com sucesso!')
             return redirect('viaturas:lista_manutencoes')
         messages.error(request, 'Corrija os erros abaixo.')
@@ -348,23 +353,79 @@ def criar_manutencao(request):
 def editar_manutencao(request, pk):
     man = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
-        form = ManutencaoForm(request.POST, instance=man)
+        form = ManutencaoForm(request.POST, request.FILES, instance=man)
         if form.is_valid():
-            m = form.save()
-            # Se manutenção foi concluída ou cancelada, libera a viatura
-            if m.status in ['CONCLUIDA', 'CANCELADA']:
-                m.viatura.status = 'DISPONIVEL'
-                m.viatura.save()
-            elif m.status in ['ABERTA', 'AGUARDANDO_PECA']:
-                m.viatura.status = 'MANUTENCAO'
-                m.viatura.save()
-                
+            m = form.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            
+            # Atualiza localização escolhida na tela
+            local = form.cleaned_data.get('localizacao_fisica')
+            if local and m.viatura.localizacao != local:
+                m.viatura.localizacao = local
+                m.viatura.save(update_fields=['localizacao'])
+            
             messages.success(request, 'Manutenção atualizada!')
             return redirect('viaturas:lista_manutencoes')
         messages.error(request, 'Corrija os erros abaixo.')
     else:
         form = ManutencaoForm(instance=man)
     return render(request, 'viaturas/form_manutencao.html', {'form': form, 'titulo': 'Editar Manutenção', 'manutencao': man})
+
+# =============================================================================
+# AGENDAMENTOS DE MANUTENÇÃO
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_agendamentos(request):
+    from django.utils import timezone as tz
+    hoje = tz.now().date()
+    qs = Manutencao.objects.select_related('viatura', 'oficina_fk').filter(status='AGENDADA').order_by('data_inicio')
+    paginator = Paginator(qs, 25)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_agendamentos.html', {'page_obj': page, 'hoje': hoje})
+
+
+@login_required
+@require_module_permission('frota')
+def criar_agendamento(request):
+    if request.method == 'POST':
+        form = AgendamentoManutencaoForm(request.POST)
+        if form.is_valid():
+            agend = form.save(commit=False)
+            agend.status = 'AGENDADA'
+            agend.odometro = agend.viatura.odometro_atual  # usa odometro atual como referência
+            agend.registrado_por = request.user
+            agend.save()
+            messages.success(request, f'Agendamento registrado para {agend.viatura.prefixo} em {agend.data_inicio.strftime("%d/%m/%Y")}!')
+            return redirect('viaturas:lista_agendamentos')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = AgendamentoManutencaoForm()
+    return render(request, 'viaturas/form_agendamento.html', {'form': form, 'titulo': 'Novo Agendamento'})
+
+
+@login_required
+@require_module_permission('frota')
+def converter_agendamento(request, pk):
+    """Converte um agendamento em manutenção ativa (Em Aberto)."""
+    agend = get_object_or_404(Manutencao, pk=pk, status='AGENDADA')
+    agend.status = 'ABERTA'
+    agend.data_inicio = timezone.now().date()
+    agend.save()
+    messages.success(request, f'Agendamento da viatura {agend.viatura.prefixo} iniciado como manutenção Em Aberto!')
+    return redirect('viaturas:lista_manutencoes')
+
+
+@login_required
+@require_module_permission('frota')
+def cancelar_agendamento(request, pk):
+    """Cancela um agendamento."""
+    agend = get_object_or_404(Manutencao, pk=pk, status='AGENDADA')
+    agend.status = 'CANCELADA'
+    agend.save()
+    messages.warning(request, f'Agendamento da viatura {agend.viatura.prefixo} cancelado.')
+    return redirect('viaturas:lista_agendamentos')
+
 
 # =============================================================================
 # MARCAS E MODELOS (AUXILIARES)

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Agendamentos de Manutenção — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2 text-primary"></i>Agendamentos de Manutenção</h4>
+        <small class="text-muted">Manutenções futuras programadas</small>
+    </div>
+    <a href="{% url 'viaturas:criar_agendamento' %}" class="btn btn-primary btn-sm fw-bold">
+        <i class="fas fa-calendar-plus me-1"></i>Novo Agendamento
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Viatura</th>
+                        <th>Tipo</th>
+                        <th>Data Agendada</th>
+                        <th>Oficina</th>
+                        <th>Motivo</th>
+                        <th>Registrado por</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agend in page_obj %}
+                    <tr>
+                        <td><span class="badge bg-dark fw-bold">{{ agend.viatura.prefixo }}</span></td>
+                        <td>
+                            {% if agend.tipo == 'PREVENTIVA' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">
+                                    <i class="fas fa-sync-alt me-1"></i>Preventiva
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Corretiva
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if agend.data_inicio <= hoje %}
+                                <span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }} (Atrasado)</span>
+                            {% else %}
+                                <span class="text-success"><i class="fas fa-calendar me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ agend.oficina_fk|default:"—" }}</td>
+                        <td>
+                            <small class="text-muted">{{ agend.descricao|truncatechars:60 }}</small>
+                        </td>
+                        <td><small>{{ agend.registrado_por.get_full_name|default:agend.registrado_por.username }}</small></td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'viaturas:converter_agendamento' agend.pk %}"
+                                   class="btn btn-sm btn-success fw-bold"
+                                   title="Iniciar Manutenção Agora"
+                                   onclick="return confirm('Iniciar esta manutenção agora para {{ agend.viatura.prefixo }}?')">
+                                    <i class="fas fa-play me-1"></i>Iniciar
+                                </a>
+                                <a href="{% url 'viaturas:cancelar_agendamento' agend.pk %}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="Cancelar Agendamento"
+                                   onclick="return confirm('Cancelar este agendamento?')">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-calendar-check fa-2x mb-2 d-block text-success opacity-50"></i>
+                            Nenhum agendamento pendente. Tudo em dia!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-transparent">
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

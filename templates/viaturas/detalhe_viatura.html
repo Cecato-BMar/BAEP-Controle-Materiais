@@ -70,6 +70,7 @@
                     <tr><th class="text-muted small">Cor</th><td>{{ viatura.cor }}</td></tr>
                     <tr><th class="text-muted small">Combustível</th><td>{{ viatura.get_tipo_combustivel_display }}</td></tr>
                     <tr><th class="text-muted small">Cap. Tanque</th><td>{{ viatura.capacidade_tanque }} L</td></tr>
+                    <tr><th class="text-muted small">Localização</th><td><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ viatura.get_localizacao_display|default:"—" }}</td></tr>
                 </table>
                 {% if viatura.observacoes %}
                 <div class="alert alert-secondary small p-2 mt-2">{{ viatura.observacoes }}</div>
