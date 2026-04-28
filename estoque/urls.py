@@ -102,6 +102,7 @@ urlpatterns = [
     path('materiais/<int:pk>/', views.detalhe_produto, name='detalhe_produto'),
     path('materiais/<int:pk>/ficha-pdf/', views.ficha_individual_pdf, name='ficha_individual_pdf'),
     path('materiais/<int:pk>/editar/', views.editar_produto, name='editar_produto'),
+    path('materiais/<int:pk>/excluir/', views.excluir_produto, name='excluir_produto'),
 
 
     # =========================================================================

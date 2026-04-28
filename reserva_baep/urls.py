@@ -18,12 +18,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
+import os
 
 from . import views
 
 from django.shortcuts import redirect
 
 urlpatterns = [
+    # PWA - Service Worker e Manifest (devem estar na raiz)
+    path('sw.js', serve, {'document_root': settings.STATICFILES_DIRS[0], 'path': 'sw.js'}, name='sw.js'),
+    path('manifest.json', serve, {'document_root': settings.STATICFILES_DIRS[0], 'path': 'manifest.json'}, name='manifest.json'),
+    
     path('', views.home, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('admin/', admin.site.urls),

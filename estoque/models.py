@@ -831,3 +831,22 @@ class AjusteEstoque(models.Model):
             pass
 
 
+class LogExclusaoMaterial(models.Model):
+    """Log de exclusão de materiais de consumo"""
+    codigo_material = models.CharField(_('Código'), max_length=50)
+    nome_material = models.CharField(_('Nome'), max_length=200)
+    categoria = models.CharField(_('Categoria'), max_length=100)
+    saldo_na_exclusao = models.DecimalField(_('Saldo na Exclusão'), max_digits=10, decimal_places=2)
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name=_('Usuário'))
+    data_exclusao = models.DateTimeField(auto_now_add=True)
+    motivo = models.TextField(_('Motivo / Justificativa'), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Log de Exclusão de Material')
+        verbose_name_plural = _('Logs de Exclusão de Materiais')
+        ordering = ['-data_exclusao']
+
+    def __str__(self):
+        return f"{self.data_exclusao.strftime('%d/%m/%Y %H:%M')} - {self.nome_material}"
+
+

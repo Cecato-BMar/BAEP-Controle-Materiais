@@ -196,3 +196,22 @@ class EstoqueMovimentacoesProvider(ReportProvider):
             ])
         elements.append(self.gen.create_table(data, col_widths=[2.5*cm, 2.5*cm, 4*cm, 2*cm, 2.5*cm, 5*cm]))
         return elements
+
+class EstoqueSituacaoProvider(ReportProvider):
+    def get_elements(self, filters=None):
+        elements = []
+        elements.append(Paragraph("Inventário Geral de Consumo - Situação Atual", self.gen.styles['SectionHeader']))
+        produtos = Produto.objects.select_related('categoria', 'unidade_medida').all().order_by('categoria__nome', 'nome')
+        
+        data = [['Material', 'Categoria', 'Estoque Atual', 'E. Mínimo', 'Unidade']]
+        for p in produtos:
+            data.append([
+                p.nome,
+                p.categoria.nome if p.categoria else '-',
+                f"{p.estoque_atual:.2f}",
+                f"{p.estoque_minimo:.2f}",
+                p.unidade_medida.sigla if p.unidade_medida else 'un'
+            ])
+        
+        elements.append(self.gen.create_table(data, col_widths=[7*cm, 3.5*cm, 2*cm, 2*cm, 2*cm]))
+        return elements

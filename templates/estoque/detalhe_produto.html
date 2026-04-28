@@ -27,6 +27,9 @@
             <a href="{% url 'estoque:criar_saida_material' %}?produto={{ produto.pk }}" class="btn btn-danger">
                 <i class="fas fa-arrow-up me-1"></i> Saída
             </a>
+            <a href="{% url 'estoque:excluir_produto' produto.pk %}" class="btn btn-outline-danger">
+                <i class="fas fa-trash-alt me-1"></i> Excluir
+            </a>
         </div>
     </div>
 </div>

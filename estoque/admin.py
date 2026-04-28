@@ -4,8 +4,27 @@ from .models import (
     Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
-    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque
+    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque, LogExclusaoMaterial
 )
+
+
+# =============================================================================
+# LOGS DE EXCLUSÃO
+# =============================================================================
+
+@admin.register(LogExclusaoMaterial)
+class LogExclusaoMaterialAdmin(admin.ModelAdmin):
+    list_display = ['data_exclusao', 'nome_material', 'codigo_material', 'categoria', 'saldo_na_exclusao', 'usuario']
+    list_filter = ['data_exclusao', 'categoria', 'usuario']
+    search_fields = ['nome_material', 'codigo_material', 'motivo']
+    readonly_fields = ['data_exclusao', 'codigo_material', 'nome_material', 'categoria', 'saldo_na_exclusao', 'usuario', 'motivo']
+    ordering = ['-data_exclusao']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 # =============================================================================

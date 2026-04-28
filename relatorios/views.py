@@ -60,6 +60,8 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         'MANUTENCAO': providers.FrotaManutencaoProvider,
         'PATRIMONIO_INVENTARIO': providers.PatrimonioProvider,
         'ESTOQUE_MOVIMENTACOES': providers.EstoqueMovimentacoesProvider,
+        'ESTOQUE_SITUACAO': providers.EstoqueSituacaoProvider,
+        'ESTOQUE_REPOSICAO': providers.EstoqueCriticoProvider,
     }
     
     provider_class = provider_map.get(tipo_chave)
@@ -215,8 +217,9 @@ def gerar_relatorio_estoque_movimentacoes(request):
     if request.method == 'POST':
         form = RelatorioEstoqueMovimentacoesForm(request.POST)
         if form.is_valid():
+            tipo = form.cleaned_data.get('tipo_relatorio') or 'ESTOQUE_MOVIMENTACOES'
             titulo = form.cleaned_data.get('titulo') or "Relatório de Estoque"
-            relatorio = _gerar_pdf_unificado(request, 'ESTOQUE_MOVIMENTACOES', titulo, form.cleaned_data)
+            relatorio = _gerar_pdf_unificado(request, tipo, titulo, form.cleaned_data)
             if relatorio:
                 messages.success(request, _('Relatório Gerado com Sucesso!'))
                 return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)

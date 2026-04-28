@@ -131,6 +131,9 @@ class ServicoTI(models.Model):
     def __str__(self):
         return f"{self.get_tipo_display()}: {self.nome}"
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 class ManutencaoTI(models.Model):
     """Registro de manutenções e suportes técnicos"""
     TIPO_MANUTENCAO = [
@@ -159,3 +162,18 @@ class ManutencaoTI(models.Model):
 
     def __str__(self):
         return f"MNT {self.equipamento.hostname or self.equipamento.numero_serie} - {self.data_inicio.strftime('%d/%m/%Y')}"
+
+@receiver(post_save, sender=ManutencaoTI)
+def sync_equipamento_status(sender, instance, **kwargs):
+    """Sincroniza o status do equipamento baseado na conclusão da manutenção"""
+    equipamento = instance.equipamento
+    if not instance.concluida:
+        if equipamento.status != 'MANUTENCAO':
+            equipamento.status = 'MANUTENCAO'
+            equipamento.save(update_fields=['status'])
+    else:
+        # Se a manutenção foi concluída, verifica se não há outras em aberto
+        outras_pendentes = ManutencaoTI.objects.filter(equipamento=equipamento, concluida=False).exists()
+        if not outras_pendentes and equipamento.status == 'MANUTENCAO':
+            equipamento.status = 'OPERACIONAL'
+            equipamento.save(update_fields=['status'])

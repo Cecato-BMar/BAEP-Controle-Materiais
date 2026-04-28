@@ -232,6 +232,8 @@ class RelatorioEstoqueMovimentacoesForm(forms.Form):
         initial=_('Relatório de Movimentações de Estoque')
     )
     
+    tipo_relatorio = forms.CharField(widget=forms.HiddenInput(), initial='ESTOQUE_MOVIMENTACOES', required=False)
+    
     tipo_movimentacao = forms.ChoiceField(
         label=_('Tipo de Movimentação'),
         choices=[('', 'Todas'), ('ENTRADA', 'Entrada'), ('SAIDA', 'Saída')],
@@ -269,6 +271,7 @@ class RelatorioEstoqueMovimentacoesForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
+            'tipo_relatorio',
             'titulo',
             Row(
                 Column('tipo_movimentacao', css_class='form-group col-md-6 mb-0'),

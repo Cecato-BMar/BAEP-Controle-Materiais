@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sem Conexão - SIS LOGÍSTICA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0a0d10;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .offline-card {
+            max-width: 400px;
+            padding: 50px 40px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+        }
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            opacity: 0.3;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        p {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .btn-retry {
+            background: #f1c40f;
+            color: #000;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-retry:hover { opacity: 0.9; }
+        .footer { margin-top: 40px; color: rgba(255,255,255,0.1); font-size: 0.65rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="offline-card">
+        <div class="offline-icon">📡</div>
+        <h1>SEM CONEXÃO</h1>
+        <p>Não foi possível conectar ao servidor do SIS LOGÍSTICA. Verifique sua conexão com a rede e tente novamente.</p>
+        <button class="btn-retry" onclick="window.location.reload()">Tentar Novamente</button>
+        <div class="footer">SIS LOGÍSTICA - 2º BAEP</div>
+    </div>
+</body>
+</html>

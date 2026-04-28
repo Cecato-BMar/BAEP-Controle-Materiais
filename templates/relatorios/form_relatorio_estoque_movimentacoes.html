@@ -31,26 +31,68 @@
                             </div>
 
                             <div class="space-y-4">
-                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate">
-                                    <h6 class="fw-bold mb-2 text-info"><i class="fas fa-chart-line me-2"></i>Curva de Consumo</h6>
-                                    <p class="small opacity-60 mb-0">Previsibilidade de reposição baseada no histórico de saídas por seção.</p>
+                                <div class="p-4 rounded-4 bg-white shadow-sm border border-light transition-all hover-translate mb-3">
+                                    <h6 class="fw-bold mb-2" style="color: #0f766e;"><i class="fas fa-chart-line me-2"></i>Curva de Consumo</h6>
+                                    <p class="small text-muted mb-0">Previsibilidade de reposição baseada no histórico de saídas por seção.</p>
                                 </div>
 
-                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate mt-3">
-                                    <h6 class="fw-bold mb-2 text-warning"><i class="fas fa-exclamation-circle me-2"></i>Nível Crítico</h6>
-                                    <p class="small opacity-60 mb-0">Alertas automáticos para itens com saldo abaixo da reserva de contingência.</p>
+                                <div class="p-4 rounded-4 bg-white shadow-sm border border-light transition-all hover-translate mb-4">
+                                    <h6 class="fw-bold mb-2" style="color: #b45309;"><i class="fas fa-exclamation-circle me-2"></i>Nível Crítico</h6>
+                                    <p class="small text-muted mb-0">Alertas automáticos para itens com saldo abaixo da reserva de contingência.</p>
                                 </div>
                             </div>
 
-                            <div class="mt-5 pt-5 opacity-40 text-center">
-                                <img src="{% static 'img/brasao_pmesp.png' %}" alt="PMESP" style="max-width: 80px; filter: grayscale(1) brightness(2);">
+                            <!-- Seção de Relatórios Expressos -->
+                            <div class="mt-5">
+                                <h6 class="text-white text-uppercase smaller fw-bold mb-3 opacity-50 tracking-widest">Relatórios Expressos</h6>
+                                <div class="d-grid gap-2">
+                                    <button type="button" id="btn-expresso-inventario" class="btn btn-white bg-white bg-opacity-10 text-white border-white border-opacity-25 rounded-3 text-start p-3 transition-all hover-bg-white-20">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-list-check me-3 opacity-75"></i>
+                                            <div>
+                                                <div class="smaller fw-bold">Inventário Geral</div>
+                                                <div class="ultra-small opacity-50">Todos os saldos atuais</div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    
+                                    <button type="button" id="btn-expresso-reposicao" class="btn btn-white bg-white bg-opacity-10 text-white border-white border-opacity-25 rounded-3 text-start p-3 transition-all hover-bg-white-20">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-triangle-exclamation me-3 text-warning"></i>
+                                            <div>
+                                                <div class="smaller fw-bold">Alerta de Reposição</div>
+                                                <div class="ultra-small opacity-50">Itens abaixo do mínimo</div>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button type="button" id="btn-expresso-7dias" class="btn btn-white bg-white bg-opacity-10 text-white border-white border-opacity-25 rounded-3 text-start p-3 transition-all hover-bg-white-20">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-history me-3 opacity-75"></i>
+                                            <div>
+                                                <div class="smaller fw-bold">Movimentação (7 dias)</div>
+                                                <div class="ultra-small opacity-50">Fluxo semanal de saídas</div>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button type="button" id="btn-expresso-lotes" class="btn btn-white bg-white bg-opacity-10 text-white border-white border-opacity-25 rounded-3 text-start p-3 transition-all hover-bg-white-20">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-calendar-times me-3 text-danger"></i>
+                                            <div>
+                                                <div class="smaller fw-bold">Validade de Lotes</div>
+                                                <div class="ultra-small opacity-50">Vencimentos próximos</div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-4 opacity-40 text-center">
+                                <img src="{% static 'img/brasao_pmesp.png' %}" alt="PMESP" style="max-width: 60px; filter: grayscale(1) brightness(2);">
                             </div>
                         </div>
                         
-                        <!-- Elementos Decorativos de Fundo -->
-                        <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden opacity-10 pointer-events-none">
-                            <i class="fas fa-box-open position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
-                        </div>
                     </div>
 
                     <!-- Coluna Principal -->
@@ -61,7 +103,7 @@
                                 <p class="text-muted mb-0">Controle de saldos e movimentações de estoque</p>
                             </div>
                             <div class="d-flex flex-column align-items-end">
-                                <span class="badge bg-teal bg-opacity-10 text-teal rounded-pill px-3 py-2 fw-bold small mb-1">
+                                <span class="badge border border-teal text-teal rounded-pill px-3 py-2 fw-bold small mb-1" style="background: rgba(13, 148, 136, 0.05);">
                                     <i class="fas fa-check-double me-1"></i>ESTOQUE CONFERIDO
                                 </span>
                                 <span class="text-muted smaller">Saldo: {% now "d/m/Y" %}</span>
@@ -92,6 +134,7 @@
 
                         <form method="post" novalidate class="premium-form">
                             {% csrf_token %}
+                            {{ form.tipo_relatorio }}
                             
                             <div class="row g-4">
                                 <div class="col-12">
@@ -120,10 +163,10 @@
                             </div>
 
                             <div class="mt-5 d-grid">
-                                <button type="submit" class="btn btn-teal btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale">
+                                <button type="submit" id="btn-submit-principal" class="btn btn-teal btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale">
                                     <span class="d-flex align-items-center justify-content-center text-white text-uppercase">
                                         <i class="fas fa-file-pdf fa-lg me-3 text-white"></i>
-                                        Extrair Relatório de Saldo
+                                        Extrair Relatório Personalizado
                                     </span>
                                 </button>
                             </div>
@@ -148,14 +191,21 @@
     }
 
     .bg-teal { background-color: var(--teal-color); }
-    .text-teal { color: var(--teal-color); }
+    .border-teal { border-color: var(--teal-color) !important; }
+    .text-teal { color: var(--teal-color) !important; }
     .btn-teal { background: linear-gradient(135deg, #0d9488, #0f766e); border: none; }
 
     .fw-black { font-weight: 900; }
     .tracking-tighter { letter-spacing: -1.5px; }
     .smaller { font-size: 0.7rem; }
+    .ultra-small { font-size: 0.6rem; }
     .z-index-2 { z-index: 2; }
     .pointer-events-none { pointer-events: none; }
+
+    .hover-bg-white-20:hover {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        transform: translateX(5px);
+    }
 
     .shadow-soft {
         box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
@@ -225,6 +275,51 @@
         if ($.fn.select2) {
             $('.select2').select2({ theme: 'bootstrap-5', width: '100%', placeholder: "Todos os itens", allowClear: true });
         }
+
+        // Lógica para Relatórios Expressos
+        function gerarRelatorioExpresso(titulo, tipo_relatorio = 'ESTOQUE_MOVIMENTACOES', tipo_mov = '', dias = 0) {
+            const $form = $('.premium-form');
+            $form.find('input[name="titulo"]').val(titulo);
+            $form.find('input[name="tipo_relatorio"]').val(tipo_relatorio);
+            $form.find('select[name="tipo_movimentacao"]').val(tipo_mov).trigger('change');
+            
+            if (dias > 0) {
+                const hoje = new Date();
+                const inicio = new Date();
+                inicio.setDate(hoje.getDate() - dias);
+                
+                $form.find('input[name="data_inicio"]').val(inicio.toISOString().split('T')[0]);
+                $form.find('input[name="data_fim"]').val(hoje.toISOString().split('T')[0]);
+            } else {
+                $form.find('input[name="data_inicio"]').val('');
+                $form.find('input[name="data_fim"]').val('');
+            }
+            
+            $form.submit();
+        }
+
+        // Resetar para movimentações ao usar o botão principal
+        $('#btn-submit-principal').click(function() {
+            $('input[name="tipo_relatorio"]').val('ESTOQUE_MOVIMENTACOES');
+        });
+
+        $('#btn-expresso-inventario').click(function() {
+            gerarRelatorioExpresso('Inventário Geral de Consumo (Situação Atual)', 'ESTOQUE_SITUACAO');
+        });
+
+        $('#btn-expresso-reposicao').click(function() {
+            // Aqui poderíamos ter um filtro específico no backend, 
+            // mas por enquanto gera o de estoque com título sugestivo
+            gerarRelatorioExpresso('Relatório de Itens para Reposição', 'ESTOQUE_REPOSICAO');
+        });
+
+        $('#btn-expresso-7dias').click(function() {
+            gerarRelatorioExpresso('Movimentações de Consumo (Últimos 7 dias)', 'SAIDA', 7);
+        });
+
+        $('#btn-expresso-lotes').click(function() {
+            gerarRelatorioExpresso('Controle de Validade de Lotes');
+        });
     });
 </script>
 {% endblock %}

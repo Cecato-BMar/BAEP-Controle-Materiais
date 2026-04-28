@@ -31,7 +31,7 @@ from .models import (
     Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
-    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque
+    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque, LogExclusaoMaterial
 )
 from .forms import (
     CategoriaForm, SubcategoriaForm, UnidadeMedidaForm, UnidadeFornecimentoForm, CorForm,
@@ -1733,3 +1733,30 @@ def buscar_militares_adm_ajax(request):
     } for m in qs]
     
     return JsonResponse({'results': results})
+
+
+@login_required
+@user_passes_test(is_materiais)
+@require_module_permission('materiais')
+def excluir_produto(request, pk):
+    """Exclui um material de consumo e registra no log de exclusão"""
+    produto = get_object_or_404(Produto, pk=pk)
+    
+    if request.method == 'POST':
+        # Registra a exclusão no Log
+        LogExclusaoMaterial.objects.create(
+            codigo_material=produto.codigo,
+            nome_material=produto.nome,
+            categoria=produto.categoria.nome if produto.categoria else 'Sem Categoria',
+            saldo_na_exclusao=produto.saldo_calculado,
+            usuario=request.user,
+            motivo=request.POST.get('motivo', 'Exclusão solicitada pelo usuário.')
+        )
+        
+        nome_produto = produto.nome
+        produto.delete()
+        
+        messages.success(request, f'Material "{nome_produto}" excluído com sucesso e registrado no log.')
+        return redirect('estoque:lista_produtos')
+        
+    return render(request, 'estoque/confirmar_exclusao.html', {'objeto': produto, 'tipo': 'Material de Consumo'})

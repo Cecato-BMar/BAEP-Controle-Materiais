@@ -164,6 +164,9 @@
                             <a href="{% url 'estoque:editar_produto' produto.pk %}" class="btn btn-sm btn-outline-secondary btn-square ms-1" title="Editar Material">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            <a href="{% url 'estoque:excluir_produto' produto.pk %}" class="btn btn-sm btn-outline-danger btn-square ms-1" title="Excluir Material">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

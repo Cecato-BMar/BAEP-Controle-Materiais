@@ -1,0 +1,58 @@
+{% extends 'estoque/base.html' %}
+
+{% block title %}Confirmar Exclusão — SIS LOGÍSTICA 2ºBAEP{% endblock %}
+
+{% block estoque_content %}
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg overflow-hidden">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="mb-0 fw-bold text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>CONFIRMAR EXCLUSÃO
+                </h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-4">
+                    <div class="avatar-lg bg-danger bg-opacity-10 text-danger rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-trash-alt fa-3x"></i>
+                    </div>
+                    <h4 class="fw-bold">Atenção!</h4>
+                    <p class="text-muted">
+                        Você está prestes a excluir o seguinte item do sistema:
+                    </p>
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <h5 class="mb-1 fw-bold text-dark">{{ objeto.nome }}</h5>
+                        <p class="mb-0 small text-muted">Código: {{ objeto.codigo }} | Categoria: {{ objeto.categoria.nome }}</p>
+                    </div>
+                    <div class="alert alert-warning border-0 shadow-sm small text-start">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Importante:</strong> Esta ação é irreversível. Todos os registros vinculados (lotes, números de série, etc.) também serão removidos. A exclusão será registrada permanentemente no log de auditoria.
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4 text-start">
+                        <label for="motivo" class="form-label fw-bold small text-muted text-uppercase">Justificativa da Exclusão (Obrigatório)</label>
+                        <textarea name="motivo" id="motivo" class="form-control border-0 bg-light" rows="3" placeholder="Informe o motivo da exclusão para o log de auditoria..." required></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'estoque:detalhe_produto' objeto.pk %}" class="btn btn-light px-4 fw-bold">
+                            <i class="fas fa-times me-1"></i> CANCELAR
+                        </a>
+                        <button type="submit" class="btn btn-danger px-5 fw-bold shadow-sm">
+                            <i class="fas fa-trash-alt me-1"></i> CONFIRMAR EXCLUSÃO
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-lg { transition: all 0.3s ease; }
+    .card:hover .avatar-lg { transform: scale(1.1); }
+</style>
+{% endblock %}

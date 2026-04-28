@@ -12,7 +12,8 @@ from django.core.paginator import Paginator
 from .models import Perfil
 from .forms import (
     CustomAuthenticationForm, UserRegistrationForm, PerfilForm,
-    UserUpdateForm, CustomPasswordChangeForm
+    UserUpdateForm, CustomPasswordChangeForm, UserProfileUpdateForm,
+    PerfilUpdateForm
 )
 
 def login_view(request):
@@ -175,17 +176,19 @@ def perfil_usuario(request):
     usuario = request.user
     
     if request.method == 'POST':
-        user_form = UserUpdateForm(request.POST, instance=usuario)
-        perfil_form = PerfilForm(request.POST, instance=usuario.perfil)
+        user_form = UserProfileUpdateForm(request.POST, instance=usuario)
+        perfil_form = PerfilUpdateForm(request.POST, instance=usuario.perfil)
         
         if user_form.is_valid() and perfil_form.is_valid():
             user_form.save()
             perfil_form.save()
             messages.success(request, _('Seu perfil foi atualizado com sucesso!'))
             return redirect('usuarios:perfil')
+        else:
+            messages.error(request, _('Erro ao atualizar perfil. Verifique os campos abaixo.'))
     else:
-        user_form = UserUpdateForm(instance=usuario)
-        perfil_form = PerfilForm(instance=usuario.perfil)
+        user_form = UserProfileUpdateForm(instance=usuario)
+        perfil_form = PerfilUpdateForm(instance=usuario.perfil)
     
     return render(request, 'usuarios/perfil.html', {
         'form': user_form,

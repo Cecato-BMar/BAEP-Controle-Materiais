@@ -27,12 +27,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# CSRF Settings para desenvolvimento com proxy
+# CSRF Settings para rede local
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
     'http://127.0.0.1:61818',
     'http://localhost:61818',
+    'http://10.43.19.224:8000',
+    'http://10.43.19.225:8000',
+    'http://10.43.19.*:8000',
+    'https://127.0.0.1:8000',
+    'https://localhost:8000',
+    'https://10.43.19.224:8000',
+    'https://10.43.19.225:8000',
+    'https://10.43.19.*:8000',
 ]
 
 
@@ -45,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sslserver',
     
     # Bibliotecas de terceiros
     'crispy_forms',

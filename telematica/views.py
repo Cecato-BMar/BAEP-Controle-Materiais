@@ -12,7 +12,7 @@ from .forms import (CategoriaEquipamentoForm, EquipamentoForm, ConfiguracaoRadio
 from reserva_baep.decorators import require_module_permission
 
 @login_required
-@require_module_permission('frota') # Reutilizando a permissão de frota ou admin por enquanto
+@require_module_permission('telematica')
 def dashboard_telematica(request):
     total_equipamentos = Equipamento.objects.count()
     operacionais = Equipamento.objects.filter(status='OPERACIONAL').count()
@@ -39,6 +39,7 @@ def dashboard_telematica(request):
 
 # EQUIPAMENTOS
 @login_required
+@require_module_permission('telematica')
 def lista_equipamentos(request):
     q = request.GET.get('q', '')
     cat = request.GET.get('categoria', '')
@@ -67,6 +68,7 @@ def lista_equipamentos(request):
     })
 
 @login_required
+@require_module_permission('telematica')
 def detalhe_equipamento(request, pk):
     equipamento = get_object_or_404(Equipamento.objects.select_related('categoria'), pk=pk)
     manutencoes = equipamento.manutencoes_ti.all().order_by('-data_inicio')
@@ -76,6 +78,7 @@ def detalhe_equipamento(request, pk):
     })
 
 @login_required
+@require_module_permission('telematica')
 def criar_equipamento(request):
     if request.method == 'POST':
         form = EquipamentoForm(request.POST)
@@ -90,6 +93,7 @@ def criar_equipamento(request):
     return render(request, 'telematica/form_equipamento.html', {'form': form, 'titulo': 'Novo Equipamento'})
 
 @login_required
+@require_module_permission('telematica')
 def editar_equipamento(request, pk):
     equipamento = get_object_or_404(Equipamento, pk=pk)
     if request.method == 'POST':
@@ -104,6 +108,7 @@ def editar_equipamento(request, pk):
 
 # MANUTENÇÕES
 @login_required
+@require_module_permission('telematica')
 def lista_manutencoes(request):
     qs = ManutencaoTI.objects.select_related('equipamento', 'equipamento__categoria').all()
     paginator = Paginator(qs, 20)
@@ -111,6 +116,7 @@ def lista_manutencoes(request):
     return render(request, 'telematica/lista_manutencoes.html', {'page_obj': page})
 
 @login_required
+@require_module_permission('telematica')
 def criar_manutencao(request):
     equip_id = request.GET.get('equipamento')
     initial = {}
@@ -131,12 +137,14 @@ def criar_manutencao(request):
 
 # SERVIÇOS
 @login_required
+@require_module_permission('telematica')
 def lista_servicos(request):
     servicos = ServicoTI.objects.all()
     return render(request, 'telematica/lista_servicos.html', {'servicos': servicos})
 
 # LINHAS MÓVEIS
 @login_required
+@require_module_permission('telematica')
 def lista_linhas(request):
     q = request.GET.get('q', '')
     qs = LinhaMovel.objects.select_related('equipamento_vinculado', 'policial_responsavel').all()
@@ -145,6 +153,7 @@ def lista_linhas(request):
     return render(request, 'telematica/lista_linhas.html', {'linhas': qs, 'q': q})
 
 @login_required
+@require_module_permission('telematica')
 def criar_linha(request):
     if request.method == 'POST':
         form = LinhaMovelForm(request.POST)
@@ -157,6 +166,7 @@ def criar_linha(request):
     return render(request, 'telematica/form_linha.html', {'form': form, 'titulo': 'Nova Linha Móvel'})
 
 @login_required
+@require_module_permission('telematica')
 def editar_linha(request, pk):
     linha = get_object_or_404(LinhaMovel, pk=pk)
     if request.method == 'POST':
@@ -171,6 +181,7 @@ def editar_linha(request, pk):
 
 # SERVIÇOS (CRUD)
 @login_required
+@require_module_permission('telematica')
 def criar_servico(request):
     if request.method == 'POST':
         form = ServicoTIForm(request.POST)
@@ -183,6 +194,7 @@ def criar_servico(request):
     return render(request, 'telematica/form_servico.html', {'form': form, 'titulo': 'Novo Serviço de TI'})
 
 @login_required
+@require_module_permission('telematica')
 def editar_servico(request, pk):
     servico = get_object_or_404(ServicoTI, pk=pk)
     if request.method == 'POST':
@@ -197,11 +209,13 @@ def editar_servico(request, pk):
 
 # CATEGORIAS (CRUD RÁPIDO)
 @login_required
+@require_module_permission('telematica')
 def lista_categorias(request):
     categorias = CategoriaEquipamento.objects.annotate(total=Count('equipamentos'))
     return render(request, 'telematica/lista_categorias.html', {'categorias': categorias})
 
 @login_required
+@require_module_permission('telematica')
 def criar_categoria(request):
     if request.method == 'POST':
         form = CategoriaEquipamentoForm(request.POST)
