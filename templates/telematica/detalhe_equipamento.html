@@ -19,13 +19,14 @@
             <div>
                 <h1 class="fw-bold mb-0" style="font-size: 1.6rem;">{{ equipamento.hostname|default:equipamento.numero_serie }}</h1>
                 <span class="badge bg-light text-dark border">{{ equipamento.categoria.nome }}</span>
-                <span class="badge {% if equipamento.status == 'OPERACIONAL' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-1">{{ equipamento.get_status_display }}</span>
+                <span class="badge {% if equipamento.status == 'OPERACIONAL' %}bg-success{% elif equipamento.status == 'DISPOSICAO' %}bg-warning text-dark{% else %}bg-danger{% endif %} ms-1">{{ equipamento.get_status_display }}</span>
             </div>
         </div>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'telematica:editar_equipamento' equipamento.pk %}" class="btn btn-outline-primary"><i class="fas fa-edit me-1"></i>Editar</a>
         <a href="{% url 'telematica:criar_manutencao' %}?equipamento={{ equipamento.pk }}" class="btn btn-warning"><i class="fas fa-tools me-1"></i>Manutenção</a>
+        <a href="{% url 'telematica:excluir_equipamento' equipamento.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash-alt me-1"></i>Excluir</a>
         <a href="{% url 'telematica:lista_equipamentos' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
     </div>
 </div>
@@ -127,12 +128,22 @@
                 <div class="mt-4 p-3 border rounded bg-light bg-opacity-50">
                     <h6 class="fw-bold mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Localização e Responsável</h6>
                     <div class="row">
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Setor/Seção:</small>
-                            <strong>{{ equipamento.setor }}</strong>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Cód. Unidade:</small>
+                            <strong>{{ equipamento.codigo_unidade|default:"—" }}</strong>
                         </div>
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Usuário Responsável:</small>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Setor/Seção:</small>
+                            <strong>{{ equipamento.setor|default:"—" }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Policial Responsável:</small>
+                            <strong>{{ equipamento.policial_responsavel|default:"—" }}</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <small class="text-muted d-block">Observação Usuário/Uso:</small>
                             <strong>{{ equipamento.usuario_responsavel|default:"Uso Coletivo / Geral" }}</strong>
                         </div>
                     </div>
@@ -154,6 +165,7 @@
                                 <th>Tipo</th>
                                 <th>Técnico</th>
                                 <th>Status</th>
+                                <th class="text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -161,13 +173,19 @@
                             <tr>
                                 <td>{{ mnt.data_inicio|date:"d/m/Y" }}</td>
                                 <td>{{ mnt.get_tipo_display }}</td>
-                                <td>{{ mnt.tecnico_responsavel }}</td>
+                                <td>{{ mnt.policial_tecnico|default:mnt.tecnico_responsavel }}</td>
                                 <td>
                                     {% if mnt.concluida %}
                                     <span class="badge bg-success">Concluída</span>
                                     {% else %}
                                     <span class="badge bg-warning text-dark">Em Aberto</span>
                                     {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a href="{% url 'telematica:editar_manutencao' mnt.pk %}" class="btn btn-sm btn-link text-secondary p-0 me-2" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'telematica:excluir_manutencao' mnt.pk %}" class="btn btn-sm btn-link text-danger p-0" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}

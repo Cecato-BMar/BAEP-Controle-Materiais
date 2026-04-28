@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Solicitação #{{ solicitacao.id }} — SIS LOGÍSTICA{% endblock %}
+
+{% block content %}
+<div class="container py-5 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Cabeçalho -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'solicitacoes:minhas_solicitacoes' %}" class="btn btn-outline-secondary btn-sm rounded-circle me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h2 class="fw-bold text-navy mb-0">Solicitação #{{ solicitacao.id }}</h2>
+                </div>
+                <div>
+                    {% if solicitacao.status == 'PENDENTE' %}
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">PENDENTE</span>
+                    {% elif solicitacao.status == 'EM_SEPARACAO' %}
+                    <span class="badge bg-info text-white px-3 py-2 rounded-pill">EM SEPARAÇÃO</span>
+                    {% elif solicitacao.status == 'PRONTO' %}
+                    <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow animate__animated animate__pulse animate__infinite">PRONTO PARA RETIRADA</span>
+                    {% elif solicitacao.status == 'ENTREGUE' %}
+                    <span class="badge bg-success text-white px-3 py-2 rounded-pill">ENTREGUE</span>
+                    <a href="{% url 'solicitacoes:gerar_recibo' solicitacao.id %}" target="_blank" class="btn btn-navy btn-sm rounded-pill ms-2 shadow-sm">
+                        <i class="fas fa-file-pdf me-1"></i> RECIBO
+                    </a>
+                    {% else %}
+                    <span class="badge bg-danger text-white px-3 py-2 rounded-pill">CANCELADO</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card de Informações -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Data do Pedido</label>
+                            <div class="fw-bold">{{ solicitacao.data_solicitacao|date:"d/m/Y - H:i" }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Última Atualização</label>
+                            <div class="fw-bold">{{ solicitacao.data_atualizacao|date:"d/m/Y - H:i" }}</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Sua Observação</label>
+                            <div class="p-3 bg-light rounded-3 small text-muted">
+                                {{ solicitacao.observacoes|default:"Nenhuma observação enviada." }}
+                            </div>
+                        </div>
+                        {% if solicitacao.notas_admin %}
+                        <div class="col-12">
+                            <label class="smaller text-primary fw-bold text-uppercase d-block mb-1"><i class="fas fa-comment-dots me-1"></i> Resposta do Almoxarifado</label>
+                            <div class="p-3 bg-primary bg-opacity-10 border border-primary border-opacity-10 rounded-3 small text-primary fw-bold">
+                                {{ solicitacao.notas_admin }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Itens da Solicitação -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-navy text-white py-3">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Itens Solicitados</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr class="bg-light text-muted smaller text-uppercase fw-bold">
+                                <th class="ps-4">Material</th>
+                                <th class="text-center">Qtd. Solicitada</th>
+                                <th class="text-center">Qtd. Atendida</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in solicitacao.itens.all %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">{{ item.produto.nome }}</div>
+                                    <div class="smaller text-muted">{{ item.produto.codigo }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">{{ item.quantidade_solicitada }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if solicitacao.status == 'ENTREGUE' %}
+                                    <span class="badge bg-success-light text-success">{{ item.quantidade_atendida }}</span>
+                                    {% else %}
+                                    <span class="text-muted italic">Aguardando conferência</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="small text-muted italic">
+                    <i class="fas fa-shield-alt me-1"></i> Sistema de Logística 2º BAEP - Garantindo o suporte operacional.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .bg-success-light { background-color: #e8f5e9; color: #2e7d32; }
+    .italic { font-style: italic; }
+</style>
+{% endblock %}

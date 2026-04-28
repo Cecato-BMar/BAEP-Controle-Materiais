@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar Exclusão | Telemática{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-danger text-white text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h3 class="fw-bold mb-0">Confirmar Exclusão</h3>
+            </div>
+            <div class="card-body p-5 text-center">
+                <p class="lead mb-4">Você está prestes a excluir permanentemente:</p>
+                <div class="bg-light p-3 rounded-3 mb-4">
+                    <h4 class="fw-bold text-dark mb-0">{{ objeto }}</h4>
+                </div>
+                <p class="text-muted small mb-5">Esta ação não pode ser desfeita. Todos os dados associados a este registro serão perdidos.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-bold">
+                            <i class="fas fa-trash-alt me-2"></i>SIM, EXCLUIR AGORA
+                        </button>
+                        <a href="{% url url_voltar %}" class="btn btn-outline-secondary btn-lg rounded-pill">
+                            NÃO, CANCELAR
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar { display: none !important; }
+    .main-content { margin-left: 0 !important; width: 100% !important; }
+</style>
+{% endblock %}

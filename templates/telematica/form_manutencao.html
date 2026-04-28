@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-tools text-warning me-2"></i>Registrar Manutenção / Suporte</h1>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-tools text-warning me-2"></i>{{ titulo|default:"Registrar Manutenção" }}</h1>
         <p class="text-muted mb-0">Documente o problema e a solução técnica aplicada.</p>
     </div>
     <a href="{% url 'telematica:lista_manutencoes' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
@@ -23,4 +23,34 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.select2-policial').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Busque por RE ou Nome no Efetivo...',
+        allowClear: true,
+        ajax: {
+            url: "{% url 'estoque:buscar_militares_ajax' %}",
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        language: {
+            inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
+            noResults: function() { return "Nenhum policial encontrado."; },
+            searching: function() { return "Buscando..."; }
+        }
+    });
+});
+</script>
 {% endblock %}

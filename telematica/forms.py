@@ -26,6 +26,7 @@ class EquipamentoForm(forms.ModelForm):
             'data_aquisicao': forms.DateInput(attrs={'type': 'date'}),
             'vencimento_garantia': forms.DateInput(attrs={'type': 'date'}),
             'observacoes': forms.Textarea(attrs={'rows': 3}),
+            'policial_responsavel': forms.Select(attrs={'class': 'select2-policial'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -42,7 +43,8 @@ class EquipamentoForm(forms.ModelForm):
             
             HTML('<h5 class="text-primary mt-4 mb-3">Rede e Localização</h5>'),
             Row(Column('hostname', css_class='col-md-4'), Column('endereco_ip', css_class='col-md-4'), Column('endereco_mac', css_class='col-md-4')),
-            Row(Column('vlan', css_class='col-md-3'), Column('porta_switch', css_class='col-md-3'), Column('setor', css_class='col-md-3'), Column('usuario_responsavel', css_class='col-md-3')),
+            Row(Column('vlan', css_class='col-md-2'), Column('porta_switch', css_class='col-md-2'), Column('codigo_unidade', css_class='col-md-2'), Column('setor', css_class='col-md-3'), Column('policial_responsavel', css_class='col-md-3')),
+            Row(Column('usuario_responsavel', css_class='col-md-12')),
             
             HTML('<h5 class="text-primary mt-4 mb-3">Status e Datas</h5>'),
             Row(Column('status', css_class='col-md-4'), Column('data_aquisicao', css_class='col-md-4'), Column('vencimento_garantia', css_class='col-md-4')),
@@ -70,6 +72,9 @@ class LinhaMovelForm(forms.ModelForm):
     class Meta:
         model = LinhaMovel
         fields = '__all__'
+        widgets = {
+            'policial_responsavel': forms.Select(attrs={'class': 'select2-policial'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,10 +114,11 @@ class ManutencaoTIForm(forms.ModelForm):
         model = ManutencaoTI
         exclude = ['registrado_por']
         widgets = {
-            'data_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'data_fim': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'data_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'data_fim': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
             'descricao_problema': forms.Textarea(attrs={'rows': 3}),
             'solucao_tecnica': forms.Textarea(attrs={'rows': 3}),
+            'policial_tecnico': forms.Select(attrs={'class': 'select2-policial'}),
         }
 
     def __init__(self, *args, **kwargs):

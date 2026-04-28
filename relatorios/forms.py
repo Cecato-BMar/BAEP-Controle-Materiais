@@ -363,3 +363,83 @@ class RelatorioFrotaForm(forms.Form):
             Row(Column('data_inicio'), Column('data_fim')),
             Div(Submit('submit', _('Gerar PDF'), css_class='btn btn-primary w-100'), css_class='mt-3')
         )
+
+class RelatorioTelematicaForm(forms.Form):
+    titulo = forms.CharField(
+        label=_('Título do Relatório'), 
+        max_length=100, 
+        initial=_('Relatório de Telemática')
+    )
+    
+    tipo_relatorio = forms.ChoiceField(
+        label=_('Tipo de Relatório'),
+        choices=[
+            ('TELEMATICA_GERAL', 'Geral de Ativos (Resumo)'),
+            ('TELEMATICA_INVENTARIO', 'Inventário Detalhado'),
+            ('TELEMATICA_MANUTENCAO', 'Histórico de Manutenções'),
+            ('TELEMATICA_LINHAS', 'Linhas Móveis e Chips'),
+        ]
+    )
+    
+    from telematica.models import CategoriaEquipamento, Equipamento
+    
+    categoria = forms.ModelChoiceField(
+        label=_('Filtrar por Categoria'),
+        queryset=CategoriaEquipamento.objects.all(),
+        required=False,
+        empty_label='Todas as Categorias'
+    )
+    
+    status = forms.ChoiceField(
+        label=_('Filtrar por Status'),
+        choices=[('', 'Todos')] + Equipamento.STATUS_CHOICES,
+        required=False
+    )
+    
+    codigo_unidade = forms.CharField(
+        label=_('Filtrar por Cód. Unidade'),
+        max_length=50,
+        required=False,
+        help_text="Ex: 02BAEP"
+    )
+    
+    data_inicio = forms.DateField(
+        label=_('Data Início (Manutenções)'), 
+        widget=forms.DateInput(attrs={'type': 'date'}), 
+        required=False
+    )
+    
+    data_fim = forms.DateField(
+        label=_('Data Fim (Manutenções)'), 
+        widget=forms.DateInput(attrs={'type': 'date'}), 
+        required=False
+    )
+    
+    observacoes = forms.CharField(
+        label=_('Observações Adicionais'),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'titulo',
+            'tipo_relatorio',
+            Row(
+                Column('categoria', css_class='col-md-4'),
+                Column('status', css_class='col-md-4'),
+                Column('codigo_unidade', css_class='col-md-4'),
+            ),
+            Row(
+                Column('data_inicio', css_class='col-md-6'),
+                Column('data_fim', css_class='col-md-6'),
+            ),
+            'observacoes',
+            Div(
+                Submit('submit', _('Gerar Relatório PDF'), css_class='btn btn-primary w-100'),
+                css_class='mt-3'
+            )
+        )

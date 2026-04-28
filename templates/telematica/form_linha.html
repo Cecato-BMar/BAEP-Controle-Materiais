@@ -21,3 +21,33 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.select2-policial').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Busque por RE ou Nome no Efetivo...',
+        allowClear: true,
+        ajax: {
+            url: "{% url 'estoque:buscar_militares_ajax' %}",
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        language: {
+            inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
+            noResults: function() { return "Nenhum policial encontrado."; },
+            searching: function() { return "Buscando..."; }
+        }
+    });
+});
+</script>
+{% endblock %}

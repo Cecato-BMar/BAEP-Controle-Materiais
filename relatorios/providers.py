@@ -8,6 +8,7 @@ from estoque.models import Produto, MovimentacaoEstoque
 from viaturas.models import Viatura, Manutencao
 from patrimonio.models import ItemPatrimonial
 from movimentacoes.models import Movimentacao
+from telematica.models import Equipamento, ManutencaoTI, LinhaMovel, ServicoTI, CategoriaEquipamento
 
 class ReportProvider:
     def __init__(self, generator):
@@ -15,6 +16,71 @@ class ReportProvider:
 
     def get_elements(self, filters=None):
         raise NotImplementedError("Subclasses devem implementar get_elements")
+
+class TelematicaProvider(ReportProvider):
+    def get_elements(self, filters=None):
+        elements = []
+        tipo = filters.get('tipo_relatorio', 'TELEMATICA_GERAL')
+        
+        if tipo == 'TELEMATICA_GERAL' or tipo == 'TELEMATICA_INVENTARIO':
+            elements.append(Paragraph("Inventário Geral de Ativos Tecnológicos", self.gen.styles['SectionHeader']))
+            equips = Equipamento.objects.select_related('categoria').all().order_by('categoria__nome', 'hostname')
+            
+            if filters.get('categoria'):
+                equips = equips.filter(categoria_id=filters['categoria'])
+            if filters.get('status'):
+                equips = equips.filter(status=filters['status'])
+            if filters.get('codigo_unidade'):
+                equips = equips.filter(codigo_unidade__icontains=filters['codigo_unidade'])
+
+            data = [['ID/Série', 'Hostname', 'Categoria', 'Status', 'Local/Setor']]
+            for e in equips:
+                data.append([
+                    e.numero_serie, 
+                    e.hostname or '-', 
+                    e.categoria.nome, 
+                    e.get_status_display(), 
+                    f"{e.setor.sigla if e.setor else '-'} | {e.policial_responsavel.nome if e.policial_responsavel else e.usuario_responsavel or 'Uso Geral'}"
+                ])
+            elements.append(self.gen.create_table(data, col_widths=[3.5*cm, 4*cm, 3.5*cm, 2.5*cm, 4*cm]))
+            
+        elif tipo == 'TELEMATICA_MANUTENCAO':
+            elements.append(Paragraph("Relatório de Manutenções e Suporte Técnico", self.gen.styles['SectionHeader']))
+            manuts = ManutencaoTI.objects.select_related('equipamento').all().order_by('-data_inicio')
+            
+            if filters.get('data_inicio'):
+                manuts = manuts.filter(data_inicio__gte=filters['data_inicio'])
+            if filters.get('data_fim'):
+                manuts = manuts.filter(data_inicio__lte=filters['data_fim'])
+
+            data = [['Equipamento', 'Tipo', 'Início', 'Status', 'Técnico']]
+            for m in manuts:
+                data.append([
+                    str(m.equipamento),
+                    m.get_tipo_display(),
+                    m.data_inicio.strftime('%d/%m/%Y'),
+                    'Concluída' if m.concluida else 'Aberta',
+                    str(m.policial_tecnico) if m.policial_tecnico else m.tecnico_responsavel or '-'
+                ])
+            elements.append(self.gen.create_table(data, col_widths=[5*cm, 3.5*cm, 2.5*cm, 2.5*cm, 4*cm]))
+
+        elif tipo == 'TELEMATICA_LINHAS':
+            elements.append(Paragraph("Relatório de Linhas Móveis e Chips", self.gen.styles['SectionHeader']))
+            linhas = LinhaMovel.objects.select_related('equipamento_vinculado').all().order_by('numero')
+            
+            data = [['Número', 'Operadora', 'ICCID (Chip)', 'Vínculo', 'Status']]
+            for l in linhas:
+                vinculo = str(l.equipamento_vinculado) if l.equipamento_vinculado else 'Disponível'
+                data.append([
+                    l.numero,
+                    l.operadora,
+                    l.iccid,
+                    vinculo,
+                    'Ativa' if l.ativo else 'Inativa'
+                ])
+            elements.append(self.gen.create_table(data, col_widths=[3.5*cm, 3*cm, 4.5*cm, 4.5*cm, 2*cm]))
+
+        return elements
 
 class SituacaoAtualProvider(ReportProvider):
     def get_elements(self, filters=None):

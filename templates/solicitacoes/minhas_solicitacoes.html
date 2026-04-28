@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Minhas Solicitações — SIS LOGÍSTICA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-navy mb-1"><i class="fas fa-history me-2"></i>Histórico de Solicitações</h2>
+            <p class="text-muted mb-0">Acompanhe o andamento dos seus pedidos ao Almoxarifado.</p>
+        </div>
+        <a href="{% url 'solicitacoes:novo_pedido' %}" class="btn btn-navy rounded-pill px-4 shadow">
+            <i class="fas fa-plus me-2"></i> NOVA SOLICITAÇÃO
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Protocolo</th>
+                        <th>Data</th>
+                        <th>Itens</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in solicitacoes %}
+                    <tr class="transition-all">
+                        <td class="ps-4 py-3">
+                            <span class="fw-bold text-navy">#{{ s.id }}</span>
+                        </td>
+                        <td class="small">
+                            {{ s.data_solicitacao|date:"d/m/Y" }}<br>
+                            <span class="text-muted">{{ s.data_solicitacao|date:"H:i" }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ s.itens.count }} item(ns)</span>
+                        </td>
+                        <td>
+                            {% if s.status == 'PENDENTE' %}
+                            <span class="badge rounded-pill bg-warning text-dark"><i class="fas fa-clock me-1"></i> PENDENTE</span>
+                            {% elif s.status == 'EM_SEPARACAO' %}
+                            <span class="badge rounded-pill bg-info text-white"><i class="fas fa-box-open me-1"></i> EM SEPARAÇÃO</span>
+                            {% elif s.status == 'PRONTO' %}
+                            <span class="badge rounded-pill bg-primary text-white animate__animated animate__pulse animate__infinite"><i class="fas fa-check-circle me-1"></i> PRONTO PARA RETIRADA</span>
+                            {% elif s.status == 'ENTREGUE' %}
+                            <span class="badge rounded-pill bg-success text-white"><i class="fas fa-handshake me-1"></i> ENTREGUE</span>
+                            {% elif s.status == 'CANCELADO' %}
+                            <span class="badge rounded-pill bg-danger text-white"><i class="fas fa-times-circle me-1"></i> CANCELADO</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'solicitacoes:detalhe' s.id %}" class="btn btn-sm btn-outline-navy rounded-3 px-3">
+                                <i class="fas fa-eye me-1"></i> Detalhes
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted opacity-25 mb-3"></i>
+                            <h6 class="text-muted">Você ainda não realizou nenhuma solicitação.</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .btn-outline-navy { color: #1a2a6c; border-color: #1a2a6c; }
+    .btn-outline-navy:hover { background-color: #1a2a6c; color: white; }
+    .transition-all:hover { background-color: #f8fafc; }
+</style>
+{% endblock %}

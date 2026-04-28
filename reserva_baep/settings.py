@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'viaturas',
     'patrimonio',
     'telematica',
+    'solicitacoes.apps.SolicitacoesConfig',
 ]
 
 MIDDLEWARE = [

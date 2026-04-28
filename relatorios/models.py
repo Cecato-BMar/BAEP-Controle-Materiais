@@ -17,6 +17,9 @@ class Relatorio(models.Model):
         ('FROTA_GERAL', 'Frota: Relatório Geral de Viaturas'),
         ('FROTA_ABASTECIMENTO', 'Frota: Relatório de Abastecimentos'),
         ('FROTA_MANUTENCAO', 'Frota: Histórico de Manutenções'),
+        ('TELEMATICA_INVENTARIO', 'Telemática: Inventário de Ativos'),
+        ('TELEMATICA_MANUTENCAO', 'Telemática: Histórico de Manutenções'),
+        ('TELEMATICA_LINHAS', 'Telemática: Linhas Móveis e Chips'),
     ]
     
     titulo = models.CharField(_('Título'), max_length=100)
@@ -26,6 +29,7 @@ class Relatorio(models.Model):
         ('ESTOQUE', 'Almoxarifado/Estoque'),
         ('PATRIMONIO', 'Patrimônio'),
         ('FROTA', 'Frota de Viaturas'),
+        ('TELEMATICA', 'Telemática'),
     ], default='RESERVA')
     data_geracao = models.DateTimeField(_('Data de Geração'), default=timezone.now)
     periodo_inicio = models.DateTimeField(_('Período - Início'), blank=True, null=True)

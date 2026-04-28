@@ -1077,9 +1077,22 @@ def ficha_individual_pdf(request, pk):
     consumo_fmt = f"{consumo:.2f}" if consumo is not None else "0"
     autonomia_fmt = f"{autonomia:.0f}" if autonomia is not None else "—"
     
+    # Estilo específico para o cabeçalho da tabela de indicadores (branco, negrito, centralizado, permite quebra)
+    header_style = ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=8, textColor=colors.white, alignment=1, fontName='Helvetica-Bold')
+    
     indicadores = [
-        ["SALDO EM ESTOQUE", "PREÇO MÉDIO (MATERIAL DE CONSUMO)", "CONSUMO MÉDIO", "AUTONOMIA"],
-        [saldo_fmt, preco_fmt, consumo_fmt, f"{autonomia_fmt} dias"]
+        [
+            Paragraph("SALDO EM ESTOQUE", header_style),
+            Paragraph("PREÇO MÉDIO (MATERIAL DE CONSUMO)", header_style),
+            Paragraph("CONSUMO MÉDIO", header_style),
+            Paragraph("AUTONOMIA", header_style)
+        ],
+        [
+            Paragraph(saldo_fmt, ParagraphStyle('ValStyle', parent=styles['Normal'], fontSize=10, alignment=1)),
+            Paragraph(preco_fmt, ParagraphStyle('ValStyle', parent=styles['Normal'], fontSize=10, alignment=1)),
+            Paragraph(consumo_fmt, ParagraphStyle('ValStyle', parent=styles['Normal'], fontSize=10, alignment=1)),
+            Paragraph(f"{autonomia_fmt} dias", ParagraphStyle('ValStyle', parent=styles['Normal'], fontSize=10, alignment=1))
+        ]
     ]
     ti = Table(indicadores, colWidths=[4.25*cm]*4)
     ti.setStyle(TableStyle([

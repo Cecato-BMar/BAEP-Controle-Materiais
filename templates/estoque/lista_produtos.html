@@ -114,6 +114,7 @@
                     <th class="text-center">Estoque Mínimo</th>
                     <th class="text-center">Última Cotação</th>
                     <th class="text-center">Status</th>
+                    <th class="text-center">Catálogo</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -154,6 +155,13 @@
                         <span class="badge rounded-pill bg-success-light text-success fw-bold p-2 px-3 small">ATIVO</span>
                         {% else %}
                         <span class="badge rounded-pill bg-danger-light text-danger fw-bold p-2 px-3 small">{{ produto.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if produto.disponivel_solicitacao %}
+                        <span class="text-success" title="Visível no Catálogo"><i class="fas fa-eye"></i></span>
+                        {% else %}
+                        <span class="text-muted" title="Privado Logística"><i class="fas fa-eye-slash"></i></span>
                         {% endif %}
                     </td>
                     <td class="text-end pe-4">

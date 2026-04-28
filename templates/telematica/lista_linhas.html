@@ -67,7 +67,10 @@
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{% url 'telematica:editar_linha' linha.pk %}" class="btn btn-sm btn-white border" title="Editar"><i class="fas fa-edit text-secondary"></i></a>
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'telematica:editar_linha' linha.pk %}" class="btn btn-sm btn-white border" title="Editar"><i class="fas fa-edit text-secondary"></i></a>
+                                <a href="{% url 'telematica:excluir_linha' linha.pk %}" class="btn btn-sm btn-white border" title="Excluir"><i class="fas fa-trash-alt text-danger"></i></a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load estoque_tags %}
 
 {% block title %}Gestão de Relatórios — SIS LOGÍSTICA 2ºBAEP{% endblock %}
 
@@ -61,6 +62,12 @@
                     <li class="dropdown-header text-uppercase small fw-bold">Logística</li>
                     <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações Estoque</a></li>
                     <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_patrimonio' %}"><i class="fas fa-barcode me-2 text-success"></i>Inventário de Patrimônio</a></li>
+                    
+                    <li><hr class="dropdown-divider"></li>
+                    {% if request.user.is_superuser or request.user|has_group:'telematica' %}
+                    <li class="dropdown-header text-uppercase small fw-bold">Tecnologia</li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_telematica' %}"><i class="fas fa-server me-2 text-dark"></i>Relatórios de Telemática</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -77,6 +84,7 @@
                         <option value="SITUACAO_ATUAL" {% if request.GET.tipo == 'SITUACAO_ATUAL' %}selected{% endif %}>🟢 Situação Atual</option>
                         <option value="MATERIAIS" {% if request.GET.tipo == 'MATERIAIS' %}selected{% endif %}>🔵 Materiais</option>
                         <option value="MOVIMENTACOES" {% if request.GET.tipo == 'MOVIMENTACOES' %}selected{% endif %}>🟠 Movimentações</option>
+                        <option value="TELEMATICA_GERAL" {% if request.GET.tipo == 'TELEMATICA_GERAL' %}selected{% endif %}>💻 Telemática</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -132,6 +140,8 @@
                             <span class="badge bg-warning-light text-warning border border-warning border-opacity-10 px-3">Almoxarifado</span>
                             {% elif relatorio.modulo == 'PATRIMONIO' %}
                             <span class="badge bg-info-light text-info border border-info border-opacity-10 px-3">Patrimônio</span>
+                            {% elif relatorio.modulo == 'TELEMATICA' %}
+                            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-10 px-3">Telemática</span>
                             {% else %}
                             <span class="badge bg-light text-dark px-3">{{ relatorio.get_modulo_display }}</span>
                             {% endif %}
@@ -148,10 +158,10 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
-                                <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-icon btn-white border shadow-xs" title="Ver Detalhes">
+                                <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.pk %}" target="_blank" class="btn btn-sm btn-icon btn-white border shadow-xs" title="Ver Detalhes">
                                     <i class="fas fa-eye text-primary"></i>
                                 </a>
-                                <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.pk %}" class="btn btn-sm btn-icon btn-white border shadow-xs ms-1" title="Baixar Arquivo">
+                                <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.pk %}" target="_blank" class="btn btn-sm btn-icon btn-white border shadow-xs ms-1" title="Baixar Arquivo">
                                     <i class="fas fa-download text-success"></i>
                                 </a>
                             </div>

@@ -42,7 +42,11 @@
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{% url 'telematica:detalhe_equipamento' mnt.equipamento.pk %}" class="btn btn-sm btn-outline-primary">Ver Equipamento</a>
+                            <div class="btn-group">
+                                <a href="{% url 'telematica:editar_manutencao' mnt.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'telematica:excluir_manutencao' mnt.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
+                                <a href="{% url 'telematica:detalhe_equipamento' mnt.equipamento.pk %}" class="btn btn-sm btn-outline-primary">Ver Equipamento</a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

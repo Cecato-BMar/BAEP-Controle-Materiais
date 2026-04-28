@@ -18,28 +18,63 @@ from .forms import (
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('solicitacoes:novo_pedido')
         
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                
-                # Atualiza a data do último acesso
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        
+        # Sanitização do RE: Considerar apenas os números antes do traço ou os primeiros 6 dígitos
+        # Se vier '123456-7', vira '123456'
+        re_limpo = username.split('-')[0].strip()
+        
+        # Tenta autenticação normal primeiro (com o que foi digitado ou com o RE limpo)
+        user = authenticate(username=username, password=password)
+        if user is None:
+            user = authenticate(username=re_limpo, password=password)
+        
+        # Se falhou, tenta a lógica de RE + Senha Padrão (baep+RE)
+        if user is None and re_limpo and password:
+            if password == f"baep{re_limpo}":
+                from policiais.models import Policial
                 try:
-                    perfil = user.perfil
-                    perfil.data_ultimo_acesso = timezone.now()
-                    perfil.save()
-                except Perfil.DoesNotExist:
+                    # Busca no efetivo pelo RE sem o dígito
+                    policial = Policial.objects.filter(re__icontains=re_limpo).first()
+                    
+                    if policial:
+                        # Verifica se o usuário já existe usando o RE limpo como username
+                        user, created = User.objects.get_or_create(username=re_limpo)
+                        if created:
+                            # Configura dados do policial no novo usuário
+                            nomes = policial.nome.split()
+                            user.first_name = nomes[0]
+                            user.last_name = " ".join(nomes[1:]) if len(nomes) > 1 else ""
+                            user.set_password(password)
+                            user.save()
+                            
+                            # Vincula ao Perfil/Policial
+                            perfil = user.perfil
+                            perfil.policial = policial
+                            perfil.nivel_acesso = 'OPERADOR'
+                            perfil.save()
+                        
+                        user = authenticate(username=re_limpo, password=password)
+                except Exception:
                     pass
-                
-                # Redireciona para a página solicitada ou para o dashboard
-                next_page = request.GET.get('next')
-                return redirect('home')
+
+        if user is not None:
+            login(request, user)
+            
+            # Atualiza a data do último acesso
+            try:
+                perfil = user.perfil
+                perfil.data_ultimo_acesso = timezone.now()
+                perfil.save()
+            except Perfil.DoesNotExist:
+                pass
+            
+            return redirect('solicitacoes:novo_pedido')
         else:
             messages.error(request, _('Nome de usuário ou senha inválidos.'))
     else:

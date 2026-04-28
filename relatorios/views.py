@@ -19,15 +19,13 @@ from reportlab.lib.utils import ImageReader
 
 from .models import Relatorio
 from .forms import (
-    RelatorioMateriaisForm, 
-    RelatorioMovimentacoesForm, 
-    RelatorioPatrimonioForm, 
-    RelatorioFrotaForm,
     RelatorioEstoqueMovimentacoesForm,
-    RelatorioSituacaoAtualForm
+    RelatorioSituacaoAtualForm,
+    RelatorioTelematicaForm
 )
 from .utils import PDFReportGenerator
 from . import providers
+from .providers import TelematicaProvider
 from reserva_baep.decorators import require_module_permission
 
 def _draw_logo(canvas_, doc_):
@@ -62,6 +60,10 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         'ESTOQUE_MOVIMENTACOES': providers.EstoqueMovimentacoesProvider,
         'ESTOQUE_SITUACAO': providers.EstoqueSituacaoProvider,
         'ESTOQUE_REPOSICAO': providers.EstoqueCriticoProvider,
+        'TELEMATICA_GERAL': providers.TelematicaProvider,
+        'TELEMATICA_INVENTARIO': providers.TelematicaProvider,
+        'TELEMATICA_MANUTENCAO': providers.TelematicaProvider,
+        'TELEMATICA_LINHAS': providers.TelematicaProvider,
     }
     
     provider_class = provider_map.get(tipo_chave)
@@ -94,6 +96,8 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         relatorio.modulo = 'PATRIMONIO'
     elif 'ESTOQUE' in tipo_chave:
         relatorio.modulo = 'ESTOQUE'
+    elif 'TELEMATICA' in tipo_chave:
+        relatorio.modulo = 'TELEMATICA'
     relatorio.save()
     
     filename = f"{tipo_chave.lower()}_{relatorio.pk}.pdf"
@@ -111,6 +115,8 @@ def lista_relatorios(request):
         modulos_acesso.append('ESTOQUE')
     if request.user.is_superuser or request.user.groups.filter(name='frota').exists():
         modulos_acesso.append('FROTA')
+    if request.user.is_superuser or request.user.groups.filter(name='telematica').exists():
+        modulos_acesso.append('TELEMATICA')
 
     if not modulos_acesso:
         from django.core.exceptions import PermissionDenied
@@ -543,3 +549,26 @@ def gerar_relatorio_individual_manutencao(request, manutencao_id):
     response = HttpResponse(pdf_content, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="ficha_manutencao_OS_{manutencao.ordem_servico or manutencao.pk}.pdf"'
     return response
+
+@login_required
+@require_module_permission('telematica')
+def gerar_relatorio_telematica(request):
+    if request.method == 'POST':
+        form = RelatorioTelematicaForm(request.POST)
+        if form.is_valid():
+            tipo = form.cleaned_data.get('tipo_relatorio', 'TELEMATICA_GERAL')
+            titulo = form.cleaned_data.get('titulo') or "Relatório de Telemática"
+            relatorio = _gerar_pdf_unificado(request, tipo, titulo, form.cleaned_data)
+            if relatorio:
+                messages.success(request, 'Relatório Gerado com Sucesso!')
+                return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
+    else:
+        form = RelatorioTelematicaForm()
+    
+    from telematica.models import Equipamento, ManutencaoTI
+    return render(request, 'relatorios/form_relatorio_telematica.html', {
+        'form': form,
+        'total_ativos': Equipamento.objects.count(),
+        'em_manutencao': Equipamento.objects.filter(status='MANUTENCAO').count(),
+        'manut_abertas': ManutencaoTI.objects.filter(concluida=False).count()
+    })

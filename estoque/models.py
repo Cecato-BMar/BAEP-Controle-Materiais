@@ -300,6 +300,7 @@ class Produto(models.Model):
     controla_validade = models.BooleanField(_('Controla Validade'), default=False)
     prazo_validade_meses = models.PositiveIntegerField(_('Prazo Validade (meses)'), null=True, blank=True)
     controla_numero_serie = models.BooleanField(_('Controla Número de Série'), default=False)
+    disponivel_solicitacao = models.BooleanField(_('Disponível para Solicitação'), default=True)
 
     # --- Vínculos MATERIAL DE CONSUMO ---
     fornecedor_padrao = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True, blank=True,

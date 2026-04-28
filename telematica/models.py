@@ -23,6 +23,7 @@ class Equipamento(models.Model):
         ('OPERACIONAL', 'Operacional / Em Uso'),
         ('RESERVA', 'Reserva Técnica'),
         ('MANUTENCAO', 'Em Manutenção'),
+        ('DISPOSICAO', 'À disposição de outra unidade'),
         ('BAIXADO', 'Baixado / Inativo'),
         ('EXTRAVIADO', 'Extraviado / Roubado'),
     ]
@@ -47,7 +48,11 @@ class Equipamento(models.Model):
     porta_switch = models.CharField(_('Porta do Switch'), max_length=50, blank=True, null=True)
     
     # Localização
-    setor = models.CharField(_('Setor/Seção'), max_length=100)
+    # Localização
+    # Localização
+    setor = models.ForeignKey('estoque.OrgaoRequisitante', on_delete=models.SET_NULL, null=True, blank=True, related_name='equipamentos', verbose_name=_('Setor/Seção'))
+    codigo_unidade = models.CharField(_('Cód. da Unidade'), max_length=50, blank=True, null=True, help_text="Ex: 02BAEP, 1BPRv, etc.")
+    policial_responsavel = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='equipamentos', verbose_name=_('Policial Responsável'))
     usuario_responsavel = models.CharField(_('Usuário Principal'), max_length=150, blank=True, null=True)
     
     status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='OPERACIONAL')
@@ -150,6 +155,7 @@ class ManutencaoTI(models.Model):
     descricao_problema = models.TextField(_('Descrição do Problema / Solicitação'))
     solucao_tecnica = models.TextField(_('Solução Aplicada'), blank=True, null=True)
     tecnico_responsavel = models.CharField(_('Técnico Responsável'), max_length=150)
+    policial_tecnico = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='manutencoes_realizadas', verbose_name=_('Técnico Policial'))
     custo = models.DecimalField(_('Custo (R$)'), max_digits=10, decimal_places=2, default=0)
     concluida = models.BooleanField(_('Concluída?'), default=False)
     

@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Gerar Relatório de Frota — SIS LOGÍSTICA BAEP{% endblock %}
+{% block title %}Relatório de Telemática | SIS LOGÍSTICA BAEP{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-5 px-md-5 animate__animated animate__fadeIn" style="background: #fdfdfd;">
@@ -13,32 +13,37 @@
                 <ol class="breadcrumb bg-transparent p-0">
                     <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">Início</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-muted text-decoration-none">Relatórios</a></li>
-                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Frota</li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Telemática</li>
                 </ol>
             </nav>
 
             <div class="card border-0 shadow-soft overflow-hidden" style="border-radius: 32px; background: #fff;">
                 <div class="row g-0">
                     <!-- Coluna Lateral: Contexto e Dicas -->
-                    <div class="col-lg-4 d-none d-lg-block p-5 text-white" style="background: linear-gradient(165deg, #1e3a8a, #1e40af); position: relative;">
+                    <div class="col-lg-4 d-none d-lg-block p-5 text-white" style="background: linear-gradient(165deg, #0f172a, #334155); position: relative;">
                         <div class="position-relative z-index-2">
                             <div class="mb-5">
                                 <div class="bg-white bg-opacity-10 rounded-4 p-3 d-inline-block backdrop-blur mb-4 border border-white border-opacity-10">
-                                    <i class="fas fa-car-side fa-2x"></i>
+                                    <i class="fas fa-server fa-2x"></i>
                                 </div>
-                                <h3 class="fw-bold">Gestão de Frota</h3>
-                                <p class="opacity-70">Monitoramento de quilometragem, manutenções e consumo de combustível do 2º BAEP.</p>
+                                <h3 class="fw-bold">Telemática & TI</h3>
+                                <p class="opacity-70">Gestão de ativos tecnológicos, infraestrutura de rede e suporte técnico do 2º BAEP.</p>
                             </div>
 
                             <div class="space-y-4">
                                 <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate">
-                                    <h6 class="fw-bold mb-2 text-info"><i class="fas fa-gas-pump me-2"></i>Controle de Cota</h6>
-                                    <p class="small opacity-60 mb-0">Relatórios detalhados para auditoria de abastecimentos por prefixo e motorista.</p>
+                                    <h6 class="fw-bold mb-2 text-info"><i class="fas fa-microchip me-2"></i>Inventário de Ativos</h6>
+                                    <p class="small opacity-60 mb-0">Relação completa de hardware, hostnames e configurações de rede.</p>
                                 </div>
 
                                 <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate mt-3">
-                                    <h6 class="fw-bold mb-2 text-warning"><i class="fas fa-wrench me-2"></i>Histórico Mecânico</h6>
-                                    <p class="small opacity-60 mb-0">Rastreabilidade total de serviços realizados em oficinas credenciadas.</p>
+                                    <h6 class="fw-bold mb-2 text-warning"><i class="fas fa-tools me-2"></i>Ordens de Serviço</h6>
+                                    <p class="small opacity-60 mb-0">Auditoria de manutenções preventivas e corretivas em dispositivos.</p>
+                                </div>
+
+                                <div class="p-4 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 transition-all hover-translate mt-3">
+                                    <h6 class="fw-bold mb-2 text-success"><i class="fas fa-sim-card me-2"></i>Conectividade Móvel</h6>
+                                    <p class="small opacity-60 mb-0">Controle de chips, linhas e pacotes de dados operacionais.</p>
                                 </div>
                             </div>
 
@@ -49,7 +54,7 @@
                         
                         <!-- Elementos Decorativos de Fundo -->
                         <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden opacity-10 pointer-events-none">
-                            <i class="fas fa-road position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
+                            <i class="fas fa-network-wired position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
                         </div>
                     </div>
 
@@ -57,14 +62,14 @@
                     <div class="col-lg-8 p-4 p-md-5">
                         <div class="d-flex align-items-center justify-content-between mb-5">
                             <div>
-                                <h2 class="fw-black text-dark mb-1 tracking-tighter">Relatório de Frota</h2>
-                                <p class="text-muted mb-0">Selecione o tipo e o período de análise</p>
+                                <h2 class="fw-black text-dark mb-1 tracking-tighter">Relatórios de TI</h2>
+                                <p class="text-muted mb-0">Selecione os critérios para geração do documento</p>
                             </div>
                             <div class="d-flex flex-column align-items-end">
-                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold small mb-1">
-                                    <i class="fas fa-satellite-dish me-1"></i>SISTEMA TELEMÉTRICO
+                                <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill px-3 py-2 fw-bold small mb-1">
+                                    <i class="fas fa-shield-alt me-1"></i>MÓDULO TELEMÁTICA
                                 </span>
-                                <span class="text-muted smaller">Status: Operacional</span>
+                                <span class="text-muted smaller">Criptografia: Ativa</span>
                             </div>
                         </div>
 
@@ -72,20 +77,20 @@
                         <div class="row g-3 mb-5">
                             <div class="col-md-4">
                                 <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
-                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Viaturas Totais</p>
-                                    <h4 class="fw-black mb-0 text-primary">{{ viaturas_count|default:"--" }}</h4>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
-                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Disponíveis</p>
-                                    <h4 class="fw-black mb-0 text-success">{{ disponiveis_count|default:"--" }}</h4>
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Total de Ativos</p>
+                                    <h4 class="fw-black mb-0 text-dark">{{ total_ativos|default:"--" }}</h4>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
                                     <p class="smaller text-uppercase fw-bold text-muted mb-1">Em Manutenção</p>
-                                    <h4 class="fw-black mb-0 text-danger">{{ manutencao_count|default:"--" }}</h4>
+                                    <h4 class="fw-black mb-0 text-danger">{{ em_manutencao|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm transition-all hover-shadow">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">S.O. Abertas</p>
+                                    <h4 class="fw-black mb-0 text-warning">{{ manut_abertas|default:"--" }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -102,20 +107,33 @@
                                     {{ form.tipo_relatorio|as_crispy_field }}
                                 </div>
                                 
-                                <div class="col-md-6">
-                                    {{ form.data_inicio|as_crispy_field }}
+                                <div class="col-md-4">
+                                    {{ form.categoria|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.status|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.codigo_unidade|as_crispy_field }}
                                 </div>
                                 
                                 <div class="col-md-6">
+                                    {{ form.data_inicio|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
                                     {{ form.data_fim|as_crispy_field }}
+                                </div>
+
+                                <div class="col-12">
+                                    {{ form.observacoes|as_crispy_field }}
                                 </div>
                             </div>
 
                             <div class="mt-5 d-grid">
-                                <button type="submit" class="btn btn-navy btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale position-relative overflow-hidden group">
+                                <button type="submit" class="btn btn-dark btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale position-relative overflow-hidden group">
                                     <span class="position-relative z-index-2 d-flex align-items-center justify-content-center text-white">
-                                        <i class="fas fa-file-pdf fa-lg me-3 text-white"></i>
-                                        GERAR DOCUMENTO TÁTICO
+                                        <i class="fas fa-print fa-lg me-3 text-white"></i>
+                                        GERAR RELATÓRIO TÉCNICO
                                     </span>
                                 </button>
                             </div>
@@ -135,9 +153,8 @@
 
 <style>
     :root {
-        --primary-color: #1e40af;
+        --primary-color: #0f172a;
         --secondary-color: #64748b;
-        --navy-dark: #1e3a8a;
     }
 
     .fw-black { font-weight: 900; }
@@ -171,7 +188,7 @@
     .premium-form .form-select:focus {
         border-color: var(--primary-color) !important;
         background-color: #fff !important;
-        box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1) !important;
+        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.1) !important;
         transform: translateY(-1px);
     }
 
@@ -183,11 +200,6 @@
         margin-bottom: 10px !important;
         letter-spacing: 1px !important;
         display: block;
-    }
-
-    .btn-navy {
-        background: linear-gradient(135deg, #1e3a8a, #1e40af);
-        border: none;
     }
 
     .btn-xl {

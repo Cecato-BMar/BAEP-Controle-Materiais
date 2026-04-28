@@ -1,25 +1,40 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-{% block title %}Nova Categoria | Telemática{% endblock %}
+{% block title %}{{ titulo }} | Telemática{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn">
     <div>
-        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-plus-circle text-primary me-2"></i>Nova Categoria</h1>
-        <p class="text-muted mb-0">Crie um novo tipo de ativo tecnológico.</p>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-tags text-primary me-2"></i>{{ titulo }}</h1>
+        <p class="text-muted mb-0">Organize e padronize os tipos de ativos tecnológicos.</p>
     </div>
-    <a href="{% url 'telematica:lista_categorias' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+    <a href="{% url 'telematica:lista_categorias' %}" class="btn btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i>Voltar às Categorias</a>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
+<div class="row justify-content-center animate__animated animate__fadeInUp">
+    <div class="col-lg-7">
+        <div class="card shadow-lg border-0" style="border-radius: 15px;">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold">Dados da Categoria</h5>
+                </div>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <hr class="mt-0 mb-4 opacity-10">
                 <form method="post">
                     {% csrf_token %}
                     {% crispy form %}
                 </form>
             </div>
+        </div>
+        
+        <div class="mt-4 p-3 bg-light rounded-3 border border-dashed text-center">
+            <p class="mb-0 text-muted small">
+                <i class="fas fa-info-circle me-1"></i> Use nomes claros e ícones do <strong>FontAwesome</strong> (ex: fas fa-laptop) para facilitar a identificação visual no dashboard.
+            </p>
         </div>
     </div>
 </div>

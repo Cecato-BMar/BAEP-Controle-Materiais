@@ -29,7 +29,7 @@
             <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="fas fa-arrow-left me-2"></i> Voltar
             </a>
-            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-navy rounded-pill px-4 shadow">
+            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" target="_blank" class="btn btn-navy rounded-pill px-4 shadow">
                 <i class="fas fa-download me-2"></i> BAIXAR PDF
             </a>
         </div>

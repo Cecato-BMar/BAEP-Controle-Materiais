@@ -476,11 +476,24 @@
                             <li class="nav-item">
                                 <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'telematica:lista_categorias' %}">Categorias</a>
                             </li>
+                            <li class="nav-item mt-1 pt-1 border-top border-secondary border-opacity-10">
+                                <a class="nav-link text-info" href="{% url 'relatorios:gerar_relatorio_telematica' %}">
+                                    <i class="fas fa-file-pdf small me-2"></i>Emitir Relatórios
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
                 {% endif %}
                 {% endif %}
+
+                <!-- MÓDULO SERVIÇOS & SOLICITAÇÕES -->
+                <div class="sidebar-heading"><i class="fas fa-concierge-bell"></i> Serviços & Solicitações</div>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'solicitacoes' in request.path %}active{% endif %}" href="{% url 'solicitacoes:minhas_solicitacoes' %}">
+                        <i class="fas fa-shopping-cart"></i> Solicitar Material
+                    </a>
+                </li>
 
                 <!-- MÓDULO LOGÍSTICA & SUPRIMENTOS -->
                 {% if user.is_superuser or user|has_group:'materiais' or user|has_group:'patrimonio' %}
@@ -497,6 +510,11 @@
                         <ul class="nav flex-column sidebar-submenu">
                             <li class="nav-item">
                                 <a class="nav-link {% if 'estoque' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'estoque:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'solicitacoes' in request.path and 'gestao' in request.path %}active{% endif %}" href="{% url 'solicitacoes:gestao_lista' %}">
+                                    <i class="fas fa-clipboard-list me-1 text-warning opacity-75"></i>Gestão de Pedidos
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link {% if 'materiais' in request.path and 'estoque' in request.path %}active{% endif %}" href="{% url 'estoque:lista_produtos' %}">Materiais</a>
