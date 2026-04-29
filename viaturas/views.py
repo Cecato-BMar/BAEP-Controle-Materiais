@@ -741,7 +741,7 @@ def solicitar_baixa(request):
             solicitacao.solicitante = request.user
             solicitacao.save()
             messages.success(request, 'Solicitação de baixa registrada e enviada para análise.')
-            return redirect('core:home') # Ou algum lugar apropriado para o usuário
+            return redirect('home') # Ou algum lugar apropriado para o usuário
     else:
         form = SolicitacaoBaixaViaturaForm()
 
