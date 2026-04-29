@@ -24,8 +24,8 @@
                     <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow animate__animated animate__pulse animate__infinite">PRONTO PARA RETIRADA</span>
                     {% elif solicitacao.status == 'ENTREGUE' %}
                     <span class="badge bg-success text-white px-3 py-2 rounded-pill">ENTREGUE</span>
-                    <a href="{% url 'solicitacoes:gerar_recibo' solicitacao.id %}" target="_blank" class="btn btn-navy btn-sm rounded-pill ms-2 shadow-sm">
-                        <i class="fas fa-file-pdf me-1"></i> RECIBO
+                    <a href="{% url 'solicitacoes:visualizar_recibo' solicitacao.id %}" class="btn btn-navy btn-sm rounded-pill ms-2 shadow-sm">
+                        <i class="fas fa-receipt me-1"></i> RECIBO
                     </a>
                     {% else %}
                     <span class="badge bg-danger text-white px-3 py-2 rounded-pill">CANCELADO</span>
@@ -44,6 +44,30 @@
                         <div class="col-md-6">
                             <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Última Atualização</label>
                             <div class="fw-bold">{{ solicitacao.data_atualizacao|date:"d/m/Y - H:i" }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Requisitante / Destino</label>
+                            <div class="fw-bold">
+                                {% if solicitacao.policial_requisitante %}
+                                    <i class="fas fa-user-shield text-navy me-1"></i> {{ solicitacao.policial_requisitante.get_posto_display }} {{ solicitacao.policial_requisitante.nome }}
+                                {% else %}
+                                    <i class="fas fa-user text-muted me-1"></i> {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}
+                                {% endif %}
+                                <div class="smaller text-muted fw-normal">{{ solicitacao.orgao_requisitante.nome|default:"Unidade não informada" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Status da Entrega</label>
+                            <div class="fw-bold">
+                                {% if solicitacao.status == 'ENTREGUE' %}
+                                    <span class="text-success"><i class="fas fa-check-circle me-1"></i> Entregue</span>
+                                    {% if solicitacao.entregue_por %}
+                                        <div class="smaller text-muted fw-normal">Por: {{ solicitacao.entregue_por.get_full_name|default:solicitacao.entregue_por.username }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-warning">{{ solicitacao.get_status_display }}</span>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="smaller text-muted fw-bold text-uppercase d-block mb-1">Sua Observação</label>

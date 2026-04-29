@@ -203,7 +203,6 @@ def excluir_policial(request, policial_id):
             
     return redirect('policiais:lista_policiais')
 @login_required
-@require_module_permission('reserva_armas')
 def buscar_policiais_ajax(request):
     """View para busca Ajax de policiais (Efetivo)"""
     q_raw = request.GET.get('q', '').strip()

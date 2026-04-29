@@ -59,16 +59,27 @@
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
                 <form action="{% url 'solicitacoes:finalizar' %}" method="post">
                     {% csrf_token %}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-navy small">
-                            <i class="fas fa-university me-1"></i> Seção / Companhia de Destino
-                        </label>
-                        <select name="orgao_requisitante" class="form-select border-0 bg-light shadow-none" required>
-                            <option value="">Selecione a unidade...</option>
-                            {% for orgao in orgaos %}
-                            <option value="{{ orgao.id }}">{{ orgao.nome }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-navy small">
+                                <i class="fas fa-university me-1"></i> Seção / Companhia de Destino
+                            </label>
+                            <select name="orgao_requisitante" class="form-select border-0 bg-light shadow-none" required>
+                                <option value="">Selecione a unidade...</option>
+                                {% for orgao in orgaos %}
+                                <option value="{{ orgao.id }}">{{ orgao.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-navy small">
+                                <i class="fas fa-user-shield me-1"></i> Policial Requisitante (Efetivo)
+                            </label>
+                            <select name="policial_requisitante" id="id_policial_requisitante" class="form-select border-0 bg-light shadow-none">
+                                <option value="">Busque por Nome ou RE...</option>
+                            </select>
+                            <div class="form-text small">Se deixado em branco, será atribuído ao seu usuário.</div>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -109,4 +120,37 @@
     .text-navy { color: #1a2a6c; }
     .border-light { border-color: #f1f5f9 !important; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#id_policial_requisitante').select2({
+        theme: 'bootstrap-5',
+        ajax: {
+            url: "{% url 'policiais:buscar_policiais_ajax' %}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 1,
+        placeholder: 'Busque por Nome ou RE...',
+        language: {
+            inputTooShort: function() { return "Digite pelo menos 1 caractere..."; },
+            noResults: function() { return "Policial não encontrado."; },
+            searching: function() { return "Buscando..."; }
+        }
+    });
+});
+</script>
 {% endblock %}

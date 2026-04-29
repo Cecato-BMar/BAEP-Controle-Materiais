@@ -139,7 +139,7 @@
                             </td>
                             <td class="px-4 text-end">
                                 {% if mov.tipo_movimentacao == 'SAIDA' %}
-                                    <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-outline-danger btn-sm" title="Gerar Recibo PDF">
+                                    <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" class="btn btn-outline-danger btn-sm" title="Gerar Recibo PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
                                 {% endif %}

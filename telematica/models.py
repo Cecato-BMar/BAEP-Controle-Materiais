@@ -139,47 +139,82 @@ class ServicoTI(models.Model):
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-class ManutencaoTI(models.Model):
-    """Registro de manutenções e suportes técnicos"""
-    TIPO_MANUTENCAO = [
-        ('PREVENTIVA', 'Preventiva'),
-        ('CORRETIVA', 'Corretiva / Reparo'),
-        ('UPGRADE', 'Upgrade / Melhoria'),
-        ('SOFTWARE', 'Instalação/Configuração Software'),
+
+class SolicitacaoSuporteTI(models.Model):
+    """Modelo unificado para Solicitações de Suporte (usuário) e Chamados Técnicos (Telemática)"""
+    ORIGEM_CHOICES = [
+        ('USUARIO', 'Portal do Usuário'),
+        ('INTERNO', 'Abertura Interna (Telemática)'),
     ]
+    TIPO_CHOICES = [
+        ('HARDWARE', 'Hardware (Computador, Monitor, Impressora)'),
+        ('SOFTWARE', 'Software / Instalação de Sistemas'),
+        ('REDE', 'Rede / Conexão / Internet'),
+        ('RADIO', 'Rádio / Comunicação Crítica'),
+        ('CELULAR', 'Celular / Tablet / Chip'),
+        ('SISTEMA_BAEP', 'Sistema de Controle BAEP'),
+        ('PREVENTIVA', 'Manutenção Preventiva'),
+        ('CORRETIVA', 'Manutenção Corretiva / Reparo'),
+        ('OUTRO', 'Outros Assuntos'),
+    ]
+    PRIORIDADE_CHOICES = [
+        ('BAIXA', 'Baixa (Pode aguardar)'),
+        ('MEDIA', 'Média (Uso diário)'),
+        ('ALTA', 'Alta (Equipamento inoperante)'),
+        ('URGENTE', 'Urgente (Parada Operacional/Emergência)'),
+    ]
+    STATUS_CHOICES = [
+        ('PENDENTE', 'Pendente (Aguardando Triagem)'),
+        ('EM_ATENDIMENTO', 'Em Atendimento'),
+        ('AGUARDANDO_PECA', 'Aguardando Peça/Terceiro'),
+        ('CONCLUIDA', 'Concluída / Resolvida'),
+        ('CANCELADA', 'Cancelada'),
+    ]
+
+    origem = models.CharField(_('Origem'), max_length=10, choices=ORIGEM_CHOICES, default='USUARIO')
+    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suportes_solicitados', verbose_name=_('Solicitante/Interessado'))
+    data_solicitacao = models.DateTimeField(_('Data de Abertura'), auto_now_add=True)
     
-    equipamento = models.ForeignKey(Equipamento, on_delete=models.CASCADE, related_name='manutencoes_ti')
-    tipo = models.CharField(_('Tipo de Manutenção'), max_length=20, choices=TIPO_MANUTENCAO)
-    data_inicio = models.DateTimeField(_('Início'), default=timezone.now)
-    data_fim = models.DateTimeField(_('Fim'), blank=True, null=True)
+    tipo_servico = models.CharField(_('Tipo de Serviço'), max_length=20, choices=TIPO_CHOICES)
+    equipamento = models.ForeignKey(Equipamento, on_delete=models.SET_NULL, null=True, blank=True, related_name='suportes', verbose_name=_('Equipamento Relacionado'))
     descricao_problema = models.TextField(_('Descrição do Problema / Solicitação'))
-    solucao_tecnica = models.TextField(_('Solução Aplicada'), blank=True, null=True)
-    tecnico_responsavel = models.CharField(_('Técnico Responsável'), max_length=150)
-    policial_tecnico = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='manutencoes_realizadas', verbose_name=_('Técnico Policial'))
-    custo = models.DecimalField(_('Custo (R$)'), max_digits=10, decimal_places=2, default=0)
-    concluida = models.BooleanField(_('Concluída?'), default=False)
+    prioridade = models.CharField(_('Prioridade'), max_length=20, choices=PRIORIDADE_CHOICES, default='MEDIA')
+    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
     
-    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    tecnico_atribuido = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='suportes_atribuidos', verbose_name=_('Técnico Atribuído'))
+    tecnico_externo = models.CharField(_('Técnico Externo / Empresa'), max_length=150, blank=True, null=True)
+    solucao_tecnica = models.TextField(_('Solução / Parecer Técnico'), blank=True, null=True)
+    custo = models.DecimalField(_('Custo (R$)'), max_digits=10, decimal_places=2, default=0)
+    
+    data_inicio_atendimento = models.DateTimeField(_('Início do Atendimento'), blank=True, null=True)
+    data_conclusao = models.DateTimeField(_('Data de Conclusão'), blank=True, null=True)
+    
+    aberto_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='suportes_criados', verbose_name=_('Aberto por'), null=True, blank=True)
 
     class Meta:
-        verbose_name = _('Manutenção de TI')
-        verbose_name_plural = _('Manutenções de TI')
-        ordering = ['-data_inicio']
+        verbose_name = _('Suporte Técnico / Chamado')
+        verbose_name_plural = _('Suportes Técnicos / Chamados')
+        ordering = ['-data_solicitacao']
 
     def __str__(self):
-        return f"MNT {self.equipamento.hostname or self.equipamento.numero_serie} - {self.data_inicio.strftime('%d/%m/%Y')}"
+        return f"#{self.id} [{self.get_origem_display()}] - {self.solicitante.get_full_name() or self.solicitante.username}"
 
-@receiver(post_save, sender=ManutencaoTI)
-def sync_equipamento_status(sender, instance, **kwargs):
-    """Sincroniza o status do equipamento baseado na conclusão da manutenção"""
-    equipamento = instance.equipamento
-    if not instance.concluida:
-        if equipamento.status != 'MANUTENCAO':
-            equipamento.status = 'MANUTENCAO'
-            equipamento.save(update_fields=['status'])
-    else:
-        # Se a manutenção foi concluída, verifica se não há outras em aberto
-        outras_pendentes = ManutencaoTI.objects.filter(equipamento=equipamento, concluida=False).exists()
-        if not outras_pendentes and equipamento.status == 'MANUTENCAO':
-            equipamento.status = 'OPERACIONAL'
-            equipamento.save(update_fields=['status'])
+    def save(self, *args, **kwargs):
+        # Lógica de sincronização de status do equipamento (migrada da ManutencaoTI)
+        if self.equipamento:
+            if self.status in ['EM_ATENDIMENTO', 'AGUARDANDO_PECA']:
+                if self.equipamento.status != 'MANUTENCAO':
+                    self.equipamento.status = 'MANUTENCAO'
+                    self.equipamento.save(update_fields=['status'])
+            elif self.status == 'CONCLUIDA':
+                # Verifica se não há outros suportes abertos para este equipamento
+                outros_pendentes = SolicitacaoSuporteTI.objects.filter(
+                    equipamento=self.equipamento, 
+                    status__in=['PENDENTE', 'EM_ATENDIMENTO', 'AGUARDANDO_PECA']
+                ).exclude(pk=self.pk).exists()
+                
+                if not outros_pendentes and self.equipamento.status == 'MANUTENCAO':
+                    self.equipamento.status = 'OPERACIONAL'
+                    self.equipamento.save(update_fields=['status'])
+        
+        super().save(*args, **kwargs)

@@ -1,44 +1,70 @@
 import os
-import sys
 import django
+import random
+from django.utils import timezone
 
-# Adiciona o diretório atual ao sys.path para encontrar o projeto
+import sys
+
+# Adiciona o diretório atual ao sys.path para encontrar o módulo reserva_baep
 sys.path.append(os.getcwd())
 
-# Configuração do ambiente Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reserva_baep.settings')
 django.setup()
 
-from telematica.models import CategoriaEquipamento
+from django.contrib.auth.models import User
+from telematica.models import Equipamento, SolicitacaoSuporteTI, CategoriaEquipamento
+from policiais.models import Policial
 
 def run():
-    categorias = [
-        {'nome': 'Computador / Desktop', 'icone': 'fas fa-desktop', 'descricao': 'Estações de trabalho fixas.'},
-        {'nome': 'Notebook / Laptop', 'icone': 'fas fa-laptop', 'descricao': 'Equipamentos portáteis.'},
-        {'nome': 'Rádio HT (Portátil)', 'icone': 'fas fa-walkie-talkie', 'descricao': 'Rádios comunicadores portáteis.'},
-        {'nome': 'Rádio Móvel (Vtr)', 'icone': 'fas fa-broadcast-tower', 'descricao': 'Rádios instalados em viaturas.'},
-        {'nome': 'TPD / Tablet', 'icone': 'fas fa-tablet-alt', 'descricao': 'Terminais Portáteis de Dados e Tablets.'},
-        {'nome': 'Smartphone / Celular', 'icone': 'fas fa-mobile-alt', 'descricao': 'Aparelhos celulares corporativos.'},
-        {'nome': 'Impressora / Scanner', 'icone': 'fas fa-print', 'descricao': 'Equipamentos de impressão e digitalização.'},
-        {'nome': 'Ativo de Rede (Switch/AP)', 'icone': 'fas fa-network-wired', 'descricao': 'Switches, Access Points e Roteadores.'},
-        {'nome': 'Monitor', 'icone': 'fas fa-tv', 'descricao': 'Monitores de vídeo.'},
-    ]
-
-    print("Iniciando cadastro de categorias padrão de Telemática...")
-    for cat_data in categorias:
-        obj, created = CategoriaEquipamento.objects.get_or_create(
-            nome=cat_data['nome'],
-            defaults={
-                'icone': cat_data['icone'],
-                'descricao': cat_data['descricao']
-            }
-        )
-        if created:
-            print(f"  [+] Categoria '{obj.nome}' criada.")
-        else:
-            print(f"  [.] Categoria '{obj.nome}' já existe.")
+    print("Iniciando criação de dados de teste para Telemática Unificada...")
     
-    print("\nProcesso concluído com sucesso!")
+    users = User.objects.all()
+    policiais = Policial.objects.all()
+    equipamentos = Equipamento.objects.all()
+    
+    if not equipamentos.exists():
+        print("Erro: Nenhum equipamento cadastrado. Cadastre equipamentos primeiro.")
+        return
 
-if __name__ == "__main__":
+    admin = User.objects.filter(is_superuser=True).first()
+    
+    tipos = ['HARDWARE', 'SOFTWARE', 'REDE', 'RADIO', 'CELULAR', 'SISTEMA_BAEP', 'PREVENTIVA', 'CORRETIVA']
+    status_list = ['PENDENTE', 'EM_ATENDIMENTO', 'AGUARDANDO_PECA', 'CONCLUIDA']
+    prioridades = ['BAIXA', 'MEDIA', 'ALTA', 'URGENTE']
+    
+    # Criar 10 chamados
+    for i in range(10):
+        solicitante = random.choice(users)
+        equip = random.choice(equipamentos)
+        tipo = random.choice(tipos)
+        status = random.choice(status_list)
+        prio = random.choice(prioridades)
+        
+        origem = 'USUARIO' if i < 7 else 'INTERNO'
+        
+        suporte = SolicitacaoSuporteTI.objects.create(
+            origem=origem,
+            solicitante=solicitante,
+            tipo_servico=tipo,
+            equipamento=equip,
+            descricao_problema=f"Problema de teste #{i+1} - {tipo}",
+            prioridade=prio,
+            status=status,
+            aberto_por=admin
+        )
+        
+        if status in ['EM_ATENDIMENTO', 'CONCLUIDA', 'AGUARDANDO_PECA']:
+            suporte.tecnico_atribuido = random.choice(policiais)
+            suporte.data_inicio_atendimento = timezone.now() - timezone.timedelta(hours=random.randint(1, 48))
+            
+            if status == 'CONCLUIDA':
+                suporte.solucao_tecnica = "Solução de teste aplicada com sucesso."
+                suporte.data_conclusao = timezone.now() - timezone.timedelta(hours=random.randint(0, 24))
+                suporte.custo = random.randint(0, 500)
+            
+            suporte.save()
+            
+    print(f"Sucesso! 10 chamados de teste criados.")
+
+if __name__ == '__main__':
     run()

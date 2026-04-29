@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Solicitar Baixa de Viatura — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-arrow-down me-2 text-danger"></i>Solicitar Baixa de Viatura</h4>
+        <small class="text-muted">Registro de Descarga/Inativação</small>
+    </div>
+    <a href="{% url 'viaturas:dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+</div>
+
+<div class="card border-0">
+    <div class="card-body">
+        <div class="alert alert-warning mb-4">
+            <i class="fas fa-exclamation-triangle me-2"></i>Atenção: A solicitação será avaliada pelo gestor da frota. Ao aprovar, a viatura será movida para o status de BAIXADA e não ficará mais disponível para despachos.
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+            <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                <button type="submit" class="btn btn-danger fw-bold px-4"><i class="fas fa-paper-plane me-1"></i>Enviar Solicitação</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

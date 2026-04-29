@@ -83,11 +83,11 @@ def dashboard_estoque(request):
         ativo=True
     ).count()
 
-    # Valor total do estoque
-    valor_total_estoque = sum(
-        p.saldo_calculado * Decimal(str(p.valor_unitario or 0))
-        for p in Produto.objects.filter(status='ATIVO')
-    )
+    # Solicitações de Materiais
+    from solicitacoes.models import Solicitacao
+    solicitacoes_pendentes = Solicitacao.objects.filter(status='PENDENTE').count()
+    solicitacoes_separacao = Solicitacao.objects.filter(status='EM_SEPARACAO').count()
+    ultimas_solicitacoes = Solicitacao.objects.filter(status='PENDENTE').select_related('solicitante', 'orgao_requisitante').order_by('-data_solicitacao')[:5]
 
     context = {
         'total_produtos': total_produtos,
@@ -97,7 +97,9 @@ def dashboard_estoque(request):
         'total_alertas_cotacao': len(alertas_cotacao),
         'movimentacoes_recentes': movimentacoes_recentes,
         'lotes_vencendo': lotes_vencendo,
-        'valor_total_estoque': valor_total_estoque,
+        'solicitacoes_pendentes': solicitacoes_pendentes,
+        'solicitacoes_separacao': solicitacoes_separacao,
+        'ultimas_solicitacoes': ultimas_solicitacoes,
     }
     return render(request, 'estoque/dashboard.html', context)
 

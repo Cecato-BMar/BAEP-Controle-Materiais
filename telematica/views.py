@@ -4,11 +4,14 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count, Sum
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
 from .models import (CategoriaEquipamento, Equipamento, ConfiguracaoRadio, 
-                     LinhaMovel, ServicoTI, ManutencaoTI)
+                     LinhaMovel, ServicoTI, SolicitacaoSuporteTI)
 from .forms import (CategoriaEquipamentoForm, EquipamentoForm, ConfiguracaoRadioForm, 
-                    LinhaMovelForm, ServicoTIForm, ManutencaoTIForm)
+                    LinhaMovelForm, ServicoTIForm, ChamadoInternoTIForm,
+                    SolicitacaoSuporteTIForm, AtendimentoSuporteTIForm)
 from reserva_baep.decorators import require_module_permission
 
 @login_required
@@ -19,21 +22,28 @@ def dashboard_telematica(request):
     em_manutencao = Equipamento.objects.filter(status='MANUTENCAO').count()
     
     por_categoria = Equipamento.objects.values('categoria__nome', 'categoria__icone').annotate(total=Count('id')).order_by('-total')
-    ultimas_manutencoes = ManutencaoTI.objects.select_related('equipamento').order_by('-data_inicio')[:5]
+    
+    # Busca unificada de suportes/manutenções recentes (últimos criados)
+    ultimas_intervencoes = SolicitacaoSuporteTI.objects.select_related('equipamento', 'solicitante').order_by('-data_solicitacao')[:5]
     servicos_ativos = ServicoTI.objects.filter(status=True).count()
     
-    # Alertas
+    # Alertas e Suportes
     hoje = timezone.now().date()
     garantias_vencendo = Equipamento.objects.filter(vencimento_garantia__lte=hoje + timezone.timedelta(days=30), status='OPERACIONAL').count()
+    
+    suportes_pendentes = SolicitacaoSuporteTI.objects.filter(status='PENDENTE').select_related('solicitante').order_by('-data_solicitacao')
+    total_pendentes = suportes_pendentes.count()
     
     context = {
         'total_equipamentos': total_equipamentos,
         'operacionais': operacionais,
         'em_manutencao': em_manutencao,
         'por_categoria': por_categoria,
-        'ultimas_manutencoes': ultimas_manutencoes,
+        'ultimas_manutencoes': ultimas_intervencoes,
         'servicos_ativos': servicos_ativos,
         'garantias_vencendo': garantias_vencendo,
+        'suportes_pendentes': suportes_pendentes[:5],
+        'total_pendentes': total_pendentes,
     }
     return render(request, 'telematica/dashboard.html', context)
 
@@ -41,18 +51,21 @@ def dashboard_telematica(request):
 @login_required
 @require_module_permission('telematica')
 def lista_equipamentos(request):
-    q = request.GET.get('q', '')
+    hostname = request.GET.get('hostname', '')
+    serie_pat = request.GET.get('serie_pat', '')
+    marca = request.GET.get('marca', '')
+    policial = request.GET.get('policial', '')
     cat = request.GET.get('categoria', '')
-    qs = Equipamento.objects.select_related('categoria').all()
+    qs = Equipamento.objects.select_related('categoria', 'policial_responsavel').all()
     
-    if q:
-        qs = qs.filter(
-            Q(hostname__icontains=q) | 
-            Q(numero_serie__icontains=q) | 
-            Q(patrimonio__icontains=q) |
-            Q(marca__icontains=q) |
-            Q(modelo__icontains=q)
-        )
+    if hostname:
+        qs = qs.filter(hostname__icontains=hostname)
+    if serie_pat:
+        qs = qs.filter(Q(numero_serie__icontains=serie_pat) | Q(patrimonio__icontains=serie_pat))
+    if marca:
+        qs = qs.filter(Q(marca__icontains=marca) | Q(modelo__icontains=marca))
+    if policial:
+        qs = qs.filter(policial_responsavel_id=policial)
     if cat:
         qs = qs.filter(categoria_id=cat)
         
@@ -60,9 +73,20 @@ def lista_equipamentos(request):
     page = paginator.get_page(request.GET.get('page'))
     categorias = CategoriaEquipamento.objects.all()
     
+    policial_obj = None
+    if policial:
+        from policiais.models import Policial
+        try:
+            policial_obj = Policial.objects.get(pk=policial)
+        except Policial.DoesNotExist:
+            pass
+    
     return render(request, 'telematica/lista_equipamentos.html', {
         'page_obj': page,
-        'q': q,
+        'hostname': hostname,
+        'serie_pat': serie_pat,
+        'marca': marca,
+        'policial_obj': policial_obj,
         'categorias': categorias,
         'categoria_filtro': cat
     })
@@ -71,7 +95,7 @@ def lista_equipamentos(request):
 @require_module_permission('telematica')
 def detalhe_equipamento(request, pk):
     equipamento = get_object_or_404(Equipamento.objects.select_related('categoria'), pk=pk)
-    manutencoes = equipamento.manutencoes_ti.all().order_by('-data_inicio')
+    manutencoes = equipamento.suportes.all().order_by('-data_solicitacao')
     return render(request, 'telematica/detalhe_equipamento.html', {
         'equipamento': equipamento,
         'manutencoes': manutencoes
@@ -123,58 +147,79 @@ def excluir_equipamento(request, pk):
         return redirect('telematica:lista_equipamentos')
     return render(request, 'telematica/confirmar_exclusao.html', {'objeto': equipamento, 'url_voltar': 'telematica:lista_equipamentos'})
 
-# MANUTENÇÕES
+# SUPORTE TÉCNICO / CHAMADOS (GESTÃO)
 @login_required
 @require_module_permission('telematica')
 def lista_manutencoes(request):
-    qs = ManutencaoTI.objects.select_related('equipamento', 'equipamento__categoria').all()
+    """Lista unificada de todos os suportes e manutenções"""
+    q = request.GET.get('q', '')
+    status = request.GET.get('status', '')
+    
+    qs = SolicitacaoSuporteTI.objects.select_related('equipamento', 'solicitante', 'tecnico_atribuido').all()
+    
+    if q:
+        qs = qs.filter(
+            Q(id__icontains=q) | 
+            Q(solicitante__username__icontains=q) | 
+            Q(descricao_problema__icontains=q) |
+            Q(equipamento__hostname__icontains=q)
+        )
+    
+    if status and status != 'TODOS':
+        qs = qs.filter(status=status)
+        
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'telematica/lista_manutencoes.html', {'page_obj': page})
+    return render(request, 'telematica/lista_manutencoes.html', {'page_obj': page, 'q': q, 'status_atual': status})
 
 @login_required
 @require_module_permission('telematica')
 def criar_manutencao(request):
-    equip_id = request.GET.get('equipamento')
-    initial = {}
-    if equip_id:
-        initial['equipamento'] = get_object_or_404(Equipamento, pk=equip_id)
-        
+    """Abertura de chamado diretamente pela Telemática"""
     if request.method == 'POST':
-        form = ManutencaoTIForm(request.POST)
+        form = ChamadoInternoTIForm(request.POST)
         if form.is_valid():
-            mnt = form.save(commit=False)
-            mnt.registrado_por = request.user
-            mnt.save()
-            messages.success(request, 'Manutenção registrada!')
+            chamado = form.save(commit=False)
+            chamado.origem = 'INTERNO'
+            chamado.aberto_por = request.user
+            # Se já abriu com status Em Atendimento e não tem data de início, seta agora
+            if chamado.status == 'EM_ATENDIMENTO' and not chamado.data_inicio_atendimento:
+                chamado.data_inicio_atendimento = timezone.now()
+            chamado.save()
+            messages.success(request, 'Chamado interno registrado com sucesso!')
             return redirect('telematica:lista_manutencoes')
     else:
-        form = ManutencaoTIForm(initial=initial)
-    return render(request, 'telematica/form_manutencao.html', {'form': form, 'titulo': 'Registrar Manutenção'})
+        initial = {}
+        equip_id = request.GET.get('equipamento')
+        if equip_id:
+            initial['equipamento'] = get_object_or_404(Equipamento, pk=equip_id)
+        form = ChamadoInternoTIForm(initial=initial)
+    return render(request, 'telematica/form_manutencao.html', {'form': form, 'titulo': 'Abrir Chamado Interno'})
 
 @login_required
 @require_module_permission('telematica')
 def editar_manutencao(request, pk):
-    mnt = get_object_or_404(ManutencaoTI, pk=pk)
+    """Edição de chamados existentes (administrativo)"""
+    chamado = get_object_or_404(SolicitacaoSuporteTI, pk=pk)
     if request.method == 'POST':
-        form = ManutencaoTIForm(request.POST, instance=mnt)
+        form = ChamadoInternoTIForm(request.POST, instance=chamado)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Manutenção atualizada!')
+            messages.success(request, 'Chamado atualizado!')
             return redirect('telematica:lista_manutencoes')
     else:
-        form = ManutencaoTIForm(instance=mnt)
-    return render(request, 'telematica/form_manutencao.html', {'form': form, 'titulo': 'Editar Manutenção'})
+        form = ChamadoInternoTIForm(instance=chamado)
+    return render(request, 'telematica/form_manutencao.html', {'form': form, 'titulo': 'Editar Chamado'})
 
 @login_required
 @require_module_permission('telematica')
 def excluir_manutencao(request, pk):
-    mnt = get_object_or_404(ManutencaoTI, pk=pk)
+    chamado = get_object_or_404(SolicitacaoSuporteTI, pk=pk)
     if request.method == 'POST':
-        mnt.delete()
-        messages.success(request, 'Registro de manutenção excluído.')
+        chamado.delete()
+        messages.success(request, 'Registro excluído.')
         return redirect('telematica:lista_manutencoes')
-    return render(request, 'telematica/confirmar_exclusao.html', {'objeto': mnt, 'url_voltar': 'telematica:lista_manutencoes'})
+    return render(request, 'telematica/confirmar_exclusao.html', {'objeto': chamado, 'url_voltar': 'telematica:lista_manutencoes'})
 
 # SERVIÇOS
 @login_required
@@ -326,7 +371,71 @@ def buscar_equipamentos_ajax(request):
         Q(hostname__icontains=q) | 
         Q(numero_serie__icontains=q) | 
         Q(patrimonio__icontains=q) |
-        Q(marca__icontains=q)
-    )[:15]
-    data = [{'id': e.pk, 'text': f"{e.hostname or 'S/H'} — {e.numero_serie} ({e.categoria.nome})"} for e in qs]
+        Q(marca__icontains=q) |
+        Q(modelo__icontains=q) |
+        Q(setor__nome__icontains=q) |
+        Q(codigo_unidade__icontains=q) |
+        Q(usuario_responsavel__icontains=q) |
+        Q(policial_responsavel__nome__icontains=q) |
+        Q(policial_responsavel__re__icontains=q)
+    ).select_related('categoria', 'setor', 'policial_responsavel')[:25]
+    
+    data = []
+    for e in qs:
+        # Constrói uma string de localização informativa
+        local = f" [{e.setor.nome}]" if e.setor else ""
+        if e.codigo_unidade:
+            local = f" [{e.codigo_unidade} - {e.setor.nome if e.setor else ''}]"
+            
+        # Constrói a identificação do responsável
+        resp = ""
+        if e.policial_responsavel:
+            resp = f" | Resp: {e.policial_responsavel.posto} {e.policial_responsavel.nome}"
+        elif e.usuario_responsavel:
+            resp = f" | Resp: {e.usuario_responsavel}"
+            
+        text = f"{e.hostname or 'S/H'} — {e.numero_serie} ({e.categoria.nome}){local}{resp}"
+        data.append({'id': e.pk, 'text': text})
     return JsonResponse({'results': data})
+
+# SOLICITAÇÕES DE SUPORTE (USUÁRIO)
+@login_required
+def solicitar_suporte(request):
+    if request.method == 'POST':
+        form = SolicitacaoSuporteTIForm(request.POST)
+        if form.is_valid():
+            suporte = form.save(commit=False)
+            suporte.solicitante = request.user
+            suporte.aberto_por = request.user
+            suporte.save()
+            messages.success(request, 'Sua solicitação de suporte foi enviada com sucesso!')
+            return redirect('telematica:minhas_solicitacoes_suporte')
+    else:
+        form = SolicitacaoSuporteTIForm()
+    return render(request, 'telematica/form_suporte.html', {'form': form, 'titulo': 'Solicitar Suporte de TI'})
+
+@login_required
+def minhas_solicitacoes_suporte(request):
+    qs = SolicitacaoSuporteTI.objects.filter(solicitante=request.user).order_by('-data_solicitacao')
+    return render(request, 'telematica/minhas_solicitacoes_suporte.html', {'solicitacoes': qs})
+
+@login_required
+@require_module_permission('telematica')
+def atender_suporte(request, pk):
+    suporte = get_object_or_404(SolicitacaoSuporteTI, pk=pk)
+    if request.method == 'POST':
+        form = AtendimentoSuporteTIForm(request.POST, instance=suporte)
+        if form.is_valid():
+            atendimento = form.save(commit=False)
+            # Se for a primeira vez que atende, marca o início
+            if not atendimento.data_inicio_atendimento:
+                atendimento.data_inicio_atendimento = timezone.now()
+            
+            if atendimento.status == 'CONCLUIDA' and not atendimento.data_conclusao:
+                atendimento.data_conclusao = timezone.now()
+            atendimento.save()
+            messages.success(request, 'Atendimento de suporte atualizado!')
+            return redirect('telematica:lista_manutencoes')
+    else:
+        form = AtendimentoSuporteTIForm(instance=suporte)
+    return render(request, 'telematica/form_atendimento.html', {'form': form, 'suporte': suporte})

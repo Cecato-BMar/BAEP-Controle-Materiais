@@ -163,6 +163,7 @@
                             <tr>
                                 <th>Data</th>
                                 <th>Tipo</th>
+                                <th>Solicitante</th>
                                 <th>Técnico</th>
                                 <th>Status</th>
                                 <th class="text-end">Ações</th>
@@ -171,25 +172,37 @@
                         <tbody>
                             {% for mnt in manutencoes %}
                             <tr>
-                                <td>{{ mnt.data_inicio|date:"d/m/Y" }}</td>
-                                <td>{{ mnt.get_tipo_display }}</td>
-                                <td>{{ mnt.policial_tecnico|default:mnt.tecnico_responsavel }}</td>
+                                <td>{{ mnt.data_solicitacao|date:"d/m/Y" }}</td>
+                                <td>{{ mnt.get_tipo_servico_display }}</td>
+                                <td>{{ mnt.solicitante.get_full_name|default:mnt.solicitante.username }}</td>
                                 <td>
-                                    {% if mnt.concluida %}
-                                    <span class="badge bg-success">Concluída</span>
+                                    {% if mnt.tecnico_atribuido %}
+                                        {{ mnt.tecnico_atribuido.get_posto_display }} {{ mnt.tecnico_atribuido.nome }}
+                                    {% elif mnt.tecnico_externo %}
+                                        {{ mnt.tecnico_externo }}
                                     {% else %}
-                                    <span class="badge bg-warning text-dark">Em Aberto</span>
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if mnt.status == 'CONCLUIDA' %}
+                                    <span class="badge bg-success">Concluída</span>
+                                    {% elif mnt.status == 'CANCELADA' %}
+                                    <span class="badge bg-dark">Cancelada</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">{{ mnt.get_status_display }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group">
+                                        <a href="{% url 'telematica:atender_suporte' mnt.pk %}" class="btn btn-sm btn-link text-primary p-0 me-2" title="Atender/Atualizar"><i class="fas fa-user-cog"></i></a>
                                         <a href="{% url 'telematica:editar_manutencao' mnt.pk %}" class="btn btn-sm btn-link text-secondary p-0 me-2" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'telematica:excluir_manutencao' mnt.pk %}" class="btn btn-sm btn-link text-danger p-0" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </div>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" class="text-center py-4">Nenhuma manutenção registrada para este equipamento.</td></tr>
+                            <tr><td colspan="5" class="text-center py-4">Nenhuma intervenção registrada para este equipamento.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

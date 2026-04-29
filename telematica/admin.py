@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (CategoriaEquipamento, Equipamento, ConfiguracaoRadio, 
-                     LinhaMovel, ServicoTI, ManutencaoTI)
+                     LinhaMovel, ServicoTI, SolicitacaoSuporteTI)
 
 @admin.register(CategoriaEquipamento)
 class CategoriaEquipamentoAdmin(admin.ModelAdmin):
@@ -29,8 +29,10 @@ class ServicoTIAdmin(admin.ModelAdmin):
     list_display = ['nome', 'tipo', 'fornecedor', 'status', 'vencimento']
     list_filter = ['tipo', 'status']
 
-@admin.register(ManutencaoTI)
-class ManutencaoTIAdmin(admin.ModelAdmin):
-    list_display = ['equipamento', 'tipo', 'data_inicio', 'tecnico_responsavel', 'concluida']
-    list_filter = ['tipo', 'concluida']
-    date_hierarchy = 'data_inicio'
+
+@admin.register(SolicitacaoSuporteTI)
+class SolicitacaoSuporteTIAdmin(admin.ModelAdmin):
+    list_display = ['id', 'solicitante', 'tipo_servico', 'prioridade', 'status', 'data_solicitacao']
+    list_filter = ['tipo_servico', 'prioridade', 'status']
+    search_fields = ['solicitante__username', 'descricao_problema', 'solucao_tecnica']
+    date_hierarchy = 'data_solicitacao'

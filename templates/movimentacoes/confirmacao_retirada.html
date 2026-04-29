@@ -51,7 +51,7 @@
             </div>
             
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
-                <a href="{% url 'movimentacoes:gerar_recibo_retirada' %}?ids={{ ids_str }}" target="_blank" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
+                <a href="{% url 'movimentacoes:gerar_recibo_retirada' %}?ids={{ ids_str }}" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
                     <i class="fas fa-print me-2"></i> IMPRIMIR RECIBO
                 </a>
                 <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">

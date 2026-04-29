@@ -46,7 +46,7 @@
         <div class="card-body">
             <p class="text-muted mb-4">Personalize o nome do arquivo antes de fazer o download.</p>
             
-            <form method="post" target="_blank" action="{% url 'relatorios:download_relatorio_arquivo' relatorio_id=relatorio.id %}">
+            <form method="post" action="{% url 'relatorios:download_relatorio_arquivo' relatorio_id=relatorio.id %}">
                 {% csrf_token %}
                 
                 <div class="row mb-3">

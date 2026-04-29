@@ -4,6 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.utils import timezone
+from django.http import HttpResponseForbidden
 from .models import Solicitacao, ItemSolicitacao
 from estoque.models import Produto
 
@@ -101,6 +103,7 @@ def finalizar_solicitacao(request):
     solicitacao = Solicitacao.objects.create(
         solicitante=request.user,
         orgao_requisitante_id=request.POST.get('orgao_requisitante'),
+        policial_requisitante_id=request.POST.get('policial_requisitante') or None,
         observacoes=request.POST.get('observacoes', '')
     )
     
@@ -151,6 +154,7 @@ def mudar_status_solicitacao(request, pk, novo_status):
         
         # Se estiver finalizando, registra as quantidades atendidas e cria movimentação
         if novo_status == 'ENTREGUE':
+            solicitacao.entregue_por = request.user
             from estoque.models import MovimentacaoEstoque
             from decimal import Decimal
             
@@ -189,6 +193,17 @@ def mudar_status_solicitacao(request, pk, novo_status):
     solicitacao.save()
     messages.success(request, f'Status da solicitação #{pk} atualizado para {solicitacao.get_status_display()}.')
     return redirect('solicitacoes:gestao_lista')
+
+@login_required
+def visualizar_recibo(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+    if not request.user.is_staff and solicitacao.solicitante != request.user:
+        return HttpResponseForbidden("Acesso negado.")
+    
+    return render(request, 'solicitacoes/recibo_entrega.html', {
+        'solicitacao': solicitacao,
+        'data_atual': timezone.now()
+    })
 
 @login_required
 def gerar_recibo_pdf(request, pk):
@@ -248,9 +263,18 @@ def gerar_recibo_pdf(request, pk):
     dt_pedido = localtime(solicitacao.data_solicitacao).strftime('%d/%m/%Y %H:%M')
     dt_entrega = localtime(solicitacao.data_atualizacao).strftime('%d/%m/%Y %H:%M')
     
-    elements.append(Paragraph(f"<b>Solicitante:</b> {solicitacao.solicitante.get_full_name() or solicitacao.solicitante.username}", styles['Normal']))
+    # Determinar Requisitante para o Recibo
+    if solicitacao.policial_requisitante:
+        requisitante_nome = f"{solicitacao.policial_requisitante.get_posto_display()} {solicitacao.policial_requisitante.re} {solicitacao.policial_requisitante.nome}"
+    else:
+        requisitante_nome = solicitacao.solicitante.get_full_name() or solicitacao.solicitante.username
+
+    elements.append(Paragraph(f"<b>Requisitante/Destino:</b> {requisitante_nome}", styles['Normal']))
+    elements.append(Paragraph(f"<b>Seção/Unidade:</b> {solicitacao.orgao_requisitante.nome if solicitacao.orgao_requisitante else 'Não informada'}", styles['Normal']))
     elements.append(Paragraph(f"<b>Data do Pedido:</b> {dt_pedido}", styles['Normal']))
     elements.append(Paragraph(f"<b>Data da Entrega:</b> {dt_entrega}", styles['Normal']))
+    if solicitacao.entregue_por:
+        elements.append(Paragraph(f"<b>Entregue por (Logística):</b> {solicitacao.entregue_por.get_full_name() or solicitacao.entregue_por.username}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
     # Tabela de Itens (Mesma lógica)

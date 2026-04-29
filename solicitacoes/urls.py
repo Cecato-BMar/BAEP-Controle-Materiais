@@ -16,4 +16,5 @@ urlpatterns = [
     path('gestao/', views.GerenciarSolicitacoesView.as_view(), name='gestao_lista'),
     path('status/<int:pk>/<str:novo_status>/', views.mudar_status_solicitacao, name='mudar_status'),
     path('recibo/<int:pk>/', views.gerar_recibo_pdf, name='gerar_recibo'),
+    path('recibo/<int:pk>/visualizar/', views.visualizar_recibo, name='visualizar_recibo'),
 ]

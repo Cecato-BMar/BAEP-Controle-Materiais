@@ -23,7 +23,7 @@
         {% endif %}
         <a href="{% url 'viaturas:criar_abastecimento' %}" class="btn btn-outline-info btn-sm"><i class="fas fa-gas-pump me-1"></i>Abastecimento</a>
         <a href="{% url 'viaturas:criar_manutencao' %}" class="btn btn-outline-danger btn-sm"><i class="fas fa-wrench me-1"></i>Manutenção</a>
-        <a href="{% url 'relatorios:gerar_relatorio_individual_viatura' viatura.pk %}" class="btn btn-primary btn-sm fw-bold" target="_blank"><i class="fas fa-print me-1"></i>Ficha (PDF)</a>
+        <a href="{% url 'relatorios:gerar_relatorio_individual_viatura' viatura.pk %}" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-print me-1"></i>Ficha (PDF)</a>
     </div>
 </div>
 

@@ -21,7 +21,7 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
-        <a href="{% url 'relatorios:gerar_relatorio_individual_manutencao' manutencao.pk %}" target="_blank" class="btn btn-danger btn-sm fw-bold"><i class="fas fa-file-pdf me-1"></i>Ficha (PDF)</a>
+        <a href="{% url 'relatorios:gerar_relatorio_individual_manutencao' manutencao.pk %}" class="btn btn-danger btn-sm fw-bold"><i class="fas fa-file-pdf me-1"></i>Ficha (PDF)</a>
         <a href="{% url 'viaturas:editar_manutencao' manutencao.pk %}" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-edit me-1"></i>Editar</a>
         {% if manutencao.status == 'ABERTA' or manutencao.status == 'AGUARDANDO_PECA' %}
         <a href="{% url 'viaturas:concluir_manutencao' manutencao.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Concluir Agora</a>

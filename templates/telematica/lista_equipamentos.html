@@ -12,29 +12,44 @@
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label text-muted small fw-bold">BUSCAR EQUIPAMENTO</label>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">HOSTNAME</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <select name="q" id="search-equipamento" class="form-select border-start-0">
-                        {% if q %}
-                        <option value="{{ q }}" selected>{{ q }}</option>
-                        {% endif %}
-                    </select>
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-desktop text-muted"></i></span>
+                    <input type="text" name="hostname" class="form-control border-start-0" value="{{ hostname }}" placeholder="Ex: PC-01">
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">SÉRIE / PATRIMÔNIO</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-barcode text-muted"></i></span>
+                    <input type="text" name="serie_pat" class="form-control border-start-0" value="{{ serie_pat }}" placeholder="SN ou Patrimônio">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">MARCA</label>
+                <input type="text" name="marca" class="form-control" value="{{ marca }}" placeholder="Ex: DELL">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">USUÁRIO RESPONSÁVEL</label>
+                <select name="policial" id="search-policial" class="form-select">
+                    {% if policial_obj %}
+                    <option value="{{ policial_obj.id }}" selected>{{ policial_obj.posto }} {{ policial_obj.nome }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-2">
                 <label class="form-label text-muted small fw-bold">CATEGORIA</label>
                 <select name="categoria" class="form-select">
-                    <option value="">Todas as Categorias</option>
+                    <option value="">Todas</option>
                     {% for cat in categorias %}
                     <option value="{{ cat.id }}" {% if categoria_filtro == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.nome }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-dark w-100"><i class="fas fa-filter me-1"></i>Filtrar Resultados</button>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-dark w-100" title="Filtrar"><i class="fas fa-filter"></i></button>
             </div>
         </form>
     </div>
@@ -94,7 +109,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div class="small fw-bold">{{ equipamento.setor|default:"—" }}</div>
+                            <div class="small fw-bold">{{ equip.setor|default:"—" }}</div>
                             <div class="text-muted small">
                                 {% if equip.policial_responsavel %}
                                     <i class="fas fa-user-shield me-1"></i>{{ equip.policial_responsavel.nome }}
@@ -157,35 +172,32 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    $('#search-equipamento').select2({
+    $('#search-policial').select2({
         theme: 'bootstrap-5',
-        placeholder: 'Busque por Hostname, Série ou Patrimônio...',
+        placeholder: 'Busque por RE, Nome ou CPF...',
         allowClear: true,
         ajax: {
-            url: "{% url 'telematica:buscar_equipamentos_ajax' %}",
+            url: "{% url 'policiais:buscar_policiais_ajax' %}",
             dataType: 'json',
             delay: 300,
             data: function (params) {
                 return { q: params.term };
             },
             processResults: function (data) {
-                // Mapeia os resultados para que o ID seja o texto de busca
-                // pois o formulário filtra por esse termo 'q'
                 return {
                     results: data.results.map(function(item) {
-                        return { id: item.text.split(' — ')[0], text: item.text };
+                        return { id: item.id, text: item.text };
                     })
                 };
             },
             cache: true
         },
-        minimumInputLength: 1,
+        minimumInputLength: 3,
         language: {
-            inputTooShort: function() { return "Digite pelo menos 1 caractere..."; },
-            noResults: function() { return "Equipamento não encontrado."; },
+            inputTooShort: function() { return "Digite pelo menos 3 caracteres..."; },
+            noResults: function() { return "Policial não encontrado."; },
             searching: function() { return "Buscando..."; }
-        },
-        tags: true // Permite digitar algo que não está na lista
+        }
     });
 });
 </script>

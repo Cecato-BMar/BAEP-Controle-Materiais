@@ -2,7 +2,86 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Field, HTML, Div
 from .models import (Equipamento, CategoriaEquipamento, ConfiguracaoRadio, 
-                     LinhaMovel, ServicoTI, ManutencaoTI)
+                     LinhaMovel, ServicoTI, SolicitacaoSuporteTI)
+
+class SolicitacaoSuporteTIForm(forms.ModelForm):
+    class Meta:
+        model = SolicitacaoSuporteTI
+        fields = ['tipo_servico', 'equipamento', 'prioridade', 'descricao_problema']
+        widgets = {
+            'descricao_problema': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Descreva detalhadamente o problema ou a solicitação...'}),
+            'equipamento': forms.Select(attrs={'class': 'select2-equipamento'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('tipo_servico', css_class='col-md-4'),
+                Column('prioridade', css_class='col-md-4'),
+                Column('equipamento', css_class='col-md-4'),
+            ),
+            'descricao_problema',
+            Submit('submit', 'Enviar Solicitação de Suporte', css_class='btn btn-primary btn-lg w-100 mt-3'),
+        )
+
+class AtendimentoSuporteTIForm(forms.ModelForm):
+    class Meta:
+        model = SolicitacaoSuporteTI
+        fields = ['status', 'tecnico_atribuido', 'tecnico_externo', 'solucao_tecnica', 'custo', 'data_conclusao']
+        widgets = {
+            'solucao_tecnica': forms.Textarea(attrs={'rows': 4}),
+            'data_conclusao': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'tecnico_atribuido': forms.Select(attrs={'class': 'select2-policial'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('status', css_class='col-md-4'),
+                Column('tecnico_atribuido', css_class='col-md-4'),
+                Column('tecnico_externo', css_class='col-md-4'),
+            ),
+            'solucao_tecnica',
+            Row(
+                Column('custo', css_class='col-md-6'),
+                Column('data_conclusao', css_class='col-md-6'),
+            ),
+            Submit('submit', 'Atualizar Atendimento', css_class='btn btn-success w-100 mt-3'),
+        )
+
+class ChamadoInternoTIForm(forms.ModelForm):
+    """Formulário para abertura de chamados diretamente pela equipe técnica"""
+    class Meta:
+        model = SolicitacaoSuporteTI
+        fields = ['solicitante', 'tipo_servico', 'equipamento', 'prioridade', 'status', 'descricao_problema', 'tecnico_atribuido']
+        widgets = {
+            'descricao_problema': forms.Textarea(attrs={'rows': 4}),
+            'equipamento': forms.Select(attrs={'class': 'select2-equipamento'}),
+            'tecnico_atribuido': forms.Select(attrs={'class': 'select2-policial'}),
+            'solicitante': forms.Select(attrs={'class': 'select2-usuario'}), # Precisaria definir select2-usuario ou usar normal
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('solicitante', css_class='col-md-6'),
+                Column('tecnico_atribuido', css_class='col-md-6'),
+            ),
+            Row(
+                Column('tipo_servico', css_class='col-md-4'),
+                Column('prioridade', css_class='col-md-4'),
+                Column('status', css_class='col-md-4'),
+            ),
+            'equipamento',
+            'descricao_problema',
+            Submit('submit', 'Abrir Chamado Interno', css_class='btn btn-primary btn-lg w-100 mt-3'),
+        )
 
 class CategoriaEquipamentoForm(forms.ModelForm):
     class Meta:
@@ -109,27 +188,3 @@ class ServicoTIForm(forms.ModelForm):
             Submit('submit', 'Salvar Serviço', css_class='btn btn-primary mt-2'),
         )
 
-class ManutencaoTIForm(forms.ModelForm):
-    class Meta:
-        model = ManutencaoTI
-        exclude = ['registrado_por']
-        widgets = {
-            'data_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
-            'data_fim': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
-            'descricao_problema': forms.Textarea(attrs={'rows': 3}),
-            'solucao_tecnica': forms.Textarea(attrs={'rows': 3}),
-            'policial_tecnico': forms.Select(attrs={'class': 'select2-policial'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            'equipamento',
-            Row(Column('tipo', css_class='col-md-6'), Column('tecnico_responsavel', css_class='col-md-6')),
-            Row(Column('data_inicio', css_class='col-md-6'), Column('data_fim', css_class='col-md-6')),
-            'descricao_problema',
-            'solucao_tecnica',
-            Row(Column('custo', css_class='col-md-6'), Column('concluida', css_class='col-md-6 pt-4')),
-            Submit('submit', 'Registrar Manutenção', css_class='btn btn-warning mt-2'),
-        )

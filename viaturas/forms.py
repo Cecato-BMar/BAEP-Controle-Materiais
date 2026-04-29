@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field, HTML
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura
 
 
 class ViaturaForm(forms.ModelForm):
@@ -400,3 +400,47 @@ class ChecklistViaturaForm(forms.ModelForm):
                 Column('observacoes_gerais', css_class='col-md-6'),
             ),
         )
+
+class SolicitacaoBaixaViaturaForm(forms.ModelForm):
+    class Meta:
+        model = SolicitacaoBaixaViatura
+        fields = ['viatura', 'motivo']
+        widgets = {
+            'motivo': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Detalhe o motivo pelo qual a viatura deve ser baixada/descarregada.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['viatura'].queryset = Viatura.objects.exclude(status='BAIXADA')
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('viatura', css_class='col-md-12'),
+            ),
+            Row(
+                Column('motivo', css_class='col-md-12'),
+            ),
+        )
+
+class AnaliseBaixaViaturaForm(forms.ModelForm):
+    class Meta:
+        model = SolicitacaoBaixaViatura
+        fields = ['status', 'observacoes_admin']
+        widgets = {
+            'observacoes_admin': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Parecer do administrador sobre a baixa.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('status', css_class='col-md-12'),
+            ),
+            Row(
+                Column('observacoes_admin', css_class='col-md-12'),
+            ),
+        )
+

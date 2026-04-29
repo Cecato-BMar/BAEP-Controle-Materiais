@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Solicitar Suporte de TI | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-headset text-primary me-2"></i>Solicitar Suporte de TI</h1>
+        <p class="text-muted mb-0">Descreva o problema ou a melhoria que você necessita.</p>
+    </div>
+    <a href="{% url 'telematica:minhas_solicitacoes_suporte' %}" class="btn btn-outline-secondary"><i class="fas fa-list me-1"></i>Minhas Solicitações</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="post" class="needs-validation">
+                    {% csrf_token %}
+                    {% crispy form %}
+                </form>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-3 bg-light rounded border">
+            <h6 class="fw-bold"><i class="fas fa-info-circle text-info me-2"></i>Informação Importante</h6>
+            <p class="small mb-0 text-muted">
+                Seu chamado será analisado pela equipe de Telemática por ordem de prioridade e chegada. 
+                Você receberá atualizações sobre o status do atendimento diretamente no seu painel de usuário.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.select2-equipamento').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Busque pelo Nome ou Série do Equipamento (opcional)...',
+        allowClear: true,
+        ajax: {
+            url: "{% url 'telematica:buscar_equipamentos_ajax' %}",
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        language: {
+            inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
+            noResults: function() { return "Nenhum equipamento encontrado."; },
+            searching: function() { return "Buscando..."; }
+        }
+    });
+});
+</script>
+{% endblock %}

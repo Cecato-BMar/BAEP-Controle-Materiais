@@ -1,13 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}Manutenções de TI | Telemática{% endblock %}
+{% block title %}Suporte & Manutenções | Telemática{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-tools text-warning me-2"></i>Suporte & Manutenções</h1>
-        <p class="text-muted mb-0">Gerenciamento de chamados técnicos e reparos de hardware/software.</p>
+        <p class="text-muted mb-0">Gestão unificada de chamados e manutenções técnicas.</p>
     </div>
-    <a href="{% url 'telematica:criar_manutencao' %}" class="btn btn-warning shadow-sm"><i class="fas fa-plus me-1"></i>Novo Chamado</a>
+    <div class="d-flex gap-2">
+        <div class="btn-group shadow-sm">
+            <a href="?status=PENDENTE" class="btn {% if status_atual == 'PENDENTE' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">Pendentes</a>
+            <a href="?status=EM_ATENDIMENTO" class="btn {% if status_atual == 'EM_ATENDIMENTO' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">Em Atendimento</a>
+            <a href="?status=TODOS" class="btn {% if not status_atual or status_atual == 'TODOS' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">Todos</a>
+        </div>
+        <a href="{% url 'telematica:criar_manutencao' %}" class="btn btn-warning shadow-sm"><i class="fas fa-plus me-1"></i>Novo Chamado</a>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -16,45 +23,101 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">Equipamento</th>
-                        <th>Tipo</th>
-                        <th>Data Início</th>
+                        <th class="ps-4">ID / Origem</th>
+                        <th>Solicitante</th>
+                        <th>Tipo / Equipamento</th>
+                        <th>Prioridade</th>
+                        <th>Data</th>
                         <th>Técnico</th>
-                        <th>Concluída</th>
+                        <th>Status</th>
                         <th class="text-end pe-4">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for mnt in page_obj %}
-                    <tr>
+                    {% for sol in page_obj %}
+                    <tr class="{% if sol.prioridade == 'URGENTE' and sol.status == 'PENDENTE' %}table-danger{% elif sol.prioridade == 'ALTA' and sol.status == 'PENDENTE' %}table-warning{% endif %}">
                         <td class="ps-4">
-                            <strong>{{ mnt.equipamento.hostname|default:mnt.equipamento.numero_serie }}</strong>
-                            <br><small class="text-muted">{{ mnt.equipamento.categoria.nome }}</small>
-                        </td>
-                        <td>{{ mnt.get_tipo_display }}</td>
-                        <td>{{ mnt.data_inicio|date:"d/m/Y H:i" }}</td>
-                        <td>{{ mnt.tecnico_responsavel }}</td>
-                        <td>
-                            {% if mnt.concluida %}
-                            <span class="badge bg-success">Sim</span>
+                            <span class="fw-bold">#{{ sol.id }}</span>
+                            <br>
+                            {% if sol.origem == 'USUARIO' %}
+                                <span class="badge bg-info text-dark small" style="font-size: 0.65rem;">PORTAL</span>
                             {% else %}
-                            <span class="badge bg-warning text-dark">Pendente</span>
+                                <span class="badge bg-secondary small" style="font-size: 0.65rem;">INTERNO</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</div>
+                            <small class="text-muted">{{ sol.solicitante.username }}</small>
+                        </td>
+                        <td>
+                            <div>{{ sol.get_tipo_servico_display }}</div>
+                            {% if sol.equipamento %}
+                                <small class="text-info fw-bold"><i class="fas fa-laptop me-1"></i>{{ sol.equipamento.hostname|default:sol.equipamento.numero_serie }}</small>
+                            {% else %}
+                                <small class="text-muted italic">Sem equipamento</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sol.prioridade == 'URGENTE' %}
+                                <span class="badge bg-danger">Urgente</span>
+                            {% elif sol.prioridade == 'ALTA' %}
+                                <span class="badge bg-warning text-dark">Alta</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">{{ sol.get_prioridade_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ sol.data_solicitacao|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if sol.tecnico_atribuido %}
+                                <div class="fw-bold text-primary">{{ sol.tecnico_atribuido.get_posto_display }} {{ sol.tecnico_atribuido.nome }}</div>
+                                <small class="text-muted">RE: {{ sol.tecnico_atribuido.re }}</small>
+                            {% elif sol.tecnico_externo %}
+                                <div class="fw-bold text-secondary">{{ sol.tecnico_externo }}</div>
+                            {% else %}
+                                <span class="text-muted italic small">Pendente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sol.status == 'CONCLUIDA' %}
+                                <span class="badge bg-success">Concluída</span>
+                            {% elif sol.status == 'CANCELADA' %}
+                                <span class="badge bg-dark">Cancelada</span>
+                            {% elif sol.status == 'EM_ATENDIMENTO' %}
+                                <span class="badge bg-primary">Atendimento</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pendente</span>
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
-                                <a href="{% url 'telematica:editar_manutencao' mnt.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fas fa-edit"></i></a>
-                                <a href="{% url 'telematica:excluir_manutencao' mnt.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
-                                <a href="{% url 'telematica:detalhe_equipamento' mnt.equipamento.pk %}" class="btn btn-sm btn-outline-primary">Ver Equipamento</a>
+                                <a href="{% url 'telematica:atender_suporte' sol.pk %}" class="btn btn-sm btn-primary" title="Atender/Atualizar"><i class="fas fa-user-cog"></i></a>
+                                <a href="{% url 'telematica:editar_manutencao' sol.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'telematica:excluir_manutencao' sol.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="text-center py-5 text-muted">Nenhuma manutenção registrada.</td></tr>
+                    <tr><td colspan="8" class="text-center py-5 text-muted">Nenhum chamado ou manutenção encontrada.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+{% if page_obj.has_other_pages %}
+<div class="mt-4">
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if status_atual %}&status={{ status_atual }}{% endif %}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if status_atual %}&status={{ status_atual }}{% endif %}">Próxima</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
 {% endblock %}

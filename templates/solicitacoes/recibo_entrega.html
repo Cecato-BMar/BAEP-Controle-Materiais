@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recibo de Entrega #{{ solicitacao.id }} — SIS LOGÍSTICA{% endblock %}
+
+{% block content %}
+<div class="container py-4 d-print-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'solicitacoes:detalhe' solicitacao.id %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i> Voltar
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-print me-2"></i> IMPRIMIR
+            </button>
+            <a href="{% url 'solicitacoes:gerar_recibo' solicitacao.id %}" class="btn btn-navy rounded-pill px-4 shadow">
+                <i class="fas fa-file-pdf me-2"></i> SALVAR PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div id="printable-recibo" class="card border-0 shadow-sm overflow-hidden">
+        <div class="card-body p-5">
+            <!-- Cabeçalho Oficial -->
+            <div class="text-center mb-4 pb-4 border-bottom">
+                <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 80px;" class="mb-3">
+                <h5 class="fw-bold text-navy mb-1">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
+                <h6 class="mb-0 text-muted">COMANDO DE POLICIAMENTO DE CHOQUE - 2º BAEP</h6>
+                <div class="mt-3 smaller fw-bold text-uppercase text-decoration-underline">Recibo de Entrega de Material</div>
+            </div>
+
+            <!-- Dados da Solicitação -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p class="mb-1"><span class="fw-bold">Solicitação:</span> #{{ solicitacao.id }}</p>
+                    <p class="mb-1"><span class="fw-bold">Data do Pedido:</span> {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-1"><span class="fw-bold">Data da Entrega:</span> {{ solicitacao.data_atualizacao|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1"><span class="fw-bold">Requisitante/Destino:</span> 
+                        {% if solicitacao.policial_requisitante %}
+                            {{ solicitacao.policial_requisitante.get_posto_display }} {{ solicitacao.policial_requisitante.nome }} ({{ solicitacao.policial_requisitante.re }})
+                        {% else %}
+                            {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}
+                        {% endif %}
+                    </p>
+                    <p class="mb-1"><span class="fw-bold">Seção/Unidade:</span> {{ solicitacao.orgao_requisitante.nome|default:"Não informada" }}</p>
+                    {% if solicitacao.entregue_por %}
+                    <p class="mb-1"><span class="fw-bold">Entregue por:</span> {{ solicitacao.entregue_por.get_full_name|default:solicitacao.entregue_por.username }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tabela de Itens -->
+            <div class="table-responsive mb-5">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr class="text-center smaller text-uppercase">
+                            <th>Material</th>
+                            <th>Código</th>
+                            <th>Qtd. Pedida</th>
+                            <th>Qtd. Entregue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in solicitacao.itens.all %}
+                        <tr class="text-center">
+                            <td class="text-start fw-bold">{{ item.produto.nome }}</td>
+                            <td>{{ item.produto.codigo }}</td>
+                            <td>{{ item.quantidade_solicitada }}</td>
+                            <td class="fw-bold text-navy">{{ item.quantidade_atendida }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if solicitacao.notas_admin %}
+            <div class="mb-5">
+                <h6 class="fw-bold smaller text-muted text-uppercase mb-2">Observações do Almoxarifado:</h6>
+                <div class="p-3 bg-light rounded border small">
+                    {{ solicitacao.notas_admin }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Assinaturas -->
+            <div class="mt-5 pt-5">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="mx-auto border-top border-dark" style="width: 80%;"></div>
+                        <div class="smaller fw-bold mt-2 text-uppercase">Assinatura do Requisitante</div>
+                        <div class="smaller text-muted">Documento gerado via SIS LOGÍSTICA</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mx-auto border-top border-dark" style="width: 80%;"></div>
+                        <div class="smaller fw-bold mt-2 text-uppercase">Assinatura do Almoxarifado</div>
+                        <div class="smaller text-muted">2º BAEP - Seção de Logística</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="mt-5 pt-4 text-center border-top text-muted smaller">
+                <p class="mb-0">Este é um comprovante oficial de movimentação de material. Sua guarda é responsabilidade do requisitante.</p>
+                <p>Gerado em {{ data_atual|date:"d/m/Y H:i:s" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-navy { color: #1a2a6c; }
+    .bg-navy { background-color: #1a2a6c; }
+    .btn-navy { background-color: #1a2a6c; color: white; }
+    
+    @media print {
+        body * { visibility: hidden; }
+        #printable-recibo, #printable-recibo * { visibility: visible; }
+        #printable-recibo { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            box-shadow: none !important; 
+            border: none !important; 
+        }
+        .container { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        .card { border: none !important; }
+        .d-print-none { display: none !important; }
+    }
+</style>
+{% endblock %}

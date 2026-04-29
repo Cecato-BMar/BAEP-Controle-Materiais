@@ -40,4 +40,11 @@ urlpatterns = [
 
     # Fallback para URLs legadas (Redireciona para o novo Dashboard)
     path('mapa/', views.dashboard_telematica, name='mapa_rastreamento'),
+
+    # Solicitações de Suporte (Suporte ao Usuário)
+    path('suporte/solicitar/', views.solicitar_suporte, name='solicitar_suporte'),
+    path('suporte/meus-pedidos/', views.minhas_solicitacoes_suporte, name='minhas_solicitacoes_suporte'),
+    # Suporte Técnico & Gestão Unificada
+    path('suporte/gestao/', views.lista_manutencoes, name='gerenciar_suportes'),
+    path('suporte/atender/<int:pk>/', views.atender_suporte, name='atender_suporte'),
 ]

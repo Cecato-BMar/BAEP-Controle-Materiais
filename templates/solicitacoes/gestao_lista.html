@@ -189,8 +189,8 @@
                         <h6 class="fw-bold mb-1">{{ s.solicitante.get_full_name|default:s.solicitante.username }}</h6>
                         
                         <div class="d-grid mt-2">
-                            <a href="{% url 'solicitacoes:gerar_recibo' s.id %}" target="_blank" class="btn btn-navy btn-sm">
-                                <i class="fas fa-file-pdf me-1"></i> RECIBO PDF
+                            <a href="{% url 'solicitacoes:visualizar_recibo' s.id %}" class="btn btn-navy btn-sm">
+                                <i class="fas fa-receipt me-1"></i> VER RECIBO
                             </a>
                         </div>
                     </div>

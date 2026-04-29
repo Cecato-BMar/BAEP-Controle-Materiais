@@ -21,7 +21,11 @@ from .models import Relatorio
 from .forms import (
     RelatorioEstoqueMovimentacoesForm,
     RelatorioSituacaoAtualForm,
-    RelatorioTelematicaForm
+    RelatorioTelematicaForm,
+    RelatorioMovimentacoesForm,
+    RelatorioMateriaisForm,
+    RelatorioPatrimonioForm,
+    RelatorioFrotaForm
 )
 from .utils import PDFReportGenerator
 from . import providers
@@ -53,6 +57,9 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         'MATERIAIS_DISPONIVEIS': providers.MateriaisProvider,
         'MOVIMENTACOES': providers.MovimentacoesProvider,
         'MOVIMENTACOES_DIA': providers.MovimentacoesProvider,
+        'MOVIMENTACOES_PERIODO': providers.MovimentacoesProvider,
+        'MOVIMENTACOES_POLICIAL': providers.MovimentacoesProvider,
+        'MOVIMENTACOES_MATERIAL': providers.MovimentacoesProvider,
         'FROTA_GERAL': providers.FrotaGeralProvider,
         'ABASTECIMENTO': providers.FrotaAbastecimentoProvider,
         'MANUTENCAO': providers.FrotaManutencaoProvider,
@@ -80,12 +87,25 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
     pdf_content = buffer.getvalue()
     buffer.close()
     
+    import datetime
+    from django.db.models import Model
+    
+    clean_filters = {}
+    for k, v in filters.items():
+        if isinstance(v, (datetime.date, datetime.datetime)):
+            clean_filters[k] = v.isoformat()
+        elif isinstance(v, Model):
+            clean_filters[k] = v.pk
+        else:
+            clean_filters[k] = v
+
     # Salva no banco de dados
     relatorio = Relatorio.objects.create(
         titulo=titulo,
         tipo=tipo_chave,
-        modulo='RESERVA', # Ajustado dinamicamente abaixo se necessário
+        modulo='RESERVA', 
         gerado_por=request.user,
+        parametros_json=clean_filters,
         observacoes=filters.get('observacoes', '')
     )
     
@@ -138,7 +158,47 @@ def lista_relatorios(request):
 @login_required
 def detalhe_relatorio(request, relatorio_id):
     relatorio = get_object_or_404(Relatorio, pk=relatorio_id)
-    return render(request, 'relatorios/detalhe_relatorio.html', {'relatorio': relatorio})
+    
+    # Gerar dados de prévia para exibição em HTML
+    preview_data = []
+    try:
+        from . import providers
+        provider_map = {
+            'SITUACAO_ATUAL': providers.SituacaoAtualProvider,
+            'MATERIAIS': providers.MateriaisProvider,
+            'MATERIAIS_EM_USO': providers.MateriaisProvider,
+            'MATERIAIS_DISPONIVEIS': providers.MateriaisProvider,
+            'MOVIMENTACOES': providers.MovimentacoesProvider,
+            'MOVIMENTACOES_DIA': providers.MovimentacoesProvider,
+            'MOVIMENTACOES_PERIODO': providers.MovimentacoesProvider,
+            'MOVIMENTACOES_POLICIAL': providers.MovimentacoesProvider,
+            'MOVIMENTACOES_MATERIAL': providers.MovimentacoesProvider,
+            'FROTA_GERAL': providers.FrotaGeralProvider,
+            'ABASTECIMENTO': providers.FrotaAbastecimentoProvider,
+            'MANUTENCAO': providers.FrotaManutencaoProvider,
+            'PATRIMONIO_INVENTARIO': providers.PatrimonioProvider,
+            'ESTOQUE_MOVIMENTACOES': providers.EstoqueMovimentacoesProvider,
+            'ESTOQUE_SITUACAO': providers.EstoqueSituacaoProvider,
+            'ESTOQUE_REPOSICAO': providers.EstoqueCriticoProvider,
+            'TELEMATICA_GERAL': providers.TelematicaProvider,
+            'TELEMATICA_INVENTARIO': providers.TelematicaProvider,
+            'TELEMATICA_MANUTENCAO': providers.TelematicaProvider,
+            'TELEMATICA_LINHAS': providers.TelematicaProvider,
+        }
+        
+        provider_class = provider_map.get(relatorio.tipo)
+        if provider_class:
+            provider = provider_class()
+            # Passamos os parâmetros salvos ou um dict vazio
+            params = relatorio.parametros_json or {}
+            preview_data = provider.get_data_and_columns(params)
+    except Exception as e:
+        print(f"Erro ao gerar prévia: {e}")
+        
+    return render(request, 'relatorios/detalhe_relatorio.html', {
+        'relatorio': relatorio,
+        'preview_data': preview_data
+    })
 
 @login_required
 def download_relatorio(request, relatorio_id):
@@ -565,10 +625,10 @@ def gerar_relatorio_telematica(request):
     else:
         form = RelatorioTelematicaForm()
     
-    from telematica.models import Equipamento, ManutencaoTI
+    from telematica.models import Equipamento, SolicitacaoSuporteTI
     return render(request, 'relatorios/form_relatorio_telematica.html', {
         'form': form,
         'total_ativos': Equipamento.objects.count(),
         'em_manutencao': Equipamento.objects.filter(status='MANUTENCAO').count(),
-        'manut_abertas': ManutencaoTI.objects.filter(concluida=False).count()
+        'manut_abertas': SolicitacaoSuporteTI.objects.filter(status__in=['PENDENTE', 'EM_ATENDIMENTO', 'AGUARDANDO_PECA']).count()
     })

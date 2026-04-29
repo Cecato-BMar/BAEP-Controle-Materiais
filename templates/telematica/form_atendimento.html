@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Atender Chamado #{{ suporte.id }} | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-user-cog text-primary me-2"></i>Atender Chamado #{{ suporte.id }}</h1>
+        <p class="text-muted mb-0">Atualize o status e registre o parecer técnico do atendimento.</p>
+    </div>
+    <a href="{% url 'telematica:gerenciar_suportes' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar à Lista</a>
+</div>
+
+<div class="row g-4">
+    <!-- Coluna: Informações do Chamado -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold">Detalhes da Solicitação</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="small text-muted d-block text-uppercase fw-bold">Solicitante</label>
+                    <div class="fw-bold">{{ suporte.solicitante.get_full_name|default:suporte.solicitante.username }}</div>
+                    <small class="text-muted">{{ suporte.solicitante.username }}</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="small text-muted d-block text-uppercase fw-bold">Tipo de Serviço</label>
+                    <div>{{ suporte.get_tipo_servico_display }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-muted d-block text-uppercase fw-bold">Prioridade</label>
+                    {% if suporte.prioridade == 'URGENTE' %}
+                        <span class="badge bg-danger text-uppercase">Urgente</span>
+                    {% elif suporte.prioridade == 'ALTA' %}
+                        <span class="badge bg-warning text-dark text-uppercase">Alta</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark text-uppercase">{{ suporte.get_prioridade_display }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-muted d-block text-uppercase fw-bold">Data da Solicitação</label>
+                    <div>{{ suporte.data_solicitacao|date:"d/m/Y H:i" }}</div>
+                </div>
+
+                {% if suporte.equipamento %}
+                <div class="p-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded mt-4">
+                    <h6 class="small fw-bold text-info text-uppercase mb-2"><i class="fas fa-laptop me-1"></i>Equipamento Relacionado</h6>
+                    <div class="small fw-bold">{{ suporte.equipamento.hostname|default:suporte.equipamento.numero_serie }}</div>
+                    <div class="small text-muted">{{ suporte.equipamento.categoria.nome }} - {{ suporte.equipamento.marca }} {{ suporte.equipamento.modelo }}</div>
+                    <a href="{% url 'telematica:detalhe_equipamento' suporte.equipamento.pk %}" class="btn btn-xs btn-outline-info btn-sm mt-2">Ver Equipamento</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna: Formulário de Atendimento -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold">Descrição do Problema</h6>
+            </div>
+            <div class="card-body bg-light">
+                <p class="mb-0">{{ suporte.descricao_problema|linebreaks }}</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold">Atualizar Atendimento</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" class="needs-validation">
+                    {% csrf_token %}
+                    {% crispy form %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.select2-policial').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Selecione o técnico responsável...',
+        allowClear: true,
+        ajax: {
+            url: "{% url 'estoque:buscar_militares_ajax' %}",
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        language: {
+            inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
+            noResults: function() { return "Nenhum policial encontrado."; },
+            searching: function() { return "Buscando..."; }
+        }
+    });
+});
+</script>
+{% endblock %}

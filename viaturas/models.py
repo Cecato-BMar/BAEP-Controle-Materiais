@@ -323,3 +323,34 @@ class ChecklistViatura(models.Model):
 
     def __str__(self):
         return f"Checklist {self.viatura.prefixo} - {self.get_tipo_display()} ({self.data_hora.strftime('%d/%m/%Y')})"
+
+class SolicitacaoBaixaViatura(models.Model):
+    STATUS_CHOICES = [
+        ('PENDENTE', 'Pendente (Aguardando Análise)'),
+        ('APROVADA', 'Aprovada'),
+        ('NEGADA', 'Negada/Cancelada'),
+    ]
+
+    viatura = models.ForeignKey(Viatura, on_delete=models.CASCADE, related_name='solicitacoes_baixa')
+    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='baixas_solicitadas')
+    motivo = models.TextField(_('Motivo da Baixa/Descarga'))
+    data_solicitacao = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
+    observacoes_admin = models.TextField(_('Observações/Parecer'), blank=True, null=True)
+    analisado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='baixas_analisadas')
+    data_analise = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Solicitação de Baixa de Viatura')
+        verbose_name_plural = _('Solicitações de Baixa de Viatura')
+        ordering = ['-data_solicitacao']
+
+    def __str__(self):
+        return f"Baixa {self.viatura.prefixo} - {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.status == 'APROVADA' and self.viatura.status != 'BAIXADA':
+            self.viatura.status = 'BAIXADA'
+            self.viatura.save(update_fields=['status'])
+

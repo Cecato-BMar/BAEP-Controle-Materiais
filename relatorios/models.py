@@ -36,6 +36,7 @@ class Relatorio(models.Model):
     periodo_fim = models.DateTimeField(_('Período - Fim'), blank=True, null=True)
     gerado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='relatorios_gerados', verbose_name=_('Gerado por'))
     arquivo_pdf = models.FileField(_('Arquivo PDF'), upload_to='relatorios/', blank=True, null=True)
+    parametros_json = models.JSONField(_('Parâmetros de Geração'), blank=True, null=True)
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
     
     class Meta:

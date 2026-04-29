@@ -18,6 +18,22 @@ class Solicitacao(models.Model):
         verbose_name='Solicitante'
     )
     orgao_requisitante = models.ForeignKey('estoque.OrgaoRequisitante', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Seção/Cia Requisitante')
+    policial_requisitante = models.ForeignKey(
+        'policiais.Policial', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='solicitacoes_materiais',
+        verbose_name='Policial Requisitante'
+    )
+    entregue_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='entregas_realizadas',
+        verbose_name='Entregue por'
+    )
     data_solicitacao = models.DateTimeField(auto_now_add=True, verbose_name='Data da Solicitação')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name='Status')
     observacoes = models.TextField(blank=True, null=True, verbose_name='Observações do Solicitante')

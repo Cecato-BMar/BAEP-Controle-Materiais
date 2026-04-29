@@ -6,10 +6,11 @@ from django.db.models import Q, Sum, Count
 from django.core.paginator import Paginator
 from decimal import Decimal
 
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
                     AbastecimentoForm, ManutencaoForm, AgendamentoManutencaoForm, MarcaViaturaForm, 
-                    ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm)
+                    ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm,
+                    SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm)
 from reserva_baep.decorators import require_module_permission
 
 import xml.etree.ElementTree as ET
@@ -725,3 +726,63 @@ def criar_checklist(request):
 def detalhe_checklist(request, pk):
     checklist = get_object_or_404(ChecklistViatura, pk=pk)
     return render(request, 'viaturas/detalhe_checklist.html', {'checklist': checklist})
+
+# =============================================================================
+# BAIXA DE VIATURAS
+# =============================================================================
+
+@login_required
+def solicitar_baixa(request):
+    """View para qualquer usuário solicitar a baixa de uma viatura."""
+    if request.method == 'POST':
+        form = SolicitacaoBaixaViaturaForm(request.POST)
+        if form.is_valid():
+            solicitacao = form.save(commit=False)
+            solicitacao.solicitante = request.user
+            solicitacao.save()
+            messages.success(request, 'Solicitação de baixa registrada e enviada para análise.')
+            return redirect('core:home') # Ou algum lugar apropriado para o usuário
+    else:
+        form = SolicitacaoBaixaViaturaForm()
+
+    return render(request, 'viaturas/form_solicitar_baixa.html', {'form': form})
+
+@login_required
+@require_module_permission('frota')
+def lista_baixas(request):
+    """Lista as solicitações de baixa para a administração da frota."""
+    qs = SolicitacaoBaixaViatura.objects.select_related('viatura', 'solicitante', 'analisado_por').order_by('-data_solicitacao')
+    
+    status_filtro = request.GET.get('status', 'PENDENTE')
+    if status_filtro:
+        qs = qs.filter(status=status_filtro)
+
+    paginator = Paginator(qs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'viaturas/lista_baixas.html', {
+        'page_obj': page_obj,
+        'status_filtro': status_filtro
+    })
+
+@login_required
+@require_module_permission('frota')
+def analisar_baixa(request, pk):
+    """View para o gestor de frota analisar (Aprovar/Negar) uma baixa."""
+    solicitacao = get_object_or_404(SolicitacaoBaixaViatura, pk=pk)
+    
+    if request.method == 'POST':
+        form = AnaliseBaixaViaturaForm(request.POST, instance=solicitacao)
+        if form.is_valid():
+            analise = form.save(commit=False)
+            analise.analisado_por = request.user
+            analise.data_analise = timezone.now()
+            analise.save() # Se for APROVADA, o método save() do model já altera o status da viatura
+            messages.success(request, f'Solicitação #{analise.id} atualizada com sucesso.')
+            return redirect('viaturas:lista_baixas')
+    else:
+        form = AnaliseBaixaViaturaForm(instance=solicitacao)
+
+    return render(request, 'viaturas/analisar_baixa.html', {'form': form, 'solicitacao': solicitacao})
+

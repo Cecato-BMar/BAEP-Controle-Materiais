@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container-fluid animate__animated animate__fadeIn">
     <!-- Ações Rápidas de Topo -->
-    <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex justify-content-between align-items-start mb-4 d-print-none">
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
@@ -29,86 +29,88 @@
             <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="fas fa-arrow-left me-2"></i> Voltar
             </a>
-            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" target="_blank" class="btn btn-navy rounded-pill px-4 shadow">
-                <i class="fas fa-download me-2"></i> BAIXAR PDF
+            <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-print me-2"></i> IMPRIMIR
+            </button>
+            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-navy rounded-pill px-4 shadow">
+                <i class="fas fa-file-pdf me-2"></i> SALVAR PDF
             </a>
         </div>
     </div>
     
     <div class="row">
         <!-- Coluna de Metadados -->
-        <div class="col-lg-4">
+        <div class="col-lg-3 d-print-none">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3 border-bottom-0">
-                    <h6 class="fw-bold mb-0 text-muted text-uppercase small"><i class="fas fa-fingerprint me-2"></i>Propriedades do Arquivo</h6>
+                    <h6 class="fw-bold mb-0 text-muted text-uppercase small"><i class="fas fa-fingerprint me-2"></i>Metadados Oficiais</h6>
                 </div>
                 <div class="card-body pt-0">
                     <ul class="list-group list-group-flush small">
                         <li class="list-group-item d-flex justify-content-between py-3 px-0 border-light">
-                            <span class="text-muted">Emissor:</span>
+                            <span class="text-muted">Operador:</span>
                             <span class="fw-bold text-navy">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between py-3 px-0 border-light">
-                            <span class="text-muted">Data Geração:</span>
-                            <span class="fw-bold">{{ relatorio.data_geracao|date:"d/m/Y" }} às {{ relatorio.data_geracao|date:"H:i" }}</span>
+                            <span class="text-muted">Data/Hora:</span>
+                            <span class="fw-bold">{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between py-3 px-0 border-light">
-                            <span class="text-muted">Período Abrangido:</span>
-                            <span class="fw-bold">
-                                {% if relatorio.periodo_inicio %}
-                                    {{ relatorio.periodo_inicio|date:"d/m/Y" }}
-                                    {% if relatorio.periodo_fim %} a {{ relatorio.periodo_fim|date:"d/m/Y" }}{% endif %}
-                                {% else %}
-                                    Consolidado Integral
-                                {% endif %}
-                            </span>
+                            <span class="text-muted">ID Sistema:</span>
+                            <span class="fw-bold text-muted">#{{ relatorio.id }}</span>
                         </li>
                     </ul>
-                    {% if relatorio.observacoes %}
-                    <div class="mt-4 p-3 bg-light rounded-3 border-start border-primary border-4">
-                        <h6 class="fw-bold small text-navy mb-2">Notas do Emissor:</h6>
-                        <p class="mb-0 text-muted" style="font-size: 0.8rem;">{{ relatorio.observacoes|linebreaks }}</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
             
-            <div class="card border-0 shadow-sm bg-gradient-info text-white">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-lock fa-3x mb-3 opacity-20"></i>
-                    <h6 class="fw-bold mb-1">Integridade Digital</h6>
-                    <p class="small opacity-75 mb-0">Este documento possui assinatura eletrônica do operador responsável pelo 2º BAEP.</p>
+            <div class="card border-0 shadow-sm bg-light mb-4">
+                <div class="card-body py-3">
+                    <h6 class="fw-bold smaller text-navy mb-2"><i class="fas fa-info-circle me-1"></i> Dica PWA</h6>
+                    <p class="mb-0 text-muted small">Para uma experiência otimizada em dispositivos móveis, utilize a prévia ao lado antes de exportar o arquivo oficial.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Coluna de Visualização -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm overflow-hidden h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-eye me-2 text-primary"></i>Visualização de Segurança</h6>
-                    <span class="badge bg-light text-muted fw-normal">SISTEMA INTEGRADO</span>
-                </div>
-                <div class="card-body p-0 bg-light bg-opacity-50" style="min-height: 600px;">
-                    {% if relatorio.arquivo_pdf %}
-                        <div class="ratio ratio-1x1 h-100">
-                            <iframe src="{{ relatorio.arquivo_pdf.url }}#toolbar=0&navpanes=0&scrollbar=0" title="PDF Preview" class="shadow-sm"></iframe>
+        <!-- Coluna de Visualização (HTML Preview) -->
+        <div class="col-lg-9">
+            <div id="printable-report" class="card border-0 shadow-sm overflow-hidden h-100">
+                <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0">
+                    <div class="d-flex align-items-center">
+                        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 60px;" class="me-3">
+                        <div>
+                            <h5 class="mb-0 fw-bold text-navy">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
+                            <h6 class="mb-0 text-muted small">COMANDO DE POLICIAMENTO DE CHOQUE - 2º BAEP</h6>
                         </div>
-                    {% else %}
-                        <!-- Fallback para pré-visualização em tabela se o PDF falhar ou não existir -->
-                         <div class="p-4">
-                            {% if preview_data %}
-                                <div class="table-responsive bg-white rounded shadow-sm">
-                                    <table class="table table-sm align-middle mb-0">
-                                        <thead class="bg-navy text-white text-uppercase" style="font-size: 0.6rem;">
+                    </div>
+                    <div class="text-end d-none d-md-block">
+                        <div class="smaller fw-bold text-uppercase text-muted">Documento Controlado</div>
+                        <div class="small text-navy">Emissão: {{ relatorio.data_geracao|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 pt-0">
+                    <div class="text-center mb-4 py-3 border-top border-bottom">
+                        <h4 class="fw-bold text-navy mb-1 text-uppercase">{{ relatorio.titulo }}</h4>
+                        <div class="text-muted small">Relatório gerado via SIS LOGÍSTICA - Autenticado por {{ relatorio.gerado_por.username }}</div>
+                    </div>
+
+                    {% if preview_data %}
+                        {% for section in preview_data %}
+                            <div class="mb-5">
+                                <h6 class="fw-bold text-navy text-uppercase mb-3 bg-light p-2 rounded">
+                                    <i class="fas fa-chevron-right me-2 smaller"></i>{{ section.title }}
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped align-middle mb-0" style="font-size: 0.85rem;">
+                                        <thead class="table-dark text-uppercase" style="font-size: 0.75rem;">
                                             <tr>
-                                                {% for col in preview_data.0 %}
+                                                {% for col in section.columns %}
                                                 <th class="py-3 px-3">{{ col }}</th>
                                                 {% endfor %}
                                             </tr>
                                         </thead>
-                                        <tbody class="small">
-                                            {% for row in preview_data|slice:'1:' %}
+                                        <tbody>
+                                            {% for row in section.data %}
                                             <tr>
                                                 {% for cell in row %}
                                                 <td class="py-2 px-3">{{ cell }}</td>
@@ -118,14 +120,32 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-file-excel fa-4x mb-3 opacity-10"></i>
-                                    <h6 class="text-muted">Visualização indisponível. <br>Por favor, realize o download do arquivo.</h6>
-                                </div>
-                            {% endif %}
-                         </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-invoice fa-4x mb-3 text-light"></i>
+                            <h5 class="text-muted">Aguardando processamento de prévia...</h5>
+                            <p class="text-muted small">Caso a prévia não carregue, utilize o botão "SALVAR PDF" no topo.</p>
+                        </div>
                     {% endif %}
+
+                    {% if relatorio.observacoes %}
+                    <div class="mt-4 p-4 bg-light rounded-4 border-start border-primary border-4">
+                        <h6 class="fw-bold small text-navy mb-2 text-uppercase">Notas Adicionais:</h6>
+                        <p class="mb-0 text-muted italic">{{ relatorio.observacoes }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-5 pt-4 text-center border-top d-print-block d-none">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <div class="border-bottom border-dark mb-2"></div>
+                                <div class="fw-bold small">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</div>
+                                <div class="smaller text-muted text-uppercase">Responsável pela Emissão</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,7 +160,22 @@
     .bg-success-light { background-color: #e8f5e9; }
     .bg-primary-light { background-color: #e3f2fd; }
     .bg-warning-light { background-color: #fff3e0; }
-    .bg-gradient-info { background: linear-gradient(135deg, #1a2a6c 0%, #3498db 100%); }
-    iframe { border: none; }
+    
+    @media print {
+        body * { visibility: hidden; }
+        #printable-report, #printable-report * { visibility: visible; }
+        #printable-report { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            box-shadow: none !important; 
+            border: none !important; 
+        }
+        .d-print-none { display: none !important; }
+        .d-print-block { display: block !important; }
+        .card { border: none !important; }
+        .table-dark { background-color: #000 !important; color: #fff !important; }
+    }
 </style>
 {% endblock %}

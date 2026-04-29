@@ -15,7 +15,7 @@
     </div>
     <div class="col-md-4 text-end">
         <div class="btn-group shadow-sm">
-            <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" target="_blank" class="btn btn-dark">
+            <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" class="btn btn-dark">
                 <i class="fas fa-file-pdf me-1"></i> PDF
             </a>
             <a href="{% url 'estoque:editar_produto' produto.pk %}" class="btn btn-warning">
@@ -204,7 +204,7 @@
                 <a href="{% url 'estoque:painel_controle' %}?material={{ produto.pk }}" class="list-group-item list-group-item-action small py-2 px-3">
                     <i class="fas fa-sliders-h me-2 text-primary"></i>Ver no Painel §4
                 </a>
-                <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" target="_blank" class="list-group-item list-group-item-action small py-2 px-3 fw-bold text-navy">
+                <a href="{% url 'estoque:ficha_individual_pdf' produto.pk %}" class="list-group-item list-group-item-action small py-2 px-3 fw-bold text-navy">
                     <i class="fas fa-file-pdf me-2 text-danger"></i>Gerar Ficha Individual (§1)
                 </a>
                 <a href="{% url 'estoque:relatorio_estoque_materiais' %}?data_inicio={{ month_ago }}" class="list-group-item list-group-item-action small py-2 px-3">

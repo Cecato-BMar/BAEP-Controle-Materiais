@@ -52,4 +52,9 @@ urlpatterns = [
     path('checklists/', views.lista_checklists, name='lista_checklists'),
     path('checklists/novo/', views.criar_checklist, name='criar_checklist'),
     path('checklists/<int:pk>/', views.detalhe_checklist, name='detalhe_checklist'),
+
+    # Baixas de Viaturas
+    path('baixas/', views.lista_baixas, name='lista_baixas'),
+    path('baixas/solicitar/', views.solicitar_baixa, name='solicitar_baixa'),
+    path('baixas/<int:pk>/analisar/', views.analisar_baixa, name='analisar_baixa'),
 ]

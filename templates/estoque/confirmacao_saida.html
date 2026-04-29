@@ -57,7 +57,7 @@
             </div>
             
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
-                <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
+                <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
                     <i class="fas fa-print me-2"></i> IMPRIMIR RECIBO (MATERIAL DE CONSUMO)
                 </a>
                 <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">

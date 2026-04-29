@@ -494,6 +494,16 @@
                         <i class="fas fa-shopping-cart"></i> Solicitar Material
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'suporte' in request.path %}active{% endif %}" href="{% url 'telematica:solicitar_suporte' %}">
+                        <i class="fas fa-headset text-warning"></i> Solicitar Suporte de TI
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'baixas' in request.path and 'solicitar' in request.path %}active{% endif %}" href="{% url 'viaturas:solicitar_baixa' %}">
+                        <i class="fas fa-arrow-down text-danger"></i> Solicitar Baixa Viatura
+                    </a>
+                </li>
 
                 <!-- MÓDULO LOGÍSTICA & SUPRIMENTOS -->
                 {% if user.is_superuser or user|has_group:'materiais' or user|has_group:'patrimonio' %}

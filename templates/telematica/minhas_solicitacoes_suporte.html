@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Meus Chamados de Suporte | Telemática{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;"><i class="fas fa-history text-primary me-2"></i>Meus Chamados de Suporte</h1>
+        <p class="text-muted mb-0">Acompanhe o status das suas solicitações de suporte de TI.</p>
+    </div>
+    <a href="{% url 'telematica:solicitar_suporte' %}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Novo Chamado</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Prioridade</th>
+                        <th>Status</th>
+                        <th>Técnico</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sol in solicitacoes %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ sol.id }}</td>
+                        <td>{{ sol.data_solicitacao|date:"d/m/Y H:i" }}</td>
+                        <td>{{ sol.get_tipo_servico_display }}</td>
+                        <td>
+                            {% if sol.prioridade == 'URGENTE' %}
+                                <span class="badge bg-danger text-uppercase">Urgente</span>
+                            {% elif sol.prioridade == 'ALTA' %}
+                                <span class="badge bg-warning text-dark text-uppercase">Alta</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark text-uppercase">{{ sol.get_prioridade_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sol.status == 'PENDENTE' %}
+                                <span class="badge bg-secondary">Pendente</span>
+                            {% elif sol.status == 'EM_ATENDIMENTO' %}
+                                <span class="badge bg-info">Em Atendimento</span>
+                            {% elif sol.status == 'CONCLUIDA' %}
+                                <span class="badge bg-success">Concluída</span>
+                            {% else %}
+                                <span class="badge bg-dark">{{ sol.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ sol.tecnico_atribuido|default:sol.tecnico_externo|default:"—" }}</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalSuporte{{ sol.id }}">
+                                <i class="fas fa-search"></i> Detalhes
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-3x mb-3 text-muted opacity-25"></i>
+                            <p class="text-muted">Você ainda não abriu nenhuma solicitação de suporte.</p>
+                            <a href="{% url 'telematica:solicitar_suporte' %}" class="btn btn-primary btn-sm">Abrir Primeiro Chamado</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% for sol in solicitacoes %}
+<!-- Modal Detalhes #{{ sol.id }} -->
+<div class="modal fade" id="modalSuporte{{ sol.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-info-circle me-2"></i>Detalhes do Chamado #{{ sol.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <label class="small text-muted d-block text-uppercase fw-bold mb-2">Descrição do Problema / Solicitação</label>
+                        <div class="p-3 bg-light rounded border-start border-primary border-4">
+                            {{ sol.descricao_problema|linebreaks }}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="small text-muted d-block text-uppercase fw-bold mb-2">Parecer Técnico / Resolução</label>
+                        <div class="p-3 bg-white border rounded">
+                            {% if sol.solucao_tecnica %}
+                                {{ sol.solucao_tecnica|linebreaks }}
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <i class="fas fa-spinner fa-spin text-primary mb-2"></i>
+                                    <p class="text-muted italic mb-0">Esta solicitação ainda está sendo analisada pela nossa equipe técnica.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if sol.equipamento %}
+                <div class="mt-4 p-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded d-flex align-items-center">
+                    <i class="fas fa-laptop me-3 text-info fs-4"></i>
+                    <div>
+                        <div class="small text-info fw-bold text-uppercase">Equipamento Relacionado</div>
+                        <div class="fw-bold">{{ sol.equipamento }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
