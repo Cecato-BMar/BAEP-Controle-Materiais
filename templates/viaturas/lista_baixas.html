@@ -27,8 +27,8 @@
                         <th>Solicitação</th>
                         <th>Viatura</th>
                         <th>Solicitante</th>
+                        <th>Categoria</th>
                         <th>Data</th>
-                        <th>Motivo</th>
                         <th>Status</th>
                         <th class="text-end">Ações</th>
                     </tr>
@@ -39,8 +39,8 @@
                         <td><small>#{{ b.id }}</small></td>
                         <td><span class="badge bg-warning text-dark fw-bold">{{ b.viatura.prefixo }}</span></td>
                         <td>{{ b.solicitante.get_full_name|default:b.solicitante.username }}</td>
+                        <td><small>{{ b.get_categoria_motivo_display }}</small></td>
                         <td><small>{{ b.data_solicitacao|date:"d/m/Y" }}</small></td>
-                        <td class="text-truncate" style="max-width: 200px;" title="{{ b.motivo }}">{{ b.motivo }}</td>
                         <td>
                             {% if b.status == 'PENDENTE' %}
                             <span class="badge bg-warning text-dark">Pendente</span>

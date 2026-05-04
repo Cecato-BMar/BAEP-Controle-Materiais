@@ -1,753 +1,367 @@
 {% extends 'base.html' %}
 
-{% block title %}Ajuda - SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Ajuda e Documentação - SIS LOGÍSTICA 2ºBAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-question-circle me-2"></i>Ajuda do Sistema</h1>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
-        </a>
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+    <!-- Header Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between bg-white p-4 rounded-4 shadow-sm border-start border-4 border-primary">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-4">
+                        <i class="fas fa-book-open fa-2x text-primary"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-navy">Central de Ajuda e Documentação</h2>
+                        <p class="text-muted mb-0">Guia completo de operação dos módulos integrados do sistema</p>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-home me-2"></i>Ir para Início
+                </a>
+            </div>
+        </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-list me-2"></i>Índice
+    <div class="row g-4">
+        <!-- Menu Lateral (Tabs) -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px; z-index: 1020;">
+                <div class="card-header bg-navy text-white p-3 rounded-top-4 border-0">
+                    <h6 class="mb-0 fw-bold text-uppercase"><i class="fas fa-compass me-2"></i>Navegação</h6>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="help-tabs" role="tablist">
-                        <a class="list-group-item list-group-item-action active" id="intro-tab" data-bs-toggle="list" href="#intro" role="tab" aria-controls="intro">
-                            <i class="fas fa-info-circle me-2"></i>Introdução
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush custom-tabs" id="help-tabs" role="tablist">
+                        <a class="list-group-item list-group-item-action active rounded-3 mb-1 border-0" id="intro-tab" data-bs-toggle="list" href="#intro" role="tab">
+                            <i class="fas fa-rocket w-20px text-center me-2"></i> Visão Geral & Portal
                         </a>
-                        <a class="list-group-item list-group-item-action" id="materiais-tab" data-bs-toggle="list" href="#materiais" role="tab" aria-controls="materiais">
-                            <i class="fas fa-boxes me-2"></i>Materiais
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="logistica-tab" data-bs-toggle="list" href="#logistica" role="tab">
+                            <i class="fas fa-shield-alt w-20px text-center me-2"></i> Arsenal e Patrimônio
                         </a>
-                        <a class="list-group-item list-group-item-action" id="policiais-tab" data-bs-toggle="list" href="#policiais" role="tab" aria-controls="policiais">
-                            <i class="fas fa-user-shield me-2"></i>Policiais
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="frota-tab" data-bs-toggle="list" href="#frota" role="tab">
+                            <i class="fas fa-car-side w-20px text-center me-2"></i> Gestão de Frota
                         </a>
-                        <a class="list-group-item list-group-item-action" id="movimentacoes-tab" data-bs-toggle="list" href="#movimentacoes" role="tab" aria-controls="movimentacoes">
-                            <i class="fas fa-exchange-alt me-2"></i>Movimentações
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="telematica-tab" data-bs-toggle="list" href="#telematica" role="tab">
+                            <i class="fas fa-network-wired w-20px text-center me-2"></i> Telemática e T.I.
                         </a>
-                        <a class="list-group-item list-group-item-action" id="relatorios-tab" data-bs-toggle="list" href="#relatorios" role="tab" aria-controls="relatorios">
-                            <i class="fas fa-file-alt me-2"></i>Relatórios
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="relatorios-tab" data-bs-toggle="list" href="#relatorios" role="tab">
+                            <i class="fas fa-file-pdf w-20px text-center me-2"></i> Relatórios Oficiais
                         </a>
-                        <a class="list-group-item list-group-item-action" id="usuarios-tab" data-bs-toggle="list" href="#usuarios" role="tab" aria-controls="usuarios">
-                            <i class="fas fa-users me-2"></i>Usuários
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="admin-tab" data-bs-toggle="list" href="#admin" role="tab">
+                            <i class="fas fa-users-cog w-20px text-center me-2"></i> Administração
                         </a>
-                        <a class="list-group-item list-group-item-action" id="faq-tab" data-bs-toggle="list" href="#faq" role="tab" aria-controls="faq">
-                            <i class="fas fa-question me-2"></i>Perguntas Frequentes
-                        </a>
-                        <a class="list-group-item list-group-item-action" id="contato-tab" data-bs-toggle="list" href="#contato" role="tab" aria-controls="contato">
-                            <i class="fas fa-envelope me-2"></i>Contato
+                        <a class="list-group-item list-group-item-action rounded-3 mb-1 border-0" id="faq-tab" data-bs-toggle="list" href="#faq" role="tab">
+                            <i class="fas fa-question-circle w-20px text-center me-2"></i> Dúvidas Frequentes
                         </a>
                     </div>
                 </div>
             </div>
         </div>
         
+        <!-- Conteúdo das Tabs -->
         <div class="col-md-9">
-            <div class="card">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-lg-5">
                     <div class="tab-content" id="help-tabContent">
-                        <!-- Introdução -->
-                        <div class="tab-pane fade show active" id="intro" role="tabpanel" aria-labelledby="intro-tab">
-                            <h2 class="mb-4">Bem-vindo ao SIS LOGÍSTICA 2ºBAEP</h2>
-                            <p class="lead">Este sistema foi desenvolvido para gerenciar o controle de materiais, policiais e movimentações do Batalhão de Ações Especiais de Polícia (BAEP).</p>
-                            
-                            <div class="alert alert-info mt-4">
-                                <i class="fas fa-lightbulb me-2"></i>
-                                <strong>Dica:</strong> Utilize o menu lateral para navegar entre as diferentes seções do sistema.
+                        
+                        <!-- TAB 1: Introdução -->
+                        <div class="tab-pane fade show active" id="intro" role="tabpanel">
+                            <div class="text-center mb-5">
+                                <h2 class="fw-bold text-navy">Sistema Integrado de Gestão do 2º BAEP</h2>
+                                <p class="lead text-muted">A plataforma unificada para controle logístico, operacional e tecnológico do Batalhão.</p>
                             </div>
                             
-                            <h4 class="mt-4">Principais Funcionalidades</h4>
-                            <ul class="list-group mt-3">
-                                <li class="list-group-item">
-                                    <i class="fas fa-boxes text-primary me-2"></i>
-                                    <strong>Materiais:</strong> Cadastro e gerenciamento de materiais (armas, munições, equipamentos, etc.)
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-user-shield text-primary me-2"></i>
-                                    <strong>Policiais:</strong> Cadastro e gerenciamento de policiais
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-exchange-alt text-primary me-2"></i>
-                                    <strong>Movimentações:</strong> Registro de retiradas e devoluções de materiais
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-file-alt text-primary me-2"></i>
-                                    <strong>Relatórios:</strong> Geração de relatórios diversos para controle e auditoria
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-users text-primary me-2"></i>
-                                    <strong>Usuários:</strong> Gerenciamento de usuários e permissões do sistema
-                                </li>
+                            <h4 class="fw-bold border-bottom pb-2 mb-4 text-primary">Portal do Policial</h4>
+                            <p>O Portal principal foi desenhado para facilitar a rotina do policial. Através dos <strong>Serviços Rápidos</strong>, qualquer usuário autenticado pode:</p>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 h-100 border-start border-4 border-success">
+                                        <h6 class="fw-bold"><i class="fas fa-box-open text-success me-2"></i>Solicitar Material</h6>
+                                        <p class="small text-muted mb-0">Crie requisições antecipadas de materiais e equipamentos para agilizar a retirada na Reserva de Armas.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 h-100 border-start border-4 border-info">
+                                        <h6 class="fw-bold"><i class="fas fa-laptop-medical text-info me-2"></i>Suporte de T.I.</h6>
+                                        <p class="small text-muted mb-0">Abra chamados técnicos para manutenção de computadores, rede ou sistemas da unidade.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 h-100 border-start border-4 border-warning">
+                                        <h6 class="fw-bold"><i class="fas fa-car-crash text-warning me-2"></i>Baixa de Viatura</h6>
+                                        <p class="small text-muted mb-0">Comunique problemas mecânicos, acidentes ou necessidade de manutenção preventiva das viaturas.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: Arsenal e Patrimônio -->
+                        <div class="tab-pane fade" id="logistica" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-shield-alt me-2 text-primary"></i>Gestão de Arsenal e Patrimônio</h3>
+                            
+                            <h5 class="fw-bold mt-4"><i class="fas fa-boxes text-muted me-2"></i>Catálogo e Importação</h5>
+                            <p>O módulo de materiais agora suporta <strong>Importação em Lote XML (SILP)</strong>, permitindo sincronizar todo o patrimônio do batalhão em poucos segundos com criação automática de categorias.</p>
+                            
+                            <h5 class="fw-bold mt-4"><i class="fas fa-exchange-alt text-muted me-2"></i>Cautelas e Devoluções</h5>
+                            <p>O processo de <strong>Movimentação</strong> foi aprimorado:</p>
+                            <ul class="list-group list-group-flush mb-4 shadow-sm rounded-3">
+                                <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>O sistema deduz e repõe automaticamente o estoque ao aprovar cautelas.</li>
+                                <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Geração automática do <strong>Recibo de Cautela em PDF</strong> com cabeçalho oficial da PMESP para impressão imediata.</li>
+                                <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Histórico inalterável para auditoria de todas as movimentações.</li>
                             </ul>
                         </div>
-                        
-                        <!-- Materiais -->
-                        <div class="tab-pane fade" id="materiais" role="tabpanel" aria-labelledby="materiais-tab">
-                            <h2 class="mb-4"><i class="fas fa-boxes me-2"></i>Materiais</h2>
+
+                        <!-- TAB 3: Frota -->
+                        <div class="tab-pane fade" id="frota" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-car-side me-2 text-primary"></i>Gestão de Frota</h3>
                             
-                            <h4>Visão Geral</h4>
-                            <p>O módulo de Materiais permite o cadastro e gerenciamento de todos os materiais do batalhão, como armas, munições, equipamentos, etc.</p>
-                            
-                            <h4 class="mt-4">Funcionalidades</h4>
-                            <div class="accordion mt-3" id="accordionMateriais">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingListaMateriais">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLista" aria-expanded="true" aria-controls="collapseLista">
-                                            Lista de Materiais
-                                        </button>
-                                    </h2>
-                                    <div id="collapseLista" class="accordion-collapse collapse show" aria-labelledby="headingListaMateriais" data-bs-parent="#accordionMateriais">
-                                        <div class="accordion-body">
-                                            <p>A lista de materiais exibe todos os materiais cadastrados no sistema, com informações como identificação, tipo, status e data de aquisição.</p>
-                                            <p>Você pode filtrar a lista por diversos critérios, como tipo, status, identificação, etc.</p>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Para acessar, clique em <strong>Materiais</strong> no menu lateral.
-                                            </div>
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold"><i class="fas fa-route text-warning me-2"></i>Serviço Administrativo</h6>
+                                            <p class="small text-muted mb-0">Registre a saída das viaturas. O sistema controla a quilometragem de saída e retorno automaticamente, mantendo o status em tempo real no dashboard.</p>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingNovoMaterial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNovo" aria-expanded="false" aria-controls="collapseNovo">
-                                            Cadastro de Novo Material
-                                        </button>
-                                    </h2>
-                                    <div id="collapseNovo" class="accordion-collapse collapse" aria-labelledby="headingNovoMaterial" data-bs-parent="#accordionMateriais">
-                                        <div class="accordion-body">
-                                            <p>Para cadastrar um novo material, acesse a lista de materiais e clique no botão <strong>Novo Material</strong>.</p>
-                                            <p>Preencha os campos obrigatórios:</p>
-                                            <ul>
-                                                <li><strong>Identificação:</strong> Número de série ou identificação única do material</li>
-                                                <li><strong>Tipo:</strong> Categoria do material (Arma, Munição, Colete, etc.)</li>
-                                                <li><strong>Status:</strong> Estado atual do material (Disponível, Em Uso, Manutenção)</li>
-                                                <li><strong>Data de Aquisição:</strong> Data em que o material foi adquirido</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingDetalheMaterial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetalhe" aria-expanded="false" aria-controls="collapseDetalhe">
-                                            Detalhes do Material
-                                        </button>
-                                    </h2>
-                                    <div id="collapseDetalhe" class="accordion-collapse collapse" aria-labelledby="headingDetalheMaterial" data-bs-parent="#accordionMateriais">
-                                        <div class="accordion-body">
-                                            <p>A página de detalhes do material exibe todas as informações cadastradas, incluindo:</p>
-                                            <ul>
-                                                <li>Dados básicos (identificação, tipo, status)</li>
-                                                <li>Histórico de movimentações</li>
-                                                <li>Policial atual (se estiver em uso)</li>
-                                                <li>Observações</li>
-                                            </ul>
-                                            <p>Para acessar, clique no ícone <i class="fas fa-eye"></i> na lista de materiais.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingEditarMaterial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEditar" aria-expanded="false" aria-controls="collapseEditar">
-                                            Edição de Material
-                                        </button>
-                                    </h2>
-                                    <div id="collapseEditar" class="accordion-collapse collapse" aria-labelledby="headingEditarMaterial" data-bs-parent="#accordionMateriais">
-                                        <div class="accordion-body">
-                                            <p>Para editar um material, acesse a página de detalhes e clique no botão <strong>Editar</strong>, ou clique no ícone <i class="fas fa-edit"></i> na lista de materiais.</p>
-                                            <div class="alert alert-warning">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Atenção:</strong> Não é possível alterar o status de um material diretamente. O status é atualizado automaticamente através das movimentações (retiradas e devoluções).
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Policiais -->
-                        <div class="tab-pane fade" id="policiais" role="tabpanel" aria-labelledby="policiais-tab">
-                            <h2 class="mb-4"><i class="fas fa-user-shield me-2"></i>Policiais</h2>
-                            
-                            <h4>Visão Geral</h4>
-                            <p>O módulo de Policiais permite o cadastro e gerenciamento de todos os policiais do batalhão.</p>
-                            
-                            <h4 class="mt-4">Funcionalidades</h4>
-                            <div class="accordion mt-3" id="accordionPoliciais">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingListaPoliciais">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseListaPoliciais" aria-expanded="true" aria-controls="collapseListaPoliciais">
-                                            Lista de Policiais
-                                        </button>
-                                    </h2>
-                                    <div id="collapseListaPoliciais" class="accordion-collapse collapse show" aria-labelledby="headingListaPoliciais" data-bs-parent="#accordionPoliciais">
-                                        <div class="accordion-body">
-                                            <p>A lista de policiais exibe todos os policiais cadastrados no sistema, com informações como RE, nome, status e materiais em uso.</p>
-                                            <p>Você pode filtrar a lista por diversos critérios, como nome, RE, status, etc.</p>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Para acessar, clique em <strong>Policiais</strong> no menu lateral.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingNovoPolicial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNovoPolicial" aria-expanded="false" aria-controls="collapseNovoPolicial">
-                                            Cadastro de Novo Policial
-                                        </button>
-                                    </h2>
-                                    <div id="collapseNovoPolicial" class="accordion-collapse collapse" aria-labelledby="headingNovoPolicial" data-bs-parent="#accordionPoliciais">
-                                        <div class="accordion-body">
-                                            <p>Para cadastrar um novo policial, acesse a lista de policiais e clique no botão <strong>Novo Policial</strong>.</p>
-                                            <p>Preencha os campos obrigatórios:</p>
-                                            <ul>
-                                                <li><strong>RE:</strong> Registro do policial</li>
-                                                <li><strong>Nome:</strong> Nome completo do policial</li>
-                                                <li><strong>Status:</strong> Estado atual do policial (Ativo, Inativo)</li>
-                                                <li><strong>Contato:</strong> Informações de contato do policial</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingDetalhePolicial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetalhePolicial" aria-expanded="false" aria-controls="collapseDetalhePolicial">
-                                            Detalhes do Policial
-                                        </button>
-                                    </h2>
-                                    <div id="collapseDetalhePolicial" class="accordion-collapse collapse" aria-labelledby="headingDetalhePolicial" data-bs-parent="#accordionPoliciais">
-                                        <div class="accordion-body">
-                                            <p>A página de detalhes do policial exibe todas as informações cadastradas, incluindo:</p>
-                                            <ul>
-                                                <li>Dados básicos (RE, nome, status)</li>
-                                                <li>Materiais atualmente em uso</li>
-                                                <li>Histórico de movimentações</li>
-                                                <li>Observações</li>
-                                            </ul>
-                                            <p>Para acessar, clique no ícone <i class="fas fa-eye"></i> na lista de policiais.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingEditarPolicial">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEditarPolicial" aria-expanded="false" aria-controls="collapseEditarPolicial">
-                                            Edição de Policial
-                                        </button>
-                                    </h2>
-                                    <div id="collapseEditarPolicial" class="accordion-collapse collapse" aria-labelledby="headingEditarPolicial" data-bs-parent="#accordionPoliciais">
-                                        <div class="accordion-body">
-                                            <p>Para editar um policial, acesse a página de detalhes e clique no botão <strong>Editar</strong>, ou clique no ícone <i class="fas fa-edit"></i> na lista de policiais.</p>
-                                            <div class="alert alert-warning">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Atenção:</strong> Ao inativar um policial, certifique-se de que ele não possui materiais em uso. Caso contrário, será necessário devolver os materiais primeiro.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Movimentações -->
-                        <div class="tab-pane fade" id="movimentacoes" role="tabpanel" aria-labelledby="movimentacoes-tab">
-                            <h2 class="mb-4"><i class="fas fa-exchange-alt me-2"></i>Movimentações</h2>
-                            
-                            <h4>Visão Geral</h4>
-                            <p>O módulo de Movimentações permite o registro de retiradas e devoluções de materiais pelos policiais.</p>
-                            
-                            <h4 class="mt-4">Funcionalidades</h4>
-                            <div class="accordion mt-3" id="accordionMovimentacoes">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingListaMovimentacoes">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseListaMovimentacoes" aria-expanded="true" aria-controls="collapseListaMovimentacoes">
-                                            Lista de Movimentações
-                                        </button>
-                                    </h2>
-                                    <div id="collapseListaMovimentacoes" class="accordion-collapse collapse show" aria-labelledby="headingListaMovimentacoes" data-bs-parent="#accordionMovimentacoes">
-                                        <div class="accordion-body">
-                                            <p>A lista de movimentações exibe todas as retiradas e devoluções registradas no sistema, com informações como data/hora, tipo, material, policial e finalidade.</p>
-                                            <p>Você pode filtrar a lista por diversos critérios, como tipo, data, policial, material, etc.</p>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Para acessar, clique em <strong>Movimentações</strong> no menu lateral.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingNovaRetirada">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNovaRetirada" aria-expanded="false" aria-controls="collapseNovaRetirada">
-                                            Nova Retirada
-                                        </button>
-                                    </h2>
-                                    <div id="collapseNovaRetirada" class="accordion-collapse collapse" aria-labelledby="headingNovaRetirada" data-bs-parent="#accordionMovimentacoes">
-                                        <div class="accordion-body">
-                                            <p>Para registrar uma nova retirada, clique em <strong>Nova Retirada</strong> no menu lateral.</p>
-                                            <p>Preencha os campos obrigatórios:</p>
-                                            <ul>
-                                                <li><strong>Policial:</strong> Selecione o policial que está retirando o material</li>
-                                                <li><strong>Material:</strong> Selecione o material que está sendo retirado</li>
-                                                <li><strong>Finalidade:</strong> Informe a finalidade da retirada</li>
-                                                <li><strong>Observações:</strong> Campo opcional para informações adicionais</li>
-                                            </ul>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Somente materiais com status <strong>Disponível</strong> podem ser retirados.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingNovaDevolucao">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNovaDevolucao" aria-expanded="false" aria-controls="collapseNovaDevolucao">
-                                            Nova Devolução
-                                        </button>
-                                    </h2>
-                                    <div id="collapseNovaDevolucao" class="accordion-collapse collapse" aria-labelledby="headingNovaDevolucao" data-bs-parent="#accordionMovimentacoes">
-                                        <div class="accordion-body">
-                                            <p>Para registrar uma nova devolução, clique em <strong>Nova Devolução</strong> no menu lateral.</p>
-                                            <p>Preencha os campos obrigatórios:</p>
-                                            <ul>
-                                                <li><strong>Policial:</strong> Selecione o policial que está devolvendo o material</li>
-                                                <li><strong>Material:</strong> Selecione o material que está sendo devolvido</li>
-                                                <li><strong>Status após devolução:</strong> Defina se o material ficará disponível ou em manutenção</li>
-                                                <li><strong>Observações:</strong> Campo opcional para informações adicionais</li>
-                                            </ul>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Somente materiais com status <strong>Em Uso</strong> podem ser devolvidos.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingDetalheMovimentacao">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetalheMovimentacao" aria-expanded="false" aria-controls="collapseDetalheMovimentacao">
-                                            Detalhes da Movimentação
-                                        </button>
-                                    </h2>
-                                    <div id="collapseDetalheMovimentacao" class="accordion-collapse collapse" aria-labelledby="headingDetalheMovimentacao" data-bs-parent="#accordionMovimentacoes">
-                                        <div class="accordion-body">
-                                            <p>A página de detalhes da movimentação exibe todas as informações registradas, incluindo:</p>
-                                            <ul>
-                                                <li>Dados da movimentação (tipo, data/hora, finalidade)</li>
-                                                <li>Informações do material</li>
-                                                <li>Informações do policial</li>
-                                                <li>Usuário que registrou a movimentação</li>
-                                            </ul>
-                                            <p>Para acessar, clique no ícone <i class="fas fa-eye"></i> na lista de movimentações.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Relatórios -->
-                        <div class="tab-pane fade" id="relatorios" role="tabpanel" aria-labelledby="relatorios-tab">
-                            <h2 class="mb-4"><i class="fas fa-file-alt me-2"></i>Relatórios</h2>
-                            
-                            <h4>Visão Geral</h4>
-                            <p>O módulo de Relatórios permite a geração de diversos relatórios para controle e auditoria das operações do sistema.</p>
-                            
-                            <h4 class="mt-4">Tipos de Relatórios</h4>
-                            <div class="accordion mt-3" id="accordionRelatorios">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingRelatorioSituacao">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioSituacao" aria-expanded="true" aria-controls="collapseRelatorioSituacao">
-                                            Relatório de Situação Atual
-                                        </button>
-                                    </h2>
-                                    <div id="collapseRelatorioSituacao" class="accordion-collapse collapse show" aria-labelledby="headingRelatorioSituacao" data-bs-parent="#accordionRelatorios">
-                                        <div class="accordion-body">
-                                            <p>Este relatório apresenta um panorama geral da situação atual do sistema, incluindo:</p>
-                                            <ul>
-                                                <li>Resumo estatístico de materiais por status e tipo</li>
-                                                <li>Lista de materiais disponíveis</li>
-                                                <li>Lista de materiais em uso</li>
-                                                <li>Lista de materiais em manutenção</li>
-                                                <li>Lista de policiais ativos e seus materiais</li>
-                                            </ul>
-                                            <p>Você pode personalizar o relatório, selecionando quais seções deseja incluir e aplicando filtros específicos.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingRelatorioMateriais">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioMateriais" aria-expanded="false" aria-controls="collapseRelatorioMateriais">
-                                            Relatório de Materiais
-                                        </button>
-                                    </h2>
-                                    <div id="collapseRelatorioMateriais" class="accordion-collapse collapse" aria-labelledby="headingRelatorioMateriais" data-bs-parent="#accordionRelatorios">
-                                        <div class="accordion-body">
-                                            <p>Este relatório apresenta informações detalhadas sobre os materiais, incluindo:</p>
-                                            <ul>
-                                                <li>Dados cadastrais dos materiais</li>
-                                                <li>Status atual</li>
-                                                <li>Histórico de movimentações</li>
-                                                <li>Estatísticas de uso</li>
-                                            </ul>
-                                            <p>Você pode aplicar diversos filtros, como tipo de material, status, período de aquisição, etc.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingRelatorioMovimentacoes">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioMovimentacoes" aria-expanded="false" aria-controls="collapseRelatorioMovimentacoes">
-                                            Relatório de Movimentações
-                                        </button>
-                                    </h2>
-                                    <div id="collapseRelatorioMovimentacoes" class="accordion-collapse collapse" aria-labelledby="headingRelatorioMovimentacoes" data-bs-parent="#accordionRelatorios">
-                                        <div class="accordion-body">
-                                            <p>Este relatório apresenta informações sobre as movimentações (retiradas e devoluções) em um determinado período, incluindo:</p>
-                                            <ul>
-                                                <li>Lista de movimentações com detalhes</li>
-                                                <li>Estatísticas por tipo de movimentação</li>
-                                                <li>Estatísticas por policial</li>
-                                                <li>Estatísticas por material</li>
-                                            </ul>
-                                            <p>Você pode aplicar diversos filtros, como tipo de movimentação, período, policial, material, etc.</p>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold"><i class="fas fa-wrench text-danger me-2"></i>Manutenções e Agendamentos</h6>
+                                            <p class="small text-muted mb-0">Programe manutenções preventivas (agendamentos) ou abra ordens de serviço corretivas. O sistema alerta sobre agendamentos atrasados no painel principal.</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <h4 class="mt-4">Como Gerar um Relatório</h4>
-                            <ol class="mt-3">
-                                <li>Acesse o módulo de Relatórios clicando em <strong>Relatórios</strong> no menu lateral</li>
-                                <li>Clique no botão <strong>Novo Relatório</strong> e selecione o tipo de relatório desejado</li>
-                                <li>Preencha os campos do formulário, definindo título, descrição e filtros</li>
-                                <li>Clique em <strong>Gerar Relatório</strong></li>
-                                <li>O relatório será gerado e ficará disponível na lista de relatórios</li>
-                                <li>Você pode visualizar o relatório online ou baixá-lo em formato PDF</li>
+                            <h5 class="fw-bold mt-4 border-bottom pb-2">Fluxo de Inativação (Baixa de Viaturas)</h5>
+                            <p>O novo sistema de baixas atua como um hub central de decisão logística:</p>
+                            <ol class="list-group list-group-numbered mb-4">
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Solicitação via Portal</div>
+                                        Qualquer policial autenticado pode solicitar a baixa relatando problemas (Quebra, Acidente, Preventiva).
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Análise do Gestor (Destinação)</div>
+                                        O Oficial de Frota analisa o pedido e destina a viatura para: Manutenção, Oficina, Vistoria, Pregão, MOTOMEC ou Descarga.
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">Automação</div>
+                                        Ao aprovar para "Manutenção", o sistema já cria automaticamente a Ordem de Serviço, otimizando o fluxo.
+                                    </div>
+                                </li>
                             </ol>
                         </div>
-                        
-                        <!-- Usuários -->
-                        <div class="tab-pane fade" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-                            <h2 class="mb-4"><i class="fas fa-users me-2"></i>Usuários</h2>
+
+                        <!-- TAB 4: Telemática -->
+                        <div class="tab-pane fade" id="telematica" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-network-wired me-2 text-primary"></i>Telemática e Infraestrutura de T.I.</h3>
                             
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Nota:</strong> O módulo de Usuários só está disponível para administradores do sistema.
+                            <p class="lead">Módulo totalmente novo projetado para o controle de ativos de rede, computadores, rádios e telefonia da unidade.</p>
+                            
+                            <div class="accordion shadow-sm rounded-4 mt-4" id="accordionTelematica">
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#telematica1">
+                                            <i class="fas fa-laptop me-2 text-primary"></i> Inventário Estruturado
+                                        </button>
+                                    </h2>
+                                    <div id="telematica1" class="accordion-collapse collapse show" data-bs-parent="#accordionTelematica">
+                                        <div class="accordion-body text-muted small">
+                                            Cadastre equipamentos de informática com informações críticas: <strong>Endereço IP, Endereço MAC (Físico), Hostname, Sistema Operacional e Número de Patrimônio.</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#telematica2">
+                                            <i class="fas fa-filter me-2 text-primary"></i> Filtros e Buscas Inteligentes
+                                        </button>
+                                    </h2>
+                                    <div id="telematica2" class="accordion-collapse collapse" data-bs-parent="#accordionTelematica">
+                                        <div class="accordion-body text-muted small">
+                                            A listagem geral possui filtros avançados e busca inteligente por Múltiplos Campos (Busca por IP, Nome, Serial ou MAC em uma única barra).
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- TAB 5: Relatórios -->
+                        <div class="tab-pane fade" id="relatorios" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-file-pdf me-2 text-primary"></i>Geração de Relatórios</h3>
                             
-                            <h4>Visão Geral</h4>
-                            <p>O módulo de Usuários permite o cadastro e gerenciamento de usuários do sistema, com diferentes níveis de acesso.</p>
+                            <p>O sistema foi atualizado com um novo motor de geração de PDF, focado em dispositivos móveis (PWA) e padrões oficiais.</p>
                             
-                            <h4 class="mt-4">Níveis de Acesso</h4>
+                            <div class="alert alert-success border-0 shadow-sm mt-3">
+                                <h6 class="fw-bold"><i class="fas fa-mobile-alt me-2"></i>Compatibilidade Mobile Total</h6>
+                                <p class="mb-0 small">Todos os problemas de "Tela Branca" em iOS/Android foram resolvidos. Os relatórios agora são abertos dentro do ambiente seguro do sistema, sem a necessidade de abas externas ou pop-ups bloqueados.</p>
+                            </div>
+
+                            <h5 class="fw-bold mt-4">Disponibilidade de Relatórios por Módulo:</h5>
                             <div class="table-responsive mt-3">
-                                <table class="table table-bordered">
-                                    <thead class="table-primary">
+                                <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Nível</th>
-                                            <th>Descrição</th>
-                                            <th>Permissões</th>
+                                            <th>Módulo</th>
+                                            <th>Tipos de Relatório</th>
+                                            <th>Acesso Rápido</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="bg-white">
                                         <tr>
-                                            <td><strong>Usuário Comum</strong></td>
-                                            <td>Usuário básico do sistema</td>
-                                            <td>
-                                                <ul>
-                                                    <li>Visualizar materiais, policiais e movimentações</li>
-                                                    <li>Registrar retiradas e devoluções</li>
-                                                    <li>Gerar relatórios</li>
-                                                </ul>
-                                            </td>
+                                            <td><span class="badge bg-primary">Arsenal</span></td>
+                                            <td class="small text-muted">Situação Geral (Em tempo real), Em Cautela, Disponíveis, Carga Geral.</td>
+                                            <td class="small">Painel de Relatórios ou Lista de Materiais</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Administrador</strong></td>
-                                            <td>Usuário com permissões avançadas</td>
-                                            <td>
-                                                <ul>
-                                                    <li>Todas as permissões do Usuário Comum</li>
-                                                    <li>Cadastrar e editar materiais e policiais</li>
-                                                    <li>Gerenciar usuários</li>
-                                                    <li>Acessar o painel de administração</li>
-                                                </ul>
-                                            </td>
+                                            <td><span class="badge bg-warning text-dark">Frota</span></td>
+                                            <td class="small text-muted">Situação da Frota, Manutenções, Ficha Individual por Viatura.</td>
+                                            <td class="small">Painel de Relatórios ou Detalhe da Viatura</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Superusuário</strong></td>
-                                            <td>Usuário com acesso total ao sistema</td>
-                                            <td>
-                                                <ul>
-                                                    <li>Todas as permissões do Administrador</li>
-                                                    <li>Acesso total ao painel de administração</li>
-                                                    <li>Configurações avançadas do sistema</li>
-                                                </ul>
-                                            </td>
+                                            <td><span class="badge bg-info text-dark">Telemática</span></td>
+                                            <td class="small text-muted">Inventário Geral de Equipamentos, Filtros por IP/Localização.</td>
+                                            <td class="small">Painel de Relatórios</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- TAB 6: Administração -->
+                        <div class="tab-pane fade" id="admin" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-users-cog me-2 text-primary"></i>Administração e Segurança</h3>
                             
-                            <h4 class="mt-4">Funcionalidades</h4>
-                            <div class="accordion mt-3" id="accordionUsuarios">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingListaUsuarios">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseListaUsuarios" aria-expanded="true" aria-controls="collapseListaUsuarios">
-                                            Lista de Usuários
+                            <div class="alert alert-warning border-0 shadow-sm">
+                                <i class="fas fa-lock me-2"></i><strong>Acesso Restrito:</strong> Informações de segurança aplicáveis aos administradores do sistema.
+                            </div>
+                            
+                            <h5 class="fw-bold mt-4"><i class="fas fa-user-shield text-muted me-2"></i>Controle Baseado em Grupos (RBAC)</h5>
+                            <p class="text-muted small">O sistema agora utiliza rigorosamente Grupos de Permissão. Para que um usuário acesse um módulo administrativo, ele <strong>deve pertencer ao grupo correspondente</strong> (ex: <code>frota</code>, <code>reserva_armas</code>, <code>telematica</code>).</p>
+                            
+                            <h5 class="fw-bold mt-4"><i class="fas fa-address-card text-muted me-2"></i>Gestão de Efetivo (Policiais)</h5>
+                            <p class="text-muted small">O cadastro de policiais é utilizado como base de dados central para todos os módulos (Motoristas, Encarregados, Requisitantes de Suporte, Cautelas). Mantenha as informações de status (Ativo/Inativo) sempre atualizadas.</p>
+                        </div>
+
+                        <!-- TAB 7: FAQ -->
+                        <div class="tab-pane fade" id="faq" role="tabpanel">
+                            <h3 class="fw-bold text-navy mb-4"><i class="fas fa-question-circle me-2 text-primary"></i>Dúvidas Frequentes</h3>
+                            
+                            <div class="accordion accordion-flush" id="faqAccordion">
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                            Como imprimir um Recibo de Cautela antigo?
                                         </button>
                                     </h2>
-                                    <div id="collapseListaUsuarios" class="accordion-collapse collapse show" aria-labelledby="headingListaUsuarios" data-bs-parent="#accordionUsuarios">
-                                        <div class="accordion-body">
-                                            <p>A lista de usuários exibe todos os usuários cadastrados no sistema, com informações como nome de usuário, nome completo, tipo e status.</p>
-                                            <p>Você pode filtrar a lista por diversos critérios, como nome, tipo, status, etc.</p>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Para acessar, clique em <strong>Usuários</strong> no menu lateral (disponível apenas para administradores).
-                                            </div>
+                                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted small pt-0">
+                                            Acesse "Movimentações" no Arsenal > Clique no ícone de "Detalhes" da cautela desejada > Clique no botão "Gerar Recibo Oficial (PDF)".
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingNovoUsuario">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNovoUsuario" aria-expanded="false" aria-controls="collapseNovoUsuario">
-                                            Cadastro de Novo Usuário
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                            Por que não consigo acessar a área de Telemática ou Frota?
                                         </button>
                                     </h2>
-                                    <div id="collapseNovoUsuario" class="accordion-collapse collapse" aria-labelledby="headingNovoUsuario" data-bs-parent="#accordionUsuarios">
-                                        <div class="accordion-body">
-                                            <p>Para cadastrar um novo usuário, acesse a lista de usuários e clique no botão <strong>Novo Usuário</strong>.</p>
-                                            <p>Preencha os campos obrigatórios:</p>
-                                            <ul>
-                                                <li><strong>Nome de Usuário:</strong> Login para acesso ao sistema</li>
-                                                <li><strong>E-mail:</strong> E-mail do usuário</li>
-                                                <li><strong>Nome:</strong> Nome do usuário</li>
-                                                <li><strong>Sobrenome:</strong> Sobrenome do usuário</li>
-                                                <li><strong>Senha:</strong> Senha de acesso</li>
-                                                <li><strong>Tipo:</strong> Nível de acesso do usuário</li>
-                                            </ul>
+                                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted small pt-0">
+                                            Seu usuário não possui permissão para este módulo. Solicite ao administrador do sistema para adicionar sua conta ao grupo adequado (ex: <code>telematica</code> ou <code>frota</code>).
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingEditarUsuario">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEditarUsuario" aria-expanded="false" aria-controls="collapseEditarUsuario">
-                                            Edição de Usuário
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                            Qual a diferença entre Solicitação de Baixa e Manutenção?
                                         </button>
                                     </h2>
-                                    <div id="collapseEditarUsuario" class="accordion-collapse collapse" aria-labelledby="headingEditarUsuario" data-bs-parent="#accordionUsuarios">
-                                        <div class="accordion-body">
-                                            <p>Para editar um usuário, clique no ícone <i class="fas fa-edit"></i> na lista de usuários.</p>
-                                            <p>Você pode alterar os dados cadastrais, redefinir a senha e modificar o nível de acesso do usuário.</p>
-                                            <div class="alert alert-warning">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Atenção:</strong> Apenas superusuários podem alterar o nível de acesso de outros usuários.
-                                            </div>
+                                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted small pt-0">
+                                            A <strong>Solicitação de Baixa</strong> é o pedido formal feito pelo patrulheiro indicando um problema. A <strong>Manutenção</strong> é a Ordem de Serviço gerida internamente pela seção de Motomecânica/Oficina após a aprovação da Baixa pelo gestor.
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingMeuPerfil">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMeuPerfil" aria-expanded="false" aria-controls="collapseMeuPerfil">
-                                            Meu Perfil
+                                <div class="accordion-item border-0 border-bottom">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                            Como importar o XML do Patrimônio?
                                         </button>
                                     </h2>
-                                    <div id="collapseMeuPerfil" class="accordion-collapse collapse" aria-labelledby="headingMeuPerfil" data-bs-parent="#accordionUsuarios">
-                                        <div class="accordion-body">
-                                            <p>Todos os usuários podem acessar e editar seu próprio perfil, independentemente do nível de acesso.</p>
-                                            <p>Para acessar seu perfil, clique no seu nome de usuário no canto superior direito da tela e selecione <strong>Meu Perfil</strong>.</p>
-                                            <p>Na página de perfil, você pode:</p>
-                                            <ul>
-                                                <li>Visualizar suas informações cadastrais</li>
-                                                <li>Editar seus dados pessoais</li>
-                                                <li>Alterar sua senha</li>
-                                                <li>Visualizar sua atividade recente no sistema</li>
-                                            </ul>
+                                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted small pt-0">
+                                            Na lista de Materiais/Patrimônio, clique em "Importar Dados", anexe o arquivo XML gerado pelo sistema SILP da PMESP e confirme. O sistema fará a triagem, evitando duplicidades automaticamente.
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <hr class="my-5 opacity-25">
+                            
+                            <div class="text-center bg-light p-4 rounded-4 shadow-sm">
+                                <h6 class="fw-bold mb-2">Ainda precisa de Suporte Técnico?</h6>
+                                <p class="text-muted small mb-4">Entre em contato com a seção P4 ou com o Oficial de T.I. do 2º BAEP para maiores esclarecimentos.</p>
+                                <a href="{% url 'dashboard' %}" class="btn btn-navy rounded-pill px-4"><i class="fas fa-headset me-2"></i>Retornar ao Dashboard</a>
                             </div>
                         </div>
-                        
-                        <!-- FAQ -->
-                        <div class="tab-pane fade" id="faq" role="tabpanel" aria-labelledby="faq-tab">
-                            <h2 class="mb-4"><i class="fas fa-question me-2"></i>Perguntas Frequentes</h2>
-                            
-                            <div class="accordion mt-3" id="accordionFAQ">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingFAQ1">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFAQ1" aria-expanded="true" aria-controls="collapseFAQ1">
-                                            Como alterar minha senha?
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFAQ1" class="accordion-collapse collapse show" aria-labelledby="headingFAQ1" data-bs-parent="#accordionFAQ">
-                                        <div class="accordion-body">
-                                            <p>Para alterar sua senha, siga os passos abaixo:</p>
-                                            <ol>
-                                                <li>Clique no seu nome de usuário no canto superior direito da tela</li>
-                                                <li>Selecione <strong>Alterar Senha</strong></li>
-                                                <li>Digite sua senha atual</li>
-                                                <li>Digite a nova senha duas vezes</li>
-                                                <li>Clique em <strong>Alterar Senha</strong></li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingFAQ2">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFAQ2" aria-expanded="false" aria-controls="collapseFAQ2">
-                                            Esqueci minha senha. Como recuperá-la?
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFAQ2" class="accordion-collapse collapse" aria-labelledby="headingFAQ2" data-bs-parent="#accordionFAQ">
-                                        <div class="accordion-body">
-                                            <p>Para recuperar sua senha, siga os passos abaixo:</p>
-                                            <ol>
-                                                <li>Na tela de login, clique em <strong>Esqueceu sua senha?</strong></li>
-                                                <li>Digite o e-mail cadastrado no sistema</li>
-                                                <li>Clique em <strong>Enviar Link de Redefinição</strong></li>
-                                                <li>Verifique seu e-mail e clique no link recebido</li>
-                                                <li>Digite a nova senha duas vezes</li>
-                                                <li>Clique em <strong>Redefinir Senha</strong></li>
-                                            </ol>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Se você não receber o e-mail, verifique sua pasta de spam ou entre em contato com o administrador do sistema.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingFAQ3">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFAQ3" aria-expanded="false" aria-controls="collapseFAQ3">
-                                            Como registrar uma retirada de material?
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFAQ3" class="accordion-collapse collapse" aria-labelledby="headingFAQ3" data-bs-parent="#accordionFAQ">
-                                        <div class="accordion-body">
-                                            <p>Para registrar uma retirada de material, siga os passos abaixo:</p>
-                                            <ol>
-                                                <li>Clique em <strong>Nova Retirada</strong> no menu lateral</li>
-                                                <li>Selecione o policial que está retirando o material</li>
-                                                <li>Selecione o material que está sendo retirado</li>
-                                                <li>Informe a finalidade da retirada</li>
-                                                <li>Adicione observações, se necessário</li>
-                                                <li>Clique em <strong>Registrar Retirada</strong></li>
-                                            </ol>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Somente materiais com status <strong>Disponível</strong> podem ser retirados.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingFAQ4">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFAQ4" aria-expanded="false" aria-controls="collapseFAQ4">
-                                            Como registrar uma devolução de material?
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFAQ4" class="accordion-collapse collapse" aria-labelledby="headingFAQ4" data-bs-parent="#accordionFAQ">
-                                        <div class="accordion-body">
-                                            <p>Para registrar uma devolução de material, siga os passos abaixo:</p>
-                                            <ol>
-                                                <li>Clique em <strong>Nova Devolução</strong> no menu lateral</li>
-                                                <li>Selecione o policial que está devolvendo o material</li>
-                                                <li>Selecione o material que está sendo devolvido</li>
-                                                <li>Defina o status após a devolução (Disponível ou Manutenção)</li>
-                                                <li>Adicione observações, se necessário</li>
-                                                <li>Clique em <strong>Registrar Devolução</strong></li>
-                                            </ol>
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle me-2"></i>
-                                                Somente materiais com status <strong>Em Uso</strong> podem ser devolvidos.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingFAQ5">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFAQ5" aria-expanded="false" aria-controls="collapseFAQ5">
-                                            Como gerar um relatório?
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFAQ5" class="accordion-collapse collapse" aria-labelledby="headingFAQ5" data-bs-parent="#accordionFAQ">
-                                        <div class="accordion-body">
-                                            <p>Para gerar um relatório, siga os passos abaixo:</p>
-                                            <ol>
-                                                <li>Clique em <strong>Relatórios</strong> no menu lateral</li>
-                                                <li>Clique no botão <strong>Novo Relatório</strong></li>
-                                                <li>Selecione o tipo de relatório desejado</li>
-                                                <li>Preencha os campos do formulário, definindo título, descrição e filtros</li>
-                                                <li>Clique em <strong>Gerar Relatório</strong></li>
-                                            </ol>
-                                            <p>O relatório será gerado e ficará disponível na lista de relatórios. Você pode visualizá-lo online ou baixá-lo em formato PDF.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Contato -->
-                        <div class="tab-pane fade" id="contato" role="tabpanel" aria-labelledby="contato-tab">
-                            <h2 class="mb-4"><i class="fas fa-envelope me-2"></i>Contato</h2>
-                            
-                            <div class="alert alert-info mb-4">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Em caso de dúvidas, problemas ou sugestões, entre em contato com a equipe de suporte.
-                            </div>
-                            
-                            <div class="card mb-4">
-                                <div class="card-header bg-primary text-white">
-                                    <i class="fas fa-headset me-2"></i>Suporte Técnico
-                                </div>
-                                <div class="card-body">
-                                    <p><i class="fas fa-envelope me-2"></i><strong>E-mail:</strong> suporte.reserva@baep.sp.gov.br</p>
-                                    <p><i class="fas fa-phone me-2"></i><strong>Telefone:</strong> (11) 3333-4444</p>
-                                    <p><i class="fas fa-clock me-2"></i><strong>Horário de Atendimento:</strong> Segunda a Sexta, das 8h às 18h</p>
-                                </div>
-                            </div>
-                            
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <i class="fas fa-bug me-2"></i>Reportar Problemas
-                                </div>
-                                <div class="card-body">
-                                    <p>Se você encontrou um problema ou erro no sistema, por favor, forneça as seguintes informações ao entrar em contato:</p>
-                                    <ul>
-                                        <li>Descrição detalhada do problema</li>
-                                        <li>Passos para reproduzir o erro</li>
-                                        <li>Data e hora em que ocorreu</li>
-                                        <li>Página ou funcionalidade onde ocorreu</li>
-                                        <li>Mensagem de erro exibida (se houver)</li>
-                                        <li>Capturas de tela (se possível)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Estilos Customizados para a Central de Ajuda */
+    .bg-navy { background-color: #1a2a6c; }
+    .text-navy { color: #1a2a6c; }
+    .btn-navy { background-color: #1a2a6c; color: white; border: none; }
+    .btn-navy:hover { background-color: #121e4d; color: white; }
+    
+    .w-20px { width: 25px; }
+    
+    .custom-tabs .list-group-item {
+        color: #6c757d;
+        background-color: transparent;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    .custom-tabs .list-group-item:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        color: #1a2a6c;
+        transform: translateX(4px);
+    }
+    
+    .custom-tabs .list-group-item.active {
+        background-color: rgba(26, 42, 108, 0.08);
+        color: #1a2a6c;
+        border-left: 4px solid #1a2a6c !important;
+        font-weight: 700;
+        border-radius: 0 0.375rem 0.375rem 0 !important;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        color: #1a2a6c;
+        box-shadow: none;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -761,6 +375,7 @@
         // Atualizar o hash da URL quando um tab for clicado
         $('.list-group-item').on('click', function(e) {
             window.location.hash = $(this).attr('href');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
 </script>

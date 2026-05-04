@@ -214,12 +214,12 @@ def criar_despacho(request):
             # Atualiza status da viatura
             despacho.viatura.status = 'EM_USO'
             despacho.viatura.save()
-            messages.success(request, f'Despacho da viatura {despacho.viatura.prefixo} registrado!')
+            messages.success(request, f'Saída da viatura {despacho.viatura.prefixo} registrada!')
             return redirect('viaturas:lista_despachos')
         messages.error(request, 'Corrija os erros abaixo.')
     else:
         form = DespachoSaidaForm()
-    return render(request, 'viaturas/form_despacho.html', {'form': form, 'titulo': 'Registrar Despacho (Saída)'})
+    return render(request, 'viaturas/form_despacho.html', {'form': form, 'titulo': 'Registrar Saída (Serviço Adm.)'})
 
 
 @login_required
@@ -769,8 +769,9 @@ def lista_baixas(request):
 @login_required
 @require_module_permission('frota')
 def analisar_baixa(request, pk):
-    """View para o gestor de frota analisar (Aprovar/Negar) uma baixa."""
+    """View para o gestor de frota analisar e destinar uma solicitação de baixa."""
     solicitacao = get_object_or_404(SolicitacaoBaixaViatura, pk=pk)
+    viatura = solicitacao.viatura
     
     if request.method == 'POST':
         form = AnaliseBaixaViaturaForm(request.POST, instance=solicitacao)
@@ -778,8 +779,42 @@ def analisar_baixa(request, pk):
             analise = form.save(commit=False)
             analise.analisado_por = request.user
             analise.data_analise = timezone.now()
-            analise.save() # Se for APROVADA, o método save() do model já altera o status da viatura
-            messages.success(request, f'Solicitação #{analise.id} atualizada com sucesso.')
+            
+            # Lógica de atualização da Viatura conforme a destinação escolhida pelo gestor
+            if analise.status == 'MANUTENCAO':
+                viatura.status = 'MANUTENCAO'
+                # Abrir automaticamente uma manutenção corretiva
+                Manutencao.objects.create(
+                    viatura=viatura,
+                    tipo='CORRETIVA',
+                    status='ABERTA',
+                    data_inicio=timezone.now().date(),
+                    odometro=viatura.odometro_atual,
+                    descricao=f"Manutenção aberta automaticamente via Solicitação de Baixa #{analise.id}. Justificativa: {analise.motivo}",
+                    registrado_por=request.user
+                )
+            elif analise.status == 'OFICINA':
+                viatura.status = 'MANUTENCAO'
+                viatura.localizacao = 'OFICINA'
+            elif analise.status == 'AGUARDAR_VISTORIA':
+                viatura.status = 'VISTORIA'
+            elif analise.status == 'MOTOMEC':
+                viatura.localizacao = 'MOTOMEC'
+                viatura.status = 'DISPONIVEL'
+            elif analise.status == 'PREGAO':
+                viatura.status = 'PREGAO'
+            elif analise.status == 'DESCARGA':
+                viatura.status = 'BAIXADA'
+            
+            # Salvar alterações na viatura se não for negada
+            if analise.status != 'NEGADA':
+                viatura.save()
+                
+            analise.save()
+            
+            # Mensagem de feedback para o gestor
+            destinacao = analise.get_status_display()
+            messages.success(request, f'Solicitação #{analise.id} processada. Viatura {viatura.prefixo} destinada para: {destinacao}.')
             return redirect('viaturas:lista_baixas')
     else:
         form = AnaliseBaixaViaturaForm(instance=solicitacao)

@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field, HTML
 from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura
-
+from policiais.models import Policial
 
 class ViaturaForm(forms.ModelForm):
     class Meta:
@@ -404,22 +404,34 @@ class ChecklistViaturaForm(forms.ModelForm):
 class SolicitacaoBaixaViaturaForm(forms.ModelForm):
     class Meta:
         model = SolicitacaoBaixaViatura
-        fields = ['viatura', 'motivo']
+        fields = ['viatura', 'categoria_motivo', 'quilometragem_baixa', 'motorista', 'requisitante', 'motivo']
         widgets = {
-            'motivo': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Detalhe o motivo pelo qual a viatura deve ser baixada/descarregada.'}),
+            'motivo': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Detalhe o motivo técnico ou operacional para a baixa definitiva desta viatura.'}),
+            'viatura': forms.Select(attrs={'class': 'select2'}),
+            'motorista': forms.Select(attrs={'class': 'select2'}),
+            'requisitante': forms.Select(attrs={'class': 'select2'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['viatura'].queryset = Viatura.objects.exclude(status='BAIXADA')
+        self.fields['viatura'].queryset = Viatura.objects.exclude(status='BAIXADA').order_by('prefixo')
+        self.fields['motorista'].queryset = Policial.objects.all().order_by('nome')
+        self.fields['requisitante'].queryset = Policial.objects.all().order_by('nome')
+        
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
-                Column('viatura', css_class='col-md-12'),
+                Column('viatura', css_class='col-md-6 mb-3'),
+                Column('categoria_motivo', css_class='col-md-6 mb-3'),
             ),
             Row(
-                Column('motivo', css_class='col-md-12'),
+                Column('motorista', css_class='col-md-4 mb-3'),
+                Column('requisitante', css_class='col-md-4 mb-3'),
+                Column('quilometragem_baixa', css_class='col-md-4 mb-3'),
+            ),
+            Row(
+                Column('motivo', css_class='col-md-12 mb-3'),
             ),
         )
 

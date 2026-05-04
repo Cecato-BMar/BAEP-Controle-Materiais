@@ -17,10 +17,15 @@
             <div class="card-body">
                 <h6 class="fw-bold text-muted text-uppercase mb-3">Detalhes da Solicitação</h6>
                 <p class="mb-1"><strong>Viatura:</strong> <span class="badge bg-warning text-dark">{{ solicitacao.viatura.prefixo }}</span> - {{ solicitacao.viatura.modelo.nome }}</p>
-                <p class="mb-1"><strong>Solicitante:</strong> {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</p>
+                <p class="mb-1"><strong>Categoria:</strong> <span class="badge bg-info">{{ solicitacao.get_categoria_motivo_display }}</span></p>
                 <p class="mb-1"><strong>Data/Hora:</strong> {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</p>
+                <p class="mb-1"><strong>Km/Horas na Baixa:</strong> {{ solicitacao.quilometragem_baixa|default:"Não informado" }}</p>
                 <hr>
-                <p class="mb-1"><strong>Motivo Informado:</strong></p>
+                <p class="mb-1"><strong>Motorista:</strong> {{ solicitacao.motorista.nome|default:"—" }}</p>
+                <p class="mb-1"><strong>Policial Requisitante:</strong> {{ solicitacao.requisitante.nome|default:"—" }}</p>
+                <p class="mb-1"><strong>Operador Sistema:</strong> {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</p>
+                <hr>
+                <p class="mb-1"><strong>Justificativa Detalhada:</strong></p>
                 <p class="text-muted fst-italic">{{ solicitacao.motivo }}</p>
                 
                 {% if solicitacao.status != 'PENDENTE' %}

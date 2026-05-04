@@ -8,7 +8,7 @@
             <i class="fas fa-car-side me-2 text-warning"></i>
             {{ viatura.prefixo }}
             {% if viatura.status == 'DISPONIVEL' %}<span class="badge bg-success ms-2">Disponível</span>
-            {% elif viatura.status == 'EM_USO' %}<span class="badge bg-warning text-dark ms-2">Em Uso</span>
+            {% elif viatura.status == 'EM_USO' %}<span class="badge bg-warning text-dark ms-2">Em Serviço Administrativo</span>
             {% elif viatura.status == 'MANUTENCAO' %}<span class="badge bg-danger ms-2">Manutenção</span>
             {% elif viatura.status == 'BAIXADA' %}<span class="badge bg-secondary ms-2">Baixada</span>{% endif %}
         </h4>
@@ -17,7 +17,7 @@
     <div class="d-flex gap-2">
         <a href="{% url 'viaturas:editar_viatura' viatura.pk %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-pencil-alt me-1"></i>Editar</a>
         {% if viatura.status == 'DISPONIVEL' %}
-        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-arrow-right me-1"></i>Despachar</a>
+        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-arrow-right me-1"></i>Registrar Saída</a>
         {% elif viatura.status == 'EM_USO' and despacho_ativo %}
         <a href="{% url 'viaturas:retorno_despacho' despacho_ativo.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-undo me-1"></i>Registrar Retorno</a>
         {% endif %}
@@ -83,7 +83,7 @@
         <!-- Últimos Despachos -->
         <div class="card border-0 mb-3">
             <div class="card-header d-flex justify-content-between">
-                <span><i class="fas fa-route me-2 text-warning"></i>Últimos Despachos</span>
+                <span><i class="fas fa-route me-2 text-warning"></i>Histórico de Saídas (Serviço Adm.)</span>
                 <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-xs btn-outline-warning btn-sm">Novo</a>
             </div>
             <div class="card-body p-0">
@@ -102,7 +102,7 @@
                                 </td>
                                 <td>{{ d.km_retorno|default:"—" }}</td>
                             </tr>
-                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem despachos registrados.</td></tr>
+                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem registros de saída.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

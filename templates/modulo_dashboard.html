@@ -138,10 +138,70 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Seção de Serviços Rápidos (Acessível a todos) -->
+        <div class="row g-4 mt-5 justify-content-center animate__animated animate__fadeInUp">
+            <div class="col-12 text-center mb-2">
+                <h4 class="fw-bold text-muted text-uppercase" style="letter-spacing: 2px; font-size: 0.9rem;">Serviços ao Policial</h4>
+            </div>
+
+            <!-- Solicitar Material -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-sm bg-warning bg-opacity-10 text-warning mb-3 mx-auto">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Solicitar Material</h5>
+                        <p class="text-muted smallest mb-3">Pedidos de material de consumo e escritório.</p>
+                        <a href="{% url 'solicitacoes:minhas_solicitacoes' %}" class="btn btn-outline-warning btn-sm w-100 rounded-pill">
+                            SOLICITAR
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solicitar Suporte TI -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-sm bg-primary bg-opacity-10 text-primary mb-3 mx-auto">
+                            <i class="fas fa-headset fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Suporte de TI</h5>
+                        <p class="text-muted smallest mb-3">Abertura de chamados técnicos e manutenção.</p>
+                        <a href="{% url 'telematica:solicitar_suporte' %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                            SOLICITAR
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solicitar Baixa Viatura -->
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-sm bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
+                            <i class="fas fa-car-crash fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Baixa de Viatura</h5>
+                        <p class="text-muted smallest mb-3">Registro de descarga ou inativação de frota.</p>
+                        <a href="{% url 'viaturas:solicitar_baixa' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+                            CADASTRAR
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
+    .smallest { font-size: 0.75rem; }
+    .icon-sm { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+    .quick-service-card { border-radius: 20px; }
+    .quick-service-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+
     .text-navy { color: #1a2a6c; }
     .btn-navy { background-color: #1a2a6c; color: #fff; }
     .btn-navy:hover { background-color: #0f1a4a; color: #fff; }

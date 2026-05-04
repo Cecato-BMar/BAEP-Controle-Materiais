@@ -43,8 +43,10 @@ class Viatura(models.Model):
     """Cadastro principal da viatura física"""
     STATUS_CHOICES = [
         ('DISPONIVEL', 'Disponível (Pronta para uso)'),
-        ('EM_USO', 'Em Uso (Despachada)'),
+        ('EM_USO', 'Em Serviço Administrativo'),
         ('MANUTENCAO', 'Em Manutenção/Oficina'),
+        ('VISTORIA', 'Aguardando Vistoria'),
+        ('PREGAO', 'Para Pregão'),
         ('BAIXADA', 'Baixada/Inativa'),
     ]
     
@@ -66,7 +68,7 @@ class Viatura(models.Model):
         ('P4', 'P4'),
         ('MOTOMEC', 'MOTOMEC'),
         ('OFICINA', 'Oficina'),
-        ('EM_USO', 'Em Uso / Despachada'),
+        ('EM_USO', 'Em Serviço Administrativo'),
     ]
 
     prefixo = models.CharField(_('Prefixo da Viatura'), max_length=20, unique=True, help_text="Ex: E-10201")
@@ -327,16 +329,40 @@ class ChecklistViatura(models.Model):
 class SolicitacaoBaixaViatura(models.Model):
     STATUS_CHOICES = [
         ('PENDENTE', 'Pendente (Aguardando Análise)'),
-        ('APROVADA', 'Aprovada'),
+        ('MANUTENCAO', 'Encaminhar para Manutenção'),
+        ('OFICINA', 'Encaminhar para Oficina'),
+        ('AGUARDAR_VISTORIA', 'Aguardar Vistoria'),
+        ('MOTOMEC', 'Encaminhar para MOTOMEC'),
+        ('PREGAO', 'Destinar para Pregão'),
+        ('DESCARGA', 'Efetuar Descarga (Baixa Definitiva)'),
         ('NEGADA', 'Negada/Cancelada'),
     ]
 
+    CATEGORIA_CHOICES = [
+        ('PREVENTIVA', 'Manutenção Preventiva'),
+        ('SUBSTITUICAO', 'Substituição de Peças'),
+        ('QUEBRA', 'Quebra / Defeito Mecânico'),
+        ('ACIDENTE', 'Acidente / Sinistro'),
+        ('INSERVIVEL', 'Inservível / Fim de Vida Útil'),
+        ('REPASSE', 'Repasse / Transferência'),
+        ('LEILAO', 'Destinação para Leilão'),
+        ('OUTROS', 'Outros Motivos'),
+    ]
+
     viatura = models.ForeignKey(Viatura, on_delete=models.CASCADE, related_name='solicitacoes_baixa')
-    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='baixas_solicitadas')
-    motivo = models.TextField(_('Motivo da Baixa/Descarga'))
+    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='baixas_solicitadas', help_text="Usuário logado que registrou")
+    
+    # Novos campos solicitados
+    motorista = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='baixas_como_motorista', verbose_name=_('Motorista Responsável'))
+    requisitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL, null=True, blank=True, related_name='baixas_requisitadas', verbose_name=_('Policial Requisitante'))
+    
+    categoria_motivo = models.CharField(_('Categoria da Baixa'), max_length=25, choices=CATEGORIA_CHOICES, default='INSERVIVEL')
+    quilometragem_baixa = models.DecimalField(_('Quilometragem/Horímetro na Baixa'), max_digits=10, decimal_places=1, null=True, blank=True)
+    
+    motivo = models.TextField(_('Justificativa Detalhada'))
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
-    observacoes_admin = models.TextField(_('Observações/Parecer'), blank=True, null=True)
+    observacoes_admin = models.TextField(_('Observações/Parecer do Gestor'), blank=True, null=True)
     analisado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='baixas_analisadas')
     data_analise = models.DateTimeField(blank=True, null=True)
 
@@ -349,8 +375,6 @@ class SolicitacaoBaixaViatura(models.Model):
         return f"Baixa {self.viatura.prefixo} - {self.get_status_display()}"
 
     def save(self, *args, **kwargs):
+        # A lógica de atualização automática da viatura foi movida para a view para suportar múltiplas destinações
         super().save(*args, **kwargs)
-        if self.status == 'APROVADA' and self.viatura.status != 'BAIXADA':
-            self.viatura.status = 'BAIXADA'
-            self.viatura.save(update_fields=['status'])
 

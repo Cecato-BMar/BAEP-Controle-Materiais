@@ -9,7 +9,7 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold">
-            <i class="fas fa-arrow-right me-1"></i> Despachar Viatura
+            <i class="fas fa-arrow-right me-1"></i> Registrar Saída
         </a>
         <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-plus me-1"></i> Nova Viatura
@@ -39,7 +39,7 @@
                     <i class="fas fa-road fa-lg text-warning"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Em Uso</div>
+                    <div class="text-muted small">Em Serviço Adm.</div>
                     <div class="fs-2 fw-bold text-warning">{{ em_uso }}</div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
     <div class="col-lg-8">
         <div class="card border-0">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-arrow-right me-2 text-warning"></i>Viaturas em Policiamento (Despachadas)</span>
+                <span><i class="fas fa-arrow-right me-2 text-warning"></i>Viaturas em Serviço Administrativo</span>
                 <a href="{% url 'viaturas:lista_despachos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
             </div>
             <div class="card-body p-0">
@@ -109,7 +109,7 @@
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Nenhuma viatura despachada no momento.</td></tr>
+                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Nenhuma viatura em serviço administrativo no momento.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
