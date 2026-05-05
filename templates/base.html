@@ -632,6 +632,22 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Alerta de Licença (Grace Period) -->
+            {% if request.license_info and request.license_info.status == 'GRACE_PERIOD' %}
+            <div class="container-fluid mt-3">
+                <div class="alert alert-warning shadow-sm border-0 rounded-3 d-flex align-items-center animate__animated animate__pulse animate__infinite" role="alert">
+                    <i class="fas fa-clock fa-2x me-3 text-danger"></i>
+                    <div>
+                        <h6 class="alert-heading fw-bold mb-1">ATENÇÃO: RENOVAÇÃO DE LICENÇA PENDENTE</h6>
+                        <p class="mb-0 small">{{ request.license_info.message }}</p>
+                    </div>
+                    <a href="{% url 'licenciamento:ativar' %}" class="btn btn-danger btn-sm ms-auto rounded-pill fw-bold px-3">
+                        Renovar Agora
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Mensagens do Sistema -->
             {% if messages %}
             <div class="container-fluid mt-3">

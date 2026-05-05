@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sistema Bloqueado - 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 600px; width: 100%;">
+        <div class="card-header bg-danger text-white text-center py-4">
+            <i class="fas fa-lock fa-4x mb-3 animate__animated animate__shakeX"></i>
+            <h2 class="fw-bold mb-0">ACESSO BLOQUEADO</h2>
+        </div>
+        <div class="card-body p-5 text-center">
+            <div class="alert alert-warning border-0 rounded-3 mb-4">
+                <p class="mb-0 fw-semibold">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ status_info.message }}
+                </p>
+            </div>
+            
+            <p class="text-muted mb-4">
+                As obrigações contratuais ou o período de validade da assinatura deste sistema não foram cumpridos ou expiraram. 
+                Para restabelecer o acesso total a todos os módulos, é necessário a ativação de uma nova licença válida.
+            </p>
+
+            <div class="d-grid gap-3">
+                <a href="{% url 'licenciamento:ativar' %}" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                    <i class="fas fa-key me-2"></i>Ativar Nova Licença
+                </a>
+                <a href="tel:+551899999999" class="btn btn-outline-secondary btn-lg rounded-pill">
+                    <i class="fas fa-phone-alt me-2"></i>Contatar Suporte Técnico
+                </a>
+            </div>
+        </div>
+        <div class="card-footer bg-light text-center py-3">
+            <small class="text-muted">ID do Sistema: {{ status_info.client|default:"Desconhecido" }}</small>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        background-image: radial-gradient(at 0% 0%, rgba(220, 53, 69, 0.05) 0, transparent 50%);
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding-top: 50px;
+    }
+    .sidebar {
+        display: none !important;
+    }
+</style>
+{% endblock %}

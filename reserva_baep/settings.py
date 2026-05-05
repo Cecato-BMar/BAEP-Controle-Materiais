@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'patrimonio',
     'telematica',
     'solicitacoes.apps.SolicitacoesConfig',
+    'licenciamento',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'licenciamento.middleware.LicenseCheckMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

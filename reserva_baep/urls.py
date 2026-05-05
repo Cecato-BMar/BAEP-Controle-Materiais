@@ -43,6 +43,7 @@ urlpatterns = [
     path('patrimonio/', include('patrimonio.urls')),
     path('telematica/', include('telematica.urls', namespace='telematica')),
     path('solicitacoes/', include('solicitacoes.urls')),
+    path('licenciamento/', include('licenciamento.urls')),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('termos/', views.termos, name='termos'),
     path('privacidade/', views.privacidade, name='privacidade'),
