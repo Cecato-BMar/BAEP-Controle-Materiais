@@ -6,11 +6,12 @@ from django.db.models import Q, Sum, Count
 from django.core.paginator import Paginator
 from decimal import Decimal
 
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca
 from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
                     AbastecimentoForm, ManutencaoForm, AgendamentoManutencaoForm, MarcaViaturaForm, 
                     ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm,
-                    SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm)
+                    SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
+                    PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm)
 from reserva_baep.decorators import require_module_permission
 
 import xml.etree.ElementTree as ET
@@ -66,6 +67,11 @@ def dashboard_frota(request):
     # Últimos abastecimentos
     ultimos_abastecimentos = Abastecimento.objects.select_related('viatura', 'motorista').order_by('-data_abastecimento')[:5]
 
+    # Dados de Peças
+    from django.db.models import F
+    pecas_estoque_baixo = PecaViatura.objects.filter(quantidade_estoque__lte=F('limite_minimo'), ativo=True).count()
+    ultimas_retiradas = RetiradaPeca.objects.select_related('viatura').order_by('-data_retirada')[:5]
+
     context = {
         'total': total,
         'disponiveis': disponiveis,
@@ -79,6 +85,8 @@ def dashboard_frota(request):
         'agendamentos': agendamentos,
         'agendamentos_atrasados': agendamentos_atrasados,
         'hoje': hoje,
+        'pecas_estoque_baixo': pecas_estoque_baixo,
+        'ultimas_retiradas': ultimas_retiradas,
     }
     return render(request, 'viaturas/dashboard.html', context)
 
@@ -821,3 +829,100 @@ def analisar_baixa(request, pk):
 
     return render(request, 'viaturas/analisar_baixa.html', {'form': form, 'solicitacao': solicitacao})
 
+# =============================================================================
+# CONTROLE DE PEÇAS DE VIATURAS
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_pecas(request):
+    qs = PecaViatura.objects.all().order_by('nome')
+    q = request.GET.get('q')
+    if q:
+        qs = qs.filter(Q(nome__icontains=q) | Q(codigo__icontains=q))
+    
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_pecas.html', {'page_obj': page, 'q': q})
+
+@login_required
+@require_module_permission('frota')
+def criar_peca(request):
+    if request.method == 'POST':
+        form = PecaViaturaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Peça cadastrada com sucesso!')
+            return redirect('viaturas:lista_pecas')
+    else:
+        form = PecaViaturaForm()
+    return render(request, 'viaturas/form_peca.html', {'form': form, 'titulo': 'Nova Peça'})
+
+@login_required
+@require_module_permission('frota')
+def editar_peca(request, pk):
+    peca = get_object_or_404(PecaViatura, pk=pk)
+    if request.method == 'POST':
+        form = PecaViaturaForm(request.POST, instance=peca)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Peça atualizada com sucesso!')
+            return redirect('viaturas:lista_pecas')
+    else:
+        form = PecaViaturaForm(instance=peca)
+    return render(request, 'viaturas/form_peca.html', {'form': form, 'titulo': 'Editar Peça'})
+
+@login_required
+@require_module_permission('frota')
+def lista_retiradas(request):
+    qs = RetiradaPeca.objects.select_related('viatura', 'policial').order_by('-data_retirada')
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_retiradas.html', {'page_obj': page})
+
+@login_required
+@require_module_permission('frota')
+def criar_retirada(request):
+    if request.method == 'POST':
+        form = RetiradaPecaForm(request.POST)
+        formset = RetiradaPecaItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            retirada = form.save(commit=False)
+            retirada.registrado_por = request.user
+            retirada.save()
+            
+            formset.instance = retirada
+            try:
+                with transaction.atomic():
+                    formset.save()
+                messages.success(request, 'Retirada registrada com sucesso!')
+                return redirect('viaturas:recibo_retirada_peca', pk=retirada.pk)
+            except ValueError as e:
+                messages.error(request, str(e))
+                retirada.delete() # Reverte se houver erro no estoque
+    else:
+        form = RetiradaPecaForm()
+        formset = RetiradaPecaItemFormSet()
+        
+    return render(request, 'viaturas/form_retirada.html', {'form': form, 'formset': formset, 'titulo': 'Nova Retirada de Peças'})
+
+@login_required
+@require_module_permission('frota')
+def recibo_retirada_peca(request, pk):
+    retirada = get_object_or_404(RetiradaPeca.objects.select_related('viatura', 'policial', 'registrado_por'), pk=pk)
+    return render(request, 'viaturas/recibo_retirada_peca.html', {'retirada': retirada})
+
+@login_required
+@require_module_permission('frota')
+def anexar_recibo_retirada(request, pk):
+    retirada = get_object_or_404(RetiradaPeca, pk=pk)
+    if request.method == 'POST':
+        form = AnexarReciboRetiradaForm(request.POST, request.FILES, instance=retirada)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Recibo anexado com sucesso!')
+            return redirect('viaturas:lista_retiradas')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = AnexarReciboRetiradaForm(instance=retirada)
+    return render(request, 'viaturas/form_anexar_recibo.html', {'form': form, 'retirada': retirada})

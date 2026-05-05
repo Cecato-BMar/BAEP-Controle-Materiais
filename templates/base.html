@@ -619,6 +619,16 @@
                 </li>
                 {% endif %}
 
+                <!-- PAINEL MASTER (DESENVOLVEDOR) -->
+                {% if user.username == 'master' %}
+                <div class="sidebar-heading text-warning"><i class="fas fa-crown"></i> Área do Criador</div>
+                <li class="nav-item">
+                    <a class="nav-link text-warning fw-bold {% if 'master' in request.path %}active{% endif %}" href="{% url 'licenciamento:master' %}">
+                        <i class="fas fa-key"></i> Painel Master
+                    </a>
+                </li>
+                {% endif %}
+
                 <div class="mt-4 mb-4 px-4">
                     <div class="bg-dark rounded-4 p-3 text-center border border-secondary border-opacity-25">
                         <small class="text-muted d-block mb-2" style="font-size: 0.65rem;">SISTEMA LOGÍSTICA v2.2</small>
@@ -702,7 +712,7 @@
                         <a href="{% url 'privacidade' %}" class="text-decoration-none text-secondary mx-2"><i
                                 class="fas fa-shield-alt"></i> Política de Privacidade</a>
                     </p>
-                    <p class="text-muted mb-0">© {% now "Y" %} SIS LOGÍSTICA 2ºBAEP - Todos os direitos reservados</p>
+                    <p class="text-muted mb-0">© {% now "Y" %} SIS LOGÍSTICA 2ºBAEP - Todos os direitos reservados BMarTech</p>
                 </div>
             </div>
         </div>

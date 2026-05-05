@@ -378,3 +378,78 @@ class SolicitacaoBaixaViatura(models.Model):
         # A lógica de atualização automática da viatura foi movida para a view para suportar múltiplas destinações
         super().save(*args, **kwargs)
 
+
+class PecaViatura(models.Model):
+    """Cadastro de Peças para Viaturas"""
+    CATEGORIA_PECA_CHOICES = [
+        ('MOTOR', 'Motor e Componentes'),
+        ('SUSPENSAO', 'Suspensão e Direção'),
+        ('FREIOS', 'Freios'),
+        ('ELETRICA', 'Elétrica e Iluminação'),
+        ('TRANSMISSAO', 'Transmissão e Embreagem'),
+        ('CARROCERIA', 'Carroceria e Acabamento'),
+        ('LUBRIFICANTES', 'Fluidos e Lubrificantes'),
+        ('OUTROS', 'Outros/Geral'),
+    ]
+
+    nome = models.CharField(_('Nome da Peça'), max_length=150)
+    codigo = models.CharField(_('Código/Part Number'), max_length=50, blank=True, null=True)
+    categoria = models.CharField(_('Categoria/Sistema'), max_length=30, choices=CATEGORIA_PECA_CHOICES, default='OUTROS')
+    marca_fabricante = models.CharField(_('Marca/Fabricante'), max_length=100, blank=True, null=True)
+    aplicacao = models.TextField(_('Aplicação (Modelos Compatíveis)'), blank=True, null=True)
+    
+    quantidade_estoque = models.PositiveIntegerField(_('Quantidade em Estoque'), default=0)
+    limite_minimo = models.PositiveIntegerField(_('Estoque Mínimo'), default=0)
+    localizacao_estoque = models.CharField(_('Localização no Estoque'), max_length=100, blank=True, null=True, help_text="Ex: Prateleira 2, Gaveta A")
+    valor_unitario = models.DecimalField(_('Valor Unitário Estimado (R$)'), max_digits=10, decimal_places=2, blank=True, null=True)
+    
+    observacoes = models.TextField(_('Observações Gerais'), blank=True, null=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+
+    class Meta:
+        verbose_name = _('Peça de Viatura')
+        verbose_name_plural = _('Peças de Viaturas')
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.nome} ({self.quantidade_estoque} em estoque)"
+
+class RetiradaPeca(models.Model):
+    """Registro de Retirada de Peças para uso em Viatura"""
+    viatura = models.ForeignKey(Viatura, on_delete=models.PROTECT, related_name='retiradas_pecas', verbose_name=_('Viatura de Destino'))
+    policial = models.ForeignKey('policiais.Policial', on_delete=models.PROTECT, related_name='retiradas_pecas', verbose_name=_('Policial que Retirou'))
+    data_retirada = models.DateTimeField(auto_now_add=True)
+    observacoes = models.TextField(_('Observações/Justificativa'), blank=True, null=True)
+    
+    assinado_eletronicamente = models.BooleanField(_('Assinado Eletronicamente?'), default=False)
+    arquivo_recibo = models.FileField(_('Recibo de Retirada'), upload_to='viaturas/recibos_pecas/', null=True, blank=True)
+    
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('Retirada de Peça')
+        verbose_name_plural = _('Retiradas de Peças')
+        ordering = ['-data_retirada']
+
+    def __str__(self):
+        return f"Retirada para {self.viatura.prefixo} em {self.data_retirada.strftime('%d/%m/%Y')}"
+
+class RetiradaPecaItem(models.Model):
+    retirada = models.ForeignKey(RetiradaPeca, on_delete=models.CASCADE, related_name='itens')
+    peca = models.ForeignKey(PecaViatura, on_delete=models.PROTECT)
+    quantidade = models.PositiveIntegerField(_('Quantidade'))
+
+    class Meta:
+        verbose_name = _('Item da Retirada de Peça')
+        verbose_name_plural = _('Itens da Retirada de Peça')
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if self.peca.quantidade_estoque >= self.quantidade:
+                self.peca.quantidade_estoque -= self.quantidade
+                self.peca.save()
+            else:
+                raise ValueError("Estoque insuficiente para a peça.")
+        super().save(*args, **kwargs)
+
+

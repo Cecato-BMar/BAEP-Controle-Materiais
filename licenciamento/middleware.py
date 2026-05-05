@@ -23,6 +23,7 @@ class LicenseCheckMiddleware:
         allowed_paths = [
             reverse('licenciamento:bloqueado'),
             reverse('licenciamento:ativar'),
+            reverse('licenciamento:master'),
             reverse('usuarios:login'),
             reverse('usuarios:logout'),
         ]
@@ -39,7 +40,7 @@ class LicenseCheckMiddleware:
         if status_info['status'] in ['NO_LICENSE', 'INVALID', 'EXPIRED']:
             # Se não estiver logado, continua para o login normalmente
             # Mas se tentar acessar sistema, vai pro bloqueio
-            if request.user.is_authenticated:
+            if request.user.is_authenticated and request.user.username != 'master':
                 return redirect('licenciamento:bloqueado')
             else:
                 # Rotas públicas que não precisam de login (caso existam) ou login

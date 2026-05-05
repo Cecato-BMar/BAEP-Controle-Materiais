@@ -163,6 +163,33 @@
                 </ul>
             </div>
         </div>
+
+        <!-- Últimas Retiradas de Peças -->
+        <div class="card border-0 mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-toolbox me-2 text-success"></i>Retiradas de Peças
+                    {% if pecas_estoque_baixo > 0 %}
+                    <a href="{% url 'viaturas:lista_pecas' %}" class="badge bg-danger ms-2 text-decoration-none" title="{{ pecas_estoque_baixo }} peça(s) com estoque baixo">{{ pecas_estoque_baixo }} alerta(s)</a>
+                    {% endif %}
+                </span>
+                <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for ret in ultimas_retiradas %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><span class="badge bg-dark me-1">{{ ret.viatura.prefixo }}</span><small>{{ ret.itens.count }} peça(s)</small></span>
+                            <small class="text-muted">{{ ret.data_retirada|date:"d/m H:i" }}</small>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3">Nenhuma retirada recente</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -285,6 +312,24 @@
                     <div>
                         <i class="fas fa-car-side me-3 text-warning"></i>
                         <span class="fw-bold">Modelos</span>
+                    </div>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'viaturas:lista_pecas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-primary border border-opacity-25">
+                    <div>
+                        <i class="fas fa-cogs me-3 text-primary"></i>
+                        <span class="fw-bold text-primary">Catálogo de Peças</span>
+                    </div>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-success border border-opacity-25">
+                    <div>
+                        <i class="fas fa-toolbox me-3 text-success"></i>
+                        <span class="fw-bold text-success">Retiradas de Peças</span>
                     </div>
                     <i class="fas fa-chevron-right small text-muted"></i>
                 </a>

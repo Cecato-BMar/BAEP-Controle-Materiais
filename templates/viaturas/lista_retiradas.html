@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Retiradas de Peças — Frota BAEP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="fas fa-toolbox me-2 text-success"></i>Retiradas de Peças</h4>
+        <small class="text-muted">Histórico de peças aplicadas em viaturas</small>
+    </div>
+    <a href="{% url 'viaturas:criar_retirada' %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-plus me-1"></i>Nova Retirada</a>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Viatura (Destino)</th>
+                        <th>Policial</th>
+                        <th>Assinatura</th>
+                        <th class="text-end">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in page_obj %}
+                    <tr>
+                        <td><small>{{ r.data_retirada|date:"d/m/Y H:i" }}</small></td>
+                        <td><span class="badge bg-dark fw-bold">{{ r.viatura.prefixo }}</span></td>
+                        <td>{{ r.policial.posto }} {{ r.policial.nome }}</td>
+                        <td>
+                            {% if r.assinado_eletronicamente %}
+                                <span class="badge bg-success-subtle text-success rounded-pill"><i class="fas fa-check-circle me-1"></i>Eletrônica</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill"><i class="fas fa-pen me-1"></i>Manual</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'viaturas:recibo_retirada_peca' r.pk %}" class="btn btn-sm btn-outline-primary" title="Imprimir Recibo Dinâmico" target="_blank"><i class="fas fa-print"></i></a>
+                                {% if r.arquivo_recibo %}
+                                    <a href="{{ r.arquivo_recibo.url }}" class="btn btn-sm btn-outline-success" title="Visualizar Anexo" target="_blank"><i class="fas fa-file-pdf"></i></a>
+                                {% else %}
+                                    <a href="{% url 'viaturas:anexar_recibo_retirada' r.pk %}" class="btn btn-sm btn-outline-secondary" title="Anexar Recibo Assinado"><i class="fas fa-upload"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-5 text-muted">Nenhuma retirada registrada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-transparent">
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>{% endif %}
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

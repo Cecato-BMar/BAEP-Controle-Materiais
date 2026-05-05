@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo - Retirada de Peça #{{ retirada.pk }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; color: #333; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .header img { max-width: 80px; margin-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
+        .header h2 { margin: 5px 0 0; font-size: 16px; font-weight: normal; }
+        .title { text-align: center; margin: 20px 0; font-size: 20px; font-weight: bold; text-decoration: underline; }
+        .info-box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .info-row { display: flex; margin-bottom: 5px; }
+        .info-label { font-weight: bold; width: 150px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .items-table th, .items-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .items-table th { background-color: #f5f5f5; }
+        .signatures { margin-top: 60px; display: flex; justify-content: space-around; text-align: center; }
+        .signature-line { width: 250px; border-top: 1px solid #000; margin-top: 50px; padding-top: 5px; }
+        .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #777; border-top: 1px solid #ccc; padding-top: 10px; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { margin: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Imprimir PDF</button>
+        <a href="{% url 'viaturas:lista_retiradas' %}" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block;">Voltar</a>
+    </div>
+
+    <div class="header">
+        <h1>Polícia Militar do Estado de São Paulo</h1>
+        <h2>2º Batalhão de Ações Especiais de Polícia (2º BAEP)</h2>
+        <p style="margin: 5px 0 0; font-size: 14px;">Controle de Frota - Almoxarifado / Motomec</p>
+    </div>
+
+    <div class="title">
+        TERMO DE RETIRADA E RESPONSABILIDADE DE PEÇAS Nº {{ retirada.pk|stringformat:"04d" }}/{{ retirada.data_retirada.year }}
+    </div>
+
+    <p>Atesto para os devidos fins de controle patrimonial e logístico que foi(foram) retirada(s) a(s) peça(s) e/ou material(is) abaixo listado(s), com destino exclusivo para aplicação/manutenção na viatura especificada.</p>
+
+    <div class="info-box">
+        <div class="info-row"><span class="info-label">Viatura (Prefixo):</span> <span>{{ retirada.viatura.prefixo }} ({{ retirada.viatura.modelo.nome }})</span></div>
+        <div class="info-row"><span class="info-label">Policial Retirante:</span> <span>{{ retirada.policial.posto }} {{ retirada.policial.nome }} (RE: {{ retirada.policial.re }})</span></div>
+        <div class="info-row"><span class="info-label">Data e Hora:</span> <span>{{ retirada.data_retirada|date:"d/m/Y H:i" }}</span></div>
+        <div class="info-row"><span class="info-label">Registrado por:</span> <span>{{ retirada.registrado_por.get_full_name|default:retirada.registrado_por.username }}</span></div>
+        {% if retirada.observacoes %}
+        <div class="info-row" style="margin-top: 10px;"><span class="info-label">Observações:</span> <span>{{ retirada.observacoes }}</span></div>
+        {% endif %}
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="10%">Qtd</th>
+                <th width="20%">Código/PN</th>
+                <th width="70%">Descrição da Peça/Material</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in retirada.itens.all %}
+            <tr>
+                <td style="text-align: center;">{{ item.quantidade }}</td>
+                <td>{{ item.peca.codigo|default:"—" }}</td>
+                <td>{{ item.peca.nome }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="signatures">
+        <div>
+            {% if retirada.assinado_eletronicamente %}
+            <div style="color: #198754; font-weight: bold; border: 2px solid #198754; padding: 10px; border-radius: 5px; margin-bottom: 10px; width: 250px; margin-left: auto; margin-right: auto; background-color: #f8fff9;">
+                <span style="font-size: 20px;">&#10003;</span> ASSINATURA ELETRÔNICA<br>
+                <small style="font-weight: normal; color: #555;">Usuário autenticado</small>
+            </div>
+            <div style="font-size: 14px;"><strong>{{ retirada.policial.posto }} {{ retirada.policial.nome }}</strong></div>
+            <div style="font-size: 12px; color: #555;">(Policial que retirou)</div>
+            {% else %}
+            <div class="signature-line">
+                <strong>{{ retirada.policial.posto }} {{ retirada.policial.nome }}</strong><br>
+                (Policial que retirou)
+            </div>
+            {% endif %}
+        </div>
+        
+        <div>
+            <div class="signature-line">
+                <strong>{{ retirada.registrado_por.get_full_name|default:retirada.registrado_por.username }}</strong><br>
+                (Responsável pela Entrega)
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Documento gerado pelo Sistema de Controle de Materiais e Frota do 2º BAEP em {{ now|date:"d/m/Y H:i" }}.
+    </div>
+
+</body>
+</html>

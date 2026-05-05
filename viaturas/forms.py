@@ -1,7 +1,8 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field, HTML
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura
+from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca, RetiradaPecaItem
+from django.forms import inlineformset_factory
 from policiais.models import Policial
 
 class ViaturaForm(forms.ModelForm):
@@ -455,4 +456,123 @@ class AnaliseBaixaViaturaForm(forms.ModelForm):
                 Column('observacoes_admin', css_class='col-md-12'),
             ),
         )
+
+class PecaViaturaForm(forms.ModelForm):
+    class Meta:
+        model = PecaViatura
+        fields = ['nome', 'codigo', 'categoria', 'marca_fabricante', 'aplicacao', 
+                  'quantidade_estoque', 'limite_minimo', 'localizacao_estoque', 
+                  'valor_unitario', 'observacoes', 'ativo']
+        widgets = {
+            'aplicacao': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Ex: Hilux 2020+, Trailblazer 2022'}),
+            'observacoes': forms.Textarea(attrs={'rows': 2}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            HTML('<h6 class="mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Dados Principais</h6>'),
+            Row(
+                Column('nome', css_class='col-md-6'),
+                Column('categoria', css_class='col-md-3'),
+                Column('codigo', css_class='col-md-3'),
+            ),
+            Row(
+                Column('marca_fabricante', css_class='col-md-6'),
+                Column('aplicacao', css_class='col-md-6'),
+            ),
+            HTML('<hr class="my-4"><h6 class="mb-3 text-success"><i class="fas fa-boxes me-2"></i>Estoque e Custos</h6>'),
+            Row(
+                Column('quantidade_estoque', css_class='col-md-3'),
+                Column('limite_minimo', css_class='col-md-3'),
+                Column('localizacao_estoque', css_class='col-md-3'),
+                Column('valor_unitario', css_class='col-md-3'),
+            ),
+            Row(
+                Column('observacoes', css_class='col-md-9'),
+                Column('ativo', css_class='col-md-3 d-flex align-items-center mt-4'),
+            ),
+        )
+
+class RetiradaPecaForm(forms.ModelForm):
+    class Meta:
+        model = RetiradaPeca
+        fields = ['viatura', 'policial', 'observacoes', 'assinado_eletronicamente']
+        widgets = {
+            'observacoes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Justificativa ou observações gerais sobre a retirada'}),
+            'viatura': forms.Select(attrs={'class': 'select2'}),
+            'policial': forms.Select(attrs={'class': 'select2'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['viatura'].queryset = Viatura.objects.filter(status__in=['DISPONIVEL', 'EM_USO', 'MANUTENCAO']).order_by('prefixo')
+        self.fields['policial'].queryset = Policial.objects.all().order_by('nome')
+        
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('viatura', css_class='col-md-6'),
+                Column('policial', css_class='col-md-6'),
+            ),
+            Row(
+                Column('observacoes', css_class='col-md-12'),
+            ),
+            Row(
+                Column('assinado_eletronicamente', css_class='col-md-12 fw-bold text-success'),
+            ),
+        )
+
+class AnexarReciboRetiradaForm(forms.ModelForm):
+    class Meta:
+        model = RetiradaPeca
+        fields = ['arquivo_recibo']
+        labels = {
+            'arquivo_recibo': 'Anexar PDF Assinado'
+        }
+        help_texts = {
+            'arquivo_recibo': 'Selecione o arquivo PDF ou imagem do recibo escaneado.'
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('arquivo_recibo', css_class='col-12'),
+            ),
+        )
+
+class RetiradaPecaItemForm(forms.ModelForm):
+    class Meta:
+        model = RetiradaPecaItem
+        fields = ['peca', 'quantidade']
+        widgets = {
+            'peca': forms.Select(attrs={'class': 'select2 peca-select'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'quantidade-input', 'min': 1}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        peca = cleaned_data.get('peca')
+        quantidade = cleaned_data.get('quantidade')
+        
+        if peca and quantidade:
+            if not self.instance.pk: # apenas nova retirada valida estoque assim
+                if peca.quantidade_estoque < quantidade:
+                    self.add_error('quantidade', f'Estoque insuficiente. Disponível: {peca.quantidade_estoque}')
+            # Se for edição, a validação é mais complexa e por simplicidade vamos deixar como está
+        return cleaned_data
+
+RetiradaPecaItemFormSet = inlineformset_factory(
+    RetiradaPeca, 
+    RetiradaPecaItem, 
+    form=RetiradaPecaItemForm, 
+    extra=1, 
+    can_delete=True
+)
 

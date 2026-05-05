@@ -57,4 +57,15 @@ urlpatterns = [
     path('baixas/', views.lista_baixas, name='lista_baixas'),
     path('baixas/solicitar/', views.solicitar_baixa, name='solicitar_baixa'),
     path('baixas/<int:pk>/analisar/', views.analisar_baixa, name='analisar_baixa'),
+
+    # Peças de Viatura
+    path('pecas/', views.lista_pecas, name='lista_pecas'),
+    path('pecas/nova/', views.criar_peca, name='criar_peca'),
+    path('pecas/<int:pk>/editar/', views.editar_peca, name='editar_peca'),
+
+    # Retirada de Peças
+    path('retiradas-pecas/', views.lista_retiradas, name='lista_retiradas'),
+    path('retiradas-pecas/nova/', views.criar_retirada, name='criar_retirada'),
+    path('retiradas-pecas/<int:pk>/recibo/', views.recibo_retirada_peca, name='recibo_retirada_peca'),
+    path('retiradas-pecas/<int:pk>/anexar-recibo/', views.anexar_recibo_retirada, name='anexar_recibo_retirada'),
 ]

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Anexar Recibo — Retirada #{{ retirada.pk }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h4 class="mb-0 text-secondary fw-bold"><i class="fas fa-file-upload me-2"></i>Anexar Recibo Assinado</h4>
+                <small class="text-muted">Retirada da viatura {{ retirada.viatura.prefixo }} ({{ retirada.data_retirada|date:"d/m/Y H:i" }})</small>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% crispy form %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-upload me-1"></i>Salvar Anexo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

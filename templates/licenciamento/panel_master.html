@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Painel Master de Controle - 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <!-- Header do Painel -->
+            <div class="card bg-dark text-white shadow-lg border-0 rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-25 rounded-circle p-3 me-4">
+                        <i class="fas fa-user-shield fa-3x text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="fw-bold mb-1">Painel Master de Licenciamento</h1>
+                        <p class="text-white-50 mb-0">Controle total sobre autenticação e emissão de tokens SaaS.</p>
+                    </div>
+                    <div class="ms-auto text-end">
+                        <span class="badge bg-success rounded-pill px-3 py-2">MODO DESENVOLVEDOR ATIVO</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Coluna 1: Status e Ativação -->
+                <div class="col-lg-5">
+                    <div class="card shadow-sm border-0 rounded-4 mb-4 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title fw-bold mb-0 text-secondary">
+                                <i class="fas fa-signal me-2"></i>Status do Sistema
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="p-3 rounded-3 {% if status_info.status == 'VALID' %}bg-success{% else %}bg-danger{% endif %} text-white me-3">
+                                    <i class="fas {% if status_info.status == 'VALID' %}fa-check-circle{% else %}fa-times-circle{% endif %} fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">{{ status_info.status }}</h6>
+                                    <small class="text-muted">{{ status_info.message }}</small>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="fw-bold text-uppercase small text-muted mb-3">Autenticar Sistema</h6>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="activate">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Colar Token de Ativação</label>
+                                    <textarea name="token" class="form-control font-monospace" rows="4" placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." required style="font-size: 0.75rem;"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100 rounded-pill">
+                                    <i class="fas fa-unlock me-2"></i>Liberar Sistema Agora
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Geração de Token -->
+                <div class="col-lg-7">
+                    <div class="card shadow-sm border-0 rounded-4 mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title fw-bold mb-0 text-secondary">
+                                <i class="fas fa-key me-2"></i>Gerador de Licença RSA
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" class="row g-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="generate">
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">ID do Cliente</label>
+                                    <input type="text" name="client_id" class="form-control" value="2baep-unidade" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Duração (Dias)</label>
+                                    <select name="days" class="form-select">
+                                        <option value="1">1 Dia (Emergência)</option>
+                                        <option value="7" selected>7 Dias (Semanal)</option>
+                                        <option value="30">30 Dias (Mensal)</option>
+                                        <option value="365">365 Dias (Anual)</option>
+                                        <option value="0">0 Dias (BLOQUEIO IMEDIATO)</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Nome do Cliente/Instituição</label>
+                                    <input type="text" name="client_name" class="form-control" value="2º Batalhão de Ações Especiais" required>
+                                </div>
+                                
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold">
+                                        <i class="fas fa-magic me-2"></i>Gerar Token Assinado
+                                    </button>
+                                </div>
+                            </form>
+
+                            {% if generated_token %}
+                            <div class="mt-4 animate__animated animate__fadeInUp">
+                                <div class="alert alert-success border-0 rounded-3">
+                                    <h6 class="alert-heading fw-bold"><i class="fas fa-check-circle me-2"></i>Token Gerado com Sucesso!</h6>
+                                    <p class="small mb-2">Copie o código abaixo e envie para o cliente ou use no formulário de ativação.</p>
+                                    <textarea class="form-control font-monospace bg-white border-0 shadow-sm" rows="6" readonly style="font-size: 0.7rem;">{{ generated_token }}</textarea>
+                                    <button class="btn btn-sm btn-outline-success mt-2" onclick="copyToken()">
+                                        <i class="fas fa-copy me-1"></i> Copiar para Área de Transferência
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToken() {
+    const textarea = document.querySelector('textarea[readonly]');
+    textarea.select();
+    document.execCommand('copy');
+    alert('Token copiado!');
+}
+</script>
+
+<style>
+    body {
+        background-color: #f0f2f5;
+    }
+    .card {
+        transition: transform 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

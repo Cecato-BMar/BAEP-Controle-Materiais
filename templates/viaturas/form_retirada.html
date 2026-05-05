@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ titulo }} — Retirada de Peça{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h4 class="mb-0 text-success fw-bold"><i class="fas fa-toolbox me-2"></i>{{ titulo }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="retirada-form">
+                    {% csrf_token %}
+                    {% crispy form %}
+                    
+                    <h5 class="mt-4 mb-3 text-secondary"><i class="fas fa-list-ul me-2"></i>Peças Retiradas</h5>
+                    <div class="table-responsive">
+                        {{ formset.management_form }}
+                        <table class="table table-bordered table-sm" id="formset-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Peça / Catálogo</th>
+                                    <th width="150">Quantidade</th>
+                                    <th width="80" class="text-center">Remover</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item_form in formset %}
+                                <tr class="item-row">
+                                    {% for hidden in item_form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                    <td>{{ item_form.peca|as_crispy_field }}</td>
+                                    <td>{{ item_form.quantidade|as_crispy_field }}</td>
+                                    <td class="text-center align-middle">
+                                        {% if item_form.instance.pk %}
+                                            {{ item_form.DELETE }}
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-times"></i></button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-outline-success mt-2" id="add-row"><i class="fas fa-plus me-1"></i>Adicionar Peça</button>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-5">
+                        <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-check-circle me-1"></i>Confirmar Retirada</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template vazio para clonar -->
+<div id="empty-row" style="display: none;">
+    <table>
+        <tr class="item-row">
+            <td>{{ formset.empty_form.peca|as_crispy_field }}</td>
+            <td>{{ formset.empty_form.quantidade|as_crispy_field }}</td>
+            <td class="text-center align-middle">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-times"></i></button>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('formset-table').getElementsByTagName('tbody')[0];
+    const addBtn = document.getElementById('add-row');
+    const totalFormsInput = document.getElementById('id_itens-TOTAL_FORMS');
+    const emptyRowTemplate = document.querySelector('#empty-row tr').outerHTML;
+    
+    addBtn.addEventListener('click', function() {
+        const formCount = parseInt(totalFormsInput.value);
+        const newRowHTML = emptyRowTemplate.replace(/__prefix__/g, formCount);
+        table.insertAdjacentHTML('beforeend', newRowHTML);
+        totalFormsInput.value = formCount + 1;
+        
+        // Reinicializa select2 na nova linha se aplicável
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+            $('.select2').select2({ theme: 'bootstrap-5' });
+        }
+    });
+
+    table.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-row')) {
+            const row = e.target.closest('tr');
+            row.remove();
+            // Note: in a real app, we should also update the management form counts 
+            // or hide the row instead of removing it if dealing with existing records.
+        }
+    });
+});
+</script>
+{% endblock %}
