@@ -42,6 +42,30 @@
                                 </div>
                             </div>
 
+                            {% if status_info.status == 'VALID' %}
+                            <div class="bg-light p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border border-light shadow-sm">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-secondary"><i class="fas fa-hourglass-half me-2"></i>Tempo Restante</h6>
+                                    <small class="text-muted">Válido até {{ status_info.expires_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="h3 fw-bold text-primary mb-0">{{ status_info.days_remaining }}</span>
+                                    <small class="text-muted d-block mt-n1 fw-bold">Dias</small>
+                                </div>
+                            </div>
+                            {% elif status_info.status == 'GRACE_PERIOD' %}
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border border-warning shadow-sm">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Tolerância</h6>
+                                    <small class="text-dark">Expirado em {{ status_info.expires_at|date:"d/m/Y" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="h3 fw-bold text-danger mb-0">{{ status_info.grace_period }}</span>
+                                    <small class="text-danger fw-bold d-block mt-n1">Dias p/ Bloqueio</small>
+                                </div>
+                            </div>
+                            {% endif %}
+
                             <hr>
 
                             <h6 class="fw-bold text-uppercase small text-muted mb-3">Autenticar Sistema</h6>

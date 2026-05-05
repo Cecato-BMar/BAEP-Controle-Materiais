@@ -83,12 +83,14 @@ class LicenseManager:
         now = timezone.now()
 
         if now <= expires_at:
+            delta = expires_at - now
             return {
                 'status': 'VALID',
                 'message': 'Licença ativa e válida.',
                 'grace_period': 0,
                 'client': payload.get('client_name'),
-                'expires_at': expires_at
+                'expires_at': expires_at,
+                'days_remaining': delta.days
             }
 
         # Verifica período de tolerância (grace period de 3 dias)
