@@ -32,7 +32,7 @@
             <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
                 <i class="fas fa-print me-2"></i> IMPRIMIR
             </button>
-            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-navy rounded-pill px-4 shadow">
+            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" target="_blank" class="btn btn-navy rounded-pill px-4 shadow">
                 <i class="fas fa-file-pdf me-2"></i> SALVAR PDF
             </a>
         </div>
@@ -79,7 +79,7 @@
                         <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 60px;" class="me-3">
                         <div>
                             <h5 class="mb-0 fw-bold text-navy">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
-                            <h6 class="mb-0 text-muted small">COMANDO DE POLICIAMENTO DE CHOQUE - 2º BAEP</h6>
+                            <h6 class="mb-0 text-muted small">2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP</h6>
                         </div>
                     </div>
                     <div class="text-end d-none d-md-block">

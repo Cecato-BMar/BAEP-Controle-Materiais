@@ -221,12 +221,12 @@ class MovimentacaoEstoqueAdmin(admin.ModelAdmin):
         ('Quantidades e Valores', {
             'fields': ('quantidade', 'valor_unitario', 'valor_total')
         }),
-        ('Dados de Entrada (MATERIAL DE CONSUMO §2)', {
+        ('Dados de Entrada (MATERIAL DE CONSUMO 2)', {
             'fields': ('cor', 'unidade_medida', 'unidade_fornecimento',
                        'conta_patrimonial', 'localizacao_fisica', 'fornecedor',
                        'nota_fiscal', 'documento_referencia')
         }),
-        ('Dados de Saída (MATERIAL DE CONSUMO §3)', {
+        ('Dados de Saída (MATERIAL DE CONSUMO 3)', {
             'fields': ('orgao_requisitante', 'militar_requisitante')
         }),
         ('Observações', {

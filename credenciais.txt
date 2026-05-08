@@ -5,5 +5,5 @@ Painel de Administração (Django Admin): http://127.0.0.1:8000/admin/
 
 == Usuário Administrador (Superuser) ==
 Login: master
-Senha: C3c4t0118
+Senha: C3c4t0118*
 E-mail: master@baep.com.br

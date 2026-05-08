@@ -1,7 +1,7 @@
 {% extends 'estoque/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}{{ produto.nome|default:"Novo Material" }} — MATERIAL DE CONSUMO §1{% endblock %}
+{% block title %}{{ produto.nome|default:"Novo Material" }} — MATERIAL DE CONSUMO {% endblock %}
 
 {% block extra_css %}
 <style>
@@ -11,9 +11,9 @@
         -webkit-backdrop-filter: blur(15px);
         border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
     }
-    
+
     .premium-header {
         background: linear-gradient(135deg, var(--secondary-color) 0%, #1a252f 100%);
         padding: 1.5rem;
@@ -21,7 +21,7 @@
         border-bottom: 3px solid var(--primary-color);
         color: var(--primary-color);
     }
-    
+
     .modern-form .form-label {
         font-weight: 600;
         font-size: 0.8rem;
@@ -30,14 +30,15 @@
         color: #6c757d;
         margin-bottom: 0.5rem;
     }
-    
-    .modern-form .form-control, .modern-form .form-select {
+
+    .modern-form .form-control,
+    .modern-form .form-select {
         background: #f8f9fa;
         border: 1px solid #e9ecef;
         padding: 0.6rem 0.8rem;
         font-size: 0.95rem;
     }
-    
+
     .modern-form .form-control:focus {
         background: #fff;
         box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.15);
@@ -53,7 +54,7 @@
         box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
         transition: all 0.3s;
     }
-    
+
     .btn-save:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
@@ -89,12 +90,13 @@
                     <div class="d-flex align-items-center">
                         <i class="fas fa-certificate fa-2x text-primary me-3"></i>
                         <div>
-                            <h6 class="mb-1 fw-bold text-dark">Padrão MATERIAL DE CONSUMO §1</h6>
-                            <p class="mb-0 text-muted small">Preencha todos os campos SIAFÍSICO e CAT MAT conforme Termo de Referência.</p>
+                            <h6 class="mb-1 fw-bold text-dark">Padrão MATERIAL DE CONSUMO </h6>
+                            <p class="mb-0 text-muted small">Preencha todos os campos SIAFÍSICO e CAT MAT conforme Termo
+                                de Referência.</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <form method="post" enctype="multipart/form-data" class="modern-form">
                     {% csrf_token %}
                     {% crispy form %}
@@ -102,7 +104,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="glass-card mb-4 border-0">
             <div class="card-header bg-light border-0 py-3 rounded-top-4">
@@ -115,7 +117,7 @@
                 </div>
                 <hr class="opacity-10">
                 <div class="mb-3">
-                    <p class="fw-bold mb-1 text-primary">Cotação (§4)</p>
+                    <p class="fw-bold mb-1 text-primary">Cotação</p>
                     <p class="text-muted">Sistema alerta automaticamente após 180 dias de vencimento.</p>
                 </div>
                 <hr class="opacity-10">

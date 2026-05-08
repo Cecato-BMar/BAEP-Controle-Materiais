@@ -11,16 +11,16 @@
                 <div>
                     <h3 class="fw-bold mb-0">
                         <i class="fas fa-history me-2 text-warning"></i>
-                        Histórico de Movimentações (MATERIAL DE CONSUMO §2/§3)
+                        Histórico de Movimentações (MATERIAL DE CONSUMO 2/3)
                     </h3>
                     <p class="mb-0 opacity-75 small">Rastreabilidade completa de todas as entradas e saídas de materiais de consumo.</p>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{% url 'estoque:criar_entrada_material' %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
-                        <i class="fas fa-arrow-down me-1"></i> Nova Entrada (§2)
+                        <i class="fas fa-arrow-down me-1"></i> Nova Entrada (2)
                     </a>
                     <a href="{% url 'estoque:criar_saida_material' %}" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
-                        <i class="fas fa-arrow-up me-1"></i> Nova Saída (§3)
+                        <i class="fas fa-arrow-up me-1"></i> Nova Saída (3)
                     </a>
                 </div>
             </div>
@@ -139,7 +139,7 @@
                             </td>
                             <td class="px-4 text-end">
                                 {% if mov.tipo_movimentacao == 'SAIDA' %}
-                                    <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" class="btn btn-outline-danger btn-sm" title="Gerar Recibo PDF">
+                                    <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-outline-danger btn-sm" title="Gerar Recibo PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
                                 {% endif %}

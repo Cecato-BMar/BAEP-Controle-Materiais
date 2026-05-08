@@ -105,13 +105,13 @@ def dashboard_estoque(request):
 
 
 # =============================================================================
-# PAINEL DE CONTROLE DE ESTOQUE (MATERIAL DE CONSUMO §4 — Somente Leitura)
+# PAINEL DE CONTROLE DE ESTOQUE (MATERIAL DE CONSUMO 4 — Somente Leitura)
 # =============================================================================
 
 @login_required
 @require_module_permission('materiais')
 def painel_controle_estoque(request):
-    """Painel de controle somente leitura com indicadores MATERIAL DE CONSUMO §4"""
+    """Painel de controle somente leitura com indicadores MATERIAL DE CONSUMO 4"""
     form = PainelEstoqueFilterForm(request.GET or None)
     material = None
     indicadores = None
@@ -183,13 +183,13 @@ def painel_controle_estoque(request):
 
 
 # =============================================================================
-# ENTRADA DE MATERIAIS (MATERIAL DE CONSUMO §2)
+# ENTRADA DE MATERIAIS (MATERIAL DE CONSUMO 2)
 # =============================================================================
 
 @login_required
 @require_module_permission('materiais')
 def criar_entrada_material(request):
-    """Registrar entrada de material conforme MATERIAL DE CONSUMO §2"""
+    """Registrar entrada de material conforme MATERIAL DE CONSUMO 2"""
     if request.method == 'POST':
         form = EntradaMaterialForm(request.POST)
         form.instance.tipo_movimentacao = 'ENTRADA'
@@ -220,13 +220,13 @@ def criar_entrada_material(request):
 
 
 # =============================================================================
-# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO §3)
+# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO 3)
 # =============================================================================
 
 @login_required
 @require_module_permission('materiais')
 def criar_saida_material(request):
-    """Registrar saída de material conforme MATERIAL DE CONSUMO §3"""
+    """Registrar saída de material conforme MATERIAL DE CONSUMO 3"""
     if request.method == 'POST':
         form = SaidaMaterialForm(request.POST)
         form.instance.tipo_movimentacao = 'SAIDA'
@@ -421,7 +421,7 @@ def editar_unidade_medida(request, pk):
 
 
 # =============================================================================
-# UNIDADE DE FORNECIMENTO (MATERIAL DE CONSUMO §1 — Somente Admin)
+# UNIDADE DE FORNECIMENTO (MATERIAL DE CONSUMO 1 — Somente Admin)
 # =============================================================================
 
 @login_required
@@ -471,7 +471,7 @@ def editar_unidade_fornecimento(request, pk):
 
 
 # =============================================================================
-# COR (MATERIAL DE CONSUMO §1)
+# COR (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -519,7 +519,7 @@ def editar_cor(request, pk):
 
 
 # =============================================================================
-# CONTA PATRIMONIAL (MATERIAL DE CONSUMO §1)
+# CONTA PATRIMONIAL (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -567,7 +567,7 @@ def editar_conta_patrimonial(request, pk):
 
 
 # =============================================================================
-# ÓRGÃO REQUISITANTE (MATERIAL DE CONSUMO §1)
+# ÓRGÃO REQUISITANTE (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -615,7 +615,7 @@ def editar_orgao_requisitante(request, pk):
 
 
 # =============================================================================
-# LOCALIZAÇÃO FÍSICA (MATERIAL DE CONSUMO §1)
+# LOCALIZAÇÃO FÍSICA (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -663,7 +663,7 @@ def editar_localizacao(request, pk):
 
 
 # =============================================================================
-# MILITAR REQUISITANTE (MATERIAL DE CONSUMO §1)
+# MILITAR REQUISITANTE (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -778,7 +778,7 @@ def detalhe_fornecedor(request, pk):
 
 
 # =============================================================================
-# PRODUTOS / MATERIAIS DE CONSUMO (MATERIAL DE CONSUMO §1)
+# PRODUTOS / MATERIAIS DE CONSUMO (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 @login_required
@@ -1011,7 +1011,7 @@ def detalhe_produto(request, pk):
 @login_required
 @require_module_permission('materiais')
 def ficha_individual_pdf(request, pk):
-    """Gera ficha técnica individual do material em PDF (A4) — MATERIAL DE CONSUMO §1"""
+    """Gera ficha técnica individual do material em PDF (A4) — MATERIAL DE CONSUMO 1"""
     produto = get_object_or_404(
         Produto.objects.select_related('categoria', 'unidade_medida', 'unidade_fornecimento',
                                         'localizacao_fisica', 'conta_patrimonial'),
@@ -1027,10 +1027,11 @@ def ficha_individual_pdf(request, pk):
     section_style = ParagraphStyle('SectionStyle', parent=styles['Heading2'], fontSize=12, spaceBefore=15, spaceAfter=10, borderPadding=5, backColor=colors.lightgrey)
     
     # Cabeçalho
-    elements.append(Paragraph(f"2º BAEP — POLÍCIA MILITAR DO ESTADO DE SÃO PAULO", styles['Normal']))
+    elements.append(Paragraph(f"POLÍCIA MILITAR DO ESTADO DE SÃO PAULO", styles['Normal']))
+    elements.append(Paragraph(f"2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP", styles['Normal']))
     elements.append(Paragraph(f"CONTROLE DE MATERIAIS DE CONSUMO E PERMANENTE", styles['Normal']))
     elements.append(Spacer(1, 0.5*cm))
-    elements.append(Paragraph(f"FICHA TÉCNICA INDIVIDUAL DO MATERIAL — MATERIAL DE CONSUMO §1", title_style))
+    elements.append(Paragraph(f"FICHA TÉCNICA INDIVIDUAL DO MATERIAL — MATERIAL DE CONSUMO 1", title_style))
     
     # Dados Principais
     data = [
@@ -1115,7 +1116,7 @@ def ficha_individual_pdf(request, pk):
         if saldo <= produto.estoque_minimo:
             elements.append(Paragraph("<b>• ATENÇÃO:</b> Saldo atual abaixo do estoque mínimo de segurança.", styles['Normal']))
         if produto.cotacao_vencida:
-            elements.append(Paragraph("<b>• ALERTA:</b> Cotação vencida há mais de 180 dias. Necessário re-cotar conforme MATERIAL DE CONSUMO §4.", styles['Normal']))
+            elements.append(Paragraph("<b>• ALERTA:</b> Cotação vencida há mais de 180 dias. Necessário re-cotar conforme MATERIAL DE CONSUMO 4.", styles['Normal']))
     
     # Descrição
     if produto.descricao:
@@ -1290,13 +1291,13 @@ def contar_item_inventario(request, pk):
 
 
 # =============================================================================
-# RELATÓRIOS (MATERIAL DE CONSUMO §5)
+# RELATÓRIOS (MATERIAL DE CONSUMO 5)
 # =============================================================================
 
 @login_required
 @require_module_permission('materiais')
 def relatorio_estoque_materiais(request):
-    """Relatório de Estoque de Materiais conforme MATERIAL DE CONSUMO §5.1"""
+    """Relatório de Estoque de Materiais conforme MATERIAL DE CONSUMO 5.1"""
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
 
@@ -1553,7 +1554,7 @@ def buscar_saldo_produto_ajax(request):
 @login_required
 @require_module_permission('materiais')
 def confirmacao_saida_material(request):
-    """Tela de confirmação após registro de saída MATERIAL DE CONSUMO §3"""
+    """Tela de confirmação após registro de saída MATERIAL DE CONSUMO 3"""
     mov_id = request.GET.get('id')
     mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
     
@@ -1566,7 +1567,7 @@ def confirmacao_saida_material(request):
 @login_required
 @require_module_permission('materiais')
 def exportar_recibo_saida_pdf(request):
-    """Gera recibo de saída MATERIAL DE CONSUMO §3 em PDF (A5)"""
+    """Gera recibo de saída MATERIAL DE CONSUMO 3 em PDF (A5)"""
     mov_id = request.GET.get('id')
     mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
     
@@ -1581,7 +1582,7 @@ def exportar_recibo_saida_pdf(request):
     
     # Cabeçalho
     header_data = [
-        [Paragraph("BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - BAEP<br/>RECIBO DE SAÍDA DE MATERIAL (MATERIAL DE CONSUMO §3)", header_style)]
+        [Paragraph("2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP<br/>RECIBO DE SAÍDA DE MATERIAL (MATERIAL DE CONSUMO 3)", header_style)]
     ]
     header_table = Table(header_data, colWidths=[12.8*cm])
     header_table.setStyle(TableStyle([
@@ -1686,7 +1687,7 @@ def exportar_recibo_saida_pdf(request):
         
         # 1. Rodapé Textual
         canvas.setFont('Helvetica', 6)
-        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Controle de Estoque MATERIAL DE CONSUMO §3 - BAEP - Página {doc.page}")
+        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Controle de Estoque MATERIAL DE CONSUMO 3 - BAEP - Página {doc.page}")
 
         canvas.restoreState()
 

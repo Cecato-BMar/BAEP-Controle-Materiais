@@ -55,18 +55,18 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="min-width: 250px;">
                     <li class="dropdown-header text-uppercase small fw-bold">Operacional</li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}"><i class="fas fa-shield-alt me-2 text-info"></i>Situação Atual (Armas)</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_viaturas' %}"><i class="fas fa-car me-2 text-primary"></i>Relatório de Frota</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_situacao_atual' %}" target="_blank"><i class="fas fa-shield-alt me-2 text-info"></i>Situação Atual (Armas)</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_viaturas' %}" target="_blank"><i class="fas fa-car me-2 text-primary"></i>Relatório de Frota</a></li>
                     
                     <li><hr class="dropdown-divider"></li>
                     <li class="dropdown-header text-uppercase small fw-bold">Logística</li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações Estoque</a></li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_patrimonio' %}"><i class="fas fa-barcode me-2 text-success"></i>Inventário de Patrimônio</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_estoque_movimentacoes' %}" target="_blank"><i class="fas fa-boxes me-2 text-warning"></i>Movimentações Estoque</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_patrimonio' %}" target="_blank"><i class="fas fa-barcode me-2 text-success"></i>Inventário de Patrimônio</a></li>
                     
                     <li><hr class="dropdown-divider"></li>
                     {% if request.user.is_superuser or request.user|has_group:'telematica' %}
                     <li class="dropdown-header text-uppercase small fw-bold">Tecnologia</li>
-                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_telematica' %}"><i class="fas fa-server me-2 text-dark"></i>Relatórios de Telemática</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2" href="{% url 'relatorios:gerar_relatorio_telematica' %}" target="_blank"><i class="fas fa-server me-2 text-dark"></i>Relatórios de Telemática</a></li>
                     {% endif %}
                 </ul>
             </div>

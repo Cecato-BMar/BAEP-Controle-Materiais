@@ -1,7 +1,7 @@
 {% extends 'estoque/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Registrar Saída de Material — MATERIAL DE CONSUMO §3{% endblock %}
+{% block title %}Registrar Saída de Material — MATERIAL DE CONSUMO 3{% endblock %}
 
 {% block estoque_content %}
 <div class="row justify-content-center">
@@ -12,7 +12,7 @@
         <i class="fas fa-arrow-up fa-lg"></i>
         <div>
           <div class="fw-bold fs-5">Registrar Saída de Material</div>
-          <small class="opacity-75">MATERIAL DE CONSUMO §3 — Tabela de Saída de Materiais de Consumo</small>
+          <small class="opacity-75">MATERIAL DE CONSUMO — Tabela de Saída de Materiais de Consumo</small>
         </div>
       </div>
       <div class="card-body">
@@ -45,139 +45,139 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const produtoSelect = document.getElementById('id_produto_saida');
-  const militarSelect = document.getElementById('id_militar_select');
-  const militarAdmSelect = document.getElementById('id_militar_administrativo');
-  const saldoBox = document.getElementById('saldo-disponivel-box');
-  const saldoValor = document.getElementById('saldo-valor');
-  const qtdInput = document.querySelector('[name="quantidade"]');
+  document.addEventListener('DOMContentLoaded', function () {
+    const produtoSelect = document.getElementById('id_produto_saida');
+    const militarSelect = document.getElementById('id_militar_select');
+    const militarAdmSelect = document.getElementById('id_militar_administrativo');
+    const saldoBox = document.getElementById('saldo-disponivel-box');
+    const saldoValor = document.getElementById('saldo-valor');
+    const qtdInput = document.querySelector('[name="quantidade"]');
 
-  // Busca saldo ao selecionar produto
-  function buscarSaldo(produtoId) {
-    if (!produtoId) return;
-    fetch(`{% url 'estoque:buscar_saldo_produto_ajax' %}?produto_id=${produtoId}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.saldo !== undefined) {
-          saldoValor.textContent = data.saldo + ' ' + (data.unidade || '');
-          saldoBox.style.display = '';
-          // Validação em tempo real
-          if (qtdInput) {
-            qtdInput.setAttribute('max', data.saldo);
+    // Busca saldo ao selecionar produto
+    function buscarSaldo(produtoId) {
+      if (!produtoId) return;
+      fetch(`{% url 'estoque:buscar_saldo_produto_ajax' %}?produto_id=${produtoId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.saldo !== undefined) {
+            saldoValor.textContent = data.saldo + ' ' + (data.unidade || '');
+            saldoBox.style.display = '';
+            // Validação em tempo real
+            if (qtdInput) {
+              qtdInput.setAttribute('max', data.saldo);
+            }
           }
-        }
-      }).catch(() => {});
-  }
+        }).catch(() => { });
+    }
 
-  if (produtoSelect && produtoSelect.value) {
-    buscarSaldo(produtoSelect.value);
-  }
+    if (produtoSelect && produtoSelect.value) {
+      buscarSaldo(produtoSelect.value);
+    }
 
-  // Validar quantidade vs saldo
-  if (qtdInput) {
-    qtdInput.addEventListener('input', function() {
-      const max = parseFloat(this.getAttribute('max'));
-      const val = parseFloat(this.value);
-      if (!isNaN(max) && val > max) {
-        this.classList.add('is-invalid');
-        let feedback = this.parentElement.querySelector('.invalid-feedback');
-        if (!feedback) {
-          feedback = document.createElement('div');
-          feedback.className = 'invalid-feedback';
-          this.parentElement.appendChild(feedback);
+    // Validar quantidade vs saldo
+    if (qtdInput) {
+      qtdInput.addEventListener('input', function () {
+        const max = parseFloat(this.getAttribute('max'));
+        const val = parseFloat(this.value);
+        if (!isNaN(max) && val > max) {
+          this.classList.add('is-invalid');
+          let feedback = this.parentElement.querySelector('.invalid-feedback');
+          if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            this.parentElement.appendChild(feedback);
+          }
+          feedback.textContent = `Quantidade maior que o saldo disponível (${max}). Operação bloqueada.`;
+        } else {
+          this.classList.remove('is-invalid');
         }
-        feedback.textContent = `Quantidade maior que o saldo disponível (${max}). Operação bloqueada.`;
-      } else {
-        this.classList.remove('is-invalid');
+      });
+    }
+
+    // Configuração do Select2 para busca inteligente de Materiais
+    $(produtoSelect).select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Busque por Código ou Nome do Material...',
+      allowClear: true,
+      ajax: {
+        url: "{% url 'estoque:buscar_produtos_ajax' %}",
+        dataType: 'json',
+        delay: 300,
+        data: function (params) {
+          return {
+            q: params.term
+          };
+        },
+        processResults: function (data) {
+          return {
+            results: data.results
+          };
+        },
+        cache: true
+      },
+      minimumInputLength: 1,
+      language: {
+        inputTooShort: function () { return "Digite pelo menos 1 caractere..."; },
+        noResults: function () { return "Material não encontrado."; },
+        searching: function () { return "Buscando..."; }
       }
     });
-  }
 
-  // Configuração do Select2 para busca inteligente de Materiais
-  $(produtoSelect).select2({
-    theme: 'bootstrap-5',
-    placeholder: 'Busque por Código ou Nome do Material...',
-    allowClear: true,
-    ajax: {
-      url: "{% url 'estoque:buscar_produtos_ajax' %}",
-      dataType: 'json',
-      delay: 300,
-      data: function (params) {
-        return {
-          q: params.term
-        };
-      },
-      processResults: function (data) {
-        return {
-          results: data.results
-        };
-      },
-      cache: true
-    },
-    minimumInputLength: 1,
-    language: {
-      inputTooShort: function() { return "Digite pelo menos 1 caractere..."; },
-      noResults: function() { return "Material não encontrado."; },
-      searching: function() { return "Buscando..."; }
-    }
-  });
+    // Gatilho para buscar saldo ao selecionar material via Select2
+    $(produtoSelect).on('select2:select', function (e) {
+      buscarSaldo(e.params.data.id);
+    });
 
-  // Gatilho para buscar saldo ao selecionar material via Select2
-  $(produtoSelect).on('select2:select', function (e) {
-    buscarSaldo(e.params.data.id);
-  });
+    $(produtoSelect).on('select2:clear', function (e) {
+      saldoBox.style.display = 'none';
+      if (qtdInput) qtdInput.removeAttribute('max');
+    });
 
-  $(produtoSelect).on('select2:clear', function (e) {
-    saldoBox.style.display = 'none';
-    if (qtdInput) qtdInput.removeAttribute('max');
-  });
+    // Configuração do Select2 para busca inteligente de Policiais (Efetivo BAEP)
+    $(militarSelect).select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Busque no Efetivo BAEP...',
+      allowClear: true,
+      ajax: {
+        url: "{% url 'estoque:buscar_militares_ajax' %}",
+        dataType: 'json',
+        delay: 300,
+        data: function (params) {
+          return { q: params.term };
+        },
+        processResults: function (data) {
+          return { results: data.results };
+        },
+        cache: true
+      },
+      minimumInputLength: 2,
+      language: {
+        inputTooShort: function () { return "Digite pelo menos 2 caracteres..."; }
+      }
+    });
 
-  // Configuração do Select2 para busca inteligente de Policiais (Efetivo BAEP)
-  $(militarSelect).select2({
-    theme: 'bootstrap-5',
-    placeholder: 'Busque no Efetivo BAEP...',
-    allowClear: true,
-    ajax: {
-      url: "{% url 'estoque:buscar_militares_ajax' %}",
-      dataType: 'json',
-      delay: 300,
-      data: function (params) {
-        return { q: params.term };
+    // Configuração do Select2 para busca inteligente de Militares Administrativos
+    $(militarAdmSelect).select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Busque nos Cadastros Adm...',
+      allowClear: true,
+      ajax: {
+        url: "{% url 'estoque:buscar_militares_adm_ajax' %}",
+        dataType: 'json',
+        delay: 300,
+        data: function (params) {
+          return { q: params.term };
+        },
+        processResults: function (data) {
+          return { results: data.results };
+        },
+        cache: true
       },
-      processResults: function (data) {
-        return { results: data.results };
-      },
-      cache: true
-    },
-    minimumInputLength: 2,
-    language: {
-      inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; }
-    }
+      minimumInputLength: 2,
+      language: {
+        inputTooShort: function () { return "Digite pelo menos 2 caracteres..."; }
+      }
+    });
   });
-
-  // Configuração do Select2 para busca inteligente de Militares Administrativos
-  $(militarAdmSelect).select2({
-    theme: 'bootstrap-5',
-    placeholder: 'Busque nos Cadastros Adm...',
-    allowClear: true,
-    ajax: {
-      url: "{% url 'estoque:buscar_militares_adm_ajax' %}",
-      dataType: 'json',
-      delay: 300,
-      data: function (params) {
-        return { q: params.term };
-      },
-      processResults: function (data) {
-        return { results: data.results };
-      },
-      cache: true
-    },
-    minimumInputLength: 2,
-    language: {
-      inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; }
-    }
-  });
-});
 </script>
 {% endblock %}

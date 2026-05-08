@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Saída Confirmada — MATERIAL DE CONSUMO §3 BAEP{% endblock %}
+{% block title %}Saída Confirmada — MATERIAL DE CONSUMO BAEP{% endblock %}
 
 {% block content %}
 <div class="container py-5 animate__animated animate__fadeIn">
@@ -11,56 +11,63 @@
                 <i class="fas fa-check-circle text-success fa-5x"></i>
             </div>
             <h2 class="fw-bold text-navy mb-3">Saída de Material Registrada!</h2>
-            <p class="text-muted mb-5">A movimentação de estoque (MATERIAL DE CONSUMO §3) foi processada com sucesso. O recibo para assinatura está pronto.</p>
-            
+            <p class="text-muted mb-5">A movimentação de estoque (MATERIAL DE CONSUMO 3) foi processada com sucesso. O
+                recibo para assinatura está pronto.</p>
+
             <div class="card border-0 shadow-sm mb-5 text-start">
                 <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Resumo da Movimentação (#{{ mov.pk|stringformat:"06d" }})</h6>
+                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Resumo da Movimentação (#{{
+                        mov.pk|stringformat:"06d" }})</h6>
                     <div class="d-flex align-items-center mb-4">
-                        <div class="avatar-sm bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
+                        <div
+                            class="avatar-sm bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
                             <i class="fas fa-box text-primary"></i>
                         </div>
                         <div>
                             <div class="fw-bold text-navy">{{ mov.produto.nome }}</div>
-                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{ mov.quantidade|floatformat }}</small>
+                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{
+                                mov.quantidade|floatformat }}</small>
                         </div>
                     </div>
-                    
+
                     <div class="d-flex align-items-center mb-0 border-top pt-3">
-                        <div class="avatar-sm bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
+                        <div
+                            class="avatar-sm bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
                             <i class="fas fa-user-shield text-info"></i>
                         </div>
                         <div>
-                             <div class="fw-bold text-navy">
+                            <div class="fw-bold text-navy">
                                 {% if mov.militar_requisitante %}
-                                    {{ mov.militar_requisitante.posto }} {{ mov.militar_requisitante.nome }}
+                                {{ mov.militar_requisitante.posto }} {{ mov.militar_requisitante.nome }}
                                 {% elif mov.militar_administrativo %}
-                                    {{ mov.militar_administrativo.nome }}
+                                {{ mov.militar_administrativo.nome }}
                                 {% else %}
-                                    Recebedor não identificado
+                                Recebedor não identificado
                                 {% endif %}
-                             </div>
-                             <small class="text-muted">
-                                 RE: 
-                                 {% if mov.militar_requisitante %}
-                                    {{ mov.militar_requisitante.re }}
-                                 {% elif mov.militar_administrativo %}
-                                    {{ mov.militar_administrativo.re }}
-                                 {% else %}
-                                    -
-                                 {% endif %}
-                                 | Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}
-                             </small>
+                            </div>
+                            <small class="text-muted">
+                                RE:
+                                {% if mov.militar_requisitante %}
+                                {{ mov.militar_requisitante.re }}
+                                {% elif mov.militar_administrativo %}
+                                {{ mov.militar_administrativo.re }}
+                                {% else %}
+                                -
+                                {% endif %}
+                                | Unidade: {{ mov.orgao_requisitante.nome|default:"-" }}
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
-                <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" class="btn btn-navy btn-lg px-5 rounded-pill shadow">
+                <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}"
+                    class="btn btn-navy btn-lg px-5 rounded-pill shadow">
                     <i class="fas fa-print me-2"></i> IMPRIMIR RECIBO (MATERIAL DE CONSUMO)
                 </a>
-                <a href="{% url 'estoque:lista_movimentacoes' %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                <a href="{% url 'estoque:lista_movimentacoes' %}"
+                    class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
                     <i class="fas fa-history me-2"></i> VER HISTÓRICO
                 </a>
             </div>
@@ -69,19 +76,37 @@
 </div>
 
 <style>
-    .bg-navy { background-color: #1a2a6c; }
-    .text-navy { color: #1a2a6c; }
-    .btn-navy { background-color: #1a2a6c; color: white; border: 0; }
-    .btn-navy:hover { background-color: #0f1a4a; color: white; }
-    .avatar-sm { width: 40px; height: 40px; }
+    .bg-navy {
+        background-color: #1a2a6c;
+    }
+
+    .text-navy {
+        color: #1a2a6c;
+    }
+
+    .btn-navy {
+        background-color: #1a2a6c;
+        color: white;
+        border: 0;
+    }
+
+    .btn-navy:hover {
+        background-color: #0f1a4a;
+        color: white;
+    }
+
+    .avatar-sm {
+        width: 40px;
+        height: 40px;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Abre o recibo automaticamente após 1 segundo
-        setTimeout(function() {
+        setTimeout(function () {
             window.open("{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}", '_blank');
         }, 1000);
     });

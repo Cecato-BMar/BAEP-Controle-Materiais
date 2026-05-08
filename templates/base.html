@@ -477,7 +477,7 @@
                                 <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'telematica:lista_categorias' %}">Categorias</a>
                             </li>
                             <li class="nav-item mt-1 pt-1 border-top border-secondary border-opacity-10">
-                                <a class="nav-link text-info" href="{% url 'relatorios:gerar_relatorio_telematica' %}">
+                                <a class="nav-link text-info" href="{% url 'relatorios:gerar_relatorio_telematica' %}" target="_blank">
                                     <i class="fas fa-file-pdf small me-2"></i>Emitir Relatórios
                                 </a>
                             </li>

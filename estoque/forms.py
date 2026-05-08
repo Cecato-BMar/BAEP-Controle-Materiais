@@ -326,7 +326,7 @@ class FornecedorForm(forms.ModelForm):
 
 
 # =============================================================================
-# MATERIAL DE CONSUMO (MATERIAL DE CONSUMO §1)
+# MATERIAL DE CONSUMO (MATERIAL DE CONSUMO 1)
 # =============================================================================
 
 class ProdutoForm(forms.ModelForm):
@@ -457,11 +457,11 @@ class ProdutoForm(forms.ModelForm):
 
 
 # =============================================================================
-# ENTRADA DE MATERIAIS (MATERIAL DE CONSUMO §2)
+# ENTRADA DE MATERIAIS (MATERIAL DE CONSUMO 2)
 # =============================================================================
 
 class EntradaMaterialForm(forms.ModelForm):
-    """Formulário de Entrada conforme MATERIAL DE CONSUMO §2"""
+    """Formulário de Entrada conforme MATERIAL DE CONSUMO 2"""
 
     class Meta:
         model = MovimentacaoEstoque
@@ -502,7 +502,7 @@ class EntradaMaterialForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-down text-success me-2"></i>Dados da Entrada (MATERIAL DE CONSUMO §2)</h6>'),
+            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-down text-success me-2"></i>Dados da Entrada (MATERIAL DE CONSUMO 2)</h6>'),
             Row(
                 Column('produto', css_class='form-group col-md-5 mb-0'),
                 Column('subtipo', css_class='form-group col-md-3 mb-0'),
@@ -542,11 +542,11 @@ class EntradaMaterialForm(forms.ModelForm):
 
 
 # =============================================================================
-# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO §3)
+# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO 3)
 # =============================================================================
 
 class SaidaMaterialForm(forms.ModelForm):
-    """Formulário de Saída conforme MATERIAL DE CONSUMO §3"""
+    """Formulário de Saída conforme MATERIAL DE CONSUMO 3"""
 
 
     class Meta:
@@ -583,7 +583,7 @@ class SaidaMaterialForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (MATERIAL DE CONSUMO §3)</h6>'),
+            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (MATERIAL DE CONSUMO 3)</h6>'),
             Row(
                 Column('produto', css_class='form-group col-md-6 mb-3'),
                 Column('subtipo', css_class='form-group col-md-6 mb-3'),
@@ -631,11 +631,11 @@ class SaidaMaterialForm(forms.ModelForm):
 
 
 # =============================================================================
-# PAINEL DE CONTROLE — FILTRO DE PERÍODO (MATERIAL DE CONSUMO §4)
+# PAINEL DE CONTROLE — FILTRO DE PERÍODO (MATERIAL DE CONSUMO 4)
 # =============================================================================
 
 class PainelEstoqueFilterForm(forms.Form):
-    """Filtros do painel de controle de estoque (MATERIAL DE CONSUMO §4)"""
+    """Filtros do painel de controle de estoque (MATERIAL DE CONSUMO 4)"""
     material = forms.ModelChoiceField(
         queryset=Produto.objects.filter(status='ATIVO'),
         required=False,
