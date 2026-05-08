@@ -13,10 +13,14 @@
                         <h2 class="fw-bold mb-1"><i class="fas fa-tasks me-2"></i>Controle de Suprimentos</h2>
                         <p class="mb-0 opacity-75">Fila de atendimento e distribuição de materiais.</p>
                     </div>
-                    <div class="text-end">
-                        <div class="badge bg-white text-navy px-3 py-2 rounded-pill fw-bold">
+                    <div class="text-end d-flex flex-column align-items-end">
+                        <div class="badge bg-white text-navy px-3 py-2 rounded-pill fw-bold mb-2">
                             {{ solicitacoes.count }} PEDIDO(S) NO TOTAL
                         </div>
+                        <a href="{% url 'solicitacoes:toggle_visibilidade' %}" class="btn btn-sm {% if config.exibir_quantidade_disponivel %}btn-outline-light{% else %}btn-warning{% endif %} rounded-pill fw-bold" title="Clique para alternar a visualização do estoque para os policiais">
+                            <i class="fas {% if config.exibir_quantidade_disponivel %}fa-eye{% else %}fa-eye-slash{% endif %} me-1"></i>
+                            Estoque no Catálogo: {% if config.exibir_quantidade_disponivel %}VISÍVEL{% else %}OCULTO{% endif %}
+                        </a>
                     </div>
                 </div>
             </div>

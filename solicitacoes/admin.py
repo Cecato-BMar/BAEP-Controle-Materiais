@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Solicitacao, ItemSolicitacao
+from .models import Solicitacao, ItemSolicitacao, ConfiguracaoSolicitacao
 
 class ItemSolicitacaoInline(admin.TabularInline):
     model = ItemSolicitacao
@@ -33,3 +33,16 @@ class ItemSolicitacaoAdmin(admin.ModelAdmin):
     list_display = ['solicitacao', 'produto', 'quantidade_solicitada', 'quantidade_atendida']
     list_filter = ['solicitacao__status']
     search_fields = ['produto__nome', 'solicitacao__id']
+
+@admin.register(ConfiguracaoSolicitacao)
+class ConfiguracaoSolicitacaoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'exibir_quantidade_disponivel']
+    
+    def has_add_permission(self, request):
+        # Permite apenas uma configuração
+        if self.model.objects.exists():
+            return False
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return False

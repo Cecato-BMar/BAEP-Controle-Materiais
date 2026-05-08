@@ -69,8 +69,7 @@ def criar_dados_iniciais(apps, schema_editor):
         ('1CIA', '1ª CIA'),
         ('2CIA', '2ª CIA'),
         ('3CIA', '3ª CIA'),
-        ('SL', 'Setor de Logística'),
-        ('SF', 'Setor Financeiro'),
+        ('4CIA', '4ª CIA'),
         ('ADMIN', 'Administração'),
     ]
     for sigla, nome in orgaos:
@@ -100,7 +99,7 @@ def reverter_dados_iniciais(apps, schema_editor):
     Cor.objects.filter(nome__in=nomes_cor).delete()
 
     siglas_orgao = ['CMD', 'SUBCMD', 'EM/P1', 'EM/P2', 'EM/P3', 'EM/P4', 'EM/P5',
-                    'SPJMD', '1CIA', '2CIA', '3CIA', 'SL', 'SF', 'ADMIN']
+                    'SPJMD', '1CIA', '2CIA', '3CIA', '4CIA', 'ADMIN']
     OrgaoRequisitante.objects.filter(sigla__in=siglas_orgao).delete()
 
     nomes_local = ['Prateleira A', 'Prateleira B', 'Prateleira C',

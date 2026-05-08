@@ -69,3 +69,13 @@ class ItemSolicitacao(models.Model):
 
     def __str__(self):
         return f"{self.quantidade_solicitada}x {self.produto.nome}"
+
+class ConfiguracaoSolicitacao(models.Model):
+    exibir_quantidade_disponivel = models.BooleanField(default=True, verbose_name="Exibir Quantidade Disponível para Solicitantes")
+    
+    class Meta:
+        verbose_name = "Configuração de Solicitação"
+        verbose_name_plural = "Configurações de Solicitação"
+
+    def __str__(self):
+        return "Configuração Global de Solicitações"

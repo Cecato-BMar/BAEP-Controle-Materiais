@@ -6,8 +6,12 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
 from django.http import HttpResponseForbidden
-from .models import Solicitacao, ItemSolicitacao
+from .models import Solicitacao, ItemSolicitacao, ConfiguracaoSolicitacao
 from estoque.models import Produto
+
+def get_config_solicitacao():
+    config, created = ConfiguracaoSolicitacao.objects.get_or_create(id=1)
+    return config
 
 class MinhasSolicitacoesView(LoginRequiredMixin, ListView):
     model = Solicitacao
@@ -39,6 +43,7 @@ class CatalogoMateriaisView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         from estoque.models import Categoria
         context['categorias'] = Categoria.objects.filter(ativo=True)
+        context['config'] = get_config_solicitacao()
         return context
 
 class VerCarrinhoView(LoginRequiredMixin, TemplateView):
@@ -142,6 +147,24 @@ class GerenciarSolicitacoesView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Solicitacao.objects.all().order_by('-data_solicitacao')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['config'] = get_config_solicitacao()
+        return context
+
+@login_required
+def toggle_visibilidade_estoque(request):
+    if not (request.user.is_superuser or request.user.groups.filter(name='materiais').exists()):
+        return HttpResponseForbidden("Acesso negado.")
+    
+    config = get_config_solicitacao()
+    config.exibir_quantidade_disponivel = not config.exibir_quantidade_disponivel
+    config.save()
+    
+    status = "ativada" if config.exibir_quantidade_disponivel else "desativada"
+    messages.success(request, f"Visualização de estoque {status} com sucesso.")
+    return redirect('solicitacoes:gestao_lista')
 
 @login_required
 @transaction.atomic
