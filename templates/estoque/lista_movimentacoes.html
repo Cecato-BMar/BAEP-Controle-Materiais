@@ -136,6 +136,12 @@
                                 {% else %}
                                     <span class="text-muted italic small">N/A</span>
                                 {% endif %}
+                                
+                                {% if mov.documento_referencia %}
+                                    <small class="d-block mt-1 text-primary fw-bold" style="font-size: 0.75rem;">
+                                        <i class="fas fa-file-invoice me-1"></i> {{ mov.documento_referencia }}
+                                    </small>
+                                {% endif %}
                             </td>
                             <td class="px-4 text-end">
                                 {% if mov.tipo_movimentacao == 'SAIDA' %}

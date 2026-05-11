@@ -187,12 +187,14 @@ def mudar_status_solicitacao(request, pk, novo_status):
                     item.quantidade_atendida = qtd_atendida
                     item.save()
                     
-                    # Buscar o Policial vinculado ao usuário (se existir)
-                    policial = None
-                    try:
-                        policial = solicitacao.solicitante.perfil.policial
-                    except:
-                        pass
+                    # Priorizar o policial_requisitante da própria solicitação
+                    # Se não houver, tenta buscar o vinculado ao usuário (legado/fallback)
+                    policial = solicitacao.policial_requisitante
+                    if not policial:
+                        try:
+                            policial = solicitacao.solicitante.perfil.policial
+                        except:
+                            pass
 
                     # Criar registro formal de movimentação de saída
                     MovimentacaoEstoque.objects.create(
@@ -200,6 +202,7 @@ def mudar_status_solicitacao(request, pk, novo_status):
                         tipo_movimentacao='SAIDA',
                         subtipo='REQUISICAO',
                         quantidade=Decimal(qtd_atendida),
+                        orgao_requisitante=solicitacao.orgao_requisitante, # Adicionado campo destino
                         militar_requisitante=policial,
                         usuario=request.user,  # Auditoria: Quem entregou
                         documento_referencia=f"SOLIC-# {solicitacao.id}",

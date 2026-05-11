@@ -1598,7 +1598,7 @@ def exportar_recibo_saida_pdf(request):
     info_data = [
         [Paragraph(f"<b>Controle:</b> #{mov.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {local_data_hora.strftime('%d/%m/%Y')}", body_style)],
         [Paragraph(f"<b>Hora:</b> {local_data_hora.strftime('%H:%M')}", body_style), Paragraph(f"<b>Usuário:</b> {mov.usuario.username}", body_style)],
-        [Paragraph(f"<b>Finalidade:</b> {mov.subtipo}", body_style), Paragraph("", body_style)]
+        [Paragraph(f"<b>Finalidade:</b> {mov.get_subtipo_display()}", body_style), Paragraph(f"<b>Ref:</b> {mov.documento_referencia or '—'}", body_style)]
     ]
     info_table = Table(info_data, colWidths=[6.4*cm, 6.4*cm])
     info_table.setStyle(TableStyle([
@@ -1611,23 +1611,23 @@ def exportar_recibo_saida_pdf(request):
     p_efetivo = mov.militar_requisitante
     p_adm = mov.militar_administrativo
 
+    pol_data = []
     if p_efetivo:
-        pol_data = [
-            [Paragraph(f"<b>Nome:</b> {p_efetivo.nome}", body_style)],
-            [Paragraph(f"<b>RE:</b> {p_efetivo.re}          <b>Posto:</b> {p_efetivo.get_posto_display()}", body_style)]
-        ]
+        pol_data.append([Paragraph(f"<b>Nome:</b> {p_efetivo.get_posto_display()} {p_efetivo.nome}", body_style)])
+        pol_data.append([Paragraph(f"<b>RE:</b> {p_efetivo.re}", body_style)])
         re_para_assinatura = p_efetivo.re
     elif p_adm:
-        pol_data = [
-            [Paragraph(f"<b>Nome:</b> {p_adm.nome_completo or p_adm.qra}", body_style)],
-            [Paragraph(f"<b>RE:</b> {p_adm.re}          <b>QRA:</b> {p_adm.qra}", body_style)]
-        ]
+        pol_data.append([Paragraph(f"<b>Nome:</b> {p_adm.nome_completo or p_adm.qra}", body_style)])
+        pol_data.append([Paragraph(f"<b>RE:</b> {p_adm.re}          <b>QRA:</b> {p_adm.qra}", body_style)])
         re_para_assinatura = p_adm.re
     else:
-        pol_data = [
-            [Paragraph(f"<b>Órgão:</b> {mov.orgao_requisitante.nome if mov.orgao_requisitante else 'Não informado'}", body_style)]
-        ]
         re_para_assinatura = "________________"
+
+    if mov.orgao_requisitante:
+        pol_data.append([Paragraph(f"<b>Destino/Seção:</b> {mov.orgao_requisitante.nome} ({mov.orgao_requisitante.sigla})", body_style)])
+    
+    if not pol_data:
+        pol_data = [[Paragraph("Não informado", body_style)]]
         
     pol_table = Table(pol_data, colWidths=[12.8*cm])
     pol_table.setStyle(TableStyle([
