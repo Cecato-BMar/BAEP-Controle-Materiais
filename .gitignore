@@ -2,29 +2,62 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
+.Python
 
 # Django
 *.sqlite3
 media/
 staticfiles/
+logs/
 
-# Environment
+# Ambiente virtual
 .env
 .venv/
 venv/
 ENV/
+env/
 python_env/
 
-# IDE
+# IDE / Editores
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
 
-# Binaries / installers
+# Binários / Instaladores
 *.exe
+*.msi
+
+# Arquivos sensíveis
+credenciais.txt
+private_key.pem
+
+# Arquivos temporários e de desenvolvimento
+scratch/
+batch_create_templates.py
+check_templates.py
+inspect_excel.py
+inspect_excel_direct.py
+inspect_pdf.py
+import_pdf_materials.py
+lcm_diversos_categorizado.xml
+
+# Arquivos de dados brutos (não devem ir para repositório)
+*.xls
+*.xlsx
+
+# Certificados
+*.crt
+*.key
+*.pfx
+*.p12
