@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title SIS LOGISTICA 2 BAEP - Servidor de Producao
 
 echo.
