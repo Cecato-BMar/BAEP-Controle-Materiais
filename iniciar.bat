@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 > nul
 title SIS LOGISTICA 2 BAEP - Servidor de Producao
 
 echo.
@@ -31,7 +32,7 @@ if %errorlevel% neq 0 (
 
 echo [4/4] Iniciando servidor web (0.0.0.0:8000)...
 echo.
-echo  Acesse: http://10.43.19.224:8000
+echo  Acesse: http://localhost:8000 ou http://10.43.19.224:8000
 echo  Ctrl+C para encerrar o servidor.
 echo.
 .\python_env\tools\python.exe manage.py runserver 0.0.0.0:8000

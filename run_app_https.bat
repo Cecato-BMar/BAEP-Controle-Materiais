@@ -1,18 +1,17 @@
 @echo off
-chcp 65001 > nul
-title SIS LOGÍSTICA 2ºBAEP — Servidor HTTPS
+title SIS LOGISTICA 2 BAEP - Servidor HTTPS
 
 echo.
 echo ============================================================
-echo  SIS LOGÍSTICA 2º BAEP — Servidor HTTPS (SSL)
-echo  Versão 2.2  ^|  Porta 8443
+echo  SIS LOGISTICA 2 BAEP - Servidor HTTPS (SSL)
+echo  Versao 2.2  ^|  Porta 8443
 echo ============================================================
 echo.
 
-echo [1/3] Aplicando migrações do banco de dados...
+echo [1/3] Aplicando migracoes do banco de dados...
 .\python_env\tools\python.exe manage.py migrate --run-syncdb
 
-echo [2/3] Coletando arquivos estáticos...
+echo [2/3] Coletando arquivos estaticos...
 .\python_env\tools\python.exe manage.py collectstatic --noinput
 
 echo [3/3] Iniciando servidor HTTPS (0.0.0.0:8443)...

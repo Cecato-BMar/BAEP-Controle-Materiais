@@ -16,8 +16,7 @@
 
             <div class="card border-0 shadow-sm mb-5 text-start">
                 <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Resumo da Movimentação (#{{
-                        mov.pk|stringformat:"06d" }})</h6>
+                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Resumo da Movimentação (#{{ mov.pk|stringformat:"06d" }})</h6>
                     <div class="d-flex align-items-center mb-4">
                         <div
                             class="avatar-sm bg-light rounded-circle me-3 d-flex align-items-center justify-content-center">
@@ -25,8 +24,7 @@
                         </div>
                         <div>
                             <div class="fw-bold text-navy">{{ mov.produto.nome }}</div>
-                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{
-                                mov.quantidade|floatformat }}</small>
+                            <small class="text-muted">Código: {{ mov.produto.codigo }} | Quantidade: {{ mov.quantidade|floatformat }}</small>
                         </div>
                     </div>
 
