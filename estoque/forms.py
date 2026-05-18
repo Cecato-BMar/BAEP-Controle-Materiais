@@ -470,7 +470,7 @@ class EntradaMaterialForm(forms.ModelForm):
             'cor', 'unidade_medida', 'unidade_fornecimento',
             'quantidade', 'conta_patrimonial', 'localizacao_fisica',
             'fornecedor', 'valor_unitario',
-            'lote', 'nota_fiscal', 'observacoes',
+            'documento_referencia', 'nota_fiscal', 'observacoes',
         ]
         widgets = {
             'produto': forms.Select(attrs={'class': 'form-select', 'id': 'id_produto_entrada'}),
@@ -483,7 +483,10 @@ class EntradaMaterialForm(forms.ModelForm):
             'conta_patrimonial': forms.Select(attrs={'class': 'form-select'}),
             'localizacao_fisica': forms.Select(attrs={'class': 'form-select'}),
             'fornecedor': forms.Select(attrs={'class': 'form-select'}),
-            'lote': forms.Select(attrs={'class': 'form-select'}),
+            'documento_referencia': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: 2024NE001234'
+            }),
             'observacoes': forms.Textarea(attrs={'rows': 2}),
         }
 
@@ -498,6 +501,10 @@ class EntradaMaterialForm(forms.ModelForm):
         self.fields['data_movimentacao'].initial = timezone.now().date()
         # Data não pode ser retroativa por padrão
         self.fields['data_movimentacao'].widget.attrs['max'] = timezone.now().date().isoformat()
+        # Renomear label do documento_referencia para NE - Nota de Empenho
+        self.fields['documento_referencia'].label = _('NE — Nota de Empenho')
+        self.fields['documento_referencia'].required = False
+        self.fields['documento_referencia'].help_text = _('Número da Nota de Empenho vinculada a esta entrada')
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -529,7 +536,7 @@ class EntradaMaterialForm(forms.ModelForm):
                 css_class='row'
             ),
             Row(
-                Column('lote', css_class='form-group col-md-4 mb-0'),
+                Column('documento_referencia', css_class='form-group col-md-4 mb-0'),
                 Column('nota_fiscal', css_class='form-group col-md-4 mb-0'),
                 css_class='row'
             ),

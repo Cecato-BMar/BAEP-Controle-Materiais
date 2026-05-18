@@ -104,7 +104,9 @@
                                 <a href="{% url 'estoque:detalhe_produto' mov.produto.id %}" class="fw-bold text-decoration-none text-dark">
                                     {{ mov.produto.nome }}
                                 </a>
-                                {% if mov.lote %}
+                                {% if mov.tipo_movimentacao == 'ENTRADA' and mov.documento_referencia %}
+                                    <br><small class="badge bg-light text-dark border"><i class="fas fa-file-invoice-dollar me-1"></i> NE: {{ mov.documento_referencia }}</small>
+                                {% elif mov.lote %}
                                     <br><small class="badge bg-light text-dark border"><i class="fas fa-barcode me-1"></i> Lote: {{ mov.lote.numero_lote }}</small>
                                 {% endif %}
                             </td>

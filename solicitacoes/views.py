@@ -223,7 +223,9 @@ def mudar_status_solicitacao(request, pk, novo_status):
 @login_required
 def visualizar_recibo(request, pk):
     solicitacao = get_object_or_404(Solicitacao, pk=pk)
-    if not request.user.is_staff and solicitacao.solicitante != request.user:
+    eh_gestor = request.user.is_staff or request.user.is_superuser or \
+                request.user.groups.filter(name='materiais').exists()
+    if not eh_gestor and solicitacao.solicitante != request.user:
         return HttpResponseForbidden("Acesso negado.")
     
     return render(request, 'solicitacoes/recibo_entrega.html', {

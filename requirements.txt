@@ -29,6 +29,7 @@ reportlab
 # ---- Importação de planilhas Excel ----
 xlrd
 openpyxl
+pandas
 
 # ---- QR Code ----
 qrcode[pil]

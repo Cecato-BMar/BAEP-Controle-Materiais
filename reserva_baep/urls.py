@@ -52,8 +52,9 @@ urlpatterns = [
     path('mapa-legacy/', lambda r: redirect('telematica:dashboard'), name='mapa_rastreamento'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve arquivos de mídia sempre (rede interna/produção local)
+# Em produção real com Nginx/Apache, configure o servidor web para servir /media/
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Configuração de handlers para páginas de erro
 handler404 = views.handler404
