@@ -41,7 +41,9 @@ Pillow>=10.0
 # ---- Servidor WSGI para Windows (IIS) ----
 wfastcgi
 
-# ---- Produção (Linux/Docker/Coolify/PostgreSQL) ----
-psycopg2-binary>=2.9
-dj-database-url>=2.1
-gunicorn>=21.2
+
+# ----Manipulação de Arquivos ----
+pandas
+openpyxl
+xlrd
+>>>>>>> 25530ee (Configuração Docker para deploy local)
