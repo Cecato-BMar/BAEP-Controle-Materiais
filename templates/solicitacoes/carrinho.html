@@ -64,12 +64,20 @@
                             <label class="form-label fw-bold text-navy small">
                                 <i class="fas fa-university me-1"></i> Seção / Companhia de Destino
                             </label>
-                            <select name="orgao_requisitante" class="form-select border-0 bg-light shadow-none" required>
+                            <select name="orgao_requisitante" id="id_orgao_requisitante" class="form-select border-0 bg-light shadow-none" required>
                                 <option value="">Selecione a unidade...</option>
                                 {% for orgao in orgaos %}
                                 <option value="{{ orgao.id }}">{{ orgao.nome }}</option>
                                 {% endfor %}
                             </select>
+                            
+                            <!-- Div especificação da outra unidade -->
+                            <div class="mt-3" id="div_descricao_outra_unidade" style="display: none;">
+                                <label class="form-label fw-bold text-navy small">
+                                    <i class="fas fa-building me-1"></i> Especificação da Outra Unidade
+                                </label>
+                                <input type="text" name="descricao_outra_unidade" id="id_descricao_outra_unidade" class="form-control border-0 bg-light shadow-none" placeholder="Ex: 3º BAEP, CPI-6, etc.">
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-navy small">
@@ -151,6 +159,25 @@ $(document).ready(function() {
             searching: function() { return "Buscando..."; }
         }
     });
+
+    const orgaoSelect = $('#id_orgao_requisitante');
+    const divOutraUnidade = $('#div_descricao_outra_unidade');
+    const inputOutraUnidade = $('#id_descricao_outra_unidade');
+
+    function checkOrgao() {
+        const selectedText = orgaoSelect.find('option:selected').text().toUpperCase();
+        if (selectedText.indexOf('OUTRA UNIDADE') !== -1 || selectedText.indexOf('OUTRA') !== -1) {
+            divOutraUnidade.show();
+            inputOutraUnidade.prop('required', true);
+        } else {
+            divOutraUnidade.hide();
+            inputOutraUnidade.prop('required', false);
+            inputOutraUnidade.val('');
+        }
+    }
+
+    orgaoSelect.on('change', checkOrgao);
+    checkOrgao();
 });
 </script>
 {% endblock %}

@@ -581,16 +581,24 @@ class MovimentacaoEstoque(models.Model):
                                     related_name='movimentacoes_estoque',
                                     verbose_name=_('Fornecedor'))
 
-    # Campos de Saída MATERIAL DE CONSUMO 3
+    # Campos de Saída MATERIAL DE CONSUMO
     orgao_requisitante = models.ForeignKey(OrgaoRequisitante, on_delete=models.SET_NULL,
                                             null=True, blank=True,
                                             verbose_name=_('Órgão Requisitante'))
+    descricao_outra_unidade = models.CharField(max_length=150, blank=True, null=True,
+                                               verbose_name=_('Especificação da Outra Unidade'))
     militar_requisitante = models.ForeignKey('policiais.Policial', on_delete=models.SET_NULL,
                                               null=True, blank=True,
                                               verbose_name=_('Policial do Efetivo (BAEP)'))
     militar_administrativo = models.ForeignKey(MilitarRequisitante, on_delete=models.SET_NULL,
                                                 null=True, blank=True,
                                                 verbose_name=_('Militar Cadastrado (Adm)'))
+
+    # Controle de Embalagem
+    quantidade_embalagens = models.DecimalField(_('Quantidade de Embalagens'), max_digits=10, decimal_places=2,
+                                                null=True, blank=True)
+    itens_por_embalagem = models.IntegerField(_('Itens por Embalagem'), null=True, blank=True)
+
 
     # Quantidades e Valores
     quantidade = models.DecimalField(_('Quantidade'), max_digits=10, decimal_places=2,
@@ -603,6 +611,8 @@ class MovimentacaoEstoque(models.Model):
     documento_referencia = models.CharField(_('Documento Referência'), max_length=100,
                                              blank=True, null=True)
     nota_fiscal = models.CharField(_('Nota Fiscal'), max_length=100, blank=True, null=True)
+    recibo_assinado = models.FileField(upload_to='recibos_assinados/', blank=True, null=True,
+                                        verbose_name=_('Recibo Assinado/Escaneado'))
 
     # Auditoria
     observacoes = models.TextField(_('Observações'), blank=True, null=True)

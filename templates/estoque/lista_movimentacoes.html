@@ -11,16 +11,16 @@
                 <div>
                     <h3 class="fw-bold mb-0">
                         <i class="fas fa-history me-2 text-warning"></i>
-                        Histórico de Movimentações (MATERIAL DE CONSUMO 2/3)
+                        Histórico de Movimentações (MATERIAL DE CONSUMO)
                     </h3>
                     <p class="mb-0 opacity-75 small">Rastreabilidade completa de todas as entradas e saídas de materiais de consumo.</p>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{% url 'estoque:criar_entrada_material' %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
-                        <i class="fas fa-arrow-down me-1"></i> Nova Entrada (2)
+                        <i class="fas fa-arrow-down me-1"></i> Nova Entrada
                     </a>
                     <a href="{% url 'estoque:criar_saida_material' %}" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
-                        <i class="fas fa-arrow-up me-1"></i> Nova Saída (3)
+                        <i class="fas fa-arrow-up me-1"></i> Nova Saída
                     </a>
                 </div>
             </div>
@@ -113,6 +113,11 @@
                             <td>
                                 <strong class="fs-5">{{ mov.quantidade|floatformat:0 }}</strong>
                                 <small class="text-muted">{{ mov.unidade_medida.sigla }}</small>
+                                {% if mov.quantidade_embalagens and mov.itens_por_embalagem %}
+                                    <br><small class="text-muted" style="font-size: 0.75rem;">
+                                        ({{ mov.quantidade_embalagens|floatformat:"-2" }} {% if mov.unidade_fornecimento %}{{ mov.unidade_fornecimento.nome }}{% else %}Cx/Pct{% endif %} x {{ mov.itens_por_embalagem }})
+                                    </small>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -130,6 +135,9 @@
                                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">
                                         {{ mov.orgao_requisitante.sigla }}
                                     </span>
+                                    {% if mov.orgao_requisitante.sigla == 'OUTRA' and mov.descricao_outra_unidade %}
+                                        <small class="d-block text-dark fw-bold">{{ mov.descricao_outra_unidade }}</small>
+                                    {% endif %}
                                     {% if mov.militar_requisitante %}
                                         <small class="d-block text-muted"><strong>RE:</strong> {{ mov.militar_requisitante.re }} - {{ mov.militar_requisitante.nome }}</small>
                                     {% endif %}
@@ -150,6 +158,18 @@
                                     <a href="{% url 'estoque:exportar_recibo_saida_pdf' %}?id={{ mov.id }}" target="_blank" class="btn btn-outline-danger btn-sm" title="Gerar Recibo PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
+                                    {% if mov.recibo_assinado %}
+                                        <a href="{{ mov.recibo_assinado.url }}" target="_blank" class="btn btn-success btn-sm ms-1" title="Ver Recibo Assinado">
+                                            <i class="fas fa-file-signature"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-success btn-sm ms-1" onclick="abrirModalUpload('{{ mov.id }}')" title="Substituir Recibo Assinado">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-outline-primary btn-sm ms-1" onclick="abrirModalUpload('{{ mov.id }}')" title="Salvar Recibo Assinado">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         </tr>
@@ -201,6 +221,45 @@
     </div>
 </div>
 
+<!-- Modal de Upload de Recibo Assinado -->
+<div class="modal fade" id="uploadReciboModal" tabindex="-1" aria-labelledby="uploadReciboModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="uploadReciboForm" method="post" enctype="multipart/form-data" action="{% url 'estoque:upload_recibo_assinado' %}">
+            {% csrf_token %}
+            <input type="hidden" name="movimentacao_id" id="modalMovimentacaoId">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-dark text-white" style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                    <h5 class="modal-title fw-bold" id="uploadReciboModalLabel">
+                        <i class="fas fa-file-signature me-2 text-warning"></i>Salvar Recibo Assinado
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Selecione o arquivo do recibo assinado e escaneado (PDF, PNG, JPG ou JPEG) para vincular a esta movimentação.</p>
+                    <div class="mb-3">
+                        <label for="id_recibo_file" class="form-label fw-bold small text-muted">Arquivo do Recibo</label>
+                        <input type="file" name="recibo_file" id="id_recibo_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light" style="border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;">
+                    <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark btn-sm px-4 rounded-pill fw-bold">
+                        <i class="fas fa-save me-1 text-warning"></i>Salvar Recibo
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalUpload(movId) {
+        document.getElementById('modalMovimentacaoId').value = movId;
+        var myModal = new bootstrap.Modal(document.getElementById('uploadReciboModal'));
+        myModal.show();
+    }
+</script>
+
 <style>
     .avatar-circle {
         width: 25px;
@@ -218,7 +277,7 @@
     
     .table tbody tr:hover {
         background-color: rgba(241, 196, 15, 0.05) !important;
-        cursor: pointer;
+        /* cursor: pointer; */
     }
 </style>
 {% endblock %}

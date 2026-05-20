@@ -16,7 +16,7 @@ urlpatterns = [
     path('entrada/', views.criar_entrada_material, name='criar_entrada_material'),
 
     # =========================================================================
-    # Saída de Materiais (MATERIAL DE CONSUMO 3)
+    # Saída de Materiais (MATERIAL DE CONSUMO)
     # =========================================================================
     path('saida/', views.criar_saida_material, name='criar_saida_material'),
     path('saida/confirmacao/', views.confirmacao_saida_material, name='confirmacao_saida_material'),
@@ -110,6 +110,7 @@ urlpatterns = [
     # =========================================================================
     path('movimentacoes/', views.lista_movimentacoes, name='lista_movimentacoes'),
     path('movimentacoes/nova/', views.criar_movimentacao, name='criar_movimentacao'),
+    path('movimentacoes/upload-recibo/', views.upload_recibo_assinado, name='upload_recibo_assinado'),
 
     # =========================================================================
     # Inventários (MATERIAL DE CONSUMO 1.5)
