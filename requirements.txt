@@ -42,8 +42,6 @@ Pillow>=10.0
 wfastcgi
 
 
-# ----Manipulação de Arquivos ----
-pandas
-openpyxl
-xlrd
->>>>>>> 25530ee (Configuração Docker para deploy local)
+# ----Configuração do Servidor gunicorn ----
+gunicorn
+psycopg2-binary
