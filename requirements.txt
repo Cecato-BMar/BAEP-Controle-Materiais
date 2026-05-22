@@ -1,47 +1,14 @@
-# ============================================================
-# SIS LOGÍSTICA 2º BAEP — Requirements de Produção
-# Versão 2.2 | Maio 2026
-# ============================================================
-
-# ---- Framework principal ----
-Django>=5.0,<5.3
-
-# ---- Servidor SSL de desenvolvimento ----
-django-sslserver
-
-# ---- Formulários ----
-django-crispy-forms
-crispy-bootstrap5
-
-# ---- Arquivos estáticos em produção ----
-whitenoise
-
-# ---- Variáveis de ambiente ----
-python-dotenv
-
-# ---- Licenciamento (JWT + RSA) ----
-PyJWT>=2.8
-cryptography>=41.0
-
-# ---- Geração de PDFs ----
-reportlab
-
-# ---- Importação de planilhas Excel ----
-xlrd
-openpyxl
-pandas
-
-# ---- QR Code ----
-qrcode[pil]
-Pillow
-
-# ---- Processamento de imagens ----
-Pillow>=10.0
-
-# ---- Servidor WSGI para Windows (IIS) ----
-wfastcgi
-
-
-# ----Configuração do Servidor gunicorn ----
+Django>=5.0,<6.0
 gunicorn
 psycopg2-binary
+dj-database-url
+whitenoise
+Pillow
+python-dotenv
+django-crispy-forms
+crispy-bootstrap5
+xlrd
+pandas
+reportlab
+PyJWT
+

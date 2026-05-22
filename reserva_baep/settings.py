@@ -8,6 +8,7 @@ import os
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 # ---------------------------------------------------------------------------
 # Diretório base do projeto
@@ -66,8 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sslserver',
-
+    
     # Bibliotecas de terceiros
     'crispy_forms',
     'crispy_bootstrap5',
@@ -130,46 +130,29 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 DB_HOST = os.getenv('DB_HOST')
 
 if DATABASE_URL or DB_HOST:
-    try:
-        import dj_database_url
-        if DATABASE_URL:
-            DATABASES = {
-                'default': dj_database_url.config(
-                    default=DATABASE_URL,
-                    conn_max_age=600,
-                    conn_health_checks=True,
-                )
-            }
-        else:
-            DATABASES = {
+        # Database
+	# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+	try:
+    	    DATABASES = {
+        	'default': dj_database_url.config(
+            	    default=os.getenv(
+                	'DATABASE_URL',
+                	'postgresql://postgres:postgres@db:5432/baep_db'
+            ),
+            conn_max_age=600
+        )
+    }
+
+	except Exception:
+    	    DATABASES = {
                 'default': {
                     'ENGINE': 'django.db.backends.postgresql',
-                    'NAME': os.getenv('DB_NAME', 'baep_logistica'),
-                    'USER': os.getenv('DB_USER', 'postgres'),
-                    'PASSWORD': os.getenv('DB_PASSWORD', ''),
-                    'HOST': DB_HOST,
-                    'PORT': os.getenv('DB_PORT', '5432'),
-                }
-            }
-    except ImportError:
-        logging.warning("Bibliotecas do PostgreSQL não instaladas no ambiente local. Fazendo fallback para SQLite.")
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-                'OPTIONS': {
-                    'timeout': 20,
-                },
-            }
-        }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            'OPTIONS': {
-                'timeout': 20,
-            },
+                    'NAME': os.getenv('POSTGRES_DB', 'baep_db'),
+                    'USER': os.getenv('POSTGRES_USER', 'postgres'),
+                    'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+                    'HOST': os.getenv('POSTGRES_HOST', 'db'),
+                    'PORT': os.getenv('POSTGRES_PORT', '5432'),
         }
     }
 

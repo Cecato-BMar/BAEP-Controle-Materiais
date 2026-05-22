@@ -1,4 +1,19 @@
 services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: baep_postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_DB: baep_db
+      POSTGRES_USER: baep_user
+      POSTGRES_PASSWORD: baep_password
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   baep:
     build: .
     container_name: baep_app
@@ -14,9 +29,15 @@ services:
     env_file:
       - .env
 
+    depends_on:
+      - db
+
     command: >
       sh -c "
       python manage.py migrate &&
       python manage.py collectstatic --noinput &&
       gunicorn --bind 0.0.0.0:8000 reserva_baep.wsgi:application
       "
+
+volumes:
+  postgres_data:
