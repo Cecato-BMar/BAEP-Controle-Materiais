@@ -127,11 +127,21 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # Banco de Dados
 # ---------------------------------------------------------------------------
 DATABASE_URL = os.getenv('DATABASE_URL')
+
+# --- DIAGNÓSTICO TEMPORÁRIO (Aparecerá nos logs do Coolify) ---
+print(f"🔍 [DIAGNOSTICO] DATABASE_URL esta presente no ambiente? {DATABASE_URL is not None}")
+if DATABASE_URL:
+    print(f"🔍 [DIAGNOSTICO] DATABASE_URL começa com http/https? {DATABASE_URL.startswith(('http://', 'https://'))}")
+    print(f"🔍 [DIAGNOSTICO] DATABASE_URL começa com postgres? {DATABASE_URL.startswith(('postgres://', 'postgresql://'))}")
+    print(f"🔍 [DIAGNOSTICO] Comprimento da DATABASE_URL: {len(DATABASE_URL)} caracteres")
+
+POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+print(f"🔍 [DIAGNOSTICO] POSTGRES_HOST esta presente no ambiente? {POSTGRES_HOST is not None}")
+# -------------------------------------------------------------
+
 # Ignora se for uma URL HTTP do site (comum o Coolify preencher automaticamente com o domínio público)
 if DATABASE_URL and not (DATABASE_URL.startswith('postgres://') or DATABASE_URL.startswith('postgresql://')):
     DATABASE_URL = None
-
-POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 
 if DATABASE_URL:
     DATABASES = {
