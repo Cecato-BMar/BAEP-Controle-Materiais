@@ -126,16 +126,17 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # ---------------------------------------------------------------------------
 # Banco de Dados
 # ---------------------------------------------------------------------------
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DJANGO_DATABASE_URL') or os.getenv('DATABASE_URL')
 
 # --- DIAGNÓSTICO TEMPORÁRIO VIA LOGGER (Aparecerá com destaque nos logs do Coolify) ---
 import logging
 logger_debug = logging.getLogger('django')
-logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL esta presente no ambiente? {DATABASE_URL is not None}")
+logger_debug.warning(f"🔍 [DIAGNOSTICO] DJANGO_DATABASE_URL esta presente? {os.getenv('DJANGO_DATABASE_URL') is not None}")
+logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL padrao esta presente? {os.getenv('DATABASE_URL') is not None}")
 if DATABASE_URL:
-    logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL começa com http/https? {DATABASE_URL.startswith(('http://', 'https://'))}")
-    logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL começa com postgres? {DATABASE_URL.startswith(('postgres://', 'postgresql://'))}")
-    logger_debug.warning(f"🔍 [DIAGNOSTICO] Comprimento da DATABASE_URL: {len(DATABASE_URL)} caracteres")
+    logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL final começa com http/https? {DATABASE_URL.startswith(('http://', 'https://'))}")
+    logger_debug.warning(f"🔍 [DIAGNOSTICO] DATABASE_URL final começa com postgres? {DATABASE_URL.startswith(('postgres://', 'postgresql://'))}")
+    logger_debug.warning(f"🔍 [DIAGNOSTICO] Comprimento da DATABASE_URL final: {len(DATABASE_URL)} caracteres")
 
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 logger_debug.warning(f"🔍 [DIAGNOSTICO] POSTGRES_HOST esta presente no ambiente? {POSTGRES_HOST is not None}")
