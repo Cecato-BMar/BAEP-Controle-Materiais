@@ -8,6 +8,7 @@ python-dotenv
 django-crispy-forms
 crispy-bootstrap5
 xlrd
+openpyxl
 pandas
 reportlab
 PyJWT
