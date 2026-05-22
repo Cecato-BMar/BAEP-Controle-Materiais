@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Instalação com timeout alto e retentativas para evitar falhas em conexões instáveis
+RUN pip install --default-timeout=100 --retries=5 -r requirements.txt
 
 EXPOSE 8000
 
