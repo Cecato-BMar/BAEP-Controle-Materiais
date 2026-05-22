@@ -127,32 +127,31 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # Banco de Dados
 # ---------------------------------------------------------------------------
 DATABASE_URL = os.getenv('DATABASE_URL')
-DB_HOST = os.getenv('DB_HOST')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 
-if DATABASE_URL or DB_HOST:
-        # Database
-	# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-	try:
-    	    DATABASES = {
-        	'default': dj_database_url.config(
-            	    default=os.getenv(
-                	'DATABASE_URL',
-                	'postgresql://postgres:postgres@db:5432/baep_db'
-            ),
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
             conn_max_age=600
         )
     }
-
-	except Exception:
-    	    DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.postgresql',
-                    'NAME': os.getenv('POSTGRES_DB', 'baep_db'),
-                    'USER': os.getenv('POSTGRES_USER', 'postgres'),
-                    'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-                    'HOST': os.getenv('POSTGRES_HOST', 'db'),
-                    'PORT': os.getenv('POSTGRES_PORT', '5432'),
+elif POSTGRES_HOST:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': POSTGRES_HOST,
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -220,7 +219,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv(
     'DEFAULT_FROM_EMAIL',
-    'SIS LOGÍSTICA 2ºBAEP <noreply@reservabaep.com.br>'
+    'SIS LOGÍSTICA 2º BAEP <noreply@reservabaep.com.br>'
 )
 
 # ---------------------------------------------------------------------------
