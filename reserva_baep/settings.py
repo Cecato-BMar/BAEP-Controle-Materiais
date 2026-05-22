@@ -127,6 +127,10 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # Banco de Dados
 # ---------------------------------------------------------------------------
 DATABASE_URL = os.getenv('DATABASE_URL')
+# Ignora se for uma URL HTTP do site (comum o Coolify preencher automaticamente com o domínio público)
+if DATABASE_URL and not (DATABASE_URL.startswith('postgres://') or DATABASE_URL.startswith('postgresql://')):
+    DATABASE_URL = None
+
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 
 if DATABASE_URL:
