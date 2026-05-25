@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Concluir Manutenção - {{ manutencao.viatura.prefixo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:dashboard' %}">Frota</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}">{{ manutencao.viatura.prefixo }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Concluir</li>
+                </ol>
+            </nav>
+            <h2 class="text-success"><i class="fas fa-clipboard-check me-2"></i>Concluir Manutenção — {{ manutencao.viatura.prefixo }}</h2>
+            <p class="text-muted">Revise os dados abaixo e emita o parecer para aprovação e conclusão do serviço.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Resumo da Manutenção -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="card-title text-success mb-0"><i class="fas fa-info-circle me-2"></i>Resumo do Serviço</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0"><strong>Viatura:</strong> {{ manutencao.viatura.prefixo }} ({{ manutencao.viatura.placa }})</li>
+                        <li class="list-group-item px-0"><strong>Tipo:</strong> {{ manutencao.get_tipo_display }}</li>
+                        <li class="list-group-item px-0"><strong>Data Início:</strong> {{ manutencao.data_inicio|date:"d/m/Y" }}</li>
+                        <li class="list-group-item px-0"><strong>Oficina:</strong> {{ manutencao.oficina_fk.nome|default:"Não informada" }}</li>
+                        <li class="list-group-item px-0">
+                            <strong>Custos Informados:</strong><br>
+                            Peças: R$ {{ manutencao.custo_pecas|default:"0,00" }}<br>
+                            Mão de Obra: R$ {{ manutencao.custo_mao_obra|default:"0,00" }}<br>
+                            <span class="text-danger fw-bold">Total: R$ {{ manutencao.custo_total }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulário de Conclusão -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow border-0">
+                <div class="card-body p-4">
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i> 
+                        <strong>Atenção:</strong> Ao aprovar e concluir, a viatura {{ manutencao.viatura.prefixo }} retornará ao status <strong>DISPONÍVEL</strong> e esta ação será registrada em seu nome.
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}" class="btn btn-secondary me-2">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-double me-2"></i>Aprovar e Concluir Manutenção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

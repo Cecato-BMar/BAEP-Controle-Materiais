@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Histórico de Auditoria - {{ manutencao.viatura.prefixo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:dashboard' %}">Frota</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}">{{ manutencao.viatura.prefixo }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Auditoria</li>
+                </ol>
+            </nav>
+            <h2 class="text-primary"><i class="fas fa-history me-2"></i>Histórico de Auditoria da Manutenção</h2>
+            <p class="text-muted">Registro completo de todas as alterações feitas na manutenção da viatura <strong>{{ manutencao.viatura.prefixo }}</strong>.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="timeline">
+                {% for diff in diferencas %}
+                <div class="card mb-4 shadow-sm border-0 {% if diff.tipo == 'Criação' %}border-start border-success border-4{% else %}border-start border-primary border-4{% endif %}">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if diff.tipo == 'Criação' %}
+                                <span class="badge bg-success"><i class="fas fa-plus me-1"></i>Criação</span>
+                            {% elif diff.tipo == 'Deleted' %}
+                                <span class="badge bg-danger"><i class="fas fa-trash me-1"></i>Exclusão</span>
+                            {% else %}
+                                <span class="badge bg-primary"><i class="fas fa-edit me-1"></i>Alteração</span>
+                            {% endif %}
+                            
+                            <span class="ms-2 fw-bold">{{ diff.data|date:"d/m/Y H:i:s" }}</span>
+                        </div>
+                        <div class="text-muted">
+                            <i class="fas fa-user-circle me-1"></i> Usuário: <strong>{{ diff.usuario.username|default:"Sistema" }}</strong>
+                        </div>
+                    </div>
+                    
+                    {% if diff.mudancas %}
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="25%">Campo Alterado</th>
+                                    <th width="37.5%">Valor Anterior</th>
+                                    <th width="37.5%">Novo Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for change in diff.mudancas %}
+                                <tr>
+                                    <td class="fw-bold">{{ change.field }}</td>
+                                    <td class="text-danger bg-light"><del>{{ change.old|default:"(Vazio)" }}</del></td>
+                                    <td class="text-success bg-light"><strong>{{ change.new|default:"(Vazio)" }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% elif diff.tipo == 'Criação' %}
+                    <div class="card-body">
+                        <p class="text-success mb-0"><i class="fas fa-check-circle me-2"></i>Registro inicial criado no sistema.</p>
+                    </div>
+                    {% else %}
+                    <div class="card-body">
+                        <p class="text-muted mb-0">Nenhuma alteração detectada nos campos monitorados.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Nenhum histórico de alterações encontrado para este registro.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

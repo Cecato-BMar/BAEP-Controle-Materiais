@@ -2,16 +2,26 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Avg, F
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
 from decimal import Decimal
+from datetime import timedelta
 
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca
-from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
-                    AbastecimentoForm, ManutencaoForm, AgendamentoManutencaoForm, MarcaViaturaForm, 
-                    ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm,
-                    SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
-                    PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm)
+from .models import (
+    MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento,
+    Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura,
+    PecaViatura, RetiradaPeca, EvidenciaManutencao, PlanoManutencaoPreventiva
+)
+from .forms import (
+    ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
+    AbastecimentoForm, ManutencaoForm, AgendamentoManutencaoForm, MarcaViaturaForm,
+    ModeloViaturaForm, OficinaForm, ImportarFrotaForm, ChecklistViaturaForm,
+    SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
+    PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm,
+    ConcluirManutencaoForm, CancelarManutencaoForm, EvidenciaManutencaoForm,
+    PlanoManutencaoPreventivaForm
+)
 from reserva_baep.decorators import require_module_permission
 
 import xml.etree.ElementTree as ET
@@ -59,8 +69,7 @@ def dashboard_frota(request):
     manutencoes_abertas = Manutencao.objects.filter(status__in=['ABERTA', 'AGUARDANDO_PECA']).select_related('viatura')
 
     # Agendamentos futuros
-    from django.utils import timezone as tz
-    hoje = tz.now().date()
+    hoje = timezone.now().date()
     agendamentos = Manutencao.objects.filter(status='AGENDADA').select_related('viatura', 'oficina_fk').order_by('data_inicio')
     agendamentos_atrasados = agendamentos.filter(data_inicio__lt=hoje).count()
 
@@ -68,9 +77,106 @@ def dashboard_frota(request):
     ultimos_abastecimentos = Abastecimento.objects.select_related('viatura', 'motorista').order_by('-data_abastecimento')[:5]
 
     # Dados de Peças
-    from django.db.models import F
     pecas_estoque_baixo = PecaViatura.objects.filter(quantidade_estoque__lte=F('limite_minimo'), ativo=True).count()
     ultimas_retiradas = RetiradaPeca.objects.select_related('viatura').order_by('-data_retirada')[:5]
+
+    # =========================================================================
+    # ALERTAS INTELIGENTES (Fase 3)
+    # =========================================================================
+    limite_garantia = hoje + timedelta(days=30)
+    
+    # Garantias vencendo nos próximos 30 dias
+    garantias_vencendo = Manutencao.objects.filter(
+        status='CONCLUIDA',
+        data_validade_garantia__isnull=False,
+        data_validade_garantia__lte=limite_garantia,
+        data_validade_garantia__gte=hoje
+    ).select_related('viatura').order_by('data_validade_garantia')[:10]
+    
+    # Garantias já vencidas (últimos 60 dias) sem nova manutenção
+    garantias_vencidas = Manutencao.objects.filter(
+        status='CONCLUIDA',
+        data_validade_garantia__isnull=False,
+        data_validade_garantia__lt=hoje,
+        data_validade_garantia__gte=hoje - timedelta(days=60)
+    ).select_related('viatura').count()
+    
+    # Manutenções abertas há mais de 30 dias sem conclusão
+    limite_longa = hoje - timedelta(days=30)
+    manutencoes_longas = Manutencao.objects.filter(
+        status__in=['ABERTA', 'AGUARDANDO_PECA'],
+        data_inicio__lte=limite_longa
+    ).select_related('viatura').order_by('data_inicio')[:10]
+    
+    # Alertas de manutenção preventiva (baseado em PlanoManutencaoPreventiva)
+    alertas_preventivas = []
+    planos_ativos = PlanoManutencaoPreventiva.objects.filter(ativo=True).select_related('modelo')
+    for plano in planos_ativos:
+        viaturas_plano = Viatura.objects.filter(
+            modelo=plano.modelo,
+            status__in=['DISPONIVEL', 'EM_USO']
+        )
+        for vtr in viaturas_plano:
+            ultima_prev = Manutencao.objects.filter(
+                viatura=vtr, tipo='PREVENTIVA', status='CONCLUIDA',
+                descricao__icontains=plano.descricao[:30]
+            ).order_by('-data_conclusao').first()
+            
+            alerta = False
+            motivo = ''
+            if plano.intervalo_km and ultima_prev:
+                km_desde = vtr.odometro_atual - ultima_prev.odometro
+                if km_desde >= Decimal(str(plano.intervalo_km)):
+                    alerta = True
+                    motivo = f'{km_desde:,.0f} km desde a última ({plano.descricao})'
+            if plano.intervalo_dias and ultima_prev and ultima_prev.data_conclusao:
+                dias_desde = (hoje - ultima_prev.data_conclusao).days
+                if dias_desde >= plano.intervalo_dias:
+                    alerta = True
+                    motivo = f'{dias_desde} dias desde a última ({plano.descricao})'
+            if not ultima_prev and (plano.intervalo_km or plano.intervalo_dias):
+                alerta = True
+                motivo = f'Nunca realizou: {plano.descricao}'
+            
+            if alerta:
+                alertas_preventivas.append({
+                    'viatura': vtr,
+                    'plano': plano,
+                    'motivo': motivo
+                })
+    
+    # =========================================================================
+    # KPIs DE FROTA (Fase 4)
+    # =========================================================================
+    manutencoes_concluidas = Manutencao.objects.filter(status='CONCLUIDA')
+    
+    # Custo total e médio de manutenções
+    total_custos = manutencoes_concluidas.aggregate(
+        total_pecas=Sum('custo_pecas'),
+        total_mao_obra=Sum('custo_mao_obra'),
+        total_registros=Count('id')
+    )
+    custo_total_frota = (total_custos['total_pecas'] or Decimal('0')) + (total_custos['total_mao_obra'] or Decimal('0'))
+    custo_medio = custo_total_frota / total_custos['total_registros'] if total_custos['total_registros'] else Decimal('0')
+    
+    # Tempo médio em oficina (dias)
+    manut_com_datas = manutencoes_concluidas.filter(data_conclusao__isnull=False)
+    tempos = []
+    for m in manut_com_datas:
+        if m.data_conclusao and m.data_inicio:
+            dias = (m.data_conclusao - m.data_inicio).days
+            tempos.append(dias)
+    tempo_medio_oficina = sum(tempos) / len(tempos) if tempos else 0
+    
+    # Top 5 viaturas mais custosas
+    top_viaturas_custo = (
+        Viatura.objects
+        .annotate(
+            custo_manut=Sum('manutencoes__custo_pecas') + Sum('manutencoes__custo_mao_obra')
+        )
+        .filter(custo_manut__gt=0)
+        .order_by('-custo_manut')[:5]
+    )
 
     context = {
         'total': total,
@@ -87,6 +193,17 @@ def dashboard_frota(request):
         'hoje': hoje,
         'pecas_estoque_baixo': pecas_estoque_baixo,
         'ultimas_retiradas': ultimas_retiradas,
+        # Alertas (Fase 3)
+        'garantias_vencendo': garantias_vencendo,
+        'garantias_vencidas': garantias_vencidas,
+        'manutencoes_longas': manutencoes_longas,
+        'alertas_preventivas': alertas_preventivas[:10],
+        # KPIs (Fase 4)
+        'custo_total_frota': custo_total_frota,
+        'custo_medio': custo_medio,
+        'tempo_medio_oficina': tempo_medio_oficina,
+        'total_manutencoes_concluidas': total_custos['total_registros'] or 0,
+        'top_viaturas_custo': top_viaturas_custo,
     }
     return render(request, 'viaturas/dashboard.html', context)
 
@@ -322,15 +439,32 @@ def detalhe_manutencao(request, pk):
 @login_required
 @require_module_permission('frota')
 def concluir_manutencao(request, pk):
-    man = get_object_or_404(Manutencao, pk=pk, data_conclusao__isnull=True)
-    man.data_conclusao = timezone.now().date()
-    man.status = 'CONCLUIDA'
-    man.save() # O método save do modelo Manutencao já cuida de liberar a viatura
+    """Conclui uma manutenção com formulário de aprovação (POST obrigatório)."""
+    man = get_object_or_404(Manutencao, pk=pk)
     
-    viatura = man.viatura
+    if man.status not in ['ABERTA', 'AGUARDANDO_PECA']:
+        messages.warning(request, 'Esta manutenção não pode ser concluída no status atual.')
+        return redirect('viaturas:detalhe_manutencao', pk=pk)
     
-    messages.success(request, f'Manutenção da viatura {viatura.prefixo} marcada como concluída!')
-    return redirect('viaturas:lista_manutencoes')
+    if request.method == 'POST':
+        form = ConcluirManutencaoForm(request.POST, request.FILES, instance=man)
+        if form.is_valid():
+            man = form.save(commit=False)
+            man.data_conclusao = timezone.now().date()
+            man.status = 'CONCLUIDA'
+            man.aprovado_por = request.user
+            man.data_aprovacao = timezone.now()
+            man.save()
+            
+            messages.success(request, f'Manutenção da viatura {man.viatura.prefixo} concluída e aprovada!')
+            return redirect('viaturas:detalhe_manutencao', pk=pk)
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = ConcluirManutencaoForm(instance=man)
+    
+    return render(request, 'viaturas/form_concluir_manutencao.html', {
+        'form': form, 'manutencao': man
+    })
 
 
 @login_required
@@ -428,12 +562,26 @@ def converter_agendamento(request, pk):
 @login_required
 @require_module_permission('frota')
 def cancelar_agendamento(request, pk):
-    """Cancela um agendamento."""
+    """Cancela um agendamento com justificativa obrigatória (POST)."""
     agend = get_object_or_404(Manutencao, pk=pk, status='AGENDADA')
-    agend.status = 'CANCELADA'
-    agend.save()
-    messages.warning(request, f'Agendamento da viatura {agend.viatura.prefixo} cancelado.')
-    return redirect('viaturas:lista_agendamentos')
+    
+    if request.method == 'POST':
+        form = CancelarManutencaoForm(request.POST, instance=agend)
+        if form.is_valid():
+            man = form.save(commit=False)
+            man.status = 'CANCELADA'
+            man.cancelado_por = request.user
+            man.data_cancelamento = timezone.now()
+            man.save()
+            messages.warning(request, f'Agendamento da viatura {agend.viatura.prefixo} cancelado.')
+            return redirect('viaturas:lista_agendamentos')
+        messages.error(request, 'Informe o motivo do cancelamento.')
+    else:
+        form = CancelarManutencaoForm(instance=agend)
+    
+    return render(request, 'viaturas/form_cancelar_manutencao.html', {
+        'form': form, 'manutencao': agend, 'titulo': 'Cancelar Agendamento'
+    })
 
 
 # =============================================================================
@@ -926,3 +1074,133 @@ def anexar_recibo_retirada(request, pk):
     else:
         form = AnexarReciboRetiradaForm(instance=retirada)
     return render(request, 'viaturas/form_anexar_recibo.html', {'form': form, 'retirada': retirada})
+
+
+# =============================================================================
+# EVIDÊNCIAS DE MANUTENÇÃO (Fase 3)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def adicionar_evidencia(request, manutencao_pk):
+    """Upload de evidência (foto, laudo, orçamento) para uma manutenção."""
+    man = get_object_or_404(Manutencao, pk=manutencao_pk)
+    if request.method == 'POST':
+        form = EvidenciaManutencaoForm(request.POST, request.FILES)
+        if form.is_valid():
+            ev = form.save(commit=False)
+            ev.manutencao = man
+            ev.registrado_por = request.user
+            ev.save()
+            messages.success(request, 'Evidência anexada com sucesso!')
+            return redirect('viaturas:detalhe_manutencao', pk=manutencao_pk)
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = EvidenciaManutencaoForm()
+    return render(request, 'viaturas/form_evidencia.html', {
+        'form': form, 'manutencao': man, 'titulo': 'Anexar Evidência'
+    })
+
+
+@login_required
+@require_module_permission('frota')
+@require_POST
+def excluir_evidencia(request, pk):
+    """Exclui uma evidência de manutenção."""
+    ev = get_object_or_404(EvidenciaManutencao, pk=pk)
+    manutencao_pk = ev.manutencao.pk
+    ev.arquivo.delete(save=False)
+    ev.delete()
+    messages.success(request, 'Evidência removida.')
+    return redirect('viaturas:detalhe_manutencao', pk=manutencao_pk)
+
+
+# =============================================================================
+# PLANOS DE MANUTENÇÃO PREVENTIVA (Fase 3)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_planos_preventivos(request):
+    qs = PlanoManutencaoPreventiva.objects.select_related('modelo', 'modelo__marca').all()
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'viaturas/lista_planos_preventivos.html', {'page_obj': page})
+
+
+@login_required
+@require_module_permission('frota')
+def criar_plano_preventivo(request):
+    if request.method == 'POST':
+        form = PlanoManutencaoPreventivaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Plano de manutenção preventiva cadastrado!')
+            return redirect('viaturas:lista_planos_preventivos')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = PlanoManutencaoPreventivaForm()
+    return render(request, 'viaturas/form_plano_preventivo.html', {
+        'form': form, 'titulo': 'Novo Plano Preventivo'
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def editar_plano_preventivo(request, pk):
+    plano = get_object_or_404(PlanoManutencaoPreventiva, pk=pk)
+    if request.method == 'POST':
+        form = PlanoManutencaoPreventivaForm(request.POST, instance=plano)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Plano preventivo atualizado!')
+            return redirect('viaturas:lista_planos_preventivos')
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = PlanoManutencaoPreventivaForm(instance=plano)
+    return render(request, 'viaturas/form_plano_preventivo.html', {
+        'form': form, 'titulo': f'Editar: {plano.descricao}'
+    })
+
+
+# =============================================================================
+# HISTÓRICO DE AUDITORIA (Fase 1)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def historico_manutencao(request, pk):
+    """Exibe o histórico completo de alterações de uma manutenção."""
+    man = get_object_or_404(Manutencao, pk=pk)
+    historico = man.history.all().order_by('-history_date')
+    
+    # Calcular diferenças entre versões
+    diferencas = []
+    historico_list = list(historico)
+    for i in range(len(historico_list) - 1):
+        atual = historico_list[i]
+        anterior = historico_list[i + 1]
+        delta = atual.diff_against(anterior)
+        diferencas.append({
+            'registro': atual,
+            'mudancas': delta.changes,
+            'data': atual.history_date,
+            'usuario': atual.history_user,
+            'tipo': atual.get_history_type_display(),
+        })
+    
+    # O registro mais antigo (criação) não tem diff
+    if historico_list:
+        diferencas.append({
+            'registro': historico_list[-1],
+            'mudancas': [],
+            'data': historico_list[-1].history_date,
+            'usuario': historico_list[-1].history_user,
+            'tipo': 'Criação',
+        })
+    
+    return render(request, 'viaturas/historico_manutencao.html', {
+        'manutencao': man,
+        'diferencas': diferencas,
+    })
+

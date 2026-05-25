@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     # Bibliotecas de terceiros
     'crispy_forms',
     'crispy_bootstrap5',
+    'simple_history',
 
     # Módulos do sistema
     'materiais',
@@ -99,6 +100,7 @@ MIDDLEWARE = [
     'licenciamento.middleware.LicenseCheckMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'reserva_baep.urls'

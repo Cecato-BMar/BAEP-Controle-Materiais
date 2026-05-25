@@ -12,4 +12,7 @@ openpyxl
 pandas
 reportlab
 PyJWT
+cryptography
+django-simple-history
+
 
