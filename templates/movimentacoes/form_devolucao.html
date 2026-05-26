@@ -248,10 +248,16 @@
                 tipo: retirada.material.tipo_display,
                 policial_re: retirada.policial.re,
                 policial_nome: retirada.policial.nome,
-                quantidade: retirada.quantidade_pendente,
+                quantidade_intacta: retirada.quantidade_pendente,
+                quantidade_disparada: 0,
+                quantidade_extraviada: 0,
                 max: retirada.quantidade_pendente,
                 estado: 'BOM', // Estado padrão
-                manutencao: false // Não enviar para manutenção por padrão
+                manutencao: false, // Não enviar para manutenção por padrão
+                justificativa: '',
+                boletim_ocorrencia: '',
+                lote_id: retirada.lote_id,
+                lote_numero: retirada.lote_numero
             });
             
             // Atualiza o campo oculto e a interface
@@ -283,14 +289,20 @@
             $('#contador-materiais').text(materiaisSelecionados.length);
             
             let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-light"><tr>';
-            html += '<th>Identificação</th><th>Policial</th><th>Quantidade</th><th>Estado</th><th>Manutenção</th><th>Ações</th>';
+            html += '<th>Identificação</th><th>Policial</th><th>Intacta</th><th>Disparada</th><th>Extraviada</th><th>Estado</th><th>Manutenção</th><th>B.O.</th><th>Ações</th>';
             html += '</tr></thead><tbody>';
             
             materiaisSelecionados.forEach(function(item, index) {
                 html += '<tr>';
-                html += '<td><strong>' + item.tipo + '</strong><br><small>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</small></td>';
+                html += '<td><strong>' + item.tipo + '</strong><br><small>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</small>';
+                if (item.lote_numero) {
+                    html += '<br><small class="text-muted">Lote: ' + item.lote_numero + '</small>';
+                }
+                html += '</td>';
                 html += '<td><small>' + item.policial_re + ' - ' + item.policial_nome + '</small></td>';
-                html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-intacta" data-index="' + index + '" value="' + item.quantidade_intacta + '" min="0" max="' + item.max + '"></td>';
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-disparada" data-index="' + index + '" value="' + item.quantidade_disparada + '" min="0" max="' + item.max + '"></td>';
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-extraviada" data-index="' + index + '" value="' + item.quantidade_extraviada + '" min="0" max="' + item.max + '"></td>';
                 html += '<td><select class="form-select form-select-sm estado-material" data-index="' + index + '">';
                 html += '<option value="BOM" ' + (item.estado === 'BOM' ? 'selected' : '') + '>Bom</option>';
                 html += '<option value="REGULAR" ' + (item.estado === 'REGULAR' ? 'selected' : '') + '>Regular</option>';
@@ -301,8 +313,15 @@
                 html += '<input class="form-check-input manutencao-material" type="checkbox" data-index="' + index + '" id="manutencao-' + index + '"' + (item.manutencao ? ' checked' : '') + '>';
                 html += '<label class="form-check-label" for="manutencao-' + index + '">Sim</label>';
                 html += '</div></td>';
+                html += '<td><input type="text" class="form-control form-control-sm justificativa-material" data-index="' + index + '" value="' + (item.justificativa || '') + '" placeholder="Justificativa"></td>';
                 html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i></button></td>';
                 html += '</tr>';
+                html += '<tr><td colspan="9">';
+                html += '<div class="row g-2 align-items-center">';
+                html += '<div class="col-md-4"><input type="text" class="form-control form-control-sm boletim-material" data-index="' + index + '" value="' + (item.boletim_ocorrencia || '') + '" placeholder="B.O. / Relatório"></div>';
+                html += '<div class="col-md-8"><small class="text-muted">Total pendente: ' + item.max + '. A soma de intactas, disparadas e extraviadas deve ser igual ao total solicitado.</small></div>';
+                html += '</div>';
+                html += '</td></tr>';
             });
             
             html += '</tbody></table></div>';
@@ -315,28 +334,63 @@
         
         // Função para adicionar eventos aos controles de materiais
         function adicionarEventosMateriais() {
-            // Evento para atualizar a quantidade
-            $('.quantidade-material').change(function() {
+            // Evento para atualizar a quantidade intacta
+            $('.quantidade-intacta').change(function() {
                 const index = $(this).data('index');
                 const novaQuantidade = parseInt($(this).val());
-                
-                if (novaQuantidade > 0 && novaQuantidade <= materiaisSelecionados[index].max) {
-                    materiaisSelecionados[index].quantidade = novaQuantidade;
+                if (Number.isNaN(novaQuantidade)) {
+                    $(this).val(materiaisSelecionados[index].quantidade_intacta);
+                    return;
+                }
+                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade_intacta = novaQuantidade;
                     atualizarCampoOculto();
                 } else {
-                    // Restaura o valor anterior se inválido
-                    $(this).val(materiaisSelecionados[index].quantidade);
-                    alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max);
+                    $(this).val(materiaisSelecionados[index].quantidade_intacta);
+                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
                 }
             });
-            
+
+            // Evento para atualizar a quantidade disparada
+            $('.quantidade-disparada').change(function() {
+                const index = $(this).data('index');
+                const novaQuantidade = parseInt($(this).val());
+                if (Number.isNaN(novaQuantidade)) {
+                    $(this).val(materiaisSelecionados[index].quantidade_disparada);
+                    return;
+                }
+                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade_disparada = novaQuantidade;
+                    atualizarCampoOculto();
+                } else {
+                    $(this).val(materiaisSelecionados[index].quantidade_disparada);
+                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
+                }
+            });
+
+            // Evento para atualizar a quantidade extraviada
+            $('.quantidade-extraviada').change(function() {
+                const index = $(this).data('index');
+                const novaQuantidade = parseInt($(this).val());
+                if (Number.isNaN(novaQuantidade)) {
+                    $(this).val(materiaisSelecionados[index].quantidade_extraviada);
+                    return;
+                }
+                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade_extraviada = novaQuantidade;
+                    atualizarCampoOculto();
+                } else {
+                    $(this).val(materiaisSelecionados[index].quantidade_extraviada);
+                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
+                }
+            });
+
             // Evento para atualizar o estado
             $('.estado-material').change(function() {
                 const index = $(this).data('index');
                 const novoEstado = $(this).val();
                 materiaisSelecionados[index].estado = novoEstado;
                 
-                // Se o estado for RUIM ou PESSIMO, marca automaticamente para manutenção
                 if (novoEstado === 'RUIM' || novoEstado === 'PESSIMO') {
                     $('#manutencao-' + index).prop('checked', true);
                     materiaisSelecionados[index].manutencao = true;
@@ -350,6 +404,20 @@
                 const index = $(this).data('index');
                 const manutencao = $(this).prop('checked');
                 materiaisSelecionados[index].manutencao = manutencao;
+                atualizarCampoOculto();
+            });
+
+            // Evento para atualizar justificativa
+            $('.justificativa-material').change(function() {
+                const index = $(this).data('index');
+                materiaisSelecionados[index].justificativa = $(this).val();
+                atualizarCampoOculto();
+            });
+
+            // Evento para atualizar boletim de ocorrência
+            $('.boletim-material').change(function() {
+                const index = $(this).data('index');
+                materiaisSelecionados[index].boletim_ocorrencia = $(this).val();
                 atualizarCampoOculto();
             });
             
@@ -517,14 +585,13 @@
                     select.empty();
                     select.append('<option value="">Todos os materiais</option>');
                     
-                    if (Array.isArray(data)) {
-                        data.forEach(function(material) {
-                            const option = $('<option></option>');
-                            option.val(material.id);
-                            option.text(material.tipo_display + ' - ' + material.numero);
-                            select.append(option);
-                        });
-                    }
+                    const materiais = Array.isArray(data) ? data : data.results || [];
+                    materiais.forEach(function(material) {
+                        const option = $('<option></option>');
+                        option.val(material.id);
+                        option.text(material.tipo_display + ' - ' + material.numero);
+                        select.append(option);
+                    });
                 }
             });
         }

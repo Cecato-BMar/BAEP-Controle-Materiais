@@ -7,6 +7,8 @@ Versão 2.2 | Produção
 import os
 import logging
 from pathlib import Path
+from urllib.parse import urlparse
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # ---------------------------------------------------------------------------
@@ -26,6 +28,9 @@ SECRET_KEY = os.getenv(
 )
 
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+
+if not DEBUG and SECRET_KEY == 'django-insecure-lts*=avsuyh#-f3nir&6$rp5ob#1=068_851j2(y#i)!%g_o_+':
+    raise ImproperlyConfigured('SECRET_KEY must be set as an environment variable in production.')
 
 _allowed_raw = os.getenv('ALLOWED_HOSTS', '*')
 ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()]
@@ -126,15 +131,46 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # ---------------------------------------------------------------------------
 # Banco de Dados
 # ---------------------------------------------------------------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 20,
-        },
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    parsed_url = urlparse(DATABASE_URL)
+    if parsed_url.scheme in ['postgres', 'postgresql']:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed_url.path[1:],
+                'USER': parsed_url.username,
+                'PASSWORD': parsed_url.password,
+                'HOST': parsed_url.hostname,
+                'PORT': parsed_url.port or '',
+                'OPTIONS': {
+                    'sslmode': os.getenv('POSTGRES_SSLMODE', 'prefer'),
+                },
+            }
+        }
+    elif parsed_url.scheme == 'sqlite':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / parsed_url.path.lstrip('/'),
+                'OPTIONS': {
+                    'timeout': 20,
+                },
+            }
+        }
+    else:
+        raise ImproperlyConfigured(f"Unsupported DATABASE_URL scheme: {parsed_url.scheme}")
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,
+            },
+        }
     }
-}
 
 # ---------------------------------------------------------------------------
 # Validação de senhas

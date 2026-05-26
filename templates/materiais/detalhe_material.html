@@ -173,5 +173,48 @@
             </div>
         </div>
     </div>
+    {% if lotes %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-boxes me-2"></i>Lotes de Munição
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Calibre</th>
+                                    <th>Marca</th>
+                                    <th>Lote</th>
+                                    <th>Tipo</th>
+                                    <th>Qtd. Inicial</th>
+                                    <th>Qtd. Atual</th>
+                                    <th>Validade</th>
+                                    <th>Ativo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lote in lotes %}
+                                <tr>
+                                    <td>{{ lote.calibre }}</td>
+                                    <td>{{ lote.marca|default:'-' }}</td>
+                                    <td>{{ lote.numero_lote }}</td>
+                                    <td>{{ lote.get_tipo_municao_display }}</td>
+                                    <td>{{ lote.quantidade_inicial }}</td>
+                                    <td>{{ lote.quantidade_atual }}</td>
+                                    <td>{% if lote.data_validade %}{{ lote.data_validade|date:'d/m/Y' }}{% else %}-{% endif %}</td>
+                                    <td>{% if lote.ativo %}Sim{% else %}Não{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Div
-from .models import Material
+from .models import Material, LoteMunicao
 from estoque.models import LocalizacaoFisica
 
 class MaterialForm(forms.ModelForm):
@@ -40,6 +40,53 @@ class MaterialForm(forms.ModelForm):
             ),
             'observacoes',
             'imagem',
+            Div(
+                Submit('submit', _('Salvar'), css_class='btn btn-primary'),
+                css_class='text-center'
+            )
+        )
+
+class LoteMunicaoForm(forms.ModelForm):
+    class Meta:
+        model = LoteMunicao
+        fields = ['material', 'calibre', 'marca', 'numero_lote', 'tipo_municao', 'data_fabricacao', 'data_validade', 'quantidade_inicial', 'quantidade_atual', 'ativo']
+        widgets = {
+            'data_fabricacao': forms.DateInput(attrs={'type': 'date'}),
+            'data_validade': forms.DateInput(attrs={'type': 'date'}),
+            'marca': forms.TextInput(attrs={'placeholder': _('Fabricante / Marca')}),
+            'numero_lote': forms.TextInput(attrs={'placeholder': _('Número do lote da caixa')}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(
+            Row(
+                Column('material', css_class='form-group col-md-6 mb-0'),
+                Column('calibre', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('marca', css_class='form-group col-md-6 mb-0'),
+                Column('numero_lote', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('tipo_municao', css_class='form-group col-md-6 mb-0'),
+                Column('quantidade_inicial', css_class='form-group col-md-3 mb-0'),
+                Column('quantidade_atual', css_class='form-group col-md-3 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('data_fabricacao', css_class='form-group col-md-6 mb-0'),
+                Column('data_validade', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'ativo',
             Div(
                 Submit('submit', _('Salvar'), css_class='btn btn-primary'),
                 css_class='text-center'

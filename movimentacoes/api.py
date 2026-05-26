@@ -67,7 +67,7 @@ def api_retiradas_pendentes(request):
     if material_id:
         movimentacoes_retirada = movimentacoes_retirada.filter(material_id=material_id)
     
-    movimentacoes_retirada = movimentacoes_retirada.select_related('material', 'policial', 'retirada')
+    movimentacoes_retirada = movimentacoes_retirada.select_related('material', 'policial', 'retirada', 'lote_municao')
     
     retiradas_pendentes = []
     
@@ -91,6 +91,7 @@ def api_retiradas_pendentes(request):
                     'nome': mov.material.nome,
                     'identificacao': mov.material.numero,  # Usando numero como identificacao
                     'tipo_display': mov.material.get_tipo_display(),
+                    'tipo': mov.material.tipo,
                 },
                 'policial': {
                     'id': mov.policial.id,
@@ -102,6 +103,9 @@ def api_retiradas_pendentes(request):
                 'quantidade_retirada': mov.quantidade,
                 'quantidade_devolvida': quantidade_devolvida,
                 'quantidade_pendente': quantidade_pendente,
+                'lote_id': mov.lote_municao.id if mov.lote_municao else None,
+                'lote_numero': mov.lote_municao.numero_lote if mov.lote_municao else None,
+                'lote_calibre': mov.lote_municao.calibre if mov.lote_municao else None,
             })
     
     return JsonResponse(retiradas_pendentes, safe=False)

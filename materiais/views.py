@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.core.paginator import Paginator
-from .models import Material
-from .forms import MaterialForm, MaterialSearchForm
+from .models import Material, LoteMunicao
+from .forms import MaterialForm, MaterialSearchForm, LoteMunicaoForm
 from reserva_baep.decorators import require_module_permission
 import xml.etree.ElementTree as ET
 from django.db import transaction
@@ -64,13 +64,72 @@ def lista_materiais(request):
 def detalhe_material(request, material_id):
     material = get_object_or_404(Material, pk=material_id)
     movimentacoes = material.movimentacoes.all().order_by('-data_hora')[:10]  # Últimas 10 movimentações
+    lotes = material.lotes.order_by('-data_validade', 'numero_lote') if material.tipo == 'MUNICAO' else None
     
     context = {
         'material': material,
         'movimentacoes': movimentacoes,
+        'lotes': lotes,
     }
     
     return render(request, 'materiais/detalhe_material.html', context)
+
+@login_required
+@require_module_permission('reserva_armas')
+def lista_lotes(request):
+    lotes = LoteMunicao.objects.select_related('material').order_by('-data_validade', 'material__nome')
+    context = {
+        'lotes': lotes,
+    }
+    return render(request, 'materiais/lista_lotes.html', context)
+
+@login_required
+@require_module_permission('reserva_armas')
+def novo_lote(request):
+    if request.method == 'POST':
+        form = LoteMunicaoForm(request.POST)
+        if form.is_valid():
+            lote = form.save()
+            messages.success(request, _('Lote de munição cadastrado com sucesso.'))
+            return redirect('materiais:detalhe_material', material_id=lote.material.pk)
+    else:
+        form = LoteMunicaoForm()
+    return render(request, 'materiais/form_lote.html', {
+        'form': form,
+        'titulo': _('Novo Lote de Munição'),
+    })
+
+@login_required
+@require_module_permission('reserva_armas')
+def editar_lote(request, lote_id):
+    lote = get_object_or_404(LoteMunicao, pk=lote_id)
+    if request.method == 'POST':
+        form = LoteMunicaoForm(request.POST, instance=lote)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Lote de munição atualizado com sucesso.'))
+            return redirect('materiais:detalhe_material', material_id=lote.material.pk)
+    else:
+        form = LoteMunicaoForm(instance=lote)
+    return render(request, 'materiais/form_lote.html', {
+        'form': form,
+        'titulo': _('Editar Lote de Munição'),
+        'lote': lote,
+    })
+
+@login_required
+@require_module_permission('reserva_armas')
+def excluir_lote(request, lote_id):
+    lote = get_object_or_404(LoteMunicao, pk=lote_id)
+    material_id = lote.material.pk
+    if request.method == 'POST':
+        lote.delete()
+        messages.success(request, _('Lote de munição excluído com sucesso.'))
+        return redirect('materiais:detalhe_material', material_id=material_id)
+    return render(request, 'materiais/confirmar_exclusao_lote.html', {
+        'lote': lote,
+        'material_id': material_id,
+    })
 
 @login_required
 @require_module_permission('reserva_armas')

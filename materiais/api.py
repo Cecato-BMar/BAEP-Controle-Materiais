@@ -53,17 +53,36 @@ def api_materiais(request):
     paginator = Paginator(materiais, page_size)
     page_obj = paginator.get_page(page)
     
-    materiais_lista = [{
-        'id': m.id,
-        'nome': m.nome,
-        'numero': m.numero,
-        'tipo_display': m.get_tipo_display(),
-        'categoria_display': m.get_categoria_display() if m.categoria else "",
-        'status_display': m.get_status_display(),
-        'quantidade_disponivel': m.quantidade_disponivel,
-        'estado_display': m.get_estado_display(),
-        'localizacao_nome': m.localizacao_fisica.nome if m.localizacao_fisica else "---"
-    } for m in page_obj]
+    materiais_lista = []
+    for m in page_obj:
+        item = {
+            'id': m.id,
+            'nome': m.nome,
+            'numero': m.numero,
+            'tipo': m.tipo,
+            'tipo_display': m.get_tipo_display(),
+            'categoria_display': m.get_categoria_display() if m.categoria else "",
+            'status_display': m.get_status_display(),
+            'quantidade_disponivel': m.quantidade_disponivel,
+            'estado_display': m.get_estado_display(),
+            'localizacao_nome': m.localizacao_fisica.nome if m.localizacao_fisica else "---"
+        }
+        if m.tipo == 'MUNICAO':
+            lotes = []
+            for lote in m.lotes.filter(ativo=True, quantidade_atual__gt=0).order_by('data_validade', 'numero_lote'):
+                lotes.append({
+                    'id': lote.id,
+                    'calibre': lote.calibre,
+                    'marca': lote.marca,
+                    'numero_lote': lote.numero_lote,
+                    'tipo_municao': lote.tipo_municao,
+                    'tipo_municao_display': lote.get_tipo_municao_display(),
+                    'data_fabricacao': lote.data_fabricacao.isoformat() if lote.data_fabricacao else None,
+                    'data_validade': lote.data_validade.isoformat() if lote.data_validade else None,
+                    'quantidade_atual': lote.quantidade_atual,
+                })
+            item['lotes'] = lotes
+        materiais_lista.append(item)
     
     data = {
         'results': materiais_lista,

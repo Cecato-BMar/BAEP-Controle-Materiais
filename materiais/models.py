@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 from django.apps import apps
 
 class Material(models.Model):
@@ -70,4 +71,50 @@ class Material(models.Model):
         # Se for um novo registro, inicializa quantidade disponível
         if not self.pk:
             self.quantidade_disponivel = self.quantidade
+        super().save(*args, **kwargs)
+
+
+class LoteMunicao(models.Model):
+    TIPO_MUNICAO_CHOICES = [
+        ('REAL', 'Real'),
+        ('TREINAMENTO', 'Treinamento'),
+        ('FESTIM', 'Festim'),
+        ('ELASTOMERO', 'Elastômero'),
+    ]
+
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.CASCADE,
+        related_name='lotes',
+        limit_choices_to={'tipo': 'MUNICAO'},
+        verbose_name=_('Material')
+    )
+    calibre = models.CharField(_('Calibre'), max_length=30)
+    marca = models.CharField(_('Marca'), max_length=100, blank=True, null=True)
+    numero_lote = models.CharField(_('Número do Lote'), max_length=100)
+    tipo_municao = models.CharField(_('Tipo de Munição'), max_length=20, choices=TIPO_MUNICAO_CHOICES, default='REAL')
+    data_fabricacao = models.DateField(_('Data de Fabricação'), blank=True, null=True)
+    data_validade = models.DateField(_('Data de Validade'), blank=True, null=True)
+    quantidade_inicial = models.PositiveIntegerField(_('Quantidade Inicial'))
+    quantidade_atual = models.PositiveIntegerField(_('Quantidade Atual'))
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
+    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('Lote de Munição')
+        verbose_name_plural = _('Lotes de Munição')
+        ordering = ['-data_validade', 'material', 'numero_lote']
+        indexes = [models.Index(fields=['material', 'numero_lote']), models.Index(fields=['data_validade'])]
+
+    def __str__(self):
+        return f"{self.material.nome} - {self.numero_lote} ({self.calibre})"
+
+    def clean(self):
+        if self.material and self.material.tipo != 'MUNICAO':
+            raise ValidationError({'material': _('O material deve ser do tipo Munição para associar um lote.')})
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.quantidade_atual is None:
+            self.quantidade_atual = self.quantidade_inicial
         super().save(*args, **kwargs)

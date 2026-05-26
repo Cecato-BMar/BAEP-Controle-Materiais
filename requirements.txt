@@ -19,6 +19,12 @@ whitenoise
 # ---- Variáveis de ambiente ----
 python-dotenv
 
+# ---- Banco de dados PostgreSQL ----
+psycopg[binary]
+
+# ---- Servidor WSGI para produção ----
+gunicorn
+
 # ---- Licenciamento (JWT + RSA) ----
 PyJWT>=2.8
 cryptography>=41.0

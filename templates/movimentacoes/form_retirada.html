@@ -184,6 +184,7 @@
     $(document).ready(function() {
         // Inicializa o array de materiais selecionados
         let materiaisSelecionados = [];
+        let materiaisCache = {};
         
         // Função para carregar informações do policial
         function carregarInfoPolicial(policialId) {
@@ -284,6 +285,7 @@
                     
                     let html = '';
                     results.forEach(function(material) {
+                        materiaisCache[material.id] = material;
                         html += '<tr>';
                         // Identificação combinada com categoria
                         html += '<td>';
@@ -368,13 +370,25 @@
             $('#sem-materiais-msg').hide();
             
             let html = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
-            html += '<th>Tipo</th><th>Identificação</th><th>Quantidade</th><th>Ações</th>';
+            html += '<th>Tipo</th><th>Identificação</th><th>Lote</th><th>Quantidade</th><th>Ações</th>';
             html += '</tr></thead><tbody>';
             
             materiaisSelecionados.forEach(function(item, index) {
                 html += '<tr>';
                 html += '<td>' + item.tipo + '</td>';
                 html += '<td>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</td>';
+                html += '<td>';
+                if (item.lotes && item.lotes.length > 0) {
+                    html += '<select class="form-select form-select-sm lote-material" data-index="' + index + '">';
+                    item.lotes.forEach(function(lote) {
+                        const selected = lote.id === item.lote_id ? ' selected' : '';
+                        html += '<option value="' + lote.id + '"' + selected + '>' + lote.numero_lote + ' - ' + lote.calibre + ' (' + lote.quantidade_atual + ')</option>';
+                    });
+                    html += '</select>';
+                } else {
+                    html += '-';
+                }
+                html += '</td>';
                 html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
                 html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i> Remover</button></td>';
                 html += '</tr>';
@@ -393,9 +407,22 @@
                     materiaisSelecionados[index].quantidade = novaQuantidade;
                     atualizarCampoOculto();
                 } else {
-                    // Restaura o valor anterior se inválido
                     $(this).val(materiaisSelecionados[index].quantidade);
                     alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max);
+                }
+            });
+            
+            $('.lote-material').change(function() {
+                const index = $(this).data('index');
+                const loteId = parseInt($(this).val());
+                materiaisSelecionados[index].lote_id = loteId;
+                const loteSelecionado = materiaisSelecionados[index].lotes.find(l => l.id === loteId);
+                if (loteSelecionado) {
+                    materiaisSelecionados[index].max = loteSelecionado.quantidade_atual;
+                    if (materiaisSelecionados[index].quantidade > loteSelecionado.quantidade_atual) {
+                        materiaisSelecionados[index].quantidade = loteSelecionado.quantidade_atual;
+                    }
+                    atualizarCampoOculto();
                 }
             });
             
@@ -411,30 +438,42 @@
         // Evento para adicionar material à lista
         $(document).on('click', '.adicionar-material', function() {
             const id = $(this).data('id');
-            const nome = $(this).data('nome');
-            const numero = $(this).data('numero');
-            const tipo = $(this).data('tipo');
-            const max = parseInt($(this).data('max'));
-            
-            // Verifica se o material já está na lista
+            const material = materiaisCache[id];
+            if (!material) {
+                alert('Não foi possível carregar os dados do material. Tente novamente.');
+                return;
+            }
+
             const materialExistente = materiaisSelecionados.find(item => item.id === id);
-            
             if (materialExistente) {
                 alert('Este material já foi adicionado à lista.');
                 return;
             }
-            
-            // Adiciona o material à lista
+
+            let loteId = null;
+            let loteMax = material.quantidade_disponivel;
+            let lotes = [];
+            if (material.tipo === 'MUNICAO') {
+                lotes = material.lotes || [];
+                if (lotes.length === 0) {
+                    alert('Este material de munição não possui lotes ativos disponíveis.');
+                    return;
+                }
+                loteId = lotes[0].id;
+                loteMax = lotes[0].quantidade_atual;
+            }
+
             materiaisSelecionados.push({
                 id: id,
-                nome: nome,
-                numero: numero,
-                tipo: tipo,
+                nome: material.nome,
+                numero: material.numero,
+                tipo: material.tipo_display,
                 quantidade: 1,
-                max: max
+                max: loteMax,
+                lotes: lotes,
+                lote_id: loteId
             });
-            
-            // Atualiza o campo oculto e a interface
+
             atualizarCampoOculto();
             atualizarListaMateriais();
         });

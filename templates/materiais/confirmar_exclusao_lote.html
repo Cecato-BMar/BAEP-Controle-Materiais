@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Lote - SIS LOGÍSTICA 2ºBAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão do Lote
+        </div>
+        <div class="card-body">
+            <p>Tem certeza que deseja excluir o lote <strong>{{ lote.numero_lote }}</strong> do material <strong>{{ lote.material.nome }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <a href="{% url 'materiais:detalhe_material' material_id=material_id %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Excluir Lote</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
