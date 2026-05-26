@@ -221,6 +221,12 @@ class ManutencaoForm(forms.ModelForm):
             Row(
                 Column('servicos_executados_corretamente', css_class='col-md-12 mb-3 fw-bold'),
             ),
+            HTML(
+                '<p class="small text-muted mb-2">'
+                '<i class="fas fa-info-circle me-1"></i>'
+                'Para registrar cada serviço como entrada permanente no histórico, '
+                'use o botão <strong>Novo Serviço</strong> na tela da manutenção.</p>'
+            ),
             Row(
                 Column('detalhamento_servicos', css_class='col-md-6'),
                 Column('detalhamento_pecas_garantia', css_class='col-md-6'),
@@ -638,7 +644,7 @@ class CancelarManutencaoForm(forms.ModelForm):
         )
 
 
-from .models import EvidenciaManutencao, PlanoManutencaoPreventiva
+from .models import EvidenciaManutencao, PlanoManutencaoPreventiva, ServicoManutencao
 
 class EvidenciaManutencaoForm(forms.ModelForm):
     class Meta:
@@ -656,6 +662,60 @@ class EvidenciaManutencaoForm(forms.ModelForm):
             ),
             Row(
                 Column('descricao', css_class='col-12'),
+            ),
+        )
+
+
+class ServicoManutencaoForm(forms.ModelForm):
+    """Formulário para registrar um novo serviço (registro imutável no histórico)."""
+    class Meta:
+        model = ServicoManutencao
+        fields = [
+            'descricao', 'detalhamento', 'pecas_garantia',
+            'custo_pecas', 'custo_mao_obra', 'odometro',
+        ]
+        widgets = {
+            'descricao': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Ex.: Troca de pastilhas de freio dianteiras',
+            }),
+            'detalhamento': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Detalhes técnicos, procedimentos, observações da oficina...',
+            }),
+            'pecas_garantia': forms.Textarea(attrs={
+                'rows': 2,
+                'placeholder': 'Peças utilizadas e condições de garantia...',
+            }),
+        }
+        labels = {
+            'descricao': 'Serviço executado',
+            'detalhamento': 'Detalhamento (opcional)',
+        }
+
+    def __init__(self, *args, manutencao=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if manutencao and not self.instance.pk:
+            self.fields['odometro'].initial = manutencao.odometro
+        self.fields['descricao'].required = True
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            HTML(
+                '<p class="text-muted small mb-3">'
+                '<i class="fas fa-info-circle me-1"></i>'
+                'Cada envio cria um <strong>novo registro permanente</strong> no histórico. '
+                'Registros anteriores não são alterados.</p>'
+            ),
+            Row(Column('descricao', css_class='col-12')),
+            Row(
+                Column('detalhamento', css_class='col-md-6'),
+                Column('pecas_garantia', css_class='col-md-6'),
+            ),
+            Row(
+                Column('custo_pecas', css_class='col-md-4'),
+                Column('custo_mao_obra', css_class='col-md-4'),
+                Column('odometro', css_class='col-md-4'),
             ),
         )
 

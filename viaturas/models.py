@@ -512,6 +512,89 @@ class EvidenciaManutencao(models.Model):
         return f"{self.get_tipo_display()} — {self.manutencao.viatura.prefixo} ({self.data_upload.strftime('%d/%m/%Y')})"
 
 
+class ServicoManutencao(models.Model):
+    """Registro imutável de cada serviço executado dentro de uma manutenção."""
+    manutencao = models.ForeignKey(
+        Manutencao, on_delete=models.CASCADE, related_name='servicos',
+        verbose_name=_('Manutenção'),
+    )
+    descricao = models.TextField(_('Descrição do Serviço'))
+    detalhamento = models.TextField(_('Detalhamento'), blank=True, null=True)
+    pecas_garantia = models.TextField(_('Peças / Garantia'), blank=True, null=True)
+    custo_pecas = models.DecimalField(
+        _('Custo Peças (R$)'), max_digits=10, decimal_places=2, default=0,
+    )
+    custo_mao_obra = models.DecimalField(
+        _('Custo Mão de Obra (R$)'), max_digits=10, decimal_places=2, default=0,
+    )
+    odometro = models.DecimalField(
+        _('Odômetro'), max_digits=10, decimal_places=1, blank=True, null=True,
+    )
+    status_na_epoca = models.CharField(
+        _('Status na época'), max_length=20, blank=True,
+        choices=Manutencao.STATUS_CHOICES,
+        help_text=_('Snapshot do status da manutenção no momento do registro'),
+    )
+    registrado_por = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name='servicos_manutencao_registrados',
+    )
+    data_registro = models.DateTimeField(_('Data do Registro'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Serviço de Manutenção')
+        verbose_name_plural = _('Serviços de Manutenção')
+        ordering = ['-data_registro']
+
+    def __str__(self):
+        resumo = self.descricao[:60] + ('…' if len(self.descricao) > 60 else '')
+        return f"Serviço — {self.manutencao.viatura.prefixo}: {resumo}"
+
+    @property
+    def custo_total(self):
+        return self.custo_pecas + self.custo_mao_obra
+
+
+class RegistroHistoricoManutencao(models.Model):
+    """Linha do tempo append-only da manutenção (auditoria orientada a eventos)."""
+    TIPO_EVENTO = [
+        ('ABERTURA', 'Abertura da Manutenção'),
+        ('SERVICO', 'Serviço Registrado'),
+        ('ATUALIZACAO', 'Atualização Administrativa'),
+        ('STATUS', 'Mudança de Status'),
+        ('CONCLUSAO', 'Conclusão'),
+        ('CANCELAMENTO', 'Cancelamento'),
+        ('EVIDENCIA', 'Evidência Anexada'),
+    ]
+
+    manutencao = models.ForeignKey(
+        Manutencao, on_delete=models.CASCADE, related_name='registros_historico',
+        verbose_name=_('Manutenção'),
+    )
+    tipo = models.CharField(_('Tipo de Evento'), max_length=20, choices=TIPO_EVENTO)
+    titulo = models.CharField(_('Título'), max_length=200)
+    descricao = models.TextField(_('Descrição'), blank=True)
+    servico = models.ForeignKey(
+        ServicoManutencao, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='eventos_historico', verbose_name=_('Serviço vinculado'),
+    )
+    metadados = models.JSONField(
+        _('Metadados'), blank=True, null=True,
+        help_text=_('Dados estruturados da alteração (campos, valores anteriores/novos)'),
+    )
+    registrado_por = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name='historicos_manutencao_registrados',
+    )
+    data_registro = models.DateTimeField(_('Data do Registro'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Registro de Histórico de Manutenção')
+        verbose_name_plural = _('Registros de Histórico de Manutenção')
+        ordering = ['-data_registro']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} — {self.manutencao.viatura.prefixo} ({self.data_registro:%d/%m/%Y %H:%M})"
+
+
 class PlanoManutencaoPreventiva(models.Model):
     """Regras de manutenção preventiva por modelo de viatura (Fase 3)"""
     modelo = models.ForeignKey(ModeloViatura, on_delete=models.CASCADE, related_name='planos_preventivos')

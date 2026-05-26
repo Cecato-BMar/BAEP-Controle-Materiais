@@ -20,9 +20,18 @@ from .forms import (
     SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
     PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm,
     ConcluirManutencaoForm, CancelarManutencaoForm, EvidenciaManutencaoForm,
-    PlanoManutencaoPreventivaForm
+    PlanoManutencaoPreventivaForm, ServicoManutencaoForm,
 )
 from reserva_baep.decorators import require_module_permission
+from .services.manutencao_historico import (
+    registrar_abertura,
+    registrar_alteracoes_form,
+    registrar_cancelamento,
+    registrar_conclusao,
+    registrar_evidencia,
+    registrar_servico,
+    garantir_historico_estruturado,
+)
 
 import xml.etree.ElementTree as ET
 import pandas as pd
@@ -432,8 +441,15 @@ def lista_manutencoes(request):
 @login_required
 @require_module_permission('frota')
 def detalhe_manutencao(request, pk):
-    man = get_object_or_404(Manutencao.objects.select_related('viatura', 'oficina_fk', 'registrado_por'), pk=pk)
-    return render(request, 'viaturas/detalhe_manutencao.html', {'manutencao': man})
+    man = get_object_or_404(
+        Manutencao.objects.select_related('viatura', 'oficina_fk', 'registrado_por')
+        .prefetch_related('servicos__registrado_por'),
+        pk=pk,
+    )
+    return render(request, 'viaturas/detalhe_manutencao.html', {
+        'manutencao': man,
+        'servicos': man.servicos.all(),
+    })
 
 
 @login_required
@@ -447,6 +463,7 @@ def concluir_manutencao(request, pk):
         return redirect('viaturas:detalhe_manutencao', pk=pk)
     
     if request.method == 'POST':
+        instancia_anterior = Manutencao.objects.get(pk=man.pk)
         form = ConcluirManutencaoForm(request.POST, request.FILES, instance=man)
         if form.is_valid():
             man = form.save(commit=False)
@@ -455,6 +472,8 @@ def concluir_manutencao(request, pk):
             man.aprovado_por = request.user
             man.data_aprovacao = timezone.now()
             man.save()
+            registrar_alteracoes_form(man, request.user, instancia_anterior)
+            registrar_conclusao(man, request.user)
             
             messages.success(request, f'Manutenção da viatura {man.viatura.prefixo} concluída e aprovada!')
             return redirect('viaturas:detalhe_manutencao', pk=pk)
@@ -476,6 +495,7 @@ def criar_manutencao(request):
             man = form.save(commit=False)
             man.registrado_por = request.user
             man.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            registrar_abertura(man, request.user)
             
             # Atualiza localização escolhida na tela
             local = form.cleaned_data.get('localizacao_fisica')
@@ -496,9 +516,11 @@ def criar_manutencao(request):
 def editar_manutencao(request, pk):
     man = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
+        instancia_anterior = Manutencao.objects.get(pk=pk)
         form = ManutencaoForm(request.POST, request.FILES, instance=man)
         if form.is_valid():
             m = form.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            registrar_alteracoes_form(m, request.user, instancia_anterior)
             
             # Atualiza localização escolhida na tela
             local = form.cleaned_data.get('localizacao_fisica')
@@ -539,6 +561,7 @@ def criar_agendamento(request):
             agend.odometro = agend.viatura.odometro_atual  # usa odometro atual como referência
             agend.registrado_por = request.user
             agend.save()
+            registrar_abertura(agend, request.user)
             messages.success(request, f'Agendamento registrado para {agend.viatura.prefixo} em {agend.data_inicio.strftime("%d/%m/%Y")}!')
             return redirect('viaturas:lista_agendamentos')
         messages.error(request, 'Corrija os erros abaixo.')
@@ -552,9 +575,11 @@ def criar_agendamento(request):
 def converter_agendamento(request, pk):
     """Converte um agendamento em manutenção ativa (Em Aberto)."""
     agend = get_object_or_404(Manutencao, pk=pk, status='AGENDADA')
+    instancia_anterior = Manutencao.objects.get(pk=agend.pk)
     agend.status = 'ABERTA'
     agend.data_inicio = timezone.now().date()
     agend.save()
+    registrar_alteracoes_form(agend, request.user, instancia_anterior)
     messages.success(request, f'Agendamento da viatura {agend.viatura.prefixo} iniciado como manutenção Em Aberto!')
     return redirect('viaturas:lista_manutencoes')
 
@@ -573,6 +598,7 @@ def cancelar_agendamento(request, pk):
             man.cancelado_por = request.user
             man.data_cancelamento = timezone.now()
             man.save()
+            registrar_cancelamento(man, request.user, man.motivo_cancelamento or '')
             messages.warning(request, f'Agendamento da viatura {agend.viatura.prefixo} cancelado.')
             return redirect('viaturas:lista_agendamentos')
         messages.error(request, 'Informe o motivo do cancelamento.')
@@ -1092,6 +1118,7 @@ def adicionar_evidencia(request, manutencao_pk):
             ev.manutencao = man
             ev.registrado_por = request.user
             ev.save()
+            registrar_evidencia(man, request.user, ev)
             messages.success(request, 'Evidência anexada com sucesso!')
             return redirect('viaturas:detalhe_manutencao', pk=manutencao_pk)
         messages.error(request, 'Corrija os erros abaixo.')
@@ -1169,38 +1196,72 @@ def editar_plano_preventivo(request, pk):
 
 @login_required
 @require_module_permission('frota')
+def adicionar_servico_manutencao(request, manutencao_pk):
+    """Registra um novo serviço (entrada imutável no histórico)."""
+    man = get_object_or_404(Manutencao, pk=manutencao_pk)
+    if man.status in ('CONCLUIDA', 'CANCELADA'):
+        messages.warning(request, 'Não é possível registrar novos serviços em manutenção encerrada.')
+        return redirect('viaturas:detalhe_manutencao', pk=manutencao_pk)
+
+    if request.method == 'POST':
+        form = ServicoManutencaoForm(request.POST, manutencao=man)
+        if form.is_valid():
+            dados = form.cleaned_data
+            registrar_servico(
+                man,
+                request.user,
+                dados['descricao'],
+                detalhamento=dados.get('detalhamento'),
+                pecas_garantia=dados.get('pecas_garantia'),
+                custo_pecas=dados.get('custo_pecas'),
+                custo_mao_obra=dados.get('custo_mao_obra'),
+                odometro=dados.get('odometro'),
+            )
+            custo_p = dados.get('custo_pecas') or 0
+            custo_m = dados.get('custo_mao_obra') or 0
+            if custo_p or custo_m:
+                man.custo_pecas += custo_p
+                man.custo_mao_obra += custo_m
+                man.save(update_fields=['custo_pecas', 'custo_mao_obra'])
+            messages.success(request, 'Serviço registrado no histórico com sucesso!')
+            return redirect('viaturas:historico_manutencao', pk=manutencao_pk)
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = ServicoManutencaoForm(manutencao=man)
+
+    return render(request, 'viaturas/form_servico_manutencao.html', {
+        'form': form,
+        'manutencao': man,
+        'titulo': 'Registrar Novo Serviço',
+    })
+
+
+@login_required
+@require_module_permission('frota')
 def historico_manutencao(request, pk):
-    """Exibe o histórico completo de alterações de uma manutenção."""
-    man = get_object_or_404(Manutencao, pk=pk)
-    historico = man.history.all().order_by('-history_date')
-    
-    # Calcular diferenças entre versões
-    diferencas = []
-    historico_list = list(historico)
-    for i in range(len(historico_list) - 1):
-        atual = historico_list[i]
-        anterior = historico_list[i + 1]
-        delta = atual.diff_against(anterior)
-        diferencas.append({
-            'registro': atual,
-            'mudancas': delta.changes,
-            'data': atual.history_date,
-            'usuario': atual.history_user,
-            'tipo': atual.get_history_type_display(),
-        })
-    
-    # O registro mais antigo (criação) não tem diff
-    if historico_list:
-        diferencas.append({
-            'registro': historico_list[-1],
-            'mudancas': [],
-            'data': historico_list[-1].history_date,
-            'usuario': historico_list[-1].history_user,
-            'tipo': 'Criação',
-        })
-    
+    """Exibe a linha do tempo de eventos e serviços da manutenção (append-only)."""
+    man = get_object_or_404(
+        Manutencao.objects.select_related('viatura', 'registrado_por')
+        .prefetch_related(
+            'registros_historico__servico',
+            'registros_historico__registrado_por',
+            'servicos__registrado_por',
+        ),
+        pk=pk,
+    )
+    garantir_historico_estruturado(man)
+    man = Manutencao.objects.select_related('viatura', 'registrado_por').prefetch_related(
+        'registros_historico__servico',
+        'registros_historico__registrado_por',
+        'servicos__registrado_por',
+    ).get(pk=pk)
+    eventos = man.registros_historico.select_related('servico', 'registrado_por')
+    servicos = man.servicos.select_related('registrado_por')
+
     return render(request, 'viaturas/historico_manutencao.html', {
         'manutencao': man,
-        'diferencas': diferencas,
+        'eventos': eventos,
+        'servicos': servicos,
+        'pode_registrar_servico': man.status not in ('CONCLUIDA', 'CANCELADA'),
     })
 

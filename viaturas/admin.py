@@ -4,7 +4,8 @@ from .models import (
     MarcaViatura, ModeloViatura, Viatura, DespachoViatura, 
     Abastecimento, Manutencao, Oficina, ChecklistViatura,
     SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca, RetiradaPecaItem,
-    EvidenciaManutencao, PlanoManutencaoPreventiva
+    EvidenciaManutencao, PlanoManutencaoPreventiva,
+    ServicoManutencao, RegistroHistoricoManutencao,
 )
 
 
@@ -140,6 +141,22 @@ class EvidenciaManutencaoAdmin(admin.ModelAdmin):
     list_display = ('manutencao', 'tipo', 'descricao', 'data_upload', 'registrado_por')
     list_filter = ('tipo', 'data_upload')
     readonly_fields = ('data_upload', 'registrado_por')
+
+
+@admin.register(ServicoManutencao)
+class ServicoManutencaoAdmin(admin.ModelAdmin):
+    list_display = ('manutencao', 'descricao', 'data_registro', 'registrado_por', 'custo_total')
+    list_filter = ('data_registro',)
+    search_fields = ('manutencao__viatura__prefixo', 'descricao')
+    readonly_fields = ('data_registro', 'registrado_por', 'status_na_epoca')
+
+
+@admin.register(RegistroHistoricoManutencao)
+class RegistroHistoricoManutencaoAdmin(admin.ModelAdmin):
+    list_display = ('manutencao', 'tipo', 'titulo', 'data_registro', 'registrado_por')
+    list_filter = ('tipo', 'data_registro')
+    search_fields = ('manutencao__viatura__prefixo', 'titulo', 'descricao')
+    readonly_fields = ('data_registro', 'registrado_por')
 
 
 @admin.register(PlanoManutencaoPreventiva)
