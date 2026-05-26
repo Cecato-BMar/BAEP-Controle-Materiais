@@ -150,8 +150,8 @@ if DATABASE_URL and not (DATABASE_URL.startswith('postgres://') or DATABASE_URL.
 
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
+        'default': dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600
         )
     }
