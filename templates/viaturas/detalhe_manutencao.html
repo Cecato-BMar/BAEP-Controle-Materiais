@@ -22,6 +22,7 @@
     <div class="d-flex gap-2">
         <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
         <a href="{% url 'relatorios:gerar_relatorio_individual_manutencao' manutencao.pk %}" target="_blank" class="btn btn-danger btn-sm fw-bold"><i class="fas fa-file-pdf me-1"></i>Ficha (PDF)</a>
+        <a href="{% url 'viaturas:historico_manutencao' manutencao.pk %}" class="btn btn-secondary btn-sm fw-bold"><i class="fas fa-history me-1"></i>Histórico</a>
         <a href="{% url 'viaturas:editar_manutencao' manutencao.pk %}" class="btn btn-primary btn-sm fw-bold"><i class="fas fa-edit me-1"></i>Editar</a>
         {% if manutencao.status == 'ABERTA' or manutencao.status == 'AGUARDANDO_PECA' %}
         <a href="{% url 'viaturas:concluir_manutencao' manutencao.pk %}" class="btn btn-success btn-sm fw-bold"><i class="fas fa-check me-1"></i>Concluir Agora</a>
@@ -92,6 +93,39 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-camera me-2 text-warning"></i>Evidências (Fotos e Laudos)</span>
+                <a href="{% url 'viaturas:adicionar_evidencia' manutencao.pk %}" class="btn btn-sm btn-outline-warning text-dark fw-bold"><i class="fas fa-plus me-1"></i>Anexar</a>
+            </div>
+            <div class="card-body">
+                {% if manutencao.evidencias.exists %}
+                    <div class="row g-3">
+                        {% for ev in manutencao.evidencias.all %}
+                        <div class="col-md-4">
+                            <div class="card h-100 border-warning border-opacity-50">
+                                <div class="card-body p-2 text-center">
+                                    <span class="badge bg-warning text-dark mb-2">{{ ev.get_tipo_display }}</span>
+                                    <p class="small mb-2">{{ ev.descricao|default:"Sem descrição" }}</p>
+                                    <a href="{{ ev.arquivo.url }}" target="_blank" class="btn btn-sm btn-light border w-100"><i class="fas fa-external-link-alt me-1"></i>Abrir Arquivo</a>
+                                </div>
+                                <div class="card-footer bg-white border-0 p-2 d-flex justify-content-between align-items-center">
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ ev.data_upload|date:"d/m/Y H:i" }}</small>
+                                    <form action="{% url 'viaturas:excluir_evidencia' ev.pk %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link text-danger p-0 ms-2" onclick="return confirm('Excluir evidência?');" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small fst-italic mb-0">Nenhuma evidência anexada a esta manutenção.</p>
+                {% endif %}
             </div>
         </div>
 

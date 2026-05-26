@@ -142,6 +142,37 @@
             </div>
         </div>
 
+        <!-- Alertas Inteligentes (Fase 3) -->
+        {% if garantias_vencendo or alertas_preventivas or manutencoes_longas %}
+        <div class="card border-0 mt-3 border-start border-danger border-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="text-danger fw-bold"><i class="fas fa-bell me-2"></i>Alertas Importantes</span>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for m in manutencoes_longas %}
+                    <li class="list-group-item bg-danger-subtle">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        <strong>{{ m.viatura.prefixo }}</strong>: Em manutenção há mais de 30 dias.
+                    </li>
+                    {% endfor %}
+                    {% for g in garantias_vencendo %}
+                    <li class="list-group-item bg-warning-subtle">
+                        <i class="fas fa-certificate text-warning me-2"></i>
+                        Garantia de <strong>{{ g.viatura.prefixo }}</strong> vence em {{ g.data_validade_garantia|date:"d/m" }}.
+                    </li>
+                    {% endfor %}
+                    {% for p in alertas_preventivas %}
+                    <li class="list-group-item bg-info-subtle">
+                        <i class="fas fa-tools text-info me-2"></i>
+                        <strong>{{ p.viatura.prefixo }}</strong>: Preventiva pendente ({{ p.motivo }}).
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Últimos Abastecimentos -->
         <div class="card border-0 mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -269,6 +300,56 @@
     </div>
 </div>
 
+<!-- KPIs de Manutenção (Fase 4) -->
+<div class="row g-4 mt-1">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Desempenho e Custos de Manutenção</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-md-3">
+                        <div class="text-muted small">Custo Total</div>
+                        <div class="fs-5 fw-bold text-danger">R$ {{ custo_total_frota|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Custo Médio / OS</div>
+                        <div class="fs-5 fw-bold text-warning">R$ {{ custo_medio|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">OS Concluídas</div>
+                        <div class="fs-5 fw-bold">{{ total_manutencoes_concluidas }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Tempo Médio (Oficina)</div>
+                        <div class="fs-5 fw-bold text-info">{{ tempo_medio_oficina|floatformat:1 }} dia(s)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-circle me-2 text-danger"></i>Top 5 Viaturas (Custos)</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for v in top_viaturas_custo %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><span class="badge bg-dark me-2">{{ v.prefixo }}</span> <small class="text-muted">{{ v.modelo.nome }}</small></span>
+                        <span class="fw-bold text-danger">R$ {{ v.custo_manut|floatformat:2 }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted">Nenhum custo registrado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Atalhos por Tipo -->
 <div class="row g-3 mt-2">
     <div class="col-12"><h6 class="text-muted text-uppercase fw-bold" style="letter-spacing:1px">Frota por Categoria</h6></div>
@@ -303,6 +384,15 @@
                     <div>
                         <i class="fas fa-industry me-3 text-warning"></i>
                         <span class="fw-bold">Marcas</span>
+                    </div>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'viaturas:lista_planos_preventivos' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-info border border-opacity-25">
+                    <div>
+                        <i class="fas fa-clipboard-list me-3 text-info"></i>
+                        <span class="fw-bold text-info">Planos Preventivos</span>
                     </div>
                     <i class="fas fa-chevron-right small text-muted"></i>
                 </a>
