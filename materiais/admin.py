@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Material
+from .models import Material, LoteMunicao
 
 @admin.register(Material)
 class MaterialAdmin(admin.ModelAdmin):
@@ -22,5 +22,23 @@ class MaterialAdmin(admin.ModelAdmin):
         }),
         ('Datas', {
             'fields': ('data_cadastro', 'data_atualizacao')
+        }),
+    )
+
+@admin.register(LoteMunicao)
+class LoteMunicaoAdmin(admin.ModelAdmin):
+    list_display = ('numero_lote', 'material', 'calibre', 'marca', 'quantidade_atual', 'data_validade', 'vencido', 'ativo')
+    list_filter = ('calibre', 'marca', 'tipo_municao', 'ativo')
+    search_fields = ('numero_lote', 'calibre', 'marca')
+    readonly_fields = ('data_cadastro', 'data_atualizacao')
+    fieldsets = (
+        ('Informações do Lote', {
+            'fields': ('material', 'numero_lote', 'calibre', 'marca', 'tipo_municao')
+        }),
+        ('Quantidades e Validade', {
+            'fields': ('quantidade_inicial', 'quantidade_atual', 'data_fabricacao', 'data_validade')
+        }),
+        ('Status', {
+            'fields': ('ativo', 'data_cadastro', 'data_atualizacao')
         }),
     )

@@ -71,3 +71,46 @@ class Material(models.Model):
         if not self.pk:
             self.quantidade_disponivel = self.quantidade
         super().save(*args, **kwargs)
+
+class LoteMunicao(models.Model):
+    TIPO_MUNICAO_CHOICES = [
+        ('REAL', 'Real'),
+        ('TREINAMENTO', 'Treinamento'),
+        ('FESTIM', 'Festim'),
+        ('ELASTOMERO', 'Elastômero'),
+    ]
+
+    material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='lotes_municao', verbose_name=_('Material (Munição)'))
+    calibre = models.CharField(_('Calibre'), max_length=50)
+    marca = models.CharField(_('Marca/Fabricante'), max_length=50)
+    numero_lote = models.CharField(_('Número do Lote'), max_length=100)
+    tipo_municao = models.CharField(_('Tipo de Munição'), max_length=20, choices=TIPO_MUNICAO_CHOICES, default='REAL')
+    data_fabricacao = models.DateField(_('Data de Fabricação'), blank=True, null=True)
+    data_validade = models.DateField(_('Data de Validade'), blank=True, null=True)
+    quantidade_inicial = models.PositiveIntegerField(_('Quantidade Inicial'))
+    quantidade_atual = models.PositiveIntegerField(_('Quantidade Atual'))
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
+    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('Lote de Munição')
+        verbose_name_plural = _('Lotes de Munição')
+        ordering = ['data_validade', 'numero_lote']
+        unique_together = ['material', 'numero_lote']
+
+    def __str__(self):
+        return f"Lote: {self.numero_lote} | Calibre: {self.calibre} | Qtde: {self.quantidade_atual}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.quantidade_atual is None:
+            self.quantidade_atual = self.quantidade_inicial
+        super().save(*args, **kwargs)
+
+    @property
+    def vencido(self):
+        from django.utils import timezone
+        if self.data_validade:
+            return self.data_validade < timezone.now().date()
+        return False
+

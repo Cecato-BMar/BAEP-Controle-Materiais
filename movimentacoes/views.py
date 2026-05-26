@@ -107,7 +107,6 @@ def nova_retirada(request):
             # Verifica se o policial está ativo
             if policial.situacao != 'ATIVO':
                 messages.error(request, _(f'O policial {policial.nome} não está ativo. Não é possível registrar retirada.'))
-                # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                 materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                 return render(request, 'movimentacoes/form_retirada.html', {
                     'form': form,
@@ -120,7 +119,6 @@ def nova_retirada(request):
                 
                 if not materiais_lista:
                     messages.error(request, _('Nenhum material selecionado para retirada.'))
-                    # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                     materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                     return render(request, 'movimentacoes/form_retirada.html', {
                         'form': form,
@@ -132,32 +130,61 @@ def nova_retirada(request):
                 for item in materiais_lista:
                     material_id = item.get('id')
                     quantidade = item.get('quantidade', 1)
+                    lote_id = item.get('lote_id')
                     
                     material = get_object_or_404(Material, pk=material_id)
                     
                     # Verifica se o material está disponível
                     if material.status != 'DISPONIVEL':
                         messages.error(request, _(f'O material {material.nome} ({material.numero}) não está disponível.'))
-                        # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                         materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                         return render(request, 'movimentacoes/form_retirada.html', {
                             'form': form,
                             'materiais': materiais_disponiveis,
                         })
                     
-                    # Verifica se há quantidade disponível
-                    if material.quantidade_disponivel < quantidade:
-                        messages.error(request, _(f'Quantidade insuficiente para o material {material.nome} ({material.numero}).'))
-                        # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
-                        materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
-                        return render(request, 'movimentacoes/form_retirada.html', {
-                            'form': form,
-                            'materiais': materiais_disponiveis,
-                        })
+                    # Se for munição, validação especial do lote
+                    lote = None
+                    if material.tipo == 'MUNICAO':
+                        if not lote_id:
+                            messages.error(request, _(f'Lote não especificado para a munição {material.nome}.'))
+                            materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
+                            return render(request, 'movimentacoes/form_retirada.html', {
+                                'form': form,
+                                'materiais': materiais_disponiveis,
+                            })
+                        
+                        from materiais.models import LoteMunicao
+                        lote = get_object_or_404(LoteMunicao, pk=lote_id)
+                        if lote.material != material or not lote.ativo:
+                            messages.error(request, _(f'Lote inválido para a munição {material.nome}.'))
+                            materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
+                            return render(request, 'movimentacoes/form_retirada.html', {
+                                'form': form,
+                                'materiais': materiais_disponiveis,
+                            })
+                        
+                        if lote.quantidade_atual < quantidade:
+                            messages.error(request, _(f'Quantidade insuficiente no lote {lote.numero_lote} para a munição {material.nome}.'))
+                            materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
+                            return render(request, 'movimentacoes/form_retirada.html', {
+                                'form': form,
+                                'materiais': materiais_disponiveis,
+                            })
+                    else:
+                        # Verifica se há quantidade disponível para materiais gerais
+                        if material.quantidade_disponivel < quantidade:
+                            messages.error(request, _(f'Quantidade insuficiente para o material {material.nome} ({material.numero}).'))
+                            materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
+                            return render(request, 'movimentacoes/form_retirada.html', {
+                                'form': form,
+                                'materiais': materiais_disponiveis,
+                            })
                     
                     # Cria a movimentação
                     movimentacao = Movimentacao.objects.create(
                         material=material,
+                        lote_municao=lote,
                         policial=policial,
                         quantidade=quantidade,
                         tipo='RETIRADA',
@@ -174,11 +201,19 @@ def nova_retirada(request):
                         data_prevista_devolucao=data_prevista_devolucao
                     )
                     
-                    # Atualiza a quantidade disponível do material
+                    # Atualiza os lotes e o material
+                    if lote:
+                        lote.quantidade_atual -= quantidade
+                        lote.save()
+                    
                     material.quantidade_disponivel -= quantidade
                     material.quantidade_em_uso += quantidade
-                    if material.status == 'DISPONIVEL':
+                    
+                    if material.quantidade_disponivel == 0:
                         material.status = 'EM_USO'
+                    elif material.status == 'DISPONIVEL' and material.tipo != 'MUNICAO':
+                        material.status = 'EM_USO'
+                        
                     material.save()
                 
                 messages.success(request, _('Retirada registrada com sucesso!'))
@@ -186,7 +221,6 @@ def nova_retirada(request):
                 
             except json.JSONDecodeError:
                 messages.error(request, _('Erro ao processar os materiais selecionados.'))
-                # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                 materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                 return render(request, 'movimentacoes/form_retirada.html', {
                     'form': form,
@@ -242,6 +276,12 @@ def nova_devolucao(request):
                     quantidade = item.get('quantidade', 1)
                     estado_devolucao = item.get('estado', 'BOM')
                     
+                    # Consumo de munição
+                    quantidade_disparada = int(item.get('disparos', 0))
+                    quantidade_extraviada = int(item.get('extravios', 0))
+                    justificativa_consumo = item.get('justificativa_consumo', '')
+                    boletim_ocorrencia = item.get('boletim_ocorrencia', '')
+                    
                     # Validações básicas
                     if not retirada_id or not material_id:
                         messages.error(request, _('Dados inválidos para devolução.'))
@@ -254,12 +294,18 @@ def nova_devolucao(request):
                         messages.error(request, _('Material ou retirada não encontrado.'))
                         return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                     
+                    quantidade_fisica = quantidade - (quantidade_disparada + quantidade_extraviada)
+                    if quantidade_fisica < 0:
+                        messages.error(request, _('A quantidade de disparos e extravios não pode ser maior do que a quantidade retirada.'))
+                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+                    
                     # Usa o policial da retirada se não houver policial selecionado
                     policial_devolucao = policial if policial else retirada.movimentacao.policial
                     
                     # Cria a movimentação
                     movimentacao = Movimentacao.objects.create(
                         material=material,
+                        lote_municao=retirada.movimentacao.lote_municao,
                         policial=policial_devolucao,
                         quantidade=quantidade,
                         tipo='DEVOLUCAO',
@@ -268,15 +314,42 @@ def nova_devolucao(request):
                     )
                     
                     # Cria o registro de devolução
-                    Devolucao.objects.create(
+                    devolucao_obj = Devolucao.objects.create(
                         movimentacao=movimentacao,
                         retirada_referencia=retirada,
                         estado_devolucao=estado_devolucao
                     )
                     
-                    # Atualiza a quantidade disponível do material
-                    material.quantidade_disponivel += quantidade
-                    material.quantidade_em_uso -= quantidade
+                    # Cria o registro de consumo de disparos/extravios se houver
+                    if quantidade_disparada > 0 or quantidade_extraviada > 0:
+                        from movimentacoes.models import RegistroDisparoMunicao
+                        RegistroDisparoMunicao.objects.create(
+                            devolucao=devolucao_obj,
+                            quantidade_disparada=quantidade_disparada,
+                            quantidade_extraviada=quantidade_extraviada,
+                            justificativa=justificativa_consumo,
+                            boletim_ocorrencia=boletim_ocorrencia
+                        )
+                    
+                    # Atualiza os lotes e o material
+                    lote = retirada.movimentacao.lote_municao
+                    if lote:
+                        lote.quantidade_atual += quantidade_fisica
+                        lote.save()
+                    
+                    if material.tipo == 'MUNICAO':
+                        from django.db.models import Sum
+                        total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+                        material.quantidade_disponivel = total_disponivel
+                        material.quantidade_em_uso -= quantidade
+                        if material.quantidade_em_uso < 0:
+                            material.quantidade_em_uso = 0
+                        material.quantidade = total_disponivel + material.quantidade_em_uso
+                    else:
+                        material.quantidade_disponivel += quantidade
+                        material.quantidade_em_uso -= quantidade
+                        if material.quantidade_em_uso < 0:
+                            material.quantidade_em_uso = 0
                     
                     # Atualiza o estado do material se necessário
                     if estado_devolucao in ['RUIM', 'PESSIMO']:
@@ -285,15 +358,14 @@ def nova_devolucao(request):
                     # Verifica se o material deve ir para manutenção
                     manutencao = item.get('manutencao', False)
                     if manutencao or estado_devolucao in ['RUIM', 'PESSIMO']:
-                        # Se o material estiver marcado para manutenção ou em estado ruim/péssimo
                         if material.status != 'MANUTENCAO':
                             material.status = 'MANUTENCAO'
-                    # Atualiza o status do material se toda a quantidade em uso foi devolvida
                     elif material.quantidade_em_uso == 0:
-                        # Se não há quantidade em uso, o material deve estar disponível
-                        # (exceto se estiver marcado para manutenção ou em estado ruim/péssimo)
                         if material.status in ['EM_USO', 'MANUTENCAO'] and not (manutencao or estado_devolucao in ['RUIM', 'PESSIMO']):
                             material.status = 'DISPONIVEL'
+                            
+                    if material.tipo == 'MUNICAO' and material.quantidade_disponivel > 0:
+                        material.status = 'DISPONIVEL'
                     
                     material.save()
                 

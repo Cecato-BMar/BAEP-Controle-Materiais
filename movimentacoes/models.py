@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from materiais.models import Material
+from materiais.models import Material, LoteMunicao
 from policiais.models import Policial
 from django.contrib.auth.models import User
 
@@ -12,6 +12,7 @@ class Movimentacao(models.Model):
     ]
     
     material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='movimentacoes', verbose_name=_('Material'))
+    lote_municao = models.ForeignKey(LoteMunicao, on_delete=models.PROTECT, related_name='movimentacoes', null=True, blank=True, verbose_name=_('Lote de Munição'))
     policial = models.ForeignKey(Policial, on_delete=models.PROTECT, related_name='movimentacoes', verbose_name=_('Policial'))
     quantidade = models.PositiveIntegerField(_('Quantidade'))
     tipo = models.CharField(_('Tipo'), max_length=10, choices=TIPO_CHOICES)
@@ -53,3 +54,19 @@ class Devolucao(models.Model):
     
     def __str__(self):
         return f"Devolução - {self.movimentacao.material} - {self.movimentacao.policial} - {self.movimentacao.data_hora.strftime('%d/%m/%Y %H:%M')}"
+
+class RegistroDisparoMunicao(models.Model):
+    devolucao = models.OneToOneField(Devolucao, on_delete=models.CASCADE, related_name='registro_disparo', verbose_name=_('Devolução'))
+    quantidade_disparada = models.PositiveIntegerField(_('Munições Disparadas'), default=0)
+    quantidade_extraviada = models.PositiveIntegerField(_('Munições Extraviadas'), default=0)
+    justificativa = models.TextField(_('Justificativa/Ocorrência'), blank=True, null=True)
+    boletim_ocorrencia = models.CharField(_('Número do B.O.'), max_length=100, blank=True, null=True)
+    data_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Registro de Disparo/Extravio')
+        verbose_name_plural = _('Registros de Disparos/Extravios')
+        ordering = ['-data_registro']
+
+    def __str__(self):
+        return f"Registro: {self.quantidade_disparada} disp. / {self.quantidade_extraviada} ext. (Devolução {self.devolucao.id})"

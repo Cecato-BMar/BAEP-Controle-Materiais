@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.core.paginator import Paginator
-from .models import Material
-from .forms import MaterialForm, MaterialSearchForm
+from .models import Material, LoteMunicao
+from .forms import MaterialForm, MaterialSearchForm, LoteMunicaoForm
 from reserva_baep.decorators import require_module_permission
 import xml.etree.ElementTree as ET
 from django.db import transaction
@@ -65,9 +65,14 @@ def detalhe_material(request, material_id):
     material = get_object_or_404(Material, pk=material_id)
     movimentacoes = material.movimentacoes.all().order_by('-data_hora')[:10]  # Últimas 10 movimentações
     
+    lotes = []
+    if material.tipo == 'MUNICAO':
+        lotes = material.lotes_municao.all().order_by('data_validade')
+
     context = {
         'material': material,
         'movimentacoes': movimentacoes,
+        'lotes': lotes,
     }
     
     return render(request, 'materiais/detalhe_material.html', context)
@@ -203,3 +208,86 @@ def importar_armas_xml(request):
         messages.error(request, _('Nenhum arquivo enviado.'))
         
     return redirect('materiais:lista_materiais')
+
+@login_required
+@require_module_permission('reserva_armas')
+def novo_lote(request, material_id):
+    material = get_object_or_404(Material, pk=material_id, tipo='MUNICAO')
+    if request.method == 'POST':
+        form = LoteMunicaoForm(request.POST)
+        if form.is_valid():
+            lote = form.save(commit=False)
+            lote.material = material
+            lote.save()
+            
+            # Atualiza quantidade do material principal somando quantidades dos lotes ativos
+            from django.db.models import Sum
+            total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+            material.quantidade_disponivel = total_disponivel
+            material.quantidade = total_disponivel + material.quantidade_em_uso
+            material.save()
+
+            messages.success(request, _('Lote cadastrado com sucesso!'))
+            return redirect('materiais:detalhe_material', material_id=material.pk)
+    else:
+        form = LoteMunicaoForm(initial={'material': material})
+        # Oculta o campo material, pois já sabemos qual é
+        form.fields['material'].widget.attrs['style'] = 'display:none;'
+        form.fields['material'].label = ''
+    
+    return render(request, 'materiais/form_lote.html', {
+        'form': form,
+        'material': material,
+        'titulo': _('Novo Lote de Munição'),
+    })
+
+@login_required
+@require_module_permission('reserva_armas')
+def editar_lote(request, lote_id):
+    lote = get_object_or_404(LoteMunicao, pk=lote_id)
+    material = lote.material
+    if request.method == 'POST':
+        form = LoteMunicaoForm(request.POST, instance=lote)
+        if form.is_valid():
+            form.save()
+            
+            from django.db.models import Sum
+            total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+            material.quantidade_disponivel = total_disponivel
+            material.quantidade = total_disponivel + material.quantidade_em_uso
+            material.save()
+
+            messages.success(request, _('Lote atualizado com sucesso!'))
+            return redirect('materiais:detalhe_material', material_id=material.pk)
+    else:
+        form = LoteMunicaoForm(instance=lote)
+        form.fields['material'].widget.attrs['style'] = 'display:none;'
+        form.fields['material'].label = ''
+    
+    return render(request, 'materiais/form_lote.html', {
+        'form': form,
+        'material': material,
+        'titulo': _('Editar Lote de Munição'),
+    })
+
+@login_required
+@require_module_permission('reserva_armas')
+def excluir_lote(request, lote_id):
+    lote = get_object_or_404(LoteMunicao, pk=lote_id)
+    material = lote.material
+    if request.method == 'POST':
+        lote.delete()
+        
+        from django.db.models import Sum
+        total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+        material.quantidade_disponivel = total_disponivel
+        material.quantidade = total_disponivel + material.quantidade_em_uso
+        material.save()
+
+        messages.success(request, _('Lote excluído com sucesso!'))
+        return redirect('materiais:detalhe_material', material_id=material.pk)
+    
+    return render(request, 'materiais/confirmar_exclusao_lote.html', {
+        'lote': lote,
+        'material': material,
+    })
