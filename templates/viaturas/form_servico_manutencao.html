@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:dashboard' %}">Frota</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}">{{ manutencao.viatura.prefixo }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:historico_manutencao' manutencao.pk %}">Histórico</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow border-0 border-start border-success border-4 mt-3">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0 text-success"><i class="fas fa-plus-circle me-2"></i>{{ titulo }}</h4>
+                    <small class="text-muted">Manutenção {{ manutencao.viatura.prefixo }} — O.S. {{ manutencao.ordem_servico|default:"não informada" }}</small>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        <div class="d-flex justify-content-end mt-4 gap-2">
+                            <a href="{% url 'viaturas:historico_manutencao' manutencao.pk %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success fw-bold">
+                                <i class="fas fa-save me-2"></i>Registrar no Histórico
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -221,6 +221,12 @@ class ManutencaoForm(forms.ModelForm):
             Row(
                 Column('servicos_executados_corretamente', css_class='col-md-12 mb-3 fw-bold'),
             ),
+            HTML(
+                '<p class="small text-muted mb-2">'
+                '<i class="fas fa-info-circle me-1"></i>'
+                'Para registrar cada serviço como entrada permanente no histórico, '
+                'use o botão <strong>Novo Serviço</strong> na tela da manutenção.</p>'
+            ),
             Row(
                 Column('detalhamento_servicos', css_class='col-md-6'),
                 Column('detalhamento_pecas_garantia', css_class='col-md-6'),

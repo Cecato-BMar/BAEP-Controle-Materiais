@@ -13,6 +13,15 @@ from .forms import (ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
                     SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
                     PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm)
 from reserva_baep.decorators import require_module_permission
+from .services.manutencao_historico import (
+    registrar_abertura,
+    registrar_alteracoes_form,
+    registrar_cancelamento,
+    registrar_conclusao,
+    registrar_evidencia,
+    registrar_servico,
+    garantir_historico_estruturado,
+)
 
 import xml.etree.ElementTree as ET
 import pandas as pd
@@ -315,8 +324,15 @@ def lista_manutencoes(request):
 @login_required
 @require_module_permission('frota')
 def detalhe_manutencao(request, pk):
-    man = get_object_or_404(Manutencao.objects.select_related('viatura', 'oficina_fk', 'registrado_por'), pk=pk)
-    return render(request, 'viaturas/detalhe_manutencao.html', {'manutencao': man})
+    man = get_object_or_404(
+        Manutencao.objects.select_related('viatura', 'oficina_fk', 'registrado_por')
+        .prefetch_related('servicos__registrado_por'),
+        pk=pk,
+    )
+    return render(request, 'viaturas/detalhe_manutencao.html', {
+        'manutencao': man,
+        'servicos': man.servicos.all(),
+    })
 
 
 @login_required
@@ -342,6 +358,7 @@ def criar_manutencao(request):
             man = form.save(commit=False)
             man.registrado_por = request.user
             man.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            registrar_abertura(man, request.user)
             
             # Atualiza localização escolhida na tela
             local = form.cleaned_data.get('localizacao_fisica')
@@ -362,9 +379,11 @@ def criar_manutencao(request):
 def editar_manutencao(request, pk):
     man = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
+        instancia_anterior = Manutencao.objects.get(pk=pk)
         form = ManutencaoForm(request.POST, request.FILES, instance=man)
         if form.is_valid():
             m = form.save() # O método save do modelo Manutencao atualiza o status e a localização da viatura automaticamente
+            registrar_alteracoes_form(m, request.user, instancia_anterior)
             
             # Atualiza localização escolhida na tela
             local = form.cleaned_data.get('localizacao_fisica')
@@ -405,6 +424,7 @@ def criar_agendamento(request):
             agend.odometro = agend.viatura.odometro_atual  # usa odometro atual como referência
             agend.registrado_por = request.user
             agend.save()
+            registrar_abertura(agend, request.user)
             messages.success(request, f'Agendamento registrado para {agend.viatura.prefixo} em {agend.data_inicio.strftime("%d/%m/%Y")}!')
             return redirect('viaturas:lista_agendamentos')
         messages.error(request, 'Corrija os erros abaixo.')
@@ -418,9 +438,11 @@ def criar_agendamento(request):
 def converter_agendamento(request, pk):
     """Converte um agendamento em manutenção ativa (Em Aberto)."""
     agend = get_object_or_404(Manutencao, pk=pk, status='AGENDADA')
+    instancia_anterior = Manutencao.objects.get(pk=agend.pk)
     agend.status = 'ABERTA'
     agend.data_inicio = timezone.now().date()
     agend.save()
+    registrar_alteracoes_form(agend, request.user, instancia_anterior)
     messages.success(request, f'Agendamento da viatura {agend.viatura.prefixo} iniciado como manutenção Em Aberto!')
     return redirect('viaturas:lista_manutencoes')
 

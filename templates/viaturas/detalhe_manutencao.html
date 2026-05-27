@@ -32,9 +32,43 @@
 <div class="row g-4">
     <div class="col-md-8">
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Descrição dos Serviços</div>
+            <div class="card-header bg-white fw-bold"><i class="fas fa-info-circle me-2 text-primary"></i>Motivo / Problema Relatado</div>
             <div class="card-body">
                 <p class="mb-0" style="white-space: pre-line;">{{ manutencao.descricao }}</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-tools me-2 text-success"></i>Serviços Registrados</span>
+                <span class="badge bg-success">{{ servicos.count }}</span>
+            </div>
+            <div class="card-body">
+                {% if servicos %}
+                    <ul class="list-group list-group-flush">
+                        {% for s in servicos %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ s.descricao }}</strong>
+                                    {% if s.detalhamento and s.detalhamento != s.descricao %}
+                                    <p class="small text-muted mb-0 mt-1" style="white-space: pre-line;">{{ s.detalhamento }}</p>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted text-nowrap ms-2">{{ s.data_registro|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'viaturas:historico_manutencao' manutencao.pk %}" class="btn btn-link btn-sm p-0 mt-2">Ver histórico completo</a>
+                {% else %}
+                    <p class="text-muted small mb-2">Nenhum serviço registrado ainda. Cada serviço gera um registro permanente no histórico.</p>
+                    {% if manutencao.status == 'ABERTA' or manutencao.status == 'AGUARDANDO_PECA' %}
+                    <a href="{% url 'viaturas:adicionar_servico_manutencao' manutencao.pk %}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-plus me-1"></i>Registrar primeiro serviço
+                    </a>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
 
