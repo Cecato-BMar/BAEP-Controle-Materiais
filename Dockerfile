@@ -18,9 +18,8 @@ RUN apt-get update \
 
 COPY . .
 
-RUN chmod +x /app/entrypoint.sh
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["/app/entrypoint.sh"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn reserva_baep.wsgi:application --bind 0.0.0.0:${PORT} --workers 3 --timeout 120"]
