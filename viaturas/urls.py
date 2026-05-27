@@ -72,6 +72,7 @@ urlpatterns = [
     path('manutencoes/<int:manutencao_pk>/evidencia/nova/', views.adicionar_evidencia, name='adicionar_evidencia'),
     path('evidencias/<int:pk>/excluir/', views.excluir_evidencia, name='excluir_evidencia'),
     path('manutencoes/<int:pk>/historico/', views.historico_manutencao, name='historico_manutencao'),
+    path('manutencoes/<int:manutencao_pk>/servico/novo/', views.adicionar_servico_manutencao, name='adicionar_servico_manutencao'),
 
     # Planos de Manutenção Preventiva
     path('planos-preventivos/', views.lista_planos_preventivos, name='lista_planos_preventivos'),

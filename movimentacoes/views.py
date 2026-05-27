@@ -284,7 +284,6 @@ def nova_devolucao(request):
                         quantidade_extraviada = int(item.get('extravios', 0))
                         justificativa_consumo = item.get('justificativa_consumo', '').strip()
                         boletim_ocorrencia = item.get('boletim_ocorrencia', '').strip()
-
                         # Validações básicas
                         if not retirada_id or not material_id:
                             messages.error(request, _('Dados inválidos para devolução.'))

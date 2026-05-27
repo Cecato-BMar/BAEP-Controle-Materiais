@@ -20,7 +20,7 @@ from .forms import (
     SolicitacaoBaixaViaturaForm, AnaliseBaixaViaturaForm,
     PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm,
     ConcluirManutencaoForm, CancelarManutencaoForm, EvidenciaManutencaoForm,
-    PlanoManutencaoPreventivaForm
+    PlanoManutencaoPreventivaForm, ServicoManutencaoForm,
 )
 from reserva_baep.decorators import require_module_permission
 from .services.manutencao_historico import (
@@ -463,6 +463,7 @@ def concluir_manutencao(request, pk):
         return redirect('viaturas:detalhe_manutencao', pk=pk)
     
     if request.method == 'POST':
+        instancia_anterior = Manutencao.objects.get(pk=man.pk)
         form = ConcluirManutencaoForm(request.POST, request.FILES, instance=man)
         if form.is_valid():
             man = form.save(commit=False)
@@ -471,6 +472,8 @@ def concluir_manutencao(request, pk):
             man.aprovado_por = request.user
             man.data_aprovacao = timezone.now()
             man.save()
+            registrar_alteracoes_form(man, request.user, instancia_anterior)
+            registrar_conclusao(man, request.user)
             
             messages.success(request, f'Manutenção da viatura {man.viatura.prefixo} concluída e aprovada!')
             return redirect('viaturas:detalhe_manutencao', pk=pk)
@@ -595,6 +598,7 @@ def cancelar_agendamento(request, pk):
             man.cancelado_por = request.user
             man.data_cancelamento = timezone.now()
             man.save()
+            registrar_cancelamento(man, request.user, man.motivo_cancelamento or '')
             messages.warning(request, f'Agendamento da viatura {agend.viatura.prefixo} cancelado.')
             return redirect('viaturas:lista_agendamentos')
         messages.error(request, 'Informe o motivo do cancelamento.')
@@ -1114,6 +1118,7 @@ def adicionar_evidencia(request, manutencao_pk):
             ev.manutencao = man
             ev.registrado_por = request.user
             ev.save()
+            registrar_evidencia(man, request.user, ev)
             messages.success(request, 'Evidência anexada com sucesso!')
             return redirect('viaturas:detalhe_manutencao', pk=manutencao_pk)
         messages.error(request, 'Corrija os erros abaixo.')
@@ -1188,6 +1193,42 @@ def editar_plano_preventivo(request, pk):
 # =============================================================================
 # HISTÓRICO DE AUDITORIA (Fase 1)
 # =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def adicionar_servico_manutencao(request, manutencao_pk):
+    """Registra um novo serviço como entrada imutável no histórico."""
+    man = get_object_or_404(Manutencao, pk=manutencao_pk)
+    if man.status in ('CONCLUIDA', 'CANCELADA'):
+        messages.warning(request, 'Não é possível registrar serviço em manutenção encerrada.')
+        return redirect('viaturas:historico_manutencao', pk=manutencao_pk)
+
+    if request.method == 'POST':
+        form = ServicoManutencaoForm(request.POST, manutencao=man)
+        if form.is_valid():
+            dados = form.cleaned_data
+            registrar_servico(
+                man,
+                request.user,
+                dados['descricao'],
+                detalhamento=dados.get('detalhamento'),
+                pecas_garantia=dados.get('pecas_garantia'),
+                custo_pecas=dados.get('custo_pecas'),
+                custo_mao_obra=dados.get('custo_mao_obra'),
+                odometro=dados.get('odometro'),
+            )
+            messages.success(request, 'Serviço registrado no histórico com sucesso!')
+            return redirect('viaturas:historico_manutencao', pk=manutencao_pk)
+        messages.error(request, 'Corrija os erros abaixo.')
+    else:
+        form = ServicoManutencaoForm(manutencao=man)
+
+    return render(request, 'viaturas/form_servico_manutencao.html', {
+        'form': form,
+        'manutencao': man,
+        'titulo': 'Registrar Novo Serviço',
+    })
+
 
 @login_required
 @require_module_permission('frota')

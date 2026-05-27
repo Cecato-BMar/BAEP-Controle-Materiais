@@ -1,7 +1,23 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Div, Field, HTML
-from .models import MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento, Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca, RetiradaPecaItem
+from .models import (
+    MarcaViatura,
+    ModeloViatura,
+    Viatura,
+    DespachoViatura,
+    Abastecimento,
+    Manutencao,
+    Oficina,
+    ChecklistViatura,
+    SolicitacaoBaixaViatura,
+    PecaViatura,
+    RetiradaPeca,
+    RetiradaPecaItem,
+    EvidenciaManutencao,
+    PlanoManutencaoPreventiva,
+    ServicoManutencao,
+)
 from django.forms import inlineformset_factory
 from policiais.models import Policial
 
@@ -644,8 +660,6 @@ class CancelarManutencaoForm(forms.ModelForm):
         )
 
 
-from .models import EvidenciaManutencao, PlanoManutencaoPreventiva
-
 class EvidenciaManutencaoForm(forms.ModelForm):
     class Meta:
         model = EvidenciaManutencao
@@ -662,6 +676,41 @@ class EvidenciaManutencaoForm(forms.ModelForm):
             ),
             Row(
                 Column('descricao', css_class='col-12'),
+            ),
+        )
+
+
+class ServicoManutencaoForm(forms.ModelForm):
+    class Meta:
+        model = ServicoManutencao
+        fields = ['descricao', 'detalhamento', 'pecas_garantia', 'custo_pecas', 'custo_mao_obra', 'odometro']
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Descreva o serviço executado'}),
+            'detalhamento': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Detalhamento técnico (opcional)'}),
+            'pecas_garantia': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Peças trocadas e garantia (opcional)'}),
+        }
+
+    def __init__(self, *args, manutencao=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if manutencao and not self.instance.pk:
+            self.fields['odometro'].initial = manutencao.odometro
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            HTML(
+                '<p class="text-muted small mb-2">'
+                '<i class="fas fa-info-circle me-1"></i>'
+                'Cada envio cria um novo registro imutável no histórico.</p>'
+            ),
+            Row(Column('descricao', css_class='col-12')),
+            Row(
+                Column('detalhamento', css_class='col-md-6'),
+                Column('pecas_garantia', css_class='col-md-6'),
+            ),
+            Row(
+                Column('custo_pecas', css_class='col-md-4'),
+                Column('custo_mao_obra', css_class='col-md-4'),
+                Column('odometro', css_class='col-md-4'),
             ),
         )
 
