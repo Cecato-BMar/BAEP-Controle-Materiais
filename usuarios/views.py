@@ -18,7 +18,7 @@ from .forms import (
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('solicitacoes:novo_pedido')
+        return redirect('home')
         
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
@@ -74,7 +74,7 @@ def login_view(request):
             except Perfil.DoesNotExist:
                 pass
             
-            return redirect('solicitacoes:novo_pedido')
+            return redirect('home')
         else:
             messages.error(request, _('Nome de usuário ou senha inválidos.'))
     else:

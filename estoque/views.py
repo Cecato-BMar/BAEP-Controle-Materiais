@@ -20,7 +20,7 @@ from decimal import Decimal
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A5, A4
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 
@@ -220,13 +220,13 @@ def criar_entrada_material(request):
 
 
 # =============================================================================
-# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO 3)
+# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO)
 # =============================================================================
 
 @login_required
 @require_module_permission('materiais')
 def criar_saida_material(request):
-    """Registrar saída de material conforme MATERIAL DE CONSUMO 3"""
+    """Registrar saída de material conforme MATERIAL DE CONSUMO"""
     if request.method == 'POST':
         form = SaidaMaterialForm(request.POST)
         form.instance.tipo_movimentacao = 'SAIDA'
@@ -1554,7 +1554,7 @@ def buscar_saldo_produto_ajax(request):
 @login_required
 @require_module_permission('materiais')
 def confirmacao_saida_material(request):
-    """Tela de confirmação após registro de saída MATERIAL DE CONSUMO 3"""
+    """Tela de confirmação após registro de saída MATERIAL DE CONSUMO"""
     mov_id = request.GET.get('id')
     mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
     
@@ -1567,42 +1567,64 @@ def confirmacao_saida_material(request):
 @login_required
 @require_module_permission('materiais')
 def exportar_recibo_saida_pdf(request):
-    """Gera recibo de saída MATERIAL DE CONSUMO 3 em PDF (A5)"""
+    """Gera recibo de saída MATERIAL DE CONSUMO em PDF (A4)"""
+    import os
+    from django.conf import settings
     mov_id = request.GET.get('id')
     mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
     
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A5, leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=30)
     elements = []
     
     styles = getSampleStyleSheet()
-    header_style = ParagraphStyle('Header', parent=styles['Normal'], fontSize=9, leading=11, alignment=1, textColor=colors.white, fontName='Helvetica-Bold')
-    section_title = ParagraphStyle('SectionTitle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', spaceBefore=10, spaceAfter=5)
-    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=8, leading=10)
+    header_style_center = ParagraphStyle('HeaderCenter', parent=styles['Normal'], fontSize=9, leading=12, alignment=1, textColor=colors.white, fontName='Helvetica-Bold')
+    section_title = ParagraphStyle('SectionTitle', parent=styles['Normal'], fontSize=11, leading=14, fontName='Helvetica-Bold', spaceBefore=15, spaceAfter=8)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=10, leading=13)
     
-    # Cabeçalho
-    header_data = [
-        [Paragraph("2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP<br/>RECIBO DE SAÍDA DE MATERIAL (MATERIAL DE CONSUMO 3)", header_style)]
-    ]
-    header_table = Table(header_data, colWidths=[12.8*cm])
+    local_data_hora = timezone.localtime(mov.data_hora)
+    
+    # Cabeçalho baseado no recibo docx
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_baep.png')
+    
+    header_title_text = (
+        "SECRETARIA DA SEGURANÇA PÚBLICA<br/>"
+        "POLÍCIA MILITAR DO ESTADO DE SÃO PAULO<br/>"
+        "2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA<br/>"
+        f"RECIBO Nº 2BAEP-{mov.pk:03d}/40/{local_data_hora.year}"
+    )
+    
+    # Largura total imprimível: 535 pontos (595.27 - 60)
+    if os.path.exists(logo_path):
+        img = Image(logo_path, width=50, height=50)
+        header_data = [
+            [img, Paragraph(header_title_text, header_style_center)]
+        ]
+        header_table = Table(header_data, colWidths=[60, 475])
+    else:
+        header_data = [
+            [Paragraph(header_title_text, header_style_center)]
+        ]
+        header_table = Table(header_data, colWidths=[535])
+        
     header_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.navy),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('PADDING', (0,0), (-1,-1), 10),
+        ('PADDING', (0,0), (-1,-1), 8),
     ]))
     elements.append(header_table)
-    elements.append(Spacer(1, 0.3*cm))
+    elements.append(Spacer(1, 15))
     
     # Info Recibo
-    local_data_hora = timezone.localtime(mov.data_hora)
     info_data = [
         [Paragraph(f"<b>Controle:</b> #{mov.pk:06d}", body_style), Paragraph(f"<b>Data:</b> {local_data_hora.strftime('%d/%m/%Y')}", body_style)],
         [Paragraph(f"<b>Hora:</b> {local_data_hora.strftime('%H:%M')}", body_style), Paragraph(f"<b>Usuário:</b> {mov.usuario.username}", body_style)],
         [Paragraph(f"<b>Finalidade:</b> {mov.get_subtipo_display()}", body_style), Paragraph(f"<b>Ref:</b> {mov.documento_referencia or '—'}", body_style)]
     ]
-    info_table = Table(info_data, colWidths=[6.4*cm, 6.4*cm])
+    info_table = Table(info_data, colWidths=[267.5, 267.5])
     info_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('PADDING', (0,0), (-1,-1), 6),
     ]))
     elements.append(info_table)
     
@@ -1615,79 +1637,95 @@ def exportar_recibo_saida_pdf(request):
     if p_efetivo:
         pol_data.append([Paragraph(f"<b>Nome:</b> {p_efetivo.get_posto_display()} {p_efetivo.nome}", body_style)])
         pol_data.append([Paragraph(f"<b>RE:</b> {p_efetivo.re}", body_style)])
-        re_para_assinatura = p_efetivo.re
     elif p_adm:
         pol_data.append([Paragraph(f"<b>Nome:</b> {p_adm.nome_completo or p_adm.qra}", body_style)])
         pol_data.append([Paragraph(f"<b>RE:</b> {p_adm.re}          <b>QRA:</b> {p_adm.qra}", body_style)])
-        re_para_assinatura = p_adm.re
-    else:
-        re_para_assinatura = "________________"
 
     if mov.orgao_requisitante:
-        pol_data.append([Paragraph(f"<b>Destino/Seção:</b> {mov.orgao_requisitante.nome} ({mov.orgao_requisitante.sigla})", body_style)])
+        dest_text = f"<b>Destino/Seção:</b> {mov.orgao_requisitante.nome} ({mov.orgao_requisitante.sigla})"
+        if mov.orgao_requisitante.sigla == 'OUTRA' and mov.descricao_outra_unidade:
+            dest_text += f" - {mov.descricao_outra_unidade}"
+        pol_data.append([Paragraph(dest_text, body_style)])
     
     if not pol_data:
         pol_data = [[Paragraph("Não informado", body_style)]]
         
-    pol_table = Table(pol_data, colWidths=[12.8*cm])
+    pol_table = Table(pol_data, colWidths=[535])
     pol_table.setStyle(TableStyle([
         ('BOX', (0,0), (-1,-1), 0.5, colors.grey),
-        ('PADDING', (0,0), (-1,-1), 5),
+        ('PADDING', (0,0), (-1,-1), 6),
     ]))
     elements.append(pol_table)
     
     # Materiais
-    elements.append(Paragraph("MATERIAL FORNECIDO", section_title))
+    elements.append(Spacer(1, 15))
+    elements.append(Paragraph("Recebi do P/4 do 2º BAEP os materiais abaixo relacionados:", body_style))
+    elements.append(Spacer(1, 10))
+    
+    mat_desc = f"<b>{mov.produto.nome}</b><br/>{mov.produto.codigo}"
+    if mov.quantidade_embalagens and mov.itens_por_embalagem:
+        embalagem_nome = mov.unidade_fornecimento.nome if mov.unidade_fornecimento else 'Caixa/Pacote'
+        embalagens_str = f"{mov.quantidade_embalagens:.2f}"
+        if embalagens_str.endswith('.00'):
+            embalagens_str = f"{int(mov.quantidade_embalagens)}"
+        elif embalagens_str.endswith('0'):
+            embalagens_str = f"{mov.quantidade_embalagens:.1f}"
+        mat_desc += f"<br/><font color='grey' size=8>Detalhamento: {embalagens_str} {embalagem_nome} x {mov.itens_por_embalagem} unid.</font>"
+        
     mat_data = [
         ['Descrição do Material', 'Unidade', 'Qtd'],
-        [Paragraph(f"<b>{mov.produto.nome}</b><br/>{mov.produto.codigo}", body_style), 
+        [Paragraph(mat_desc, body_style), 
          str(mov.produto.unidade_medida.sigla if mov.produto.unidade_medida else 'UN'), 
          f"{mov.quantidade:.2f}"]
     ]
     
-    mat_table = Table(mat_data, colWidths=[7.8*cm, 3*cm, 2*cm])
+    mat_table = Table(mat_data, colWidths=[315, 120, 100])
     mat_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('PADDING', (0,0), (-1,-1), 6),
     ]))
     elements.append(mat_table)
     
-    # Assinaturas
-    elements.append(Spacer(1, 1.5*cm))
+    # Data formatada em Português
+    meses = {
+        1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril',
+        5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto',
+        9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'
+    }
+    data_formatada = f"SANTOS, {local_data_hora.day} de {meses[local_data_hora.month].upper()} de {local_data_hora.year}"
+    
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph(f"<b>{data_formatada}</b>", body_style))
+    
+    # Assinaturas baseadas no docx (apenas o recebedor)
+    elements.append(Spacer(1, 40))
     sig_data = [
-        ["________________________________", "________________________________"],
-        ["Assinatura do Recebedor", "Data e Hora Recebimento"],
-        [f"RE/Nome: {re_para_assinatura}", "___/___/_____  ___:___"]
+        [
+            Paragraph(
+                "GRAD/NOME COMPLETO: ____________________________________________________________________<br/><br/>"
+                "RE: ____________________________________________________________________________________<br/><br/>"
+                "ASS: ___________________________________________________________________________________", 
+                body_style
+            )
+        ]
     ]
-    sig_table = Table(sig_data, colWidths=[6.4*cm, 6.4*cm])
+    sig_table = Table(sig_data, colWidths=[535])
     sig_table.setStyle(TableStyle([
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('FONTSIZE', (0,0), (-1,-1), 7),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('FONTSIZE', (0,0), (-1,-1), 8),
     ]))
     elements.append(sig_table)
-    
-    elements.append(Spacer(1, 1.0*cm))
-    sig_entrega = [
-        ["________________________________"],
-        ["Responsável pelo Almoxarifado (MATERIAL DE CONSUMO)"],
-        [f"{mov.usuario.get_full_name() or mov.usuario.username}"]
-    ]
-    entrega_table = Table(sig_entrega, colWidths=[12.8*cm])
-    entrega_table.setStyle(TableStyle([
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('FONTSIZE', (0,0), (-1,-1), 7),
-    ]))
-    elements.append(entrega_table)
     
     # Elementos fixos da página (Apenas Rodapé)
     def draw_page_elements(canvas, doc):
         canvas.saveState()
         
-        # 1. Rodapé Textual
+        # 1. Rodapé Textual (A4)
         canvas.setFont('Helvetica', 6)
-        canvas.drawCentredString(A5[0]/2.0, 0.5*cm, f"Controle de Estoque MATERIAL DE CONSUMO 3 - BAEP - Página {doc.page}")
+        canvas.drawCentredString(A4[0]/2.0, 30, f"Controle de Estoque MATERIAL DE CONSUMO - BAEP - Página {doc.page}")
 
         canvas.restoreState()
 
@@ -1776,3 +1814,26 @@ def excluir_produto(request, pk):
         return redirect('estoque:lista_produtos')
         
     return render(request, 'estoque/confirmar_exclusao.html', {'objeto': produto, 'tipo': 'Material de Consumo'})
+
+
+@login_required
+@require_module_permission('materiais')
+def upload_recibo_assinado(request):
+    """Realiza o upload do recibo assinado e escaneado de uma movimentação"""
+    if request.method == 'POST':
+        mov_id = request.POST.get('movimentacao_id')
+        recibo_file = request.FILES.get('recibo_file')
+        
+        if not mov_id or not recibo_file:
+            messages.error(request, 'ID da movimentação ou arquivo não enviado.')
+            return redirect('estoque:lista_movimentacoes')
+            
+        mov = get_object_or_404(MovimentacaoEstoque, pk=mov_id)
+        
+        # Salva o arquivo no modelo
+        mov.recibo_assinado = recibo_file
+        mov.save()
+        
+        messages.success(request, f'Recibo assinado para a movimentação #{mov.pk:06d} foi salvo com sucesso!')
+        
+    return redirect('estoque:lista_movimentacoes')

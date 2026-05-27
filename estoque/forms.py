@@ -468,9 +468,10 @@ class EntradaMaterialForm(forms.ModelForm):
         fields = [
             'produto', 'subtipo', 'data_movimentacao',
             'cor', 'unidade_medida', 'unidade_fornecimento',
+            'quantidade_embalagens', 'itens_por_embalagem',
             'quantidade', 'conta_patrimonial', 'localizacao_fisica',
             'fornecedor', 'valor_unitario',
-            'lote', 'nota_fiscal', 'observacoes',
+            'documento_referencia', 'nota_fiscal', 'observacoes',
         ]
         widgets = {
             'produto': forms.Select(attrs={'class': 'form-select', 'id': 'id_produto_entrada'}),
@@ -480,10 +481,15 @@ class EntradaMaterialForm(forms.ModelForm):
             'cor': forms.Select(attrs={'class': 'form-select'}),
             'unidade_medida': forms.Select(attrs={'class': 'form-select'}),
             'unidade_fornecimento': forms.Select(attrs={'class': 'form-select'}),
+            'quantidade_embalagens': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'id': 'id_quantidade_embalagens'}),
+            'itens_por_embalagem': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_itens_por_embalagem'}),
             'conta_patrimonial': forms.Select(attrs={'class': 'form-select'}),
             'localizacao_fisica': forms.Select(attrs={'class': 'form-select'}),
             'fornecedor': forms.Select(attrs={'class': 'form-select'}),
-            'lote': forms.Select(attrs={'class': 'form-select'}),
+            'documento_referencia': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: 2024NE001234'
+            }),
             'observacoes': forms.Textarea(attrs={'rows': 2}),
         }
 
@@ -498,6 +504,10 @@ class EntradaMaterialForm(forms.ModelForm):
         self.fields['data_movimentacao'].initial = timezone.now().date()
         # Data não pode ser retroativa por padrão
         self.fields['data_movimentacao'].widget.attrs['max'] = timezone.now().date().isoformat()
+        # Renomear label do documento_referencia para NE - Nota de Empenho
+        self.fields['documento_referencia'].label = _('NE — Nota de Empenho')
+        self.fields['documento_referencia'].required = False
+        self.fields['documento_referencia'].help_text = _('Número da Nota de Empenho vinculada a esta entrada')
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -513,12 +523,17 @@ class EntradaMaterialForm(forms.ModelForm):
             Row(
                 Column('unidade_medida', css_class='form-group col-md-3 mb-0'),
                 Column('unidade_fornecimento', css_class='form-group col-md-3 mb-0'),
-                Column('quantidade', css_class='form-group col-md-2 mb-0'),
-                Column('valor_unitario', css_class='form-group col-md-2 mb-0'),
+                Column('quantidade_embalagens', css_class='form-group col-md-3 mb-0'),
+                Column('itens_por_embalagem', css_class='form-group col-md-3 mb-0'),
+                css_class='row'
+            ),
+            Row(
+                Column('quantidade', css_class='form-group col-md-4 mb-0'),
+                Column('valor_unitario', css_class='form-group col-md-4 mb-0'),
                 Column(
                     HTML('<label class="form-label">Valor Total</label>'
                          '<div id="valor-total-entrada" class="form-control bg-light fw-bold">R$ 0,00</div>'),
-                    css_class='form-group col-md-2 mb-0'
+                    css_class='form-group col-md-4 mb-0'
                 ),
                 css_class='row'
             ),
@@ -529,7 +544,7 @@ class EntradaMaterialForm(forms.ModelForm):
                 css_class='row'
             ),
             Row(
-                Column('lote', css_class='form-group col-md-4 mb-0'),
+                Column('documento_referencia', css_class='form-group col-md-4 mb-0'),
                 Column('nota_fiscal', css_class='form-group col-md-4 mb-0'),
                 css_class='row'
             ),
@@ -541,27 +556,31 @@ class EntradaMaterialForm(forms.ModelForm):
         )
 
 
-# =============================================================================
-# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO 3)
+# SAÍDA DE MATERIAIS (MATERIAL DE CONSUMO)
 # =============================================================================
 
 class SaidaMaterialForm(forms.ModelForm):
-    """Formulário de Saída conforme MATERIAL DE CONSUMO 3"""
+    """Formulário de Saída conforme MATERIAL DE CONSUMO"""
 
 
     class Meta:
         model = MovimentacaoEstoque
         fields = [
             'produto', 'subtipo', 'data_movimentacao',
-            'orgao_requisitante', 'militar_requisitante', 'militar_administrativo',
-            'quantidade', 'observacoes',
+            'unidade_fornecimento', 'quantidade_embalagens', 'itens_por_embalagem',
+            'quantidade', 'orgao_requisitante', 'descricao_outra_unidade',
+            'militar_requisitante', 'militar_administrativo', 'observacoes',
         ]
         widgets = {
             'produto': forms.Select(attrs={'class': 'form-select', 'id': 'id_produto_saida'}),
             'subtipo': forms.Select(attrs={'class': 'form-select'}),
             'data_movimentacao': forms.DateInput(
                 attrs={'type': 'date', 'max': timezone.now().date().isoformat()}),
-            'orgao_requisitante': forms.Select(attrs={'class': 'form-select'}),
+            'unidade_fornecimento': forms.Select(attrs={'class': 'form-select'}),
+            'quantidade_embalagens': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'id': 'id_quantidade_embalagens'}),
+            'itens_por_embalagem': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_itens_por_embalagem'}),
+            'orgao_requisitante': forms.Select(attrs={'class': 'form-select', 'id': 'id_orgao_requisitante'}),
+            'descricao_outra_unidade': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_descricao_outra_unidade', 'placeholder': 'Especificação da Outra Unidade'}),
             'militar_requisitante': forms.Select(attrs={'class': 'form-select', 'id': 'id_militar_select'}),
             'militar_administrativo': forms.Select(attrs={'class': 'form-select', 'id': 'id_militar_administrativo'}),
             'observacoes': forms.Textarea(attrs={'rows': 2}),
@@ -583,7 +602,7 @@ class SaidaMaterialForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (MATERIAL DE CONSUMO 3)</h6>'),
+            HTML('<h6 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-arrow-up text-danger me-2"></i>Dados da Saída (MATERIAL DE CONSUMO)</h6>'),
             Row(
                 Column('produto', css_class='form-group col-md-6 mb-3'),
                 Column('subtipo', css_class='form-group col-md-6 mb-3'),
@@ -591,7 +610,16 @@ class SaidaMaterialForm(forms.ModelForm):
             ),
             Row(
                 Column('data_movimentacao', css_class='form-group col-md-6 mb-3'),
-                Column('quantidade', css_class='form-group col-md-6 mb-0'),
+                Column('unidade_fornecimento', css_class='form-group col-md-6 mb-3'),
+                css_class='row'
+            ),
+            Row(
+                Column('quantidade_embalagens', css_class='form-group col-md-6 mb-3'),
+                Column('itens_por_embalagem', css_class='form-group col-md-6 mb-3'),
+                css_class='row'
+            ),
+            Row(
+                Column('quantidade', css_class='form-group col-md-12 mb-3'),
                 css_class='row'
             ),
             HTML('<div id="saldo-disponivel-box" class="alert alert-info py-2 mb-3" style="display:none">'
@@ -600,6 +628,10 @@ class SaidaMaterialForm(forms.ModelForm):
             HTML('<h6 class="text-muted border-bottom pb-2 mb-3 mt-2"><i class="fas fa-user-shield me-2"></i>Requisitante</h6>'),
             Row(
                 Column('orgao_requisitante', css_class='form-group col-md-12 mb-3'),
+                css_class='row'
+            ),
+            Row(
+                Column('descricao_outra_unidade', css_class='form-group col-md-12 mb-3', id='div_id_descricao_outra_unidade'),
                 css_class='row'
             ),
             Row(
@@ -619,6 +651,11 @@ class SaidaMaterialForm(forms.ModelForm):
         produto = cleaned_data.get('produto')
         quantidade = cleaned_data.get('quantidade')
         subtipo = cleaned_data.get('subtipo')
+        orgao = cleaned_data.get('orgao_requisitante')
+        desc_outra = cleaned_data.get('descricao_outra_unidade')
+
+        if orgao and orgao.sigla == 'OUTRA' and not desc_outra:
+            self.add_error('descricao_outra_unidade', _('Para Outra Unidade, a especificação é obrigatória.'))
 
         if produto and quantidade and subtipo in ['REQUISICAO', 'DESCARTE']:
             saldo = produto.saldo_calculado

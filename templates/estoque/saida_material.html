@@ -1,7 +1,7 @@
 {% extends 'estoque/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Registrar Saída de Material — MATERIAL DE CONSUMO 3{% endblock %}
+{% block title %}Registrar Saída de Material — MATERIAL DE CONSUMO{% endblock %}
 
 {% block estoque_content %}
 <div class="row justify-content-center">
@@ -34,7 +34,7 @@
           A saída não pode exceder o saldo disponível.
           Digite o RE para localizar o militar automaticamente.
           A baixa ocorre em tempo real ao salvar.
-          Unidade de Fornecimento será sempre <strong>UNIDADE</strong>.
+          Selecione a embalagem correspondente para detalhar caixas/pacotes e calcular a quantidade total automaticamente.
         </small>
       </div>
     </div>
@@ -52,6 +52,54 @@
     const saldoBox = document.getElementById('saldo-disponivel-box');
     const saldoValor = document.getElementById('saldo-valor');
     const qtdInput = document.querySelector('[name="quantidade"]');
+    const qtdEmbalagens = document.getElementById('id_quantidade_embalagens');
+    const itensPorEmbalagem = document.getElementById('id_itens_por_embalagem');
+    const orgaoSelect = document.getElementById('id_orgao_requisitante');
+    const divOutraUnidade = document.getElementById('div_id_descricao_outra_unidade');
+    const inputOutraUnidade = document.getElementById('id_descricao_outra_unidade');
+
+    // Toggle para "Outra Unidade"
+    function checkOrgao() {
+      if (!orgaoSelect || !divOutraUnidade) return;
+      const selectedText = orgaoSelect.options[orgaoSelect.selectedIndex]?.text.toUpperCase() || '';
+      if (selectedText.indexOf('OUTRA UNIDADE') !== -1 || selectedText.indexOf('OUTRA') !== -1) {
+        divOutraUnidade.style.display = '';
+        if (inputOutraUnidade) inputOutraUnidade.setAttribute('required', 'required');
+      } else {
+        divOutraUnidade.style.display = 'none';
+        if (inputOutraUnidade) {
+          inputOutraUnidade.removeAttribute('required');
+          inputOutraUnidade.value = '';
+        }
+      }
+    }
+
+    if (orgaoSelect) {
+      orgaoSelect.addEventListener('change', checkOrgao);
+      checkOrgao();
+    }
+
+    // Calcular quantidade total
+    function calcularQuantidadeTotal() {
+      if (!qtdEmbalagens || !itensPorEmbalagem || !qtdInput) return;
+      const embalagensValue = (qtdEmbalagens.value || '').replace(',', '.');
+      const embalagens = parseFloat(embalagensValue) || 0;
+      const itens = parseInt(itensPorEmbalagem.value) || 0;
+      if (embalagens > 0 && itens > 0) {
+        qtdInput.value = (embalagens * itens).toFixed(2).replace('.00', '');
+        // Disparar evento de input para validação
+        qtdInput.dispatchEvent(new Event('input'));
+      }
+    }
+
+    if (qtdEmbalagens) {
+      qtdEmbalagens.addEventListener('input', calcularQuantidadeTotal);
+      qtdEmbalagens.addEventListener('change', calcularQuantidadeTotal);
+    }
+    if (itensPorEmbalagem) {
+      itensPorEmbalagem.addEventListener('input', calcularQuantidadeTotal);
+      itensPorEmbalagem.addEventListener('change', calcularQuantidadeTotal);
+    }
 
     // Busca saldo ao selecionar produto
     function buscarSaldo(produtoId) {
@@ -65,6 +113,13 @@
             // Validação em tempo real
             if (qtdInput) {
               qtdInput.setAttribute('max', data.saldo);
+            }
+            // Tentar preencher a unidade de fornecimento padrão do produto
+            const ufSelect = document.querySelector('[name="unidade_fornecimento"]');
+            if (ufSelect && data.unidade_fornecimento) {
+              for (let opt of ufSelect.options) {
+                if (opt.text === data.unidade_fornecimento) { opt.selected = true; break; }
+              }
             }
           }
         }).catch(() => { });

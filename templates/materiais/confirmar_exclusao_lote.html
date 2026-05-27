@@ -4,17 +4,66 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão do Lote
-        </div>
-        <div class="card-body">
-            <p>Tem certeza que deseja excluir o lote <strong>{{ lote.numero_lote }}</strong> do material <strong>{{ lote.material.nome }}</strong>?</p>
-            <form method="post">
-                {% csrf_token %}
-                <a href="{% url 'materiais:detalhe_material' material_id=material_id %}" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-danger">Excluir Lote</button>
-            </form>
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span class="fw-bold">Confirmar Exclusão de Lote</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning d-flex align-items-center mb-4">
+                        <i class="fas fa-exclamation-circle me-3 fa-2x text-warning"></i>
+                        <div>
+                            <strong>Atenção!</strong> Esta ação é irreversível. O lote será permanentemente excluído do sistema.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">Dados do Lote</h5>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th class="w-40">Material</th>
+                                    <td>{{ material.nome }} ({{ material.numero }})</td>
+                                </tr>
+                                <tr>
+                                    <th>Nº do Lote</th>
+                                    <td>{{ lote.numero_lote }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Calibre</th>
+                                    <td>{{ lote.calibre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Marca</th>
+                                    <td>{{ lote.marca }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Qtd. Atual</th>
+                                    <td><strong>{{ lote.quantidade_atual }}</strong> / {{ lote.quantidade_inicial }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Validade</th>
+                                    <td>{{ lote.data_validade|date:"d/m/Y"|default:"-" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'materiais:detalhe_material' material.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Exclusão
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

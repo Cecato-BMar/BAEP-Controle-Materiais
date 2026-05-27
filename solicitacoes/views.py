@@ -108,6 +108,7 @@ def finalizar_solicitacao(request):
     solicitacao = Solicitacao.objects.create(
         solicitante=request.user,
         orgao_requisitante_id=request.POST.get('orgao_requisitante'),
+        descricao_outra_unidade=request.POST.get('descricao_outra_unidade'),
         policial_requisitante_id=request.POST.get('policial_requisitante') or None,
         observacoes=request.POST.get('observacoes', '')
     )
@@ -203,6 +204,7 @@ def mudar_status_solicitacao(request, pk, novo_status):
                         subtipo='REQUISICAO',
                         quantidade=Decimal(qtd_atendida),
                         orgao_requisitante=solicitacao.orgao_requisitante, # Adicionado campo destino
+                        descricao_outra_unidade=solicitacao.descricao_outra_unidade,
                         militar_requisitante=policial,
                         usuario=request.user,  # Auditoria: Quem entregou
                         documento_referencia=f"SOLIC-# {solicitacao.id}",
@@ -223,7 +225,9 @@ def mudar_status_solicitacao(request, pk, novo_status):
 @login_required
 def visualizar_recibo(request, pk):
     solicitacao = get_object_or_404(Solicitacao, pk=pk)
-    if not request.user.is_staff and solicitacao.solicitante != request.user:
+    eh_gestor = request.user.is_staff or request.user.is_superuser or \
+                request.user.groups.filter(name='materiais').exists()
+    if not eh_gestor and solicitacao.solicitante != request.user:
         return HttpResponseForbidden("Acesso negado.")
     
     return render(request, 'solicitacoes/recibo_entrega.html', {
@@ -248,46 +252,57 @@ def gerar_recibo_pdf(request, pk):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
     elements = []
-    styles = getSampleStyleSheet()
-    
-    # Cabeçalho Padrão Imagem 2
+        # Cabeçalho Padrão Imagem 2
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_baep.png')
+    
+    # Obter sigla do órgão requisitante
+    orgao_sigla = solicitacao.orgao_requisitante.sigla if solicitacao.orgao_requisitante else 'Logística'
+    if orgao_sigla == 'OUTRA' and solicitacao.descricao_outra_unidade:
+        orgao_sigla = solicitacao.descricao_outra_unidade
+        
+    header_text_content = (
+        "<font size=9>SECRETARIA DA SEGURANÇA PÚBLICA</font><br/>"
+        "<font size=11><b>POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</b></font><br/>"
+        "<font size=10>2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA</font>"
+    )
     
     # Criar Tabela para o Cabeçalho (Logo e Textos)
     header_data = []
     if os.path.exists(logo_path):
         img = Image(logo_path, width=50, height=50)
         
-        header_text = Paragraph(
-            "<font size=12><b>POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</b></font><br/>"
-            "<font size=10>2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP</font>",
-            styles['Normal']
-        )
-        # Centralizar o texto do cabeçalho
+        header_text = Paragraph(header_text_content, styles['Normal'])
         header_text.alignment = 1 
         
         header_data = [[img, header_text]]
-        header_table = Table(header_data, colWidths=[60, 440])
+        header_table = Table(header_data, colWidths=[60, 475])
         header_table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('ALIGN', (1, 0), (1, 0), 'CENTER'),
         ]))
         elements.append(header_table)
     else:
-        elements.append(Paragraph("POLÍCIA MILITAR DO ESTADO DE SÃO PAULO", styles['Title']))
-        elements.append(Paragraph("2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP", styles['Heading2']))
+        header_text = Paragraph(header_text_content, styles['Normal'])
+        header_text.alignment = 1
+        
+        header_table = Table([[header_text]], colWidths=[535])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ]))
+        elements.append(header_table)
 
     elements.append(Spacer(1, 5))
     elements.append(HRFlowable(width="100%", thickness=1, color=colors.black))
     elements.append(Spacer(1, 20))
 
-    # Título do Documento
-    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], alignment=1, spaceAfter=20)
-    elements.append(Paragraph(f"RECIBO DE ENTREGA DE MATERIAL - SOLICITAÇÃO #{solicitacao.id}", title_style))
-    
-    # Datas com Localtime (Horário Correto)
+    # Título do Documento com a numeração solicitada
     dt_pedido = localtime(solicitacao.data_solicitacao).strftime('%d/%m/%Y %H:%M')
     dt_entrega = localtime(solicitacao.data_atualizacao).strftime('%d/%m/%Y %H:%M')
+    year_num = localtime(solicitacao.data_atualizacao).year
+    
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], alignment=1, spaceAfter=20)
+    elements.append(Paragraph(f"RECIBO Nº 2BAEP-{solicitacao.id:03d}/40/{year_num}", title_style))
     
     # Determinar Requisitante para o Recibo
     if solicitacao.policial_requisitante:
@@ -296,12 +311,19 @@ def gerar_recibo_pdf(request, pk):
         requisitante_nome = solicitacao.solicitante.get_full_name() or solicitacao.solicitante.username
 
     elements.append(Paragraph(f"<b>Requisitante/Destino:</b> {requisitante_nome}", styles['Normal']))
-    elements.append(Paragraph(f"<b>Seção/Unidade:</b> {solicitacao.orgao_requisitante.nome if solicitacao.orgao_requisitante else 'Não informada'}", styles['Normal']))
+    secao_unidade = solicitacao.orgao_requisitante.nome if solicitacao.orgao_requisitante else 'Não informada'
+    if solicitacao.orgao_requisitante and solicitacao.orgao_requisitante.sigla == 'OUTRA' and solicitacao.descricao_outra_unidade:
+        secao_unidade = f"{secao_unidade} - {solicitacao.descricao_outra_unidade}"
+    elements.append(Paragraph(f"<b>Seção/Unidade:</b> {secao_unidade}", styles['Normal']))
     elements.append(Paragraph(f"<b>Data do Pedido:</b> {dt_pedido}", styles['Normal']))
     elements.append(Paragraph(f"<b>Data da Entrega:</b> {dt_entrega}", styles['Normal']))
     if solicitacao.entregue_por:
         elements.append(Paragraph(f"<b>Entregue por (Logística):</b> {solicitacao.entregue_por.get_full_name() or solicitacao.entregue_por.username}", styles['Normal']))
     elements.append(Spacer(1, 20))
+    
+    # Mensagem de recebimento
+    elements.append(Paragraph("Recebi do P/4 do 2º BAEP os materiais abaixo relacionados:", styles['Normal']))
+    elements.append(Spacer(1, 10))
     
     # Tabela de Itens (Mesma lógica)
     data = [['Material', 'Código', 'Qtd. Pedida', 'Qtd. Entregue']]
@@ -325,19 +347,38 @@ def gerar_recibo_pdf(request, pk):
     ]))
     elements.append(t)
     
-    elements.append(Spacer(1, 40))
+    # Datas formatadas por extenso em Português
+    meses = {
+        1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril',
+        5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto',
+        9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'
+    }
+    dt_atualizacao_local = localtime(solicitacao.data_atualizacao)
+    data_formatada = f"SANTOS, {dt_atualizacao_local.day} de {meses[dt_atualizacao_local.month].upper()} de {dt_atualizacao_local.year}"
+    
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(f"<b>{data_formatada}</b>", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
     if solicitacao.notas_admin:
         elements.append(Paragraph(f"<b>Observações do Almoxarifado:</b> {solicitacao.notas_admin}", styles['Normal']))
-        elements.append(Spacer(1, 40))
+        elements.append(Spacer(1, 30))
 
-    # Assinaturas
+    # Assinaturas inspiradas no recibo do docx (apenas o recebedor)
     sig_data = [
-        ['_________________________________\nAssinatura do Solicitante', '_________________________________\nAssinatura do Almoxarifado']
+        [
+            Paragraph(
+                "GRAD/NOME COMPLETO: ____________________________________________________________________<br/><br/>"
+                "RE: ____________________________________________________________________________________<br/><br/>"
+                "ASS: ___________________________________________________________________________________", 
+                styles['Normal']
+            )
+        ]
     ]
-    sig_table = Table(sig_data, colWidths=[250, 250])
+    sig_table = Table(sig_data, colWidths=[535])
     sig_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
     ]))
     elements.append(sig_table)
     

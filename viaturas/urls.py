@@ -68,4 +68,13 @@ urlpatterns = [
     path('retiradas-pecas/nova/', views.criar_retirada, name='criar_retirada'),
     path('retiradas-pecas/<int:pk>/recibo/', views.recibo_retirada_peca, name='recibo_retirada_peca'),
     path('retiradas-pecas/<int:pk>/anexar-recibo/', views.anexar_recibo_retirada, name='anexar_recibo_retirada'),
+    # Evidências e Histórico
+    path('manutencoes/<int:manutencao_pk>/evidencia/nova/', views.adicionar_evidencia, name='adicionar_evidencia'),
+    path('evidencias/<int:pk>/excluir/', views.excluir_evidencia, name='excluir_evidencia'),
+    path('manutencoes/<int:pk>/historico/', views.historico_manutencao, name='historico_manutencao'),
+
+    # Planos de Manutenção Preventiva
+    path('planos-preventivos/', views.lista_planos_preventivos, name='lista_planos_preventivos'),
+    path('planos-preventivos/novo/', views.criar_plano_preventivo, name='criar_plano_preventivo'),
+    path('planos-preventivos/<int:pk>/editar/', views.editar_plano_preventivo, name='editar_plano_preventivo'),
 ]

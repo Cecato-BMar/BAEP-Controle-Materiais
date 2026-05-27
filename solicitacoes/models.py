@@ -18,7 +18,9 @@ class Solicitacao(models.Model):
         verbose_name='Solicitante'
     )
     orgao_requisitante = models.ForeignKey('estoque.OrgaoRequisitante', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Seção/Cia Requisitante')
+    descricao_outra_unidade = models.CharField(max_length=150, blank=True, null=True, verbose_name='Especificação da Outra Unidade')
     policial_requisitante = models.ForeignKey(
+
         'policiais.Policial', 
         on_delete=models.SET_NULL, 
         null=True, 

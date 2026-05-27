@@ -125,3 +125,22 @@ def api_material_detalhe(request, material_id):
         return JsonResponse(material_data)
     except Material.DoesNotExist:
         return JsonResponse({'error': 'Material não encontrado'}, status=404)
+
+@login_required
+def api_lotes_material(request, material_id):
+    """
+    API para obter lotes ativos de um material específico
+    """
+    from .models import LoteMunicao
+    lotes = LoteMunicao.objects.filter(material_id=material_id, ativo=True, quantidade_atual__gt=0).order_by('data_validade')
+    lotes_lista = [{
+        'id': lote.id,
+        'numero_lote': lote.numero_lote,
+        'marca': lote.marca,
+        'calibre': lote.calibre,
+        'quantidade_atual': lote.quantidade_atual,
+        'data_validade': lote.data_validade.strftime('%d/%m/%Y') if lote.data_validade else "Sem validade",
+        'vencido': lote.vencido
+    } for lote in lotes]
+    
+    return JsonResponse({'lotes': lotes_lista})

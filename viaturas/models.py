@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from decimal import Decimal
 from django.core.validators import MinValueValidator
+from simple_history.models import HistoricalRecords
 
 class MarcaViatura(models.Model):
     """Marcas de Viaturas (Ex: Toyota, Yamaha, Chevrolet)"""
@@ -93,6 +94,8 @@ class Viatura(models.Model):
     
     data_cadastro = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = _('Viatura')
@@ -245,7 +248,35 @@ class Manutencao(models.Model):
     data_validade_garantia = models.DateField(_('Validade da Garantia (Data)'), blank=True, null=True)
     km_validade_garantia = models.DecimalField(_('Validade da Garantia (Km)'), max_digits=10, decimal_places=1, blank=True, null=True)
     
-    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='manutencoes_registradas')
+    
+    # Timestamps de Auditoria
+    data_criacao = models.DateTimeField(_('Data de Criação'), auto_now_add=True, null=True)
+    data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True, null=True)
+    
+    # Controle de Aprovação (Fase 2)
+    aprovado_por = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='manutencoes_aprovadas', verbose_name=_('Aprovado por')
+    )
+    data_aprovacao = models.DateTimeField(_('Data de Aprovação'), null=True, blank=True)
+    parecer_aprovacao = models.TextField(_('Parecer de Aprovação/Conclusão'), blank=True, null=True)
+    
+    # Controle de Cancelamento (Fase 2)
+    motivo_cancelamento = models.TextField(_('Motivo do Cancelamento'), blank=True, null=True)
+    cancelado_por = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='manutencoes_canceladas', verbose_name=_('Cancelado por')
+    )
+    data_cancelamento = models.DateTimeField(_('Data do Cancelamento'), null=True, blank=True)
+    
+    # Vínculo com Retirada de Peças (Fase 3)
+    retirada_pecas = models.ForeignKey(
+        'RetiradaPeca', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='manutencao_vinculada', verbose_name=_('Retirada de Peças Vinculada')
+    )
+    
+    history = HistoricalRecords()
 
     @property
     def custo_total(self):
@@ -317,6 +348,8 @@ class ChecklistViatura(models.Model):
     observacoes_gerais = models.TextField(_('Observações Gerais'), blank=True, null=True)
 
     registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = _('Checklist de Viatura')
@@ -453,3 +486,50 @@ class RetiradaPecaItem(models.Model):
         super().save(*args, **kwargs)
 
 
+class EvidenciaManutencao(models.Model):
+    """Fotos, laudos e documentos complementares de uma manutenção (Fase 3)"""
+    TIPO_CHOICES = [
+        ('FOTO_ANTES', 'Foto Antes do Serviço'),
+        ('FOTO_DEPOIS', 'Foto Após o Serviço'),
+        ('ORCAMENTO', 'Orçamento'),
+        ('LAUDO', 'Laudo Técnico'),
+        ('OUTRO', 'Outro Documento'),
+    ]
+    
+    manutencao = models.ForeignKey(Manutencao, on_delete=models.CASCADE, related_name='evidencias')
+    tipo = models.CharField(_('Tipo de Evidência'), max_length=20, choices=TIPO_CHOICES)
+    arquivo = models.FileField(_('Arquivo'), upload_to='viaturas/manutencao/evidencias/')
+    descricao = models.CharField(_('Descrição'), max_length=200, blank=True)
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    data_upload = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Evidência de Manutenção')
+        verbose_name_plural = _('Evidências de Manutenção')
+        ordering = ['-data_upload']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} — {self.manutencao.viatura.prefixo} ({self.data_upload.strftime('%d/%m/%Y')})"
+
+
+class PlanoManutencaoPreventiva(models.Model):
+    """Regras de manutenção preventiva por modelo de viatura (Fase 3)"""
+    modelo = models.ForeignKey(ModeloViatura, on_delete=models.CASCADE, related_name='planos_preventivos')
+    descricao = models.CharField(_('Descrição do Serviço'), max_length=200, help_text='Ex: Troca de óleo, Revisão geral')
+    intervalo_km = models.PositiveIntegerField(_('Intervalo em Km'), null=True, blank=True, help_text='A cada quantos km realizar')
+    intervalo_dias = models.PositiveIntegerField(_('Intervalo em Dias'), null=True, blank=True, help_text='A cada quantos dias realizar')
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Plano de Manutenção Preventiva')
+        verbose_name_plural = _('Planos de Manutenção Preventiva')
+        ordering = ['modelo__marca__nome', 'modelo__nome', 'descricao']
+
+    def __str__(self):
+        partes = [self.descricao]
+        if self.intervalo_km:
+            partes.append(f"a cada {self.intervalo_km:,} km")
+        if self.intervalo_dias:
+            partes.append(f"a cada {self.intervalo_dias} dias")
+        return f"{self.modelo} — {' / '.join(partes)}"

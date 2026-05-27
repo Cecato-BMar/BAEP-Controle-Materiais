@@ -34,6 +34,12 @@ def api_retirada_detalhe(request, retirada_id):
             'tipo': movimentacao.material.tipo,
             'tipo_display': movimentacao.material.get_tipo_display(),
         },
+        'lote': {
+            'id': movimentacao.lote_municao.id,
+            'numero_lote': movimentacao.lote_municao.numero_lote,
+            'marca': movimentacao.lote_municao.marca,
+            'calibre': movimentacao.lote_municao.calibre,
+        } if movimentacao.lote_municao else None,
         'policial': {
             'id': movimentacao.policial.id,
             're': movimentacao.policial.re,
@@ -90,6 +96,7 @@ def api_retiradas_pendentes(request):
                     'id': mov.material.id,
                     'nome': mov.material.nome,
                     'identificacao': mov.material.numero,  # Usando numero como identificacao
+                    'tipo': mov.material.tipo,
                     'tipo_display': mov.material.get_tipo_display(),
                     'tipo': mov.material.tipo,
                 },
@@ -98,6 +105,12 @@ def api_retiradas_pendentes(request):
                     're': mov.policial.re,
                     'nome': mov.policial.nome,
                 },
+                'lote': {
+                    'id': mov.lote_municao.id,
+                    'numero_lote': mov.lote_municao.numero_lote,
+                    'marca': mov.lote_municao.marca,
+                    'calibre': mov.lote_municao.calibre,
+                } if mov.lote_municao else None,
                 'data_hora': mov.data_hora.strftime('%d/%m/%Y %H:%M'),
                 'finalidade': mov.retirada.finalidade,
                 'quantidade_retirada': mov.quantidade,

@@ -219,15 +219,15 @@ class MovimentacaoEstoqueAdmin(admin.ModelAdmin):
             'fields': ('uuid', 'produto', 'lote', 'numero_serie', 'tipo_movimentacao', 'subtipo', 'data_movimentacao')
         }),
         ('Quantidades e Valores', {
-            'fields': ('quantidade', 'valor_unitario', 'valor_total')
+            'fields': ('quantidade', 'valor_unitario', 'valor_total', 'unidade_fornecimento', 'quantidade_embalagens', 'itens_por_embalagem')
         }),
         ('Dados de Entrada (MATERIAL DE CONSUMO 2)', {
-            'fields': ('cor', 'unidade_medida', 'unidade_fornecimento',
+            'fields': ('cor', 'unidade_medida',
                        'conta_patrimonial', 'localizacao_fisica', 'fornecedor',
                        'nota_fiscal', 'documento_referencia')
         }),
-        ('Dados de Saída (MATERIAL DE CONSUMO 3)', {
-            'fields': ('orgao_requisitante', 'militar_requisitante')
+        ('Dados de Saída (MATERIAL DE CONSUMO)', {
+            'fields': ('orgao_requisitante', 'descricao_outra_unidade', 'militar_requisitante')
         }),
         ('Observações', {
             'fields': ('observacoes',)

@@ -138,3 +138,49 @@ class MaterialSearchForm(forms.Form):
             'status',
             Submit('submit', _('Buscar'), css_class='btn btn-primary ml-2')
         )
+
+class LoteMunicaoForm(forms.ModelForm):
+    class Meta:
+        model = LoteMunicao
+        fields = ['material', 'numero_lote', 'calibre', 'marca', 'tipo_municao', 'quantidade_inicial', 'quantidade_atual', 'data_fabricacao', 'data_validade', 'ativo']
+        widgets = {
+            'data_fabricacao': forms.DateInput(attrs={'type': 'date'}),
+            'data_validade': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['material'].queryset = Material.objects.filter(tipo='MUNICAO')
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            Row(
+                Column('material', css_class='form-group col-md-12 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('numero_lote', css_class='form-group col-md-6 mb-0'),
+                Column('marca', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('calibre', css_class='form-group col-md-6 mb-0'),
+                Column('tipo_municao', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('quantidade_inicial', css_class='form-group col-md-6 mb-0'),
+                Column('quantidade_atual', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('data_fabricacao', css_class='form-group col-md-6 mb-0'),
+                Column('data_validade', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'ativo',
+            Div(
+                Submit('submit', _('Salvar Lote'), css_class='btn btn-success'),
+                css_class='text-center mt-3'
+            )
+        )

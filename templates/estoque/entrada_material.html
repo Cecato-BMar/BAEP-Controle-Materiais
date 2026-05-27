@@ -94,6 +94,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  const qtdEmbalagens = document.getElementById('id_quantidade_embalagens');
+  const itensPorEmbalagem = document.getElementById('id_itens_por_embalagem');
+
+  function calcularQuantidadeTotal() {
+    if (!qtdEmbalagens || !itensPorEmbalagem || !qtd) return;
+    const embalagensValue = (qtdEmbalagens.value || '').replace(',', '.');
+    const embalagens = parseFloat(embalagensValue) || 0;
+    const itens = parseInt(itensPorEmbalagem.value) || 0;
+    if (embalagens > 0 && itens > 0) {
+      qtd.value = (embalagens * itens).toFixed(2).replace('.00', '');
+      calcularTotal();
+    }
+  }
+
+  if (qtdEmbalagens) {
+    qtdEmbalagens.addEventListener('input', calcularQuantidadeTotal);
+    qtdEmbalagens.addEventListener('change', calcularQuantidadeTotal);
+  }
+  if (itensPorEmbalagem) {
+    itensPorEmbalagem.addEventListener('input', calcularQuantidadeTotal);
+    itensPorEmbalagem.addEventListener('change', calcularQuantidadeTotal);
+  }
+
   // Configuração do Select2 para busca inteligente de Materiais
   $(produtoSelect).select2({
     theme: 'bootstrap-5',

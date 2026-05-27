@@ -73,7 +73,6 @@ class Material(models.Model):
             self.quantidade_disponivel = self.quantidade
         super().save(*args, **kwargs)
 
-
 class LoteMunicao(models.Model):
     TIPO_MUNICAO_CHOICES = [
         ('REAL', 'Real'),
@@ -89,8 +88,8 @@ class LoteMunicao(models.Model):
         limit_choices_to={'tipo': 'MUNICAO'},
         verbose_name=_('Material')
     )
-    calibre = models.CharField(_('Calibre'), max_length=30)
-    marca = models.CharField(_('Marca'), max_length=100, blank=True, null=True)
+    calibre = models.CharField(_('Calibre'), max_length=50)
+    marca = models.CharField(_('Marca/Fabricante'), max_length=50, blank=True, null=True)
     numero_lote = models.CharField(_('Número do Lote'), max_length=100)
     tipo_municao = models.CharField(_('Tipo de Munição'), max_length=20, choices=TIPO_MUNICAO_CHOICES, default='REAL')
     data_fabricacao = models.DateField(_('Data de Fabricação'), blank=True, null=True)
@@ -105,6 +104,7 @@ class LoteMunicao(models.Model):
         verbose_name = _('Lote de Munição')
         verbose_name_plural = _('Lotes de Munição')
         ordering = ['-data_validade', 'material', 'numero_lote']
+        unique_together = ['material', 'numero_lote']
         indexes = [models.Index(fields=['material', 'numero_lote']), models.Index(fields=['data_validade'])]
 
     def __str__(self):
@@ -118,3 +118,10 @@ class LoteMunicao(models.Model):
         if not self.pk and self.quantidade_atual is None:
             self.quantidade_atual = self.quantidade_inicial
         super().save(*args, **kwargs)
+
+    @property
+    def vencido(self):
+        from django.utils import timezone
+        if self.data_validade:
+            return self.data_validade < timezone.now().date()
+        return False

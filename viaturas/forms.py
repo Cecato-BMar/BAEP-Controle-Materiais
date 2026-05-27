@@ -582,3 +582,109 @@ RetiradaPecaItemFormSet = inlineformset_factory(
     can_delete=True
 )
 
+
+# =============================================================================
+# NOVOS FORMULÁRIOS (Fases 2 e 3)
+# =============================================================================
+
+class ConcluirManutencaoForm(forms.ModelForm):
+    """Formulário para o fluxo de aprovação e conclusão da manutenção."""
+    class Meta:
+        model = Manutencao
+        fields = [
+            'servicos_executados_corretamente', 'detalhamento_servicos', 
+            'detalhamento_pecas_garantia', 'parecer_aprovacao'
+        ]
+        widgets = {
+            'detalhamento_servicos': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Descreva detalhadamente os serviços que foram executados pela oficina...'}),
+            'detalhamento_pecas_garantia': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Quais peças foram trocadas? Informe detalhes e condições de garantia.'}),
+            'parecer_aprovacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Parecer final do gestor/vistoriador sobre o serviço executado.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['servicos_executados_corretamente'].label = "Aprovo os serviços executados (Viatura testada e em condições)"
+        self.fields['servicos_executados_corretamente'].required = True  # Exige checkbox marcado para concluir
+        
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            HTML('<h6 class="mb-3 text-primary"><i class="fas fa-clipboard-check me-2"></i>Verificação do Serviço</h6>'),
+            Row(
+                Column('detalhamento_servicos', css_class='col-md-6'),
+                Column('detalhamento_pecas_garantia', css_class='col-md-6'),
+            ),
+            HTML('<hr class="my-3"><h6 class="mb-3 text-success"><i class="fas fa-stamp me-2"></i>Parecer e Aprovação</h6>'),
+            Row(
+                Column('parecer_aprovacao', css_class='col-12'),
+            ),
+            Row(
+                Column('servicos_executados_corretamente', css_class='col-12 fw-bold text-success fs-5 mt-2 mb-3'),
+            ),
+        )
+
+
+class CancelarManutencaoForm(forms.ModelForm):
+    class Meta:
+        model = Manutencao
+        fields = ['motivo_cancelamento']
+        widgets = {
+            'motivo_cancelamento': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Justifique o motivo do cancelamento deste registro...'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['motivo_cancelamento'].required = True
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('motivo_cancelamento', css_class='col-12'),
+            ),
+        )
+
+
+from .models import EvidenciaManutencao, PlanoManutencaoPreventiva
+
+class EvidenciaManutencaoForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaManutencao
+        fields = ['tipo', 'arquivo', 'descricao']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('tipo', css_class='col-md-6'),
+                Column('arquivo', css_class='col-md-6'),
+            ),
+            Row(
+                Column('descricao', css_class='col-12'),
+            ),
+        )
+
+
+class PlanoManutencaoPreventivaForm(forms.ModelForm):
+    class Meta:
+        model = PlanoManutencaoPreventiva
+        fields = ['modelo', 'descricao', 'intervalo_km', 'intervalo_dias', 'ativo']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('modelo', css_class='col-md-6'),
+                Column('descricao', css_class='col-md-6'),
+            ),
+            Row(
+                Column('intervalo_km', css_class='col-md-4'),
+                Column('intervalo_dias', css_class='col-md-4'),
+                Column('ativo', css_class='col-md-4 d-flex align-items-center mt-3'),
+            ),
+        )
+
+

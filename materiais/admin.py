@@ -33,10 +33,9 @@ class MaterialAdmin(admin.ModelAdmin):
         }),
     )
 
-
 @admin.register(LoteMunicao)
 class LoteMunicaoAdmin(admin.ModelAdmin):
-    list_display = ('material', 'calibre', 'numero_lote', 'tipo_municao', 'quantidade_inicial', 'quantidade_atual', 'ativo')
+    list_display = ('material', 'calibre', 'numero_lote', 'marca', 'tipo_municao', 'quantidade_inicial', 'quantidade_atual', 'data_validade', 'vencido', 'ativo')
     list_filter = ('tipo_municao', 'ativo', 'material__tipo')
     search_fields = ('material__nome', 'numero_lote', 'calibre', 'marca')
     readonly_fields = ('data_cadastro', 'data_atualizacao')
