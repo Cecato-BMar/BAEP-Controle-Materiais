@@ -1,0 +1,70 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclus├úo de Lote - SIS LOG├ìSTICA 2┬║BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span class="fw-bold">Confirmar Exclus├úo de Lote</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning d-flex align-items-center mb-4">
+                        <i class="fas fa-exclamation-circle me-3 fa-2x text-warning"></i>
+                        <div>
+                            <strong>Aten├º├úo!</strong> Esta a├º├úo ├® irrevers├¡vel. O lote ser├í permanentemente exclu├¡do do sistema.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">Dados do Lote</h5>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th class="w-40">Material</th>
+                                    <td>{{ material.nome }} ({{ material.numero }})</td>
+                                </tr>
+                                <tr>
+                                    <th>N┬║ do Lote</th>
+                                    <td>{{ lote.numero_lote }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Calibre</th>
+                                    <td>{{ lote.calibre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Marca</th>
+                                    <td>{{ lote.marca }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Qtd. Atual</th>
+                                    <td><strong>{{ lote.quantidade_atual }}</strong> / {{ lote.quantidade_inicial }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Validade</th>
+                                    <td>{{ lote.data_validade|date:"d/m/Y"|default:"-" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'materiais:detalhe_material' material.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Exclus├úo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

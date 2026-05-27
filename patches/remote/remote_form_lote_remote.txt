@@ -1,0 +1,129 @@
+﻿{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }} - SIS LOG├ìSTICA 2┬║BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">
+            <i class="fas fa-layer-group me-2"></i>{{ titulo }}
+        </h1>
+        <a href="{% url 'materiais:detalhe_material' material.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-gradient">
+            <i class="fas fa-crosshairs me-2"></i>
+            <span class="fw-bold">{{ material.nome }} ({{ material.numero }})</span>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- Info do Material Vinculado -->
+                <div class="alert alert-info d-flex align-items-center mb-4">
+                    <i class="fas fa-info-circle me-3 fa-lg"></i>
+                    <div>
+                        <strong>Material:</strong> {{ material.nome }} ({{ material.numero }})<br>
+                        <small class="text-muted">Tipo: {{ material.get_tipo_display }} | Categoria: {{ material.get_categoria_display|default:"-" }}</small>
+                    </div>
+                </div>
+
+                <!-- Se├º├úo de Identifica├º├úo do Lote -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-barcode me-2"></i>Identifica├º├úo do Lote</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.numero_lote|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.marca|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Se├º├úo de Classifica├º├úo -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-crosshairs me-2"></i>Classifica├º├úo</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.calibre|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tipo_municao|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Se├º├úo de Quantidades -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-boxes me-2"></i>Quantidades</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.quantidade_inicial|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.quantidade_atual|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Se├º├úo de Validade -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-calendar-alt me-2"></i>Datas</h5>
+                    <hr class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.data_fabricacao|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.data_validade|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        {{ form.ativo }}
+                        <label class="form-check-label ms-2" for="id_ativo">Lote Ativo</label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'materiais:detalhe_material' material.id %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg px-4">
+                        <i class="fas fa-save me-2"></i>{{ titulo }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Anima├º├úo de entrada
+        $('.card').hide().fadeIn(500);
+
+        // Spinner ao submeter
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin me-2"></i>Processando...');
+        });
+
+        // Adiciona classes Bootstrap
+        $('input[type="text"], input[type="number"], input[type="date"], textarea').addClass('form-control');
+        $('select').addClass('form-select');
+    });
+</script>
+{% endblock %}

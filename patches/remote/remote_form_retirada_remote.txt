@@ -1,0 +1,622 @@
+﻿{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Nova Retirada - SIS LOG├ìSTICA 2┬║BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-arrow-right me-2"></i>Nova Retirada</h1>
+        <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-exchange-alt me-2"></i>Registrar Nova Retirada
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <!-- Policial -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-user-shield me-2"></i>Policial
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.policial|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6" id="policial-info">
+                                        <!-- Informa├º├Áes do policial ser├úo carregadas via AJAX -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Material -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-box me-2"></i>Materiais Dispon├¡veis
+                            </div>
+                            <div class="card-body">
+                                <!-- Filtros de busca -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" id="busca-material" class="form-control" placeholder="Buscar material...">
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-buscar-material">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select id="filtro-tipo" class="form-select">
+                                            <option value="">Todos os tipos</option>
+                                            <option value="ARMA">Arma</option>
+                                            <option value="MUNICAO">Muni├º├úo</option>
+                                            <option value="COLETE">Colete</option>
+                                            <option value="RADIO">R├ídio</option>
+                                            <option value="ALGEMA">Algema</option>
+                                            <option value="OUTROS">Outros</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2" id="col-filtro-categoria" style="display: none;">
+                                         <select id="filtro-categoria" class="form-select">
+                                             <option value="">Todas as categorias</option>
+                                             <option value="PISTOLA">Pistola</option>
+                                             <option value="FUZIL">Fuzil</option>
+                                             <option value="CAL_12">Calibre 12</option>
+                                             <option value="SUBMETRALHADORA">Submetralhadora</option>
+                                             <option value="LANCADOR">Lan├ºador</option>
+                                             <option value="CHOQUE">Menos que Letal</option>
+                                         </select>
+                                     </div>
+                                     <div class="col-md-2">
+                                         <select id="filtro-estado" class="form-select">
+                                             <option value="">Todos estados</option>
+                                             <option value="NOVO">Novo</option>
+                                             <option value="BOM">Bom</option>
+                                             <option value="REGULAR">Regular</option>
+                                         </select>
+                                     </div>
+                                     <div class="col-md-2">
+                                         <select id="filtro-localizacao" class="form-select">
+                                             <option value="">Todas Localiza├º├Áes</option>
+                                             {% for loc in localizacoes %}
+                                             <option value="{{ loc.id }}">{{ loc.nome }}</option>
+                                             {% endfor %}
+                                         </select>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                         <div class="table-responsive">
+                                             <table class="table table-hover table-sm" id="materiais-tabela">
+                                                 <thead class="table-light">
+                                                     <tr>
+                                                         <th>Tipo / Categoria</th>
+                                                         <th>Identifica├º├úo</th>
+                                                         <th>Localiza├º├úo</th>
+                                                         <th>Qtd Disp.</th>
+                                                         <th>A├º├Áes</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody id="materiais-lista">
+                                                     <!-- Carregado via AJAX -->
+                                                 </tbody>
+                                             </table>
+                                         </div>
+                                         <!-- Pagina├º├úo Ajax -->
+                                         <div id="materiais-paginacao" class="d-flex justify-content-center mt-2"></div>
+                                     </div>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Materiais Selecionados -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-list me-2"></i>Materiais Selecionados
+                            </div>
+                            <div class="card-body">
+                                <div id="materiais-selecionados-lista">
+                                    <div class="alert alert-info" id="sem-materiais-msg">
+                                        <i class="fas fa-info-circle me-2"></i>Nenhum material selecionado. Adicione materiais da lista acima.
+                                    </div>
+                                </div>
+                                {{ form.materiais_selecionados }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detalhes da Retirada -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-info-circle me-2"></i>Detalhes da Retirada
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        {{ form.finalidade|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        {{ form.observacoes|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Registrar Retirada
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Inicializa o array de materiais selecionados
+        let materiaisSelecionados = [];
+        
+        // Fun├º├úo para carregar informa├º├Áes do policial
+        function carregarInfoPolicial(policialId) {
+            if (!policialId) {
+                $('#policial-info').html('');
+                return;
+            }
+            
+            $.ajax({
+                url: '/policiais/api/policiais/' + policialId + '/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    let html = '<div class="card">';
+                    html += '<div class="card-body">';
+                    html += '<div class="d-flex align-items-center">';
+                    
+                    // Foto ou ├¡cone
+                    if (data.foto) {
+                        html += '<img src="' + data.foto + '" class="rounded-circle me-3" style="width: 60px; height: 60px;">';
+                    } else {
+                        html += '<div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;"><i class="fas fa-user-shield fa-2x"></i></div>';
+                    }
+                    
+                    // Informa├º├Áes
+                    html += '<div>';
+                    html += '<h5 class="mb-1">' + data.nome + '</h5>';
+                    html += '<p class="mb-1"><strong>RE:</strong> ' + data.re + '</p>';
+                    html += '<p class="mb-1"><strong>Posto:</strong> ' + data.posto_display + '</p>';
+                    
+                    // Situa├º├úo com alerta visual
+                    let situacaoClass = 'badge bg-success';
+                    let situacaoText = 'Ativo';
+                    
+                    if (data.situacao !== 'ATIVO') {
+                        situacaoClass = 'badge bg-danger';
+                        situacaoText = 'Inativo';
+                        
+                        // Adiciona alerta se o policial n├úo estiver ativo
+                        html += '<div class="alert alert-danger mt-2"><i class="fas fa-exclamation-triangle me-2"></i>Este policial n├úo est├í ativo. N├úo ser├í poss├¡vel registrar a retirada.</div>';
+                    }
+                    
+                    html += '<p class="mb-0"><strong>Situa├º├úo:</strong> <span class="' + situacaoClass + '">' + situacaoText + '</span></p>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    $('#policial-info').html(html);
+                    
+                    // Desabilita o bot├úo de envio se o policial n├úo estiver ativo
+                    if (data.situacao !== 'ATIVO') {
+                        $('button[type="submit"]').prop('disabled', true);
+                    } else {
+                        $('button[type="submit"]').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    $('#policial-info').html('<div class="alert alert-danger">Erro ao carregar informa├º├Áes do policial.</div>');
+                }
+            });
+        }
+        
+        // Fun├º├úo para buscar materiais dispon├¡veis via API com pagina├º├úo
+        function buscarMateriais(page = 1) {
+            const termo = $('#busca-material').val();
+            const tipo = $('#filtro-tipo').val();
+            const categoria = $('#filtro-categoria').val();
+            const estado = $('#filtro-estado').val();
+            const localizacao = $('#filtro-localizacao').val();
+            
+            // Mostra indicador de carregamento
+            $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></td></tr>');
+            
+            $.ajax({
+                url: '/materiais/api/materiais/',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    termo: termo,
+                    tipo: tipo,
+                    categoria: categoria,
+                    estado: estado,
+                    localizacao: localizacao,
+                    disponivel: 'true',
+                    page: page,
+                    page_size: 10
+                },
+                success: function(data) {
+                    const results = data.results;
+                    const pagination = data.pagination;
+                    
+                    if (results.length === 0) {
+                        $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum material dispon├¡vel encontrado.</div></td></tr>');
+                        $('#materiais-paginacao').html('');
+                        return;
+                    }
+                    
+                    let html = '';
+                    results.forEach(function(material) {
+                        html += '<tr>';
+                        // Identifica├º├úo combinada com categoria
+                        html += '<td>';
+                        html += '<span class="fw-bold">' + material.tipo_display + '</span>';
+                        if (material.categoria_display) {
+                            html += '<br><small class="text-muted"><i class="fas fa-tag me-1"></i>' + material.categoria_display + '</small>';
+                        }
+                        html += '</td>';
+                        
+                        html += '<td>' + material.nome + (material.numero ? ' (' + material.numero + ')' : '') + '</td>';
+                        html += '<td><small><i class="fas fa-map-marker-alt me-1 text-primary"></i>' + material.localizacao_nome + '</small></td>';
+                        html += '<td><span class="badge bg-info">' + material.quantidade_disponivel + '</span></td>';
+                        
+                        html += '<td>';
+                        html += '<button type="button" class="btn btn-sm btn-primary adicionar-material" ' +
+                                'data-id="' + material.id + '" ' +
+                                'data-nome="' + material.nome + '" ' +
+                                'data-numero="' + material.numero + '" ' +
+                                'data-tipo="' + material.tipo_display + '" ' +
+                                'data-raw-tipo="' + material.tipo + '" ' +
+                                'data-max="' + material.quantidade_disponivel + '">';
+                        html += '<i class="fas fa-plus"></i>';
+                        html += '</button>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                    
+                    $('#materiais-lista').html(html);
+                    renderPaginacao(pagination);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro na requisi├º├úo AJAX:', status, error);
+                    $('#materiais-lista').html('<tr><td colspan="5" class="text-center"><div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Erro ao carregar materiais.</div></td></tr>');
+                }
+            });
+        }
+
+        // Fun├º├úo para renderizar os controles de pagina├º├úo
+        function renderPaginacao(p) {
+            if (p.num_pages <= 1) {
+                $('#materiais-paginacao').html('');
+                return;
+            }
+
+            let html = '<nav aria-label="Navega├º├úo de materiais"><ul class="pagination pagination-sm mb-0">';
+            
+            // Anterior
+            html += '<li class="page-item ' + (p.has_previous ? '' : 'disabled') + '">';
+            html += '<a class="page-link" href="#" data-page="' + (p.number - 1) + '"><i class="fas fa-chevron-left"></i></a>';
+            html += '</li>';
+
+            // Status da p├ígina
+            html += '<li class="page-item disabled"><span class="page-link text-dark bg-light">' + p.number + ' de ' + p.num_pages + '</span></li>';
+
+            // Pr├│xima
+            html += '<li class="page-item ' + (p.has_next ? '' : 'disabled') + '">';
+            html += '<a class="page-link" href="#" data-page="' + (p.number + 1) + '"><i class="fas fa-chevron-right"></i></a>';
+            html += '</li>';
+
+            html += '</ul></nav>';
+            $('#materiais-paginacao').html(html);
+
+            // Evento de clique na pagina├º├úo
+            $('#materiais-paginacao .page-link').click(function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page) buscarMateriais(page);
+            });
+        }
+        
+        // Fun├º├úo para atualizar o campo oculto com os materiais selecionados
+        function atualizarCampoOculto() {
+            $('#id_materiais_selecionados').val(JSON.stringify(materiaisSelecionados));
+        }
+        
+        // Fun├º├úo para atualizar a lista de materiais selecionados na interface
+        function atualizarListaMateriais() {
+            if (materiaisSelecionados.length === 0) {
+                $('#sem-materiais-msg').show();
+                return;
+            }
+            
+            $('#sem-materiais-msg').hide();
+            
+            let html = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
+            html += '<th>Tipo</th><th>Identifica├º├úo</th><th>Quantidade</th><th>A├º├Áes</th>';
+            html += '</tr></thead><tbody>';
+            
+            materiaisSelecionados.forEach(function(item, index) {
+                html += '<tr>';
+                html += '<td>' + item.tipo + '</td>';
+                
+                if (item.raw_tipo === 'MUNICAO') {
+                    html += '<td>';
+                    html += '<div class="fw-bold">' + item.nome + '</div>';
+                    html += '<div class="mt-1">';
+                    html += '<select class="form-select form-select-sm lote-select" data-index="' + index + '" required>';
+                    html += '<option value="">-- Selecione o Lote (Obrigat├│rio) --</option>';
+                    if (item.lotes) {
+                        item.lotes.forEach(function(lote) {
+                            const selected = item.lote_id == lote.id ? 'selected' : '';
+                            html += '<option value="' + lote.id + '" ' + selected + '>';
+                            html += 'Lote: ' + lote.numero_lote + ' (Marca: ' + lote.marca + ' | Val: ' + lote.data_validade + ' | Saldo: ' + lote.quantidade_atual + ')';
+                            html += '</option>';
+                        });
+                    }
+                    html += '</select>';
+                    html += '</div>';
+                    html += '</td>';
+                } else {
+                    html += '<td>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</td>';
+                }
+                
+                html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
+                html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i> Remover</button></td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            $('#materiais-selecionados-lista').html(html);
+            
+            // Adiciona evento para atualizar a quantidade
+            $('.quantidade-material').change(function() {
+                const index = $(this).data('index');
+                const novaQuantidade = parseInt($(this).val());
+                
+                if (novaQuantidade > 0 && novaQuantidade <= materiaisSelecionados[index].max) {
+                    materiaisSelecionados[index].quantidade = novaQuantidade;
+                    atualizarCampoOculto();
+                } else {
+                    // Restaura o valor anterior se inv├ílido
+                    $(this).val(materiaisSelecionados[index].quantidade);
+                    alert('Quantidade inv├ílida. Deve ser entre 1 e ' + materiaisSelecionados[index].max + '. Verifique se o lote correto foi selecionado.');
+                }
+            });
+            
+            // Adiciona evento para remover material
+            $('.remover-material').click(function() {
+                const index = $(this).data('index');
+                materiaisSelecionados.splice(index, 1);
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            });
+        }
+        
+        // Evento de altera├º├úo de lote
+        $(document).on('change', '.lote-select', function() {
+            const index = $(this).data('index');
+            const loteId = $(this).val();
+            
+            if (!loteId) {
+                materiaisSelecionados[index].lote_id = null;
+                materiaisSelecionados[index].max = 0;
+                materiaisSelecionados[index].quantidade = 1;
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+                return;
+            }
+            
+            const selectedLote = materiaisSelecionados[index].lotes.find(l => l.id == loteId);
+            if (selectedLote) {
+                materiaisSelecionados[index].lote_id = parseInt(loteId);
+                materiaisSelecionados[index].max = selectedLote.quantidade_atual;
+                if (materiaisSelecionados[index].quantidade > selectedLote.quantidade_atual) {
+                    materiaisSelecionados[index].quantidade = selectedLote.quantidade_atual;
+                }
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            }
+        });
+        
+        // Evento para adicionar material ├á lista
+        $(document).on('click', '.adicionar-material', function() {
+            const id = $(this).data('id');
+            const nome = $(this).data('nome');
+            const numero = $(this).data('numero');
+            const tipo = $(this).data('tipo');
+            const rawTipo = $(this).data('raw-tipo');
+            const max = parseInt($(this).data('max'));
+            
+            // Verifica se o material j├í est├í na lista
+            const materialExistente = materiaisSelecionados.find(item => item.id === id);
+            
+            if (materialExistente) {
+                alert('Este material j├í foi adicionado ├á lista.');
+                return;
+            }
+            
+            const novoItem = {
+                id: id,
+                nome: nome,
+                numero: numero,
+                tipo: tipo,
+                raw_tipo: rawTipo,
+                quantidade: 1,
+                max: rawTipo === 'MUNICAO' ? 0 : max,
+                lote_id: null,
+                lotes: []
+            };
+            
+            if (rawTipo === 'MUNICAO') {
+                $.ajax({
+                    url: '/materiais/api/materiais/' + id + '/lotes/',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.lotes && data.lotes.length > 0) {
+                            novoItem.lotes = data.lotes;
+                            // Pr├®-seleciona o primeiro lote que n├úo esteja vencido e que tenha saldo
+                            const loteValido = data.lotes.find(l => !l.vencido && l.quantidade_atual > 0) || data.lotes[0];
+                            if (loteValido) {
+                                novoItem.lote_id = loteValido.id;
+                                novoItem.max = loteValido.quantidade_atual;
+                            }
+                            
+                            materiaisSelecionados.push(novoItem);
+                            atualizarCampoOculto();
+                            atualizarListaMateriais();
+                        } else {
+                            alert('Este material de muni├º├úo n├úo possui nenhum lote ativo com saldo dispon├¡vel cadastrado. Cadastre um lote primeiro no m├│dulo de Materiais!');
+                        }
+                    },
+                    error: function() {
+                        alert('Erro ao buscar os lotes do material de muni├º├úo.');
+                    }
+                });
+            } else {
+                materiaisSelecionados.push(novoItem);
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            }
+        });
+        
+        // Eventos de busca e filtro de materiais
+        $('#btn-buscar-material').click(function() {
+            buscarMateriais();
+        });
+        
+        $('#busca-material').keypress(function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                buscarMateriais();
+            }
+        });
+        
+        $('#filtro-tipo, #filtro-categoria, #filtro-estado, #filtro-localizacao').change(function() {
+            buscarMateriais();
+        });
+
+        $('#filtro-tipo').change(function() {
+            if ($(this).val() === 'ARMA') {
+                $('#col-filtro-categoria').fadeIn();
+            } else {
+                $('#col-filtro-categoria').hide();
+                $('#filtro-categoria').val('');
+            }
+            buscarMateriais();
+        });
+
+        $('#filtro-categoria').change(function() {
+            buscarMateriais();
+        });
+        
+        // Configura o Select2 com Ajax para buscar policiais
+        $('#id_policial').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Digite RE ou nome do policial...',
+            allowClear: true,
+            minimumInputLength: 2,
+            ajax: {
+                url: '{% url "policiais:buscar_policiais_ajax" %}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
+
+        // Eventos de mudan├ºa para o policial
+        $('#id_policial').on('select2:select', function(e) {
+            carregarInfoPolicial(e.params.data.id);
+        });
+
+        $('#id_policial').on('select2:clear', function(e) {
+            carregarInfoPolicial(null);
+        });
+        
+        // Inicializa├º├úo
+        if ($('#id_policial').val()) {
+            // Se houver valor inicial, buscar dados
+            carregarInfoPolicial($('#id_policial').val());
+        }
+        
+        // Inicializa a lista de materiais
+        atualizarListaMateriais();
+        
+        // Carrega os materiais dispon├¡veis via API
+        buscarMateriais();
+        
+        // Valida├º├úo do formul├írio
+        $('form').submit(function(e) {
+            if (materiaisSelecionados.length === 0) {
+                e.preventDefault();
+                alert('Selecione pelo menos um material para retirada.');
+                return false;
+            }
+            
+            // Valida se todas as muni├º├Áes t├¬m lote selecionado
+            let erroLote = false;
+            materiaisSelecionados.forEach(function(item) {
+                if (item.raw_tipo === 'MUNICAO' && !item.lote_id) {
+                    erroLote = true;
+                }
+            });
+            
+            if (erroLote) {
+                e.preventDefault();
+                alert('Selecione um lote v├ílido para todas as muni├º├Áes selecionadas.');
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>
+{% endblock %}
