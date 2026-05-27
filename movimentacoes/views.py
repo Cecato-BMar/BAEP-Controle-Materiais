@@ -13,6 +13,7 @@ from .models import Movimentacao, Retirada, Devolucao, RegistroDisparoMunicao
 from .forms import RetiradaForm, DevolucaoForm, MovimentacaoSearchForm
 from materiais.models import Material, LoteMunicao
 from policiais.models import Policial
+from django.db import transaction
 import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A5
@@ -271,8 +272,9 @@ def nova_devolucao(request):
                     messages.error(request, _('Nenhum material selecionado para devolução.'))
                     return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                 
-                # Processa cada material selecionado para devolução
-                for item in devolucoes_lista:
+                # Processa cada material selecionado para devolução dentro de transação
+                with transaction.atomic():
+                    for item in devolucoes_lista:
                     retirada_id = item.get('retirada_id')
                     material_id = item.get('material_id')
                     estado_devolucao = item.get('estado', 'BOM')
@@ -289,15 +291,22 @@ def nova_devolucao(request):
                         return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                     
                     try:
-                        material = get_object_or_404(Material, pk=material_id)
-                        retirada = get_object_or_404(Retirada, pk=retirada_id)
+                        # Usa select_for_update para evitar race conditions ao atualizar quantidades
+                        material = Material.objects.select_for_update().get(pk=material_id)
+                        retirada = Retirada.objects.select_related('movimentacao').select_for_update().get(pk=retirada_id)
                     except (Material.DoesNotExist, Retirada.DoesNotExist):
                         messages.error(request, _('Material ou retirada não encontrado.'))
                         return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                    
+
+                    # Calcula quantidade pendente considerando devoluções anteriores
+                    devolucoes_anteriores = Devolucao.objects.filter(retirada_referencia=retirada)
+                    quantidade_devolvida = sum(d.movimentacao.quantidade for d in devolucoes_anteriores)
                     total_retirado = retirada.movimentacao.quantidade
-                    if quantidade != total_retirado:
-                        messages.error(request, _('A quantidade informada deve corresponder à quantidade retirada.'))
+                    quantidade_pendente = total_retirado - quantidade_devolvida
+
+                    # Valida quantidade informada (deve ser positiva e não exceder o pendente)
+                    if quantidade <= 0 or quantidade > quantidade_pendente:
+                        messages.error(request, _('A quantidade informada deve ser entre 1 e a quantidade pendente de devolução ({max}).').format(max=quantidade_pendente))
                         return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                     
                     quantidade_fisica = quantidade - (quantidade_disparada + quantidade_extraviada)
@@ -345,8 +354,14 @@ def nova_devolucao(request):
                             boletim_ocorrencia=boletim_ocorrencia,
                         )
                     
-                    # Atualiza os lotes e o material
+                    # Atualiza os lotes e o material (bloqueando lote se existir)
                     lote = retirada.movimentacao.lote_municao
+                    if lote:
+                        try:
+                            lote = LoteMunicao.objects.select_for_update().get(pk=lote.id)
+                        except LoteMunicao.DoesNotExist:
+                            lote = None
+
                     if lote:
                         lote.quantidade_atual += quantidade_fisica
                         lote.save()
@@ -355,7 +370,8 @@ def nova_devolucao(request):
                         from django.db.models import Sum
                         total_disponivel = material.lotes.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
                         material.quantidade_disponivel = total_disponivel
-                        material.quantidade_em_uso -= quantidade
+                        # Ajusta quantidade em uso com a quantidade física retornada
+                        material.quantidade_em_uso -= quantidade_fisica
                         if material.quantidade_em_uso < 0:
                             material.quantidade_em_uso = 0
                         material.quantidade = total_disponivel + material.quantidade_em_uso
