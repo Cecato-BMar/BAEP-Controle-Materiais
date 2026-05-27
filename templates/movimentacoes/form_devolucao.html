@@ -246,6 +246,7 @@
                 nome: retirada.material.nome || retirada.material.tipo_display,
                 numero: retirada.material.numero,
                 tipo: retirada.material.tipo_display,
+                raw_tipo: retirada.material.tipo,
                 policial_re: retirada.policial.re,
                 policial_nome: retirada.policial.nome,
                 quantidade_intacta: retirada.quantidade_pendente,
@@ -254,10 +255,12 @@
                 max: retirada.quantidade_pendente,
                 estado: 'BOM', // Estado padrão
                 manutencao: false, // Não enviar para manutenção por padrão
-                justificativa: '',
-                boletim_ocorrencia: '',
-                lote_id: retirada.lote_id,
-                lote_numero: retirada.lote_numero
+                lote: retirada.lote,
+                quantidade: retirada.quantidade_pendente,
+                disparos: 0,
+                extravios: 0,
+                justificativa_consumo: '',
+                boletim_ocorrencia: ''
             });
             
             // Atualiza o campo oculto e a interface
@@ -289,31 +292,82 @@
             $('#contador-materiais').text(materiaisSelecionados.length);
             
             let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-light"><tr>';
-            html += '<th>Identificação</th><th>Policial</th><th>Intacta</th><th>Disparada</th><th>Extraviada</th><th>Estado</th><th>Manutenção</th><th>B.O.</th><th>Ações</th>';
+            html += '<th>Identificação</th><th>Policial</th><th>Quantidade</th><th>Consumo / Estado</th><th>Justificativa / Manutenção</th><th>Ações</th>';
             html += '</tr></thead><tbody>';
             
             materiaisSelecionados.forEach(function(item, index) {
                 html += '<tr>';
-                html += '<td><strong>' + item.tipo + '</strong><br><small>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</small>';
-                if (item.lote_numero) {
-                    html += '<br><small class="text-muted">Lote: ' + item.lote_numero + '</small>';
+                
+                // Coluna 1: Identificação
+                html += '<td>';
+                if (item.raw_tipo === 'MUNICAO') {
+                    html += '<span class="badge bg-warning text-dark mb-1"><i class="fas fa-bullseye me-1"></i>' + item.tipo + '</span><br>';
+                    html += '<strong>' + item.nome + '</strong>';
+                    if (item.lote) {
+                        html += '<br><small class="text-muted"><i class="fas fa-barcode me-1"></i>Lote: ' + item.lote.numero_lote + ' (' + item.lote.marca + ')</small>';
+                    }
+                } else {
+                    html += '<strong>' + item.tipo + '</strong><br><small>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</small>';
                 }
                 html += '</td>';
+                
+                // Coluna 2: Policial
                 html += '<td><small>' + item.policial_re + ' - ' + item.policial_nome + '</small></td>';
-                html += '<td><input type="number" class="form-control form-control-sm quantidade-intacta" data-index="' + index + '" value="' + item.quantidade_intacta + '" min="0" max="' + item.max + '"></td>';
-                html += '<td><input type="number" class="form-control form-control-sm quantidade-disparada" data-index="' + index + '" value="' + item.quantidade_disparada + '" min="0" max="' + item.max + '"></td>';
-                html += '<td><input type="number" class="form-control form-control-sm quantidade-extraviada" data-index="' + index + '" value="' + item.quantidade_extraviada + '" min="0" max="' + item.max + '"></td>';
-                html += '<td><select class="form-select form-select-sm estado-material" data-index="' + index + '">';
-                html += '<option value="BOM" ' + (item.estado === 'BOM' ? 'selected' : '') + '>Bom</option>';
-                html += '<option value="REGULAR" ' + (item.estado === 'REGULAR' ? 'selected' : '') + '>Regular</option>';
-                html += '<option value="RUIM" ' + (item.estado === 'RUIM' ? 'selected' : '') + '>Ruim</option>';
-                html += '<option value="PESSIMO" ' + (item.estado === 'PESSIMO' ? 'selected' : '') + '>Péssimo</option>';
-                html += '</select></td>';
-                html += '<td><div class="form-check form-switch">';
-                html += '<input class="form-check-input manutencao-material" type="checkbox" data-index="' + index + '" id="manutencao-' + index + '"' + (item.manutencao ? ' checked' : '') + '>';
-                html += '<label class="form-check-label" for="manutencao-' + index + '">Sim</label>';
-                html += '</div></td>';
-                html += '<td><input type="text" class="form-control form-control-sm justificativa-material" data-index="' + index + '" value="' + (item.justificativa || '') + '" placeholder="Justificativa"></td>';
+                
+                // Coluna 3: Quantidade (A devolver/Prestar contas)
+                html += '<td>';
+                html += '<input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '">';
+                if (item.raw_tipo === 'MUNICAO') {
+                    const fisicos = item.quantidade - (item.disparos + item.extravios);
+                    html += '<div class="mt-2 text-success small"><strong>Físicos: <span id="fisicos-' + index + '">' + fisicos + '</span></strong></div>';
+                }
+                html += '</td>';
+                
+                if (item.raw_tipo === 'MUNICAO') {
+                    // Coluna 4: Consumo (Disparos e Extravios)
+                    html += '<td>';
+                    html += '<div class="row g-2">';
+                    html += '  <div class="col-md-6">';
+                    html += '    <label class="small fw-bold mb-1 text-danger">Disparos</label>';
+                    html += '    <input type="number" class="form-control form-control-sm disparos-municao" data-index="' + index + '" value="' + item.disparos + '" min="0">';
+                    html += '  </div>';
+                    html += '  <div class="col-md-6">';
+                    html += '    <label class="small fw-bold mb-1 text-danger">Extravios</label>';
+                    html += '    <input type="number" class="form-control form-control-sm extravios-municao" data-index="' + index + '" value="' + item.extravios + '" min="0">';
+                    html += '  </div>';
+                    html += '</div>';
+                    html += '</td>';
+                    
+                    // Coluna 5: Justificativa / BO
+                    const showConsumo = (item.disparos > 0 || item.extravios > 0) ? '' : 'style="display:none;"';
+                    html += '<td>';
+                    html += '<div class="consumo-detalhes-' + index + '" ' + showConsumo + '>';
+                    html += '  <div class="mb-2">';
+                    html += '    <input type="text" class="form-control form-control-sm justificativa-municao" data-index="' + index + '" placeholder="Justificativa do consumo (Obrigatório)..." value="' + (item.justificativa_consumo || '') + '">';
+                    html += '  </div>';
+                    html += '  <div>';
+                    html += '    <input type="text" class="form-control form-control-sm bo-municao" data-index="' + index + '" placeholder="Nº do B.O. (se houver)" value="' + (item.boletim_ocorrencia || '') + '">';
+                    html += '  </div>';
+                    html += '</div>';
+                    html += '<span class="text-muted small ' + (item.disparos > 0 || item.extravios > 0 ? 'd-none' : '') + '" id="consumo-placeholder-' + index + '">Nenhum consumo registrado</span>';
+                    html += '</td>';
+                } else {
+                    // Coluna 4: Estado
+                    html += '<td><select class="form-select form-select-sm estado-material" data-index="' + index + '">';
+                    html += '<option value="BOM" ' + (item.estado === 'BOM' ? 'selected' : '') + '>Bom</option>';
+                    html += '<option value="REGULAR" ' + (item.estado === 'REGULAR' ? 'selected' : '') + '>Regular</option>';
+                    html += '<option value="RUIM" ' + (item.estado === 'RUIM' ? 'selected' : '') + '>Ruim</option>';
+                    html += '<option value="PESSIMO" ' + (item.estado === 'PESSIMO' ? 'selected' : '') + '>Péssimo</option>';
+                    html += '</select></td>';
+                    
+                    // Coluna 5: Manutenção
+                    html += '<td><div class="form-check form-switch">';
+                    html += '<input class="form-check-input manutencao-material" type="checkbox" data-index="' + index + '" id="manutencao-' + index + '"' + (item.manutencao ? ' checked' : '') + '>';
+                    html += '<label class="form-check-label" for="manutencao-' + index + '">Sim</label>';
+                    html += '</div></td>';
+                }
+                
+                // Coluna 6: Ações
                 html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i></button></td>';
                 html += '</tr>';
                 html += '<tr><td colspan="9">';
@@ -334,59 +388,127 @@
         
         // Função para adicionar eventos aos controles de materiais
         function adicionarEventosMateriais() {
-            // Evento para atualizar a quantidade intacta
-            $('.quantidade-intacta').change(function() {
+            // Evento para atualizar a quantidade
+            $('.quantidade-material').off('change').change(function() {
                 const index = $(this).data('index');
                 const novaQuantidade = parseInt($(this).val());
-                if (Number.isNaN(novaQuantidade)) {
-                    $(this).val(materiaisSelecionados[index].quantidade_intacta);
-                    return;
-                }
-                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
-                    materiaisSelecionados[index].quantidade_intacta = novaQuantidade;
+                const item = materiaisSelecionados[index];
+                
+                if (novaQuantidade > 0 && novaQuantidade <= item.max) {
+                    item.quantidade = novaQuantidade;
+                    
+                    // Se disparos + extravios > quantidade, reseta
+                    if (item.disparos + item.extravios > novaQuantidade) {
+                        item.disparos = 0;
+                        item.extravios = 0;
+                        $(`.disparos-municao[data-index="${index}"]`).val(0);
+                        $(`.extravios-municao[data-index="${index}"]`).val(0);
+                        $(`.consumo-detalhes-${index}`).hide();
+                        $(`#consumo-placeholder-${index}`).removeClass('d-none');
+                        item.justificativa_consumo = '';
+                        item.boletim_ocorrencia = '';
+                    }
+                    
+                    const fisicos = item.quantidade - (item.disparos + item.extravios);
+                    $('#fisicos-' + index).text(fisicos);
+                    
                     atualizarCampoOculto();
                 } else {
-                    $(this).val(materiaisSelecionados[index].quantidade_intacta);
-                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
+                    $(this).val(item.quantidade);
+                    alert('Quantidade inválida. Deve ser entre 1 e ' + item.max);
                 }
             });
-
-            // Evento para atualizar a quantidade disparada
-            $('.quantidade-disparada').change(function() {
+            
+            // Evento para disparos de munição
+            $('.disparos-municao').off('change keyup').on('change keyup', function() {
                 const index = $(this).data('index');
-                const novaQuantidade = parseInt($(this).val());
-                if (Number.isNaN(novaQuantidade)) {
-                    $(this).val(materiaisSelecionados[index].quantidade_disparada);
-                    return;
+                let disparos = parseInt($(this).val()) || 0;
+                const item = materiaisSelecionados[index];
+                
+                if (disparos < 0) {
+                    disparos = 0;
+                    $(this).val(0);
                 }
-                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
-                    materiaisSelecionados[index].quantidade_disparada = novaQuantidade;
-                    atualizarCampoOculto();
+                
+                if (disparos + item.extravios > item.quantidade) {
+                    alert('A soma de disparos e extravios não pode exceder a quantidade total de munições prestada de contas (' + item.quantidade + ').');
+                    disparos = item.quantidade - item.extravios;
+                    $(this).val(disparos);
+                }
+                
+                item.disparos = disparos;
+                
+                const fisicos = item.quantidade - (item.disparos + item.extravios);
+                $('#fisicos-' + index).text(fisicos);
+                
+                if (item.disparos > 0 || item.extravios > 0) {
+                    $('.consumo-detalhes-' + index).show();
+                    $('#consumo-placeholder-' + index).addClass('d-none');
                 } else {
-                    $(this).val(materiaisSelecionados[index].quantidade_disparada);
-                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
+                    $('.consumo-detalhes-' + index).hide();
+                    $('#consumo-placeholder-' + index).removeClass('d-none');
+                    item.justificativa_consumo = '';
+                    item.boletim_ocorrencia = '';
+                    $('.justificativa-municao[data-index="' + index + '"]').val('');
+                    $('.bo-municao[data-index="' + index + '"]').val('');
                 }
+                
+                atualizarCampoOculto();
             });
-
-            // Evento para atualizar a quantidade extraviada
-            $('.quantidade-extraviada').change(function() {
+            
+            // Evento para extravios de munição
+            $('.extravios-municao').off('change keyup').on('change keyup', function() {
                 const index = $(this).data('index');
-                const novaQuantidade = parseInt($(this).val());
-                if (Number.isNaN(novaQuantidade)) {
-                    $(this).val(materiaisSelecionados[index].quantidade_extraviada);
-                    return;
+                let extravios = parseInt($(this).val()) || 0;
+                const item = materiaisSelecionados[index];
+                
+                if (extravios < 0) {
+                    extravios = 0;
+                    $(this).val(0);
                 }
-                if (novaQuantidade >= 0 && novaQuantidade <= materiaisSelecionados[index].max) {
-                    materiaisSelecionados[index].quantidade_extraviada = novaQuantidade;
-                    atualizarCampoOculto();
+                
+                if (item.disparos + extravios > item.quantidade) {
+                    alert('A soma de disparos e extravios não pode exceder a quantidade total de munições prestada de contas (' + item.quantidade + ').');
+                    extravios = item.quantidade - item.disparos;
+                    $(this).val(extravios);
+                }
+                
+                item.extravios = extravios;
+                
+                const fisicos = item.quantidade - (item.disparos + item.extravios);
+                $('#fisicos-' + index).text(fisicos);
+                
+                if (item.disparos > 0 || item.extravios > 0) {
+                    $('.consumo-detalhes-' + index).show();
+                    $('#consumo-placeholder-' + index).addClass('d-none');
                 } else {
-                    $(this).val(materiaisSelecionados[index].quantidade_extraviada);
-                    alert('Quantidade inválida. Deve ser entre 0 e ' + materiaisSelecionados[index].max);
+                    $('.consumo-detalhes-' + index).hide();
+                    $('#consumo-placeholder-' + index).removeClass('d-none');
+                    item.justificativa_consumo = '';
+                    item.boletim_ocorrencia = '';
+                    $('.justificativa-municao[data-index="' + index + '"]').val('');
+                    $('.bo-municao[data-index="' + index + '"]').val('');
                 }
+                
+                atualizarCampoOculto();
             });
-
+            
+            // Evento para justificativa de consumo
+            $('.justificativa-municao').off('change keyup').on('change keyup', function() {
+                const index = $(this).data('index');
+                materiaisSelecionados[index].justificativa_consumo = $(this).val();
+                atualizarCampoOculto();
+            });
+            
+            // Evento para BO
+            $('.bo-municao').off('change keyup').on('change keyup', function() {
+                const index = $(this).data('index');
+                materiaisSelecionados[index].boletim_ocorrencia = $(this).val();
+                atualizarCampoOculto();
+            });
+            
             // Evento para atualizar o estado
-            $('.estado-material').change(function() {
+            $('.estado-material').off('change').change(function() {
                 const index = $(this).data('index');
                 const novoEstado = $(this).val();
                 materiaisSelecionados[index].estado = novoEstado;
@@ -400,7 +522,7 @@
             });
             
             // Evento para atualizar a opção de manutenção
-            $('.manutencao-material').change(function() {
+            $('.manutencao-material').off('change').change(function() {
                 const index = $(this).data('index');
                 const manutencao = $(this).prop('checked');
                 materiaisSelecionados[index].manutencao = manutencao;
@@ -422,7 +544,7 @@
             });
             
             // Evento para remover material
-            $('.remover-material').click(function() {
+            $('.remover-material').off('click').click(function() {
                 const index = $(this).data('index');
                 removerMaterialDaDevolucao(index);
             });
@@ -481,9 +603,14 @@
                     selected.retirada_id === item.id && selected.material_id === item.material.id
                 );
                 
+                let detailText = item.material.nome || '';
+                if (item.lote) {
+                    detailText += ` <span class="badge bg-secondary">Lote: ${item.lote.numero_lote}</span>`;
+                }
+                
                 html += '<tr>';
                 html += '<td><input type="checkbox" class="form-check-input material-checkbox" data-index="' + index + '"' + (isSelected ? ' checked' : '') + '></td>';
-                html += '<td>' + (item.material.nome || '') + (item.material.numero ? ' (' + item.material.numero + ')' : '') + '</td>';
+                html += '<td>' + detailText + (item.material.numero ? ' (' + item.material.numero + ')' : '') + '</td>';
                 html += '<td>' + item.policial.re + ' - ' + item.policial.nome + '</td>';
                 html += '<td>' + item.data_hora + '</td>';
                 html += '<td>' + (item.finalidade || '-') + '</td>';
@@ -676,6 +803,23 @@
                 alert('Selecione pelo menos um material para devolução.');
                 return false;
             }
+            
+            // Valida se todo consumo de munição tem justificativa preenchida
+            let erroJustificativa = false;
+            materiaisSelecionados.forEach(function(item) {
+                if (item.raw_tipo === 'MUNICAO') {
+                    if ((item.disparos > 0 || item.extravios > 0) && !item.justificativa_consumo.trim()) {
+                        erroJustificativa = true;
+                    }
+                }
+            });
+            
+            if (erroJustificativa) {
+                e.preventDefault();
+                alert('A justificativa é obrigatória sempre que houver munições disparadas ou extraviadas.');
+                return false;
+            }
+            
             return true;
         });
     });

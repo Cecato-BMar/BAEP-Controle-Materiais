@@ -111,7 +111,6 @@ def nova_retirada(request):
             # Verifica se o policial está ativo
             if policial.situacao != 'ATIVO':
                 messages.error(request, _(f'O policial {policial.nome} não está ativo. Não é possível registrar retirada.'))
-                # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                 materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                 return render(request, 'movimentacoes/form_retirada.html', {
                     'form': form,
@@ -124,7 +123,6 @@ def nova_retirada(request):
                 
                 if not materiais_lista:
                     messages.error(request, _('Nenhum material selecionado para retirada.'))
-                    # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                     materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                     return render(request, 'movimentacoes/form_retirada.html', {
                         'form': form,
@@ -170,7 +168,7 @@ def nova_retirada(request):
                         })
                     
                     # Verifica se há quantidade disponível no material
-                    if material.quantidade_disponivel < quantidade:
+                    if material.tipo != 'MUNICAO' and material.quantidade_disponivel < quantidade:
                         messages.error(request, _(f'Quantidade insuficiente para o material {material.nome} ({material.numero}).'))
                         materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                         return render(request, 'movimentacoes/form_retirada.html', {
@@ -178,6 +176,7 @@ def nova_retirada(request):
                             'materiais': materiais_disponiveis,
                             'localizacoes': localizacoes,
                         })
+
                     
                     # Cria a movimentação
                     movimentacao = Movimentacao.objects.create(
@@ -199,23 +198,26 @@ def nova_retirada(request):
                         data_prevista_devolucao=data_prevista_devolucao
                     )
                     
-                    # Atualiza a quantidade disponível do material e do lote
-                    material.quantidade_disponivel -= quantidade
-                    material.quantidade_em_uso += quantidade
-                    if material.status == 'DISPONIVEL':
-                        material.status = 'EM_USO'
-                    material.save()
-                    
+                    # Atualiza os lotes e o material
                     if lote:
                         lote.quantidade_atual -= quantidade
                         lote.save()
+                    
+                    material.quantidade_disponivel -= quantidade
+                    material.quantidade_em_uso += quantidade
+                    
+                    if material.quantidade_disponivel == 0:
+                        material.status = 'EM_USO'
+                    elif material.status == 'DISPONIVEL' and material.tipo != 'MUNICAO':
+                        material.status = 'EM_USO'
+                        
+                    material.save()
                 
                 messages.success(request, _('Retirada registrada com sucesso!'))
                 return redirect(f"{reverse('movimentacoes:confirmacao_retirada')}?ids={','.join(created_mov_ids)}")
                 
             except json.JSONDecodeError:
                 messages.error(request, _('Erro ao processar os materiais selecionados.'))
-                # Garante que apenas materiais disponíveis e com quantidade disponível sejam listados
                 materiais_disponiveis = Material.objects.filter(status='DISPONIVEL', quantidade_disponivel__gt=0)
                 return render(request, 'movimentacoes/form_retirada.html', {
                     'form': form,
@@ -275,12 +277,11 @@ def nova_devolucao(request):
                     material_id = item.get('material_id')
                     estado_devolucao = item.get('estado', 'BOM')
                     lote_id = item.get('lote_id')
-                    quantidade_intacta = int(item.get('quantidade_intacta', 0))
-                    quantidade_disparada = int(item.get('quantidade_disparada', 0))
-                    quantidade_extraviada = int(item.get('quantidade_extraviada', 0))
-                    justificativa = item.get('justificativa', '').strip()
+                    quantidade = int(item.get('quantidade', 0))
+                    quantidade_disparada = int(item.get('disparos', 0))
+                    quantidade_extraviada = int(item.get('extravios', 0))
+                    justificativa_consumo = item.get('justificativa_consumo', '').strip()
                     boletim_ocorrencia = item.get('boletim_ocorrencia', '').strip()
-                    quantidade = quantidade_intacta
                     
                     # Validações básicas
                     if not retirada_id or not material_id:
@@ -295,20 +296,22 @@ def nova_devolucao(request):
                         return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                     
                     total_retirado = retirada.movimentacao.quantidade
-                    total_registrado = quantidade_intacta + quantidade_disparada + quantidade_extraviada
-                    lote = None
+                    if quantidade != total_retirado:
+                        messages.error(request, _('A quantidade informada deve corresponder à quantidade retirada.'))
+                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+                    
+                    quantidade_fisica = quantidade - (quantidade_disparada + quantidade_extraviada)
+                    if quantidade_fisica < 0:
+                        messages.error(request, _('A quantidade de disparos e extravios não pode ser maior do que a quantidade retirada.'))
+                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+                    
                     if material.tipo == 'MUNICAO':
-                        if total_registrado != total_retirado:
-                            messages.error(request, _('Para munição, a soma de intactas, disparadas e extraviadas deve corresponder à quantidade retirada.'))
-                            return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                        if (quantidade_disparada > 0 or quantidade_extraviada > 0) and not justificativa:
+                        if (quantidade_disparada > 0 or quantidade_extraviada > 0) and not justificativa_consumo:
                             messages.error(request, _('Para consumo ou extravio de munição, informe a justificativa.'))
                             return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                         if quantidade_disparada > 0 and not boletim_ocorrencia:
                             messages.error(request, _('Para munição disparada, informe o número do B.O./Relatório.'))
                             return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                        if lote_id:
-                            lote = get_object_or_404(LoteMunicao, pk=lote_id)
                     
                     # Usa o policial da retirada se não houver policial selecionado
                     policial_devolucao = policial if policial else retirada.movimentacao.policial
@@ -316,45 +319,51 @@ def nova_devolucao(request):
                     # Cria a movimentação de devolução
                     movimentacao = Movimentacao.objects.create(
                         material=material,
-                        lote_municao=lote,
+                        lote_municao=retirada.movimentacao.lote_municao,
                         policial=policial_devolucao,
-                        quantidade=quantidade_intacta,
+                        quantidade=quantidade_fisica,
                         tipo='DEVOLUCAO',
                         observacoes=observacoes,
                         registrado_por=request.user
                     )
                     
                     # Cria o registro de devolução
-                    devolucao = Devolucao.objects.create(
+                    devolucao_obj = Devolucao.objects.create(
                         movimentacao=movimentacao,
                         retirada_referencia=retirada,
                         estado_devolucao=estado_devolucao
                     )
                     
-                    if material.tipo == 'MUNICAO' and (quantidade_disparada > 0 or quantidade_extraviada > 0 or total_registrado != quantidade_intacta):
+                    # Cria o registro de consumo de disparos/extravios se houver
+                    if quantidade_disparada > 0 or quantidade_extraviada > 0:
                         RegistroDisparoMunicao.objects.create(
-                            devolucao=devolucao,
-                            lote_municao=lote,
+                            devolucao=devolucao_obj,
+                            lote_municao=retirada.movimentacao.lote_municao,
                             quantidade_disparada=quantidade_disparada,
                             quantidade_extraviada=quantidade_extraviada,
-                            justificativa=justificativa,
+                            justificativa=justificativa_consumo,
                             boletim_ocorrencia=boletim_ocorrencia,
                         )
                     
-                    # Atualiza as quantidades do material
-                    if material.tipo == 'MUNICAO':
-                        material.quantidade_disponivel += quantidade_intacta
-                        material.quantidade_em_uso -= total_registrado
-                        material.quantidade -= (quantidade_disparada + quantidade_extraviada)
-                        if lote:
-                            lote.quantidade_atual += quantidade_intacta
-                            lote.save()
-                    else:
-                        material.quantidade_disponivel += quantidade
-                        material.quantidade_em_uso -= quantidade
+                    # Atualiza os lotes e o material
+                    lote = retirada.movimentacao.lote_municao
+                    if lote:
+                        lote.quantidade_atual += quantidade_fisica
+                        lote.save()
                     
-                    if material.quantidade_em_uso < 0:
-                        material.quantidade_em_uso = 0
+                    if material.tipo == 'MUNICAO':
+                        from django.db.models import Sum
+                        total_disponivel = material.lotes.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+                        material.quantidade_disponivel = total_disponivel
+                        material.quantidade_em_uso -= quantidade
+                        if material.quantidade_em_uso < 0:
+                            material.quantidade_em_uso = 0
+                        material.quantidade = total_disponivel + material.quantidade_em_uso
+                    else:
+                        material.quantidade_disponivel += quantidade_fisica
+                        material.quantidade_em_uso -= quantidade_fisica
+                        if material.quantidade_em_uso < 0:
+                            material.quantidade_em_uso = 0
                     
                     # Atualiza o estado do material se necessário
                     if estado_devolucao in ['RUIM', 'PESSIMO']:
@@ -367,6 +376,9 @@ def nova_devolucao(request):
                     elif material.quantidade_em_uso == 0:
                         if material.status in ['EM_USO', 'MANUTENCAO'] and not (manutencao or estado_devolucao in ['RUIM', 'PESSIMO']):
                             material.status = 'DISPONIVEL'
+                            
+                    if material.tipo == 'MUNICAO' and material.quantidade_disponivel > 0:
+                        material.status = 'DISPONIVEL'
                     
                     material.save()
                 

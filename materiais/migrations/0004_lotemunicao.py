@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='LoteMunicao',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('calibre', models.CharField(max_length=30, verbose_name='Calibre')),
-                ('marca', models.CharField(blank=True, max_length=100, null=True, verbose_name='Marca')),
+                ('calibre', models.CharField(max_length=50, verbose_name='Calibre')),
+                ('marca', models.CharField(blank=True, max_length=50, null=True, verbose_name='Marca/Fabricante')),
                 ('numero_lote', models.CharField(max_length=100, verbose_name='Número do Lote')),
                 ('tipo_municao', models.CharField(choices=[('REAL', 'Real'), ('TREINAMENTO', 'Treinamento'), ('FESTIM', 'Festim'), ('ELASTOMERO', 'Elastômero')], default='REAL', max_length=20, verbose_name='Tipo de Munição')),
                 ('data_fabricacao', models.DateField(blank=True, null=True, verbose_name='Data de Fabricação')),
@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Lote de Munição',
                 'verbose_name_plural': 'Lotes de Munição',
                 'ordering': ['-data_validade', 'material', 'numero_lote'],
+                'unique_together': {('material', 'numero_lote')},
                 'indexes': [models.Index(fields=['material', 'numero_lote'], name='materiais_l_materia_d6ec45_idx'), models.Index(fields=['data_validade'], name='materiais_l_data_va_01bc4c_idx')],
             },
         ),

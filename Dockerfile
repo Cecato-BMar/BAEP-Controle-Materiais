@@ -11,15 +11,16 @@ COPY requirements.txt ./
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential curl \
     && python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install -r requirements.txt \
+    && python -m pip install --default-timeout=100 --retries=5 -r requirements.txt \
     && apt-get remove -y build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
+RUN chmod +x /app/entrypoint.sh
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "reserva_baep.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--log-level", "info"]
+CMD ["/app/entrypoint.sh"]

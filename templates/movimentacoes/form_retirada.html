@@ -305,6 +305,7 @@
                                 'data-nome="' + material.nome + '" ' +
                                 'data-numero="' + material.numero + '" ' +
                                 'data-tipo="' + material.tipo_display + '" ' +
+                                'data-raw-tipo="' + material.tipo + '" ' +
                                 'data-max="' + material.quantidade_disponivel + '">';
                         html += '<i class="fas fa-plus"></i>';
                         html += '</button>';
@@ -376,19 +377,28 @@
             materiaisSelecionados.forEach(function(item, index) {
                 html += '<tr>';
                 html += '<td>' + item.tipo + '</td>';
-                html += '<td>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</td>';
-                html += '<td>';
-                if (item.lotes && item.lotes.length > 0) {
-                    html += '<select class="form-select form-select-sm lote-material" data-index="' + index + '">';
-                    item.lotes.forEach(function(lote) {
-                        const selected = lote.id === item.lote_id ? ' selected' : '';
-                        html += '<option value="' + lote.id + '"' + selected + '>' + lote.numero_lote + ' - ' + lote.calibre + ' (' + lote.quantidade_atual + ')</option>';
-                    });
+                
+                if (item.raw_tipo === 'MUNICAO') {
+                    html += '<td>';
+                    html += '<div class="fw-bold">' + item.nome + '</div>';
+                    html += '<div class="mt-1">';
+                    html += '<select class="form-select form-select-sm lote-select" data-index="' + index + '" required>';
+                    html += '<option value="">-- Selecione o Lote (Obrigatório) --</option>';
+                    if (item.lotes) {
+                        item.lotes.forEach(function(lote) {
+                            const selected = item.lote_id == lote.id ? 'selected' : '';
+                            html += '<option value="' + lote.id + '" ' + selected + '>';
+                            html += 'Lote: ' + lote.numero_lote + ' (Marca: ' + lote.marca + ' | Val: ' + lote.data_validade + ' | Saldo: ' + lote.quantidade_atual + ')';
+                            html += '</option>';
+                        });
+                    }
                     html += '</select>';
+                    html += '</div>';
+                    html += '</td>';
                 } else {
-                    html += '-';
+                    html += '<td>' + item.nome + (item.numero ? ' (' + item.numero + ')' : '') + '</td>';
                 }
-                html += '</td>';
+                
                 html += '<td><input type="number" class="form-control form-control-sm quantidade-material" data-index="' + index + '" value="' + item.quantidade + '" min="1" max="' + item.max + '"></td>';
                 html += '<td><button type="button" class="btn btn-sm btn-danger remover-material" data-index="' + index + '"><i class="fas fa-trash"></i> Remover</button></td>';
                 html += '</tr>';
@@ -408,23 +418,10 @@
                     atualizarCampoOculto();
                 } else {
                     $(this).val(materiaisSelecionados[index].quantidade);
-                    alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max);
+                    alert('Quantidade inválida. Deve ser entre 1 e ' + materiaisSelecionados[index].max + '. Verifique se o lote correto foi selecionado.');
                 }
             });
             
-            $('.lote-material').change(function() {
-                const index = $(this).data('index');
-                const loteId = parseInt($(this).val());
-                materiaisSelecionados[index].lote_id = loteId;
-                const loteSelecionado = materiaisSelecionados[index].lotes.find(l => l.id === loteId);
-                if (loteSelecionado) {
-                    materiaisSelecionados[index].max = loteSelecionado.quantidade_atual;
-                    if (materiaisSelecionados[index].quantidade > loteSelecionado.quantidade_atual) {
-                        materiaisSelecionados[index].quantidade = loteSelecionado.quantidade_atual;
-                    }
-                    atualizarCampoOculto();
-                }
-            });
             
             // Adiciona evento para remover material
             $('.remover-material').click(function() {
@@ -435,47 +432,88 @@
             });
         }
         
+        // Evento de alteração de lote
+        $(document).on('change', '.lote-select', function() {
+            const index = $(this).data('index');
+            const loteId = $(this).val();
+            
+            if (!loteId) {
+                materiaisSelecionados[index].lote_id = null;
+                materiaisSelecionados[index].max = 0;
+                materiaisSelecionados[index].quantidade = 1;
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+                return;
+            }
+            
+            const selectedLote = materiaisSelecionados[index].lotes.find(l => l.id == loteId);
+            if (selectedLote) {
+                materiaisSelecionados[index].lote_id = parseInt(loteId);
+                materiaisSelecionados[index].max = selectedLote.quantidade_atual;
+                if (materiaisSelecionados[index].quantidade > selectedLote.quantidade_atual) {
+                    materiaisSelecionados[index].quantidade = selectedLote.quantidade_atual;
+                }
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            }
+        });
+        
         // Evento para adicionar material à lista
         $(document).on('click', '.adicionar-material', function() {
             const id = $(this).data('id');
-            const material = materiaisCache[id];
-            if (!material) {
-                alert('Não foi possível carregar os dados do material. Tente novamente.');
-                return;
-            }
-
+            const nome = $(this).data('nome');
+            const numero = $(this).data('numero');
+            const tipo = $(this).data('tipo');
+            const rawTipo = $(this).data('raw-tipo');
+            const max = parseInt($(this).data('max'));
+            
             const materialExistente = materiaisSelecionados.find(item => item.id === id);
             if (materialExistente) {
                 alert('Este material já foi adicionado à lista.');
                 return;
             }
-
-            let loteId = null;
-            let loteMax = material.quantidade_disponivel;
-            let lotes = [];
-            if (material.tipo === 'MUNICAO') {
-                lotes = material.lotes || [];
-                if (lotes.length === 0) {
-                    alert('Este material de munição não possui lotes ativos disponíveis.');
-                    return;
-                }
-                loteId = lotes[0].id;
-                loteMax = lotes[0].quantidade_atual;
-            }
-
-            materiaisSelecionados.push({
+            
+            const novoItem = {
                 id: id,
-                nome: material.nome,
-                numero: material.numero,
-                tipo: material.tipo_display,
+                nome: nome,
+                numero: numero,
+                tipo: tipo,
+                raw_tipo: rawTipo,
                 quantidade: 1,
-                max: loteMax,
-                lotes: lotes,
-                lote_id: loteId
-            });
-
-            atualizarCampoOculto();
-            atualizarListaMateriais();
+                max: rawTipo === 'MUNICAO' ? 0 : max,
+                lote_id: null,
+                lotes: []
+            };
+            
+            if (rawTipo === 'MUNICAO') {
+                $.ajax({
+                    url: '/materiais/api/materiais/' + id + '/lotes/',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.lotes && data.lotes.length > 0) {
+                            novoItem.lotes = data.lotes;
+                            const loteValido = data.lotes.find(l => !l.vencido && l.quantidade_atual > 0) || data.lotes[0];
+                            if (loteValido) {
+                                novoItem.lote_id = loteValido.id;
+                                novoItem.max = loteValido.quantidade_atual;
+                            }
+                            materiaisSelecionados.push(novoItem);
+                            atualizarCampoOculto();
+                            atualizarListaMateriais();
+                        } else {
+                            alert('Este material de munição não possui nenhum lote ativo com saldo disponível cadastrado. Cadastre um lote primeiro no módulo de Materiais!');
+                        }
+                    },
+                    error: function() {
+                        alert('Erro ao buscar os lotes do material de munição.');
+                    }
+                });
+            } else {
+                materiaisSelecionados.push(novoItem);
+                atualizarCampoOculto();
+                atualizarListaMateriais();
+            }
         });
         
         // Eventos de busca e filtro de materiais
@@ -560,6 +598,21 @@
                 alert('Selecione pelo menos um material para retirada.');
                 return false;
             }
+            
+            // Valida se todas as munições têm lote selecionado
+            let erroLote = false;
+            materiaisSelecionados.forEach(function(item) {
+                if (item.raw_tipo === 'MUNICAO' && !item.lote_id) {
+                    erroLote = true;
+                }
+            });
+            
+            if (erroLote) {
+                e.preventDefault();
+                alert('Selecione um lote válido para todas as munições selecionadas.');
+                return false;
+            }
+            
             return true;
         });
     });

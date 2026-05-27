@@ -7,9 +7,9 @@ Versão 2.2 | Produção
 import os
 import logging
 from pathlib import Path
-from urllib.parse import urlparse
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+import dj_database_url
 
 # ---------------------------------------------------------------------------
 # Diretório base do projeto
@@ -71,11 +71,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sslserver',
-
+    
     # Bibliotecas de terceiros
     'crispy_forms',
     'crispy_bootstrap5',
+    'simple_history',
 
     # Módulos do sistema
     'materiais',
@@ -104,6 +104,7 @@ MIDDLEWARE = [
     'licenciamento.middleware.LicenseCheckMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'reserva_baep.urls'
@@ -131,36 +132,38 @@ WSGI_APPLICATION = 'reserva_baep.wsgi.application'
 # ---------------------------------------------------------------------------
 # Banco de Dados
 # ---------------------------------------------------------------------------
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DJANGO_DATABASE_URL') or os.getenv('DATABASE_URL')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 
-if DATABASE_URL:
-    parsed_url = urlparse(DATABASE_URL)
-    if parsed_url.scheme in ['postgres', 'postgresql']:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': parsed_url.path[1:],
-                'USER': parsed_url.username,
-                'PASSWORD': parsed_url.password,
-                'HOST': parsed_url.hostname,
-                'PORT': parsed_url.port or '',
-                'OPTIONS': {
-                    'sslmode': os.getenv('POSTGRES_SSLMODE', 'prefer'),
-                },
-            }
+# O Coolify pode expor um URL público em DATABASE_URL; considere apenas conexões postgres/sqlite válidas.
+if DATABASE_URL and not DATABASE_URL.startswith(('postgres://', 'postgresql://', 'sqlite://')):
+    DATABASE_URL = None
+
+if DATABASE_URL and DATABASE_URL.startswith(('postgres://', 'postgresql://')):
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600
+        )
+    }
+elif DATABASE_URL and DATABASE_URL.startswith('sqlite://'):
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600
+        )
+    }
+elif POSTGRES_HOST:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': POSTGRES_HOST,
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
         }
-    elif parsed_url.scheme == 'sqlite':
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / parsed_url.path.lstrip('/'),
-                'OPTIONS': {
-                    'timeout': 20,
-                },
-            }
-        }
-    else:
-        raise ImproperlyConfigured(f"Unsupported DATABASE_URL scheme: {parsed_url.scheme}")
+    }
 else:
     DATABASES = {
         'default': {
@@ -236,7 +239,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv(
     'DEFAULT_FROM_EMAIL',
-    'SIS LOGÍSTICA 2ºBAEP <noreply@reservabaep.com.br>'
+    'SIS LOGÍSTICA 2º BAEP <noreply@reservabaep.com.br>'
 )
 
 # ---------------------------------------------------------------------------

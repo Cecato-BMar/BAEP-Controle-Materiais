@@ -55,20 +55,20 @@ class Devolucao(models.Model):
     def __str__(self):
         return f"Devolução - {self.movimentacao.material} - {self.movimentacao.policial} - {self.movimentacao.data_hora.strftime('%d/%m/%Y %H:%M')}"
 
-
 class RegistroDisparoMunicao(models.Model):
     devolucao = models.OneToOneField(Devolucao, on_delete=models.CASCADE, related_name='registro_disparo', verbose_name=_('Devolução'))
     lote_municao = models.ForeignKey(LoteMunicao, on_delete=models.PROTECT, related_name='registros_disparo', verbose_name=_('Lote de Munição'), blank=True, null=True)
-    quantidade_disparada = models.PositiveIntegerField(_('Quantidade Disparada'), default=0)
-    quantidade_extraviada = models.PositiveIntegerField(_('Quantidade Extraviada'), default=0)
-    justificativa = models.TextField(_('Justificativa'), blank=True, null=True)
-    boletim_ocorrencia = models.CharField(_('B.O. / Relatório'), max_length=100, blank=True, null=True)
-    data_registro = models.DateTimeField(_('Data do Registro'), auto_now_add=True)
+    quantidade_disparada = models.PositiveIntegerField(_('Munições Disparadas'), default=0)
+    quantidade_extraviada = models.PositiveIntegerField(_('Munições Extraviadas'), default=0)
+    justificativa = models.TextField(_('Justificativa/Ocorrência'), blank=True, null=True)
+    boletim_ocorrencia = models.CharField(_('Número do B.O.'), max_length=100, blank=True, null=True)
+    data_registro = models.DateTimeField(_('Data de Registro'), auto_now_add=True)
 
     class Meta:
-        verbose_name = _('Registro de Disparo de Munição')
-        verbose_name_plural = _('Registros de Disparo de Munição')
+        verbose_name = _('Registro de Disparo/Extravio')
+        verbose_name_plural = _('Registros de Disparos/Extravios')
         ordering = ['-data_registro']
 
     def __str__(self):
         return f"Registro de Disparo - {self.devolucao.movimentacao.material} - {self.quantidade_disparada} disparadas / {self.quantidade_extraviada} extraviadas"
+
