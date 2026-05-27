@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'materiais',
     'policiais',
     'movimentacoes',
+    'municoes',
     'usuarios',
     'relatorios',
     'estoque',

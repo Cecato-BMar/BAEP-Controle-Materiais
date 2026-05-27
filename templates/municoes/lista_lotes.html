@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Lotes de Munição{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lotes de Munição</h1>
+    <div class="mb-3">
+        <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary">Novo Lote</a>
+        <a href="{% url 'municoes:nova_retirada' %}" class="btn btn-secondary">Nova Retirada</a>
+        <a href="{% url 'municoes:nova_devolucao' %}" class="btn btn-success">Nova Devolução</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Material</th>
+                    <th>Lote</th>
+                    <th>Calibre</th>
+                    <th>Atual</th>
+                    <th>Validade</th>
+                    <th>Ativo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                    <tr>
+                        <td>{{ lote.material.nome }}</td>
+                        <td>{{ lote.numero_lote }}</td>
+                        <td>{{ lote.calibre }}</td>
+                        <td>{{ lote.quantidade_atual }}</td>
+                        <td>{{ lote.data_validade|date:'d/m/Y' }}</td>
+                        <td>{{ lote.ativo|yesno:'Sim,Não' }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Nenhum lote de munição cadastrado.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

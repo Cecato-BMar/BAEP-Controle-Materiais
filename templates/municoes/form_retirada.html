@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Nova Retirada de Munição{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Nova Retirada de Munição</h1>
+    <div class="card p-4">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form|crispy }}
+        </form>
+    </div>
+</div>
+{% endblock %}

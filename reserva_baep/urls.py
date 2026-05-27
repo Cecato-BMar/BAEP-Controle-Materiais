@@ -36,6 +36,7 @@ urlpatterns = [
     path('materiais/', include('materiais.urls')),
     path('policiais/', include('policiais.urls')),
     path('movimentacoes/', include('movimentacoes.urls')),
+    path('municoes/', include('municoes.urls')),
     path('usuarios/', include('usuarios.urls')),
     path('relatorios/', include('relatorios.urls')),
     path('estoque/', include('estoque.urls')),
