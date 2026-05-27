@@ -415,6 +415,9 @@
                             <li class="nav-item">
                                 <a class="nav-link {% if 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">Cautelas</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'municoes' in request.path %}active{% endif %}" href="{% url 'municoes:lista_lotes' %}">Controle de Munições</a>
+                            </li>
                         </ul>
                     </div>
                 </li>

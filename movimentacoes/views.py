@@ -275,49 +275,49 @@ def nova_devolucao(request):
                 # Processa cada material selecionado para devolução dentro de transação
                 with transaction.atomic():
                     for item in devolucoes_lista:
-                    retirada_id = item.get('retirada_id')
-                    material_id = item.get('material_id')
-                    estado_devolucao = item.get('estado', 'BOM')
-                    lote_id = item.get('lote_id')
-                    quantidade = int(item.get('quantidade', 0))
-                    quantidade_disparada = int(item.get('disparos', 0))
-                    quantidade_extraviada = int(item.get('extravios', 0))
-                    justificativa_consumo = item.get('justificativa_consumo', '').strip()
-                    boletim_ocorrencia = item.get('boletim_ocorrencia', '').strip()
-                    
-                    # Validações básicas
-                    if not retirada_id or not material_id:
-                        messages.error(request, _('Dados inválidos para devolução.'))
-                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                    
-                    try:
-                        # Usa select_for_update para evitar race conditions ao atualizar quantidades
-                        material = Material.objects.select_for_update().get(pk=material_id)
-                        retirada = Retirada.objects.select_related('movimentacao').select_for_update().get(pk=retirada_id)
-                    except (Material.DoesNotExist, Retirada.DoesNotExist):
-                        messages.error(request, _('Material ou retirada não encontrado.'))
-                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+                        retirada_id = item.get('retirada_id')
+                        material_id = item.get('material_id')
+                        estado_devolucao = item.get('estado', 'BOM')
+                        lote_id = item.get('lote_id')
+                        quantidade = int(item.get('quantidade', 0))
+                        quantidade_disparada = int(item.get('disparos', 0))
+                        quantidade_extraviada = int(item.get('extravios', 0))
+                        justificativa_consumo = item.get('justificativa_consumo', '').strip()
+                        boletim_ocorrencia = item.get('boletim_ocorrencia', '').strip()
 
-                    # Calcula quantidade pendente considerando devoluções anteriores
-                    devolucoes_anteriores = Devolucao.objects.filter(retirada_referencia=retirada)
-                    quantidade_devolvida = sum(d.movimentacao.quantidade for d in devolucoes_anteriores)
-                    total_retirado = retirada.movimentacao.quantidade
-                    quantidade_pendente = total_retirado - quantidade_devolvida
-
-                    # Valida quantidade informada (deve ser positiva e não exceder o pendente)
-                    if quantidade <= 0 or quantidade > quantidade_pendente:
-                        messages.error(request, _('A quantidade informada deve ser entre 1 e a quantidade pendente de devolução ({max}).').format(max=quantidade_pendente))
-                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                    
-                    quantidade_fisica = quantidade - (quantidade_disparada + quantidade_extraviada)
-                    if quantidade_fisica < 0:
-                        messages.error(request, _('A quantidade de disparos e extravios não pode ser maior do que a quantidade retirada.'))
-                        return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
-                    
-                    if material.tipo == 'MUNICAO':
-                        if (quantidade_disparada > 0 or quantidade_extraviada > 0) and not justificativa_consumo:
-                            messages.error(request, _('Para consumo ou extravio de munição, informe a justificativa.'))
+                        # Validações básicas
+                        if not retirada_id or not material_id:
+                            messages.error(request, _('Dados inválidos para devolução.'))
                             return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+
+                        try:
+                            # Usa select_for_update para evitar race conditions ao atualizar quantidades
+                            material = Material.objects.select_for_update().get(pk=material_id)
+                            retirada = Retirada.objects.select_related('movimentacao').select_for_update().get(pk=retirada_id)
+                        except (Material.DoesNotExist, Retirada.DoesNotExist):
+                            messages.error(request, _('Material ou retirada não encontrado.'))
+                            return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+
+                        # Calcula quantidade pendente considerando devoluções anteriores
+                        devolucoes_anteriores = Devolucao.objects.filter(retirada_referencia=retirada)
+                        quantidade_devolvida = sum(d.movimentacao.quantidade for d in devolucoes_anteriores)
+                        total_retirado = retirada.movimentacao.quantidade
+                        quantidade_pendente = total_retirado - quantidade_devolvida
+
+                        # Valida quantidade informada (deve ser positiva e não exceder o pendente)
+                        if quantidade <= 0 or quantidade > quantidade_pendente:
+                            messages.error(request, _('A quantidade informada deve ser entre 1 e a quantidade pendente de devolução ({max}).').format(max=quantidade_pendente))
+                            return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+
+                        quantidade_fisica = quantidade - (quantidade_disparada + quantidade_extraviada)
+                        if quantidade_fisica < 0:
+                            messages.error(request, _('A quantidade de disparos e extravios não pode ser maior do que a quantidade retirada.'))
+                            return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
+
+                        if material.tipo == 'MUNICAO':
+                            if (quantidade_disparada > 0 or quantidade_extraviada > 0) and not justificativa_consumo:
+                                messages.error(request, _('Para consumo ou extravio de munição, informe a justificativa.'))
+                                return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
                         if quantidade_disparada > 0 and not boletim_ocorrencia:
                             messages.error(request, _('Para munição disparada, informe o número do B.O./Relatório.'))
                             return render(request, 'movimentacoes/form_devolucao.html', {'form': form})
