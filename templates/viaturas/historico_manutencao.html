@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico — {{ manutencao.viatura.prefixo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:dashboard' %}">Frota</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}">{{ manutencao.viatura.prefixo }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Histórico</li>
+                    </ol>
+                </nav>
+                <h2 class="text-primary mb-1"><i class="fas fa-history me-2"></i>Histórico da Manutenção</h2>
+                <p class="text-muted mb-0">
+                    Viatura <strong>{{ manutencao.viatura.prefixo }}</strong> —
+                    {{ servicos.count }} serviço(s) registrado(s),
+                    {{ eventos.count }} evento(s) na linha do tempo.
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+                {% if pode_registrar_servico %}
+                <a href="{% url 'viaturas:adicionar_servico_manutencao' manutencao.pk %}" class="btn btn-success btn-sm fw-bold">
+                    <i class="fas fa-plus me-1"></i>Registrar Serviço
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if servicos %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-tools me-2 text-success"></i>Serviços Executados
+                    <span class="badge bg-success ms-2">{{ servicos.count }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Serviço</th>
+                                    <th>Peças / Garantia</th>
+                                    <th class="text-end">Custos</th>
+                                    <th>Registrado por</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in servicos %}
+                                <tr>
+                                    <td class="text-nowrap small">{{ s.data_registro|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <div class="fw-bold">{{ s.descricao|linebreaksbr }}</div>
+                                        {% if s.detalhamento and s.detalhamento != s.descricao %}
+                                        <small class="text-muted d-block mt-1">{{ s.detalhamento|linebreaksbr }}</small>
+                                        {% endif %}
+                                        {% if s.status_na_epoca %}
+                                        {% if s.status_na_epoca %}
+                                        <span class="badge bg-light text-dark border mt-1">{{ s.get_status_na_epoca_display }}</span>
+                                        {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ s.pecas_garantia|default:"—"|linebreaksbr }}</td>
+                                    <td class="text-end small text-nowrap">
+                                        {% if s.custo_total %}
+                                        R$ {{ s.custo_total|floatformat:2 }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ s.registrado_por.get_full_name|default:s.registrado_por.username }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-stream me-2"></i>Linha do Tempo</h5>
+            <div class="timeline">
+                {% for evento in eventos %}
+                <div class="card mb-3 shadow-sm border-0 border-start border-4
+                    {% if evento.tipo == 'ABERTURA' %}border-success
+                    {% elif evento.tipo == 'SERVICO' %}border-primary
+                    {% elif evento.tipo == 'CONCLUSAO' %}border-success
+                    {% elif evento.tipo == 'CANCELAMENTO' %}border-danger
+                    {% elif evento.tipo == 'EVIDENCIA' %}border-warning
+                    {% else %}border-secondary{% endif %}">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                        <div>
+                            {% if evento.tipo == 'ABERTURA' %}
+                                <span class="badge bg-success"><i class="fas fa-play me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% elif evento.tipo == 'SERVICO' %}
+                                <span class="badge bg-primary"><i class="fas fa-wrench me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% elif evento.tipo == 'CONCLUSAO' %}
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% elif evento.tipo == 'CANCELAMENTO' %}
+                                <span class="badge bg-danger"><i class="fas fa-ban me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% elif evento.tipo == 'EVIDENCIA' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-paperclip me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% elif evento.tipo == 'STATUS' %}
+                                <span class="badge bg-info text-dark"><i class="fas fa-exchange-alt me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-edit me-1"></i>{{ evento.get_tipo_display }}</span>
+                            {% endif %}
+                            <span class="ms-2 fw-bold">{{ evento.titulo }}</span>
+                        </div>
+                        <div class="text-muted small text-end">
+                            <div>{{ evento.data_registro|date:"d/m/Y H:i:s" }}</div>
+                            <div><i class="fas fa-user-circle me-1"></i>{{ evento.registrado_por.get_full_name|default:evento.registrado_por.username }}</div>
+                        </div>
+                    </div>
+                    {% if evento.descricao or evento.metadados.alteracoes %}
+                    <div class="card-body py-2">
+                        {% if evento.descricao %}
+                        <p class="mb-2 small" style="white-space: pre-line;">{{ evento.descricao }}</p>
+                        {% endif %}
+                        {% if evento.metadados.alteracoes %}
+                        <table class="table table-sm table-bordered mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Anterior</th>
+                                    <th>Novo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alt in evento.metadados.alteracoes %}
+                                <tr>
+                                    <td class="fw-bold">{{ alt.rotulo }}</td>
+                                    <td class="text-danger"><del>{{ alt.anterior }}</del></td>
+                                    <td class="text-success"><strong>{{ alt.novo }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% endif %}
+                        {% if evento.servico %}
+                        <div class="mt-2 p-2 bg-light rounded small">
+                            <i class="fas fa-link me-1 text-primary"></i>
+                            Serviço vinculado: <strong>{{ evento.servico.descricao|truncatechars:120 }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Nenhum evento registrado. Use <strong>Registrar Serviço</strong> para criar o primeiro registro.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

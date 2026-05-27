@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Planos de Manutenção Preventiva{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2 class="text-primary"><i class="fas fa-clipboard-list me-2"></i>Planos de Manutenção Preventiva</h2>
+            <a href="{% url 'viaturas:criar_plano_preventivo' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Novo Plano
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Modelo</th>
+                            <th>Descrição</th>
+                            <th>Intervalo Km</th>
+                            <th>Intervalo Dias</th>
+                            <th>Status</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plano in page_obj %}
+                        <tr>
+                            <td><span class="badge bg-secondary">{{ plano.modelo.marca.nome }}</span> {{ plano.modelo.nome }}</td>
+                            <td class="fw-bold">{{ plano.descricao }}</td>
+                            <td>{% if plano.intervalo_km %}{{ plano.intervalo_km }} km{% else %}-{% endif %}</td>
+                            <td>{% if plano.intervalo_dias %}{{ plano.intervalo_dias }} dias{% else %}-{% endif %}</td>
+                            <td>
+                                {% if plano.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'viaturas:editar_plano_preventivo' plano.pk %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Nenhum plano preventivo cadastrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Navegação de página">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próximo</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

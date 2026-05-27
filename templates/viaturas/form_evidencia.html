@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'viaturas:dashboard' %}">Frota</a></li>
+                    {% if manutencao %}
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:lista_manutencoes' %}">Manutenções</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}">{{ manutencao.viatura.prefixo }}</a></li>
+                    {% else %}
+                        <li class="breadcrumb-item"><a href="{% url 'viaturas:lista_planos_preventivos' %}">Planos Preventivos</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow border-0 mt-3">
+                <div class="card-header bg-white pb-0">
+                    <h4 class="mb-3 text-primary"><i class="fas fa-edit me-2"></i>{{ titulo }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        <div class="d-flex justify-content-end mt-4">
+                            {% if manutencao %}
+                                <a href="{% url 'viaturas:detalhe_manutencao' manutencao.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+                            {% else %}
+                                <a href="{% url 'viaturas:lista_planos_preventivos' %}" class="btn btn-secondary me-2">Cancelar</a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
