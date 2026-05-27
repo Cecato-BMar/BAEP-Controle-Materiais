@@ -1,21 +1,53 @@
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from .models import Movimentacao, Retirada, Devolucao
+
+from .models import Devolucao, Movimentacao, Retirada
+
+
+def _parse_optional_positive_int(raw_value, field_name):
+    if raw_value in (None, ''):
+        return None
+
+    try:
+        value = int(raw_value)
+    except (TypeError, ValueError):
+        raise ValueError(f'Parâmetro {field_name} inválido.')
+
+    if value < 1:
+        raise ValueError(f'Parâmetro {field_name} inválido.')
+
+    return value
+
+
+def _calcular_quantidade_devolvida(retirada):
+    return (
+        Devolucao.objects.filter(retirada_referencia=retirada)
+        .aggregate(total=Sum('movimentacao__quantidade'))
+        .get('total')
+        or 0
+    )
+
 
 @login_required
 def api_retirada_detalhe(request, retirada_id):
     """
     API para obter detalhes de uma retirada específica
     """
-    retirada = get_object_or_404(Retirada, pk=retirada_id)
+    retirada = get_object_or_404(
+        Retirada.objects.select_related(
+            'movimentacao__material',
+            'movimentacao__policial',
+            'movimentacao__registrado_por',
+            'movimentacao__lote_municao',
+        ),
+        pk=retirada_id,
+    )
     movimentacao = retirada.movimentacao
-    
-    # Calcula a quantidade já devolvida deste material para esta retirada
-    devolucoes = Devolucao.objects.filter(retirada_referencia=retirada)
-    quantidade_devolvida = sum(d.movimentacao.quantidade for d in devolucoes)
+    quantidade_devolvida = _calcular_quantidade_devolvida(retirada)
     quantidade_pendente = movimentacao.quantidade - quantidade_devolvida
-    
+
     retirada_data = {
         'id': retirada.id,
         'data_hora': movimentacao.data_hora.strftime('%d/%m/%Y %H:%M'),
@@ -29,7 +61,7 @@ def api_retirada_detalhe(request, retirada_id):
         'material': {
             'id': movimentacao.material.id,
             'nome': movimentacao.material.nome,
-            'identificacao': movimentacao.material.numero,  # Usando numero como identificacao
+            'identificacao': movimentacao.material.numero,
             'numero': movimentacao.material.numero,
             'tipo': movimentacao.material.tipo,
             'tipo_display': movimentacao.material.get_tipo_display(),
@@ -52,8 +84,9 @@ def api_retirada_detalhe(request, retirada_id):
             'nome': movimentacao.registrado_por.get_full_name() or movimentacao.registrado_por.username,
         }
     }
-    
+
     return JsonResponse(retirada_data)
+
 
 @login_required
 def api_retiradas_pendentes(request):
@@ -61,44 +94,41 @@ def api_retiradas_pendentes(request):
     API para listar retiradas pendentes de devolução
     Pode ser filtrado por policial_id e/ou material_id
     """
-    policial_id = request.GET.get('policial_id')
-    material_id = request.GET.get('material_id')
-    
-    # Filtra as movimentações de retirada
-    movimentacoes_retirada = Movimentacao.objects.filter(tipo='RETIRADA')
-    
+    try:
+        policial_id = _parse_optional_positive_int(request.GET.get('policial_id'), 'policial_id')
+        material_id = _parse_optional_positive_int(request.GET.get('material_id'), 'material_id')
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+    movimentacoes_retirada = (
+        Movimentacao.objects.filter(tipo='RETIRADA', retirada__isnull=False)
+        .select_related('material', 'policial', 'retirada', 'lote_municao')
+        .annotate(quantidade_devolvida=Sum('retirada__devolucoes__movimentacao__quantidade'))
+        .order_by('-data_hora')
+    )
+
     if policial_id:
         movimentacoes_retirada = movimentacoes_retirada.filter(policial_id=policial_id)
-    
+
     if material_id:
         movimentacoes_retirada = movimentacoes_retirada.filter(material_id=material_id)
-    
-    movimentacoes_retirada = movimentacoes_retirada.select_related('material', 'policial', 'retirada', 'lote_municao')
-    
+
     retiradas_pendentes = []
-    
+
     for mov in movimentacoes_retirada:
-        # Verifica se a retirada tem uma referência válida
-        if not hasattr(mov, 'retirada'):
-            continue
-            
-        # Calcula a quantidade já devolvida deste material para esta retirada
-        devolucoes = Devolucao.objects.filter(retirada_referencia=mov.retirada)
-        quantidade_devolvida = sum(d.movimentacao.quantidade for d in devolucoes)
-        
-        # Se ainda há quantidade pendente de devolução
+        quantidade_devolvida = mov.quantidade_devolvida or 0
+
         if quantidade_devolvida < mov.quantidade:
             quantidade_pendente = mov.quantidade - quantidade_devolvida
-            
+
             retiradas_pendentes.append({
                 'id': mov.retirada.id,
                 'material': {
                     'id': mov.material.id,
                     'nome': mov.material.nome,
-                    'identificacao': mov.material.numero,  # Usando numero como identificacao
+                    'identificacao': mov.material.numero,
                     'tipo': mov.material.tipo,
                     'tipo_display': mov.material.get_tipo_display(),
-                    'tipo': mov.material.tipo,
                 },
                 'policial': {
                     'id': mov.policial.id,
@@ -120,5 +150,5 @@ def api_retiradas_pendentes(request):
                 'lote_numero': mov.lote_municao.numero_lote if mov.lote_municao else None,
                 'lote_calibre': mov.lote_municao.calibre if mov.lote_municao else None,
             })
-    
+
     return JsonResponse(retiradas_pendentes, safe=False)

@@ -305,6 +305,74 @@ class Manutencao(models.Model):
             self.viatura.odometro_atual = self.odometro
             self.viatura.save(update_fields=['odometro_atual'])
 
+class ServicoManutencao(models.Model):
+    """Registro imutável de serviços executados em uma manutenção."""
+    manutencao = models.ForeignKey(Manutencao, on_delete=models.CASCADE, related_name='servicos', verbose_name=_('Manutenção'))
+    descricao = models.TextField(_('Descrição do Serviço'))
+    detalhamento = models.TextField(_('Detalhamento'), blank=True, null=True)
+    pecas_garantia = models.TextField(_('Peças / Garantia'), blank=True, null=True)
+    custo_pecas = models.DecimalField(_('Custo Peças (R$)'), max_digits=10, decimal_places=2, default=0)
+    custo_mao_obra = models.DecimalField(_('Custo Mão de Obra (R$)'), max_digits=10, decimal_places=2, default=0)
+    odometro = models.DecimalField(_('Odômetro'), max_digits=10, decimal_places=1, blank=True, null=True)
+    status_na_epoca = models.CharField(
+        _('Status na época'),
+        max_length=20,
+        blank=True,
+        choices=Manutencao.STATUS_CHOICES,
+        help_text='Snapshot do status da manutenção no momento do registro',
+    )
+    data_registro = models.DateTimeField(_('Data do Registro'), auto_now_add=True)
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='servicos_manutencao_registrados')
+
+    class Meta:
+        verbose_name = _('Serviço de Manutenção')
+        verbose_name_plural = _('Serviços de Manutenção')
+        ordering = ['-data_registro']
+
+    def __str__(self):
+        return f"{self.manutencao.viatura.prefixo} - {self.descricao[:40]}"
+
+class RegistroHistoricoManutencao(models.Model):
+    """Histórico append-only dos eventos de manutenção."""
+    TIPO_CHOICES = [
+        ('ABERTURA', 'Abertura da Manutenção'),
+        ('SERVICO', 'Serviço Registrado'),
+        ('ATUALIZACAO', 'Atualização Administrativa'),
+        ('STATUS', 'Mudança de Status'),
+        ('CONCLUSAO', 'Conclusão'),
+        ('CANCELAMENTO', 'Cancelamento'),
+        ('EVIDENCIA', 'Evidência Anexada'),
+    ]
+
+    manutencao = models.ForeignKey(Manutencao, on_delete=models.CASCADE, related_name='registros_historico', verbose_name=_('Manutenção'))
+    tipo = models.CharField(_('Tipo de Evento'), max_length=20, choices=TIPO_CHOICES)
+    titulo = models.CharField(_('Título'), max_length=200)
+    descricao = models.TextField(_('Descrição'), blank=True)
+    metadados = models.JSONField(
+        _('Metadados'),
+        blank=True,
+        null=True,
+        help_text='Dados estruturados da alteração (campos, valores anteriores/novos)',
+    )
+    data_registro = models.DateTimeField(_('Data do Registro'), auto_now_add=True)
+    registrado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='historicos_manutencao_registrados')
+    servico = models.ForeignKey(
+        ServicoManutencao,
+        on_delete=models.SET_NULL,
+        related_name='eventos_historico',
+        verbose_name=_('Serviço vinculado'),
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = _('Registro de Histórico de Manutenção')
+        verbose_name_plural = _('Registros de Histórico de Manutenção')
+        ordering = ['-data_registro']
+
+    def __str__(self):
+        return f"{self.manutencao.viatura.prefixo} - {self.get_tipo_display()}"
+
 class ChecklistViatura(models.Model):
     """Checklist completo para avaliação da viatura (Inspeção Operacional)"""
     TIPO_CHECKLIST = [
