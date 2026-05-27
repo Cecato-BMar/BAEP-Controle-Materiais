@@ -1192,37 +1192,36 @@ def editar_plano_preventivo(request, pk):
 @login_required
 @require_module_permission('frota')
 def historico_manutencao(request, pk):
-    """Exibe o histórico completo de alterações de uma manutenção."""
-    man = get_object_or_404(Manutencao, pk=pk)
-    historico = man.history.all().order_by('-history_date')
-    
-    # Calcular diferenças entre versões
-    diferencas = []
-    historico_list = list(historico)
-    for i in range(len(historico_list) - 1):
-        atual = historico_list[i]
-        anterior = historico_list[i + 1]
-        delta = atual.diff_against(anterior)
-        diferencas.append({
-            'registro': atual,
-            'mudancas': delta.changes,
-            'data': atual.history_date,
-            'usuario': atual.history_user,
-            'tipo': atual.get_history_type_display(),
-        })
-    
-    # O registro mais antigo (criação) não tem diff
-    if historico_list:
-        diferencas.append({
-            'registro': historico_list[-1],
-            'mudancas': [],
-            'data': historico_list[-1].history_date,
-            'usuario': historico_list[-1].history_user,
-            'tipo': 'Criação',
-        })
-    
+    """
+    Exibe a linha do tempo de eventos e serviços da manutenção (modelo append-only).
+    Sempre garante pelo menos um registro de abertura para manutenções antigas.
+    """
+    man = get_object_or_404(
+        Manutencao.objects.select_related('viatura', 'registrado_por'),
+        pk=pk,
+    )
+    # Garante que manutenções antigas (antes da nova estrutura) tenham pelo menos um evento de abertura
+    garantir_historico_estruturado(man)
+
+    # Recarrega com prefetch para não gerar N+1 no template
+    man = (
+        Manutencao.objects
+        .select_related('viatura', 'registrado_por')
+        .prefetch_related(
+            'registros_historico__servico',
+            'registros_historico__registrado_por',
+            'servicos__registrado_por',
+        )
+        .get(pk=pk)
+    )
+
+    eventos = man.registros_historico.select_related('servico', 'registrado_por').order_by('data_registro')
+    servicos = man.servicos.select_related('registrado_por').order_by('data_registro')
+
     return render(request, 'viaturas/historico_manutencao.html', {
         'manutencao': man,
-        'diferencas': diferencas,
+        'eventos': eventos,
+        'servicos': servicos,
+        'pode_registrar_servico': man.status not in ('CONCLUIDA', 'CANCELADA'),
     })
 
