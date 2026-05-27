@@ -446,6 +446,13 @@ def detalhe_manutencao(request, pk):
         .prefetch_related('servicos__registrado_por'),
         pk=pk,
     )
+    garantir_historico_estruturado(man)
+    man = (
+        Manutencao.objects
+        .select_related('viatura', 'oficina_fk', 'registrado_por')
+        .prefetch_related('servicos__registrado_por')
+        .get(pk=pk)
+    )
     return render(request, 'viaturas/detalhe_manutencao.html', {
         'manutencao': man,
         'servicos': man.servicos.all(),
@@ -966,7 +973,7 @@ def analisar_baixa(request, pk):
             if analise.status == 'MANUTENCAO':
                 viatura.status = 'MANUTENCAO'
                 # Abrir automaticamente uma manutenção corretiva
-                Manutencao.objects.create(
+                nova_man = Manutencao.objects.create(
                     viatura=viatura,
                     tipo='CORRETIVA',
                     status='ABERTA',
@@ -975,6 +982,7 @@ def analisar_baixa(request, pk):
                     descricao=f"Manutenção aberta automaticamente via Solicitação de Baixa #{analise.id}. Justificativa: {analise.motivo}",
                     registrado_por=request.user
                 )
+                registrar_abertura(nova_man, request.user)
             elif analise.status == 'OFICINA':
                 viatura.status = 'MANUTENCAO'
                 viatura.localizacao = 'OFICINA'

@@ -131,6 +131,10 @@ def registrar_evento(manutencao, usuario, tipo, titulo, descricao='', *, servico
 
 
 def registrar_abertura(manutencao, usuario):
+    """Registra abertura e o primeiro serviço (motivo) no histórico append-only."""
+    if manutencao.registros_historico.filter(tipo='ABERTURA').exists():
+        return
+
     motivo = (manutencao.descricao or '').strip() or 'Manutenção aberta'
     registrar_evento(
         manutencao,
@@ -150,6 +154,10 @@ def registrar_abertura(manutencao, usuario):
             'motivo': motivo,
         },
     )
+
+    if manutencao.servicos.exists():
+        return
+
     if manutencao.detalhamento_servicos and manutencao.detalhamento_servicos.strip():
         registrar_servico(
             manutencao,
@@ -159,6 +167,13 @@ def registrar_abertura(manutencao, usuario):
             pecas_garantia=manutencao.detalhamento_pecas_garantia,
             custo_pecas=manutencao.custo_pecas,
             custo_mao_obra=manutencao.custo_mao_obra,
+            odometro=manutencao.odometro,
+        )
+    elif motivo:
+        registrar_servico(
+            manutencao,
+            usuario,
+            motivo,
             odometro=manutencao.odometro,
         )
 
@@ -294,72 +309,38 @@ def registrar_evidencia(manutencao, usuario, evidencia):
 
 
 def garantir_historico_estruturado(manutencao):
-    """Garante histórico estruturado para uma manutenção específica (uso pontual na view)."""
-    if manutencao.registros_historico.exists():
+    """Garante histórico estruturado para manutenções antigas ou criadas antes da migration."""
+    if not manutencao.registros_historico.exists():
+        registrar_abertura(manutencao, manutencao.registrado_por)
         return
+
+    if manutencao.servicos.exists():
+        return
+
     usuario = manutencao.registrado_por
-    RegistroHistoricoManutencao.objects.create(
-        manutencao=manutencao,
-        tipo='ABERTURA',
-        titulo='Abertura da manutenção (migração)',
-        descricao=manutencao.descricao or 'Registro importado do sistema anterior.',
-        registrado_por=usuario,
-    )
+    motivo = (manutencao.descricao or '').strip()
     if manutencao.detalhamento_servicos and manutencao.detalhamento_servicos.strip():
-        servico = ServicoManutencao.objects.create(
-            manutencao=manutencao,
-            descricao=manutencao.detalhamento_servicos.strip(),
-            detalhamento=manutencao.detalhamento_servicos.strip(),
+        texto = manutencao.detalhamento_servicos.strip()
+        registrar_servico(
+            manutencao,
+            usuario,
+            texto,
+            detalhamento=texto,
             pecas_garantia=manutencao.detalhamento_pecas_garantia,
             custo_pecas=manutencao.custo_pecas,
             custo_mao_obra=manutencao.custo_mao_obra,
             odometro=manutencao.odometro,
-            status_na_epoca=manutencao.status,
-            registrado_por=usuario,
         )
-        RegistroHistoricoManutencao.objects.create(
-            manutencao=manutencao,
-            tipo='SERVICO',
-            titulo='Serviço registrado (migração)',
-            descricao=servico.descricao,
-            servico=servico,
-            registrado_por=usuario,
+    elif motivo:
+        registrar_servico(
+            manutencao,
+            usuario,
+            motivo,
+            odometro=manutencao.odometro,
         )
 
 
 def backfill_servicos_existentes():
-    """Cria registros de serviço para manutenções que ainda não possuem histórico estruturado."""
-    from django.db.models import Count
-
-    qs = Manutencao.objects.annotate(qtd_servicos=Count('servicos')).filter(qtd_servicos=0)
-    for man in qs.iterator():
-        usuario = man.registrado_por
-        if not man.registros_historico.exists():
-            RegistroHistoricoManutencao.objects.create(
-                manutencao=man,
-                tipo='ABERTURA',
-                titulo='Abertura da manutenção (migração)',
-                descricao=man.descricao or 'Registro importado do sistema anterior.',
-                registrado_por=usuario,
-            )
-        if man.detalhamento_servicos and man.detalhamento_servicos.strip():
-            servico = ServicoManutencao.objects.create(
-                manutencao=man,
-                descricao=man.detalhamento_servicos.strip(),
-                detalhamento=man.detalhamento_servicos.strip(),
-                pecas_garantia=man.detalhamento_pecas_garantia,
-                custo_pecas=man.custo_pecas,
-                custo_mao_obra=man.custo_mao_obra,
-                odometro=man.odometro,
-                status_na_epoca=man.status,
-                registrado_por=usuario,
-            )
-            RegistroHistoricoManutencao.objects.create(
-                manutencao=man,
-                tipo='SERVICO',
-                titulo='Serviço registrado (migração)',
-                descricao=servico.descricao,
-                servico=servico,
-                registrado_por=usuario,
-            )
-            sincronizar_resumo_servicos(man)
+    """Preenche histórico append-only em manutenções antigas sem serviços."""
+    for man in Manutencao.objects.iterator():
+        garantir_historico_estruturado(man)
