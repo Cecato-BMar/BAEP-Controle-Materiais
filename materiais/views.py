@@ -68,7 +68,7 @@ def detalhe_material(request, material_id):
     
     lotes = []
     if material.tipo == 'MUNICAO':
-        lotes = material.lotes_municao.all().order_by('data_validade')
+        lotes = material.lotes.all().order_by('data_validade')
 
     context = {
         'material': material,
@@ -280,7 +280,7 @@ def novo_lote(request, material_id):
             
             # Atualiza quantidade do material principal somando quantidades dos lotes ativos
             from django.db.models import Sum
-            total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+            total_disponivel = material.lotes.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
             material.quantidade_disponivel = total_disponivel
             material.quantidade = total_disponivel + material.quantidade_em_uso
             material.save()
@@ -310,7 +310,7 @@ def editar_lote(request, lote_id):
             form.save()
             
             from django.db.models import Sum
-            total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+            total_disponivel = material.lotes.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
             material.quantidade_disponivel = total_disponivel
             material.quantidade = total_disponivel + material.quantidade_em_uso
             material.save()
@@ -337,7 +337,7 @@ def excluir_lote(request, lote_id):
         lote.delete()
         
         from django.db.models import Sum
-        total_disponivel = material.lotes_municao.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
+        total_disponivel = material.lotes.filter(ativo=True).aggregate(Sum('quantidade_atual'))['quantidade_atual__sum'] or 0
         material.quantidade_disponivel = total_disponivel
         material.quantidade = total_disponivel + material.quantidade_em_uso
         material.save()
