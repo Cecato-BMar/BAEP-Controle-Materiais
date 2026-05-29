@@ -4,27 +4,41 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="alert alert-warning text-dark fw-bold" role="alert">
-        Template ativo: <strong>templates/municoes/lista_lotes.html</strong>
-    </div>
     <!-- Cabeçalho com Título e Botões de Ação -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="text-primary">
             <i class="fas fa-bomb me-2"></i>Controle de Munições
         </h1>
-        <div class="btn-group" role="group">
-            <a href="{% url 'materiais:novo_material' %}" class="btn btn-success btn-lg" title="Cadastrar novo material de munição">
-                <i class="fas fa-plus-circle me-2"></i>Novo Material
-            </a>
-            <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary btn-lg" title="Cadastrar novo lote de munição">
-                <i class="fas fa-layer-group me-2"></i>Novo Lote
-            </a>
-            <a href="{% url 'municoes:nova_retirada' %}" class="btn btn-warning btn-lg" title="Registrar retirada de munição">
-                <i class="fas fa-arrow-up me-2"></i>Retirada
-            </a>
-            <a href="{% url 'municoes:nova_devolucao' %}" class="btn btn-info btn-lg" title="Registrar devolução de munição">
-                <i class="fas fa-arrow-down me-2"></i>Devolução
-            </a>
+        <div class="btn-toolbar" role="toolbar" style="gap: 10px;">
+            <!-- Grupo 1: Cadastros -->
+            <div class="btn-group" role="group">
+                <a href="{% url 'materiais:novo_material' %}" class="btn btn-success btn-lg" title="Cadastrar novo material de munição">
+                    <i class="fas fa-plus-circle me-2"></i>Novo Material
+                </a>
+                <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary btn-lg" title="Cadastrar novo lote de munição">
+                    <i class="fas fa-layer-group me-2"></i>Novo Lote
+                </a>
+            </div>
+            
+            <!-- Grupo 2: Movimentações -->
+            <div class="btn-group" role="group">
+                <a href="{% url 'municoes:nova_retirada' %}" class="btn btn-warning btn-lg" title="Registrar retirada de munição">
+                    <i class="fas fa-arrow-up me-2"></i>Retirada
+                </a>
+                <a href="{% url 'municoes:nova_devolucao' %}" class="btn btn-info btn-lg" title="Registrar devolução de munição">
+                    <i class="fas fa-arrow-down me-2"></i>Devolução
+                </a>
+            </div>
+            
+            <!-- Grupo 3: Gestão e Relatórios -->
+            <div class="btn-group" role="group">
+                <a href="{% url 'estoque:dashboard' %}" class="btn btn-secondary btn-lg" title="Acessar dashboard de estoque">
+                    <i class="fas fa-chart-line me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary btn-lg" title="Acessar relatórios">
+                    <i class="fas fa-file-alt me-2"></i>Relatórios
+                </a>
+            </div>
         </div>
     </div>
 
@@ -144,7 +158,6 @@
     
     .btn-group .btn {
         border-radius: 0.25rem;
-        margin-right: 5px;
     }
     
     .table-hover tbody tr:hover {
