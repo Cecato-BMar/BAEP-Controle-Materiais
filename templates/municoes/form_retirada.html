@@ -4,37 +4,133 @@
 {% block title %}Nova Retirada de Munição{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;">
-            <i class="fas fa-arrow-up text-warning me-2"></i>Nova Retirada de Munição
-        </h1>
-        <p class="text-muted mb-0">Registre a saída de munições para uso operacional.</p>
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'municoes:lista_lotes' %}">Lotes</a></li>
+                    <li class="breadcrumb-item active">Nova Retirada</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold mb-0 h3">
+                <i class="fas fa-arrow-up text-warning me-2"></i>Registrar Saída de Munição
+            </h1>
+            <p class="text-muted mb-0 mt-1">Documente a retirada de munições para uso pelo policial responsável.</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
     </div>
-    <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i>Voltar
-    </a>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4 p-lg-5">
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4">
-                            <i class="fas fa-save me-1"></i>Salvar Retirada
-                        </button>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-9">
+            <form method="post" novalidate id="form-retirada">
+                {% csrf_token %}
+
+                <!-- Seção: Identificação -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h6 class="fw-bold mb-0 text-primary">
+                            <i class="fas fa-user-shield me-2"></i>Identificação do Policial
+                        </h6>
                     </div>
-                </form>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                {{ form.policial|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.material|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Seção: Munição e Finalidade -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h6 class="fw-bold mb-0 text-primary">
+                            <i class="fas fa-crosshairs me-2"></i>Munição e Finalidade
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                {{ form.lote|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-3">
+                                {{ form.quantidade|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-3">
+                                {{ form.tipo_uso|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Alerta dinâmico de instrução -->
+                        <div id="alerta-instrucao" class="alert alert-info d-flex align-items-start mt-3 mb-0 d-none" role="alert">
+                            <i class="fas fa-info-circle me-2 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <strong>Instrução / Treinamento:</strong> Para esse tipo de uso, o policial deverá retornar <strong>todos os estojos vazios</strong>. Qualquer perda de estojo exigirá justificativa formal.
+                            </div>
+                        </div>
+                        <div id="alerta-operacional" class="alert alert-primary d-flex align-items-start mt-3 mb-0" role="alert">
+                            <i class="fas fa-shield-alt me-2 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <strong>Uso Operacional:</strong> Os estojos deflagrados não são de devolução obrigatória. Apenas munições intactas que não forem utilizadas deverão ser devolvidas.
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-0">
+                            <div class="col-12 col-md-6">
+                                {{ form.finalidade|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.local_uso|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.observacoes|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary px-4">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning fw-bold px-5">
+                        <i class="fas fa-save me-2"></i>Registrar Saída
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoUsoSelect = document.getElementById('id_tipo_uso');
+    const alertaInstrucao = document.getElementById('alerta-instrucao');
+    const alertaOperacional = document.getElementById('alerta-operacional');
+
+    function atualizarAlerta() {
+        if (tipoUsoSelect && tipoUsoSelect.value === 'INSTRUCAO') {
+            alertaInstrucao.classList.remove('d-none');
+            alertaOperacional.classList.add('d-none');
+        } else {
+            alertaInstrucao.classList.add('d-none');
+            alertaOperacional.classList.remove('d-none');
+        }
+    }
+
+    if (tipoUsoSelect) {
+        tipoUsoSelect.addEventListener('change', atualizarAlerta);
+        atualizarAlerta();
+    }
+});
+</script>
 {% endblock %}

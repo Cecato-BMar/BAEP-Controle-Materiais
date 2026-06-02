@@ -4,34 +4,149 @@
 {% block title %}Devolução ao CPI{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="fw-bold mb-0" style="font-size: 1.6rem;">
-            <i class="fas fa-truck-loading text-danger me-2"></i>Devolução ao CPI
-        </h1>
-        <p class="text-muted mb-0">Registre a saída de cartuchos intactos ou estojos para baixa da cautela.</p>
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'municoes:lista_lotes' %}">Lotes</a></li>
+                    <li class="breadcrumb-item active">Devolução ao CPI</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold mb-0 h3">
+                <i class="fas fa-truck-loading text-danger me-2"></i>Devolução ao CPI — Baixa Definitiva
+            </h1>
+            <p class="text-muted mb-0 mt-1">
+                Registre a remessa de <strong>cartuchos intactos</strong> ou <strong>estojos vazios</strong> para o Comando do Policiamento do Interior.
+                Esta operação remove permanentemente as munições/estojos do estoque do 2º BAEP.
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
     </div>
-    <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i>Voltar
-    </a>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4 p-lg-5">
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-danger fw-bold px-4">
-                            <i class="fas fa-save me-1"></i>Registrar Baixa CPI
-                        </button>
-                    </div>
-                </form>
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-8">
+
+            <!-- Aviso Gravidade -->
+            <div class="alert alert-danger d-flex align-items-start mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-3 mt-1 flex-shrink-0 fs-4"></i>
+                <div>
+                    <strong>Atenção — Operação Irreversível:</strong> A devolução ao CPI realiza a baixa definitiva do item no sistema.
+                    Certifique-se de que o recibo ou documento de remessa esteja em mãos antes de confirmar.
+                </div>
             </div>
+
+            <form method="post" novalidate id="form-cpi">
+                {% csrf_token %}
+
+                <!-- Seção: Seleção do Lote -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h6 class="fw-bold mb-0 text-primary">
+                            <i class="fas fa-boxes me-2"></i>Selecionar Lote de Origem
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                {{ form.lote|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Painel de saldo do lote -->
+                        <div id="painel-saldo" class="row g-3 mt-1 d-none">
+                            <div class="col-6">
+                                <div class="card border-primary text-center py-3">
+                                    <div class="text-primary fw-bold fs-4" id="saldo-cartuchos">—</div>
+                                    <small class="text-muted">Cartuchos disponíveis</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card border-secondary text-center py-3">
+                                    <div class="text-secondary fw-bold fs-4" id="saldo-estojos">—</div>
+                                    <small class="text-muted">Estojos na reserva</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Dados da Remessa -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h6 class="fw-bold mb-0 text-primary">
+                            <i class="fas fa-file-invoice me-2"></i>Dados da Remessa ao CPI
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                {{ form.tipo_item|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.quantidade|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.documento_referencia|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.observacoes|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-danger fw-bold px-5">
+                        <i class="fas fa-paper-plane me-2"></i>Confirmar Devolução ao CPI
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loteSelect = document.getElementById('id_lote');
+    const painelSaldo = document.getElementById('painel-saldo');
+    const saldoCartuchos = document.getElementById('saldo-cartuchos');
+    const saldoEstojos = document.getElementById('saldo-estojos');
+
+    async function carregarSaldoLote() {
+        const loteId = loteSelect ? loteSelect.value : null;
+        if (!loteId) {
+            painelSaldo.classList.add('d-none');
+            return;
+        }
+
+        try {
+            const resp = await fetch('{% url "municoes:api_lotes" %}');
+            const data = await resp.json();
+            const lote = (data.lotes || []).find(l => l.id == loteId);
+
+            if (lote) {
+                if (saldoCartuchos) saldoCartuchos.textContent = lote.quantidade_atual;
+                if (saldoEstojos) saldoEstojos.textContent = lote.quantidade_estojos;
+                painelSaldo.classList.remove('d-none');
+            } else {
+                painelSaldo.classList.add('d-none');
+            }
+        } catch(e) {
+            painelSaldo.classList.add('d-none');
+        }
+    }
+
+    if (loteSelect) {
+        loteSelect.addEventListener('change', carregarSaldoLote);
+        if (loteSelect.value) carregarSaldoLote();
+    }
+});
+</script>
 {% endblock %}

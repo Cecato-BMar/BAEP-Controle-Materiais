@@ -416,7 +416,34 @@
                                 <a class="nav-link {% if 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}" href="{% url 'movimentacoes:lista_movimentacoes' %}">Cautelas</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link {% if 'municoes' in request.path %}active{% endif %}" href="{% url 'municoes:lista_lotes' %}">Controle de Munições</a>
+                                <a class="nav-link {% if 'municoes' in request.path %}active{% endif %}" data-bs-toggle="collapse" href="#collapseMenuMunicoes" role="button" aria-expanded="{% if 'municoes' in request.path %}true{% else %}false{% endif %}">
+                                    <i class="fas fa-dot-circle me-1"></i>Munições
+                                    <i class="fas fa-chevron-down ms-auto float-end mt-1 small"></i>
+                                </a>
+                                <div class="collapse {% if 'municoes' in request.path %}show{% endif %}" id="collapseMenuMunicoes">
+                                    <ul class="nav flex-column ps-3 pt-1">
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 {% if request.resolver_match.url_name == 'dashboard' and 'municoes' in request.path %}active{% endif %}" href="{% url 'municoes:dashboard' %}">
+                                                <i class="fas fa-chart-pie me-1 small"></i>Dashboard
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 {% if request.resolver_match.url_name == 'lista_lotes' %}active{% endif %}" href="{% url 'municoes:lista_lotes' %}">
+                                                <i class="fas fa-layer-group me-1 small"></i>Lotes
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 {% if request.resolver_match.url_name == 'relatorios' and 'municoes' in request.path %}active{% endif %}" href="{% url 'municoes:relatorios' %}">
+                                                <i class="fas fa-file-alt me-1 small"></i>Relatórios
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 text-danger {% if request.resolver_match.url_name == 'devolucao_cpi' %}active{% endif %}" href="{% url 'municoes:devolucao_cpi' %}">
+                                                <i class="fas fa-truck-loading me-1 small"></i>Devolução CPI
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
                         </ul>
                     </div>
