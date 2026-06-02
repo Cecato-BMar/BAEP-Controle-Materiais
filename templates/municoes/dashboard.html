@@ -28,35 +28,43 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
+        <div class="col-12 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 bg-primary text-white">
                 <div class="card-body">
-                    <small class="text-muted">Cartuchos em estoque</small>
-                    <h3 class="fw-bold mb-0">{{ totais_lotes.cartuchos|default:0 }}</h3>
+                    <small class="opacity-75">Cartuchos Ativos</small>
+                    <h3 class="fw-bold mb-0 mt-1">{{ totais_lotes.cartuchos|default:0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
+        <div class="col-12 col-md-4 col-lg-2.5">
+            <div class="card border-0 shadow-sm h-100 bg-dark text-white">
                 <div class="card-body">
-                    <small class="text-muted">Estojos em cautela</small>
-                    <h3 class="fw-bold mb-0">{{ totais_lotes.estojos|default:0 }}</h3>
+                    <small class="opacity-75">Estojos em Reserva (CPI)</small>
+                    <h3 class="fw-bold mb-0 mt-1">{{ totais_lotes.estojos|default:0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6 col-xl-3">
+        <div class="col-12 col-md-4 col-lg-2.5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <small class="text-muted">Total disparado</small>
-                    <h3 class="fw-bold mb-0">{{ totais_mov.disparado|default:0 }}</h3>
+                <div class="card-body text-secondary">
+                    <small>Munições Disparadas</small>
+                    <h3 class="fw-bold mb-0 mt-1">{{ totais_mov.disparado|default:0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6 col-xl-3">
+        <div class="col-12 col-md-6 col-lg-2.5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <small class="text-muted">Total extraviado</small>
-                    <h3 class="fw-bold text-danger mb-0">{{ totais_mov.extraviado|default:0 }}</h3>
+                <div class="card-body text-warning">
+                    <small>Estojos Extraviados (Treino)</small>
+                    <h3 class="fw-bold mb-0 mt-1">{{ totais_mov.estojos_extraviados|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-2.5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-danger">
+                    <small>Cartuchos Extraviados (Viva)</small>
+                    <h3 class="fw-bold mb-0 mt-1">{{ totais_mov.extraviado|default:0 }}</h3>
                 </div>
             </div>
         </div>
@@ -73,6 +81,7 @@
                                 <tr>
                                     <th>Data</th>
                                     <th>Policial</th>
+                                    <th>Tipo Uso</th>
                                     <th>Lote</th>
                                     <th class="text-end">Pendente</th>
                                 </tr>
@@ -82,11 +91,12 @@
                                 <tr>
                                     <td class="text-nowrap">{{ r.data_hora|date:'d/m/Y H:i' }}</td>
                                     <td>{{ r.policial.nome }}</td>
+                                    <td><span class="badge {% if r.tipo_uso == 'INSTRUCAO' %}bg-info{% else %}bg-primary{% endif %}">{{ r.get_tipo_uso_display }}</span></td>
                                     <td>{{ r.lote.numero_lote }}</td>
                                     <td class="text-end fw-semibold">{{ r.quantidade_pendente }}</td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center text-muted py-4">Sem pendências.</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted py-4">Sem pendências.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>

@@ -50,23 +50,26 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total retirado</small><h4 class="mb-0">{{ totais.retirado }}</h4></div></div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body bg-primary text-white"><small class="opacity-75">Total Retirado</small><h4 class="mb-0">{{ totais.retirado }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Intactas Devolvidas</small><h4 class="mb-0">{{ totais.devolvido }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body bg-dark text-white"><small class="opacity-75">Total Devolvido CPI</small><h4 class="mb-0">{{ totais.devolvido_cpi }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total Disparado</small><h4 class="mb-0">{{ totais.disparado }}</h4></div></div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total devolvido</small><h4 class="mb-0">{{ totais.devolvido }}</h4></div></div>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Estojos Recuperados</small><h4 class="mb-0 text-success">{{ totais.estojos }}</h4></div></div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total devolvido ao CPI</small><h4 class="mb-0">{{ totais.devolvido_cpi }}</h4></div></div>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Estojos Extraviados (Treino)</small><h4 class="mb-0 text-warning">{{ totais.estojos_extraviados }}</h4></div></div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total disparado</small><h4 class="mb-0">{{ totais.disparado }}</h4></div></div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Estojos registrados</small><h4 class="mb-0">{{ totais.estojos }}</h4></div></div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Extraviado</small><h4 class="mb-0 text-danger">{{ totais.extraviado }}</h4></div></div>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Cartuchos Extraviados (Viva)</small><h4 class="mb-0 text-danger">{{ totais.extraviado }}</h4></div></div>
         </div>
     </div>
 

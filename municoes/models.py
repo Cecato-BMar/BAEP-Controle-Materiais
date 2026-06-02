@@ -51,6 +51,11 @@ class LoteMunicao(models.Model):
 
 
 class RetiradaMunicao(models.Model):
+    TIPO_USO_CHOICES = [
+        ('OPERACIONAL', 'Operacional'),
+        ('INSTRUCAO', 'Instrução / Treinamento'),
+    ]
+
     material = models.ForeignKey(
         Material,
         on_delete=models.PROTECT,
@@ -70,6 +75,7 @@ class RetiradaMunicao(models.Model):
         verbose_name=_('Policial')
     )
     quantidade = models.PositiveIntegerField(_('Quantidade'))
+    tipo_uso = models.CharField(_('Tipo de Uso'), max_length=20, choices=TIPO_USO_CHOICES, default='OPERACIONAL')
     finalidade = models.CharField(_('Finalidade'), max_length=100)
     local_uso = models.CharField(_('Local de Uso'), max_length=100, blank=True, null=True)
     data_hora = models.DateTimeField(_('Data e Hora'), default=timezone.now)
@@ -123,14 +129,15 @@ class RegistroDisparoMunicao(models.Model):
     )
     quantidade_disparada = models.PositiveIntegerField(_('Quantidade Disparada'), default=0)
     quantidade_estojos = models.PositiveIntegerField(_('Quantidade de Estojos Devolvidos'), default=0)
-    quantidade_extraviada = models.PositiveIntegerField(_('Quantidade Extraviada'), default=0)
+    quantidade_extraviada = models.PositiveIntegerField(_('Quantidade de Cartuchos Extraviados'), default=0)
+    quantidade_estojos_extraviados = models.PositiveIntegerField(_('Quantidade de Estojos Extraviados'), default=0)
     justificativa = models.TextField(_('Justificativa'), blank=True, null=True)
     sindicancia = models.CharField(
         _('Sindicância / Apuração'),
         max_length=120,
         blank=True,
         null=True,
-        help_text=_('Número da sindicância, procedimento ou referência de apuração da perda/extravio.')
+        help_text=_('Número da sindicância, procedimento ou referência de apuração da perda/extravio de cartuchos/estojos.')
     )
     boletim_ocorrencia = models.CharField(_('B.O. / Relatório'), max_length=100, blank=True, null=True)
     data_registro = models.DateTimeField(_('Data de Registro'), auto_now_add=True)
