@@ -12,6 +12,7 @@ def api_lotes(request):
             'calibre': lote.calibre,
             'tipo_municao': lote.get_tipo_municao_display(),
             'quantidade_atual': lote.quantidade_atual,
+            'quantidade_estojos': lote.quantidade_estojos,
             'data_validade': lote.data_validade.isoformat() if lote.data_validade else None,
         }
         for lote in lotes

@@ -1,179 +1,136 @@
 {% extends 'base.html' %}
 
-{% block title %}Controle de Munições - SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Lotes de Munição{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Cabeçalho com Título e Botões de Ação -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-primary">
-            <i class="fas fa-bomb me-2"></i>Controle de Munições
-        </h1>
-        <div class="btn-toolbar" role="toolbar" style="gap: 10px;">
-            <!-- Grupo 1: Cadastros -->
-            <div class="btn-group" role="group">
-                <a href="{% url 'materiais:novo_material' %}" class="btn btn-success btn-lg" title="Cadastrar novo material de munição">
-                    <i class="fas fa-plus-circle me-2"></i>Novo Material
-                </a>
-                <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary btn-lg" title="Cadastrar novo lote de munição">
-                    <i class="fas fa-layer-group me-2"></i>Novo Lote
-                </a>
-            </div>
-            
-            <!-- Grupo 2: Movimentações -->
-            <div class="btn-group" role="group">
-                <a href="{% url 'municoes:nova_retirada' %}" class="btn btn-warning btn-lg" title="Registrar retirada de munição">
-                    <i class="fas fa-arrow-up me-2"></i>Retirada
-                </a>
-                <a href="{% url 'municoes:nova_devolucao' %}" class="btn btn-info btn-lg" title="Registrar devolução de munição">
-                    <i class="fas fa-arrow-down me-2"></i>Devolução
-                </a>
-            </div>
-            
-            <!-- Grupo 3: Gestão e Relatórios -->
-            <div class="btn-group" role="group">
-                <a href="{% url 'estoque:dashboard' %}" class="btn btn-secondary btn-lg" title="Acessar dashboard de estoque">
-                    <i class="fas fa-chart-line me-2"></i>Dashboard
-                </a>
-                <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-secondary btn-lg" title="Acessar relatórios">
-                    <i class="fas fa-file-alt me-2"></i>Relatórios
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Informações Rápidas -->
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-light border-left-primary">
-                <div class="card-body">
-                    <div class="text-primary fw-bold">Total de Lotes Ativos</div>
-                    <div class="h3 text-primary">{{ lotes|length }}</div>
-                </div>
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h2 class="text-primary mb-1"><i class="fas fa-bullseye me-2"></i>Controle de Munições</h2>
+                <p class="text-muted mb-0">Gestão de lotes, retiradas e devoluções de munição.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'municoes:dashboard' %}" class="btn btn-outline-primary btn-sm fw-bold">
+                    <i class="fas fa-chart-line me-1"></i>Dashboard
+                </a>
+                <a href="{% url 'municoes:relatorios' %}" class="btn btn-outline-dark btn-sm fw-bold">
+                    <i class="fas fa-file-alt me-1"></i>Relatórios
+                </a>
+                <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary btn-sm fw-bold">
+                    <i class="fas fa-plus me-1"></i>Novo Lote
+                </a>
+                <a href="{% url 'municoes:nova_retirada' %}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="fas fa-arrow-up me-1"></i>Nova Retirada
+                </a>
+                <a href="{% url 'municoes:nova_devolucao' %}" class="btn btn-success btn-sm fw-bold">
+                    <i class="fas fa-undo me-1"></i>Nova Devolução
+                </a>
+                <a href="{% url 'municoes:devolucao_cpi' %}" class="btn btn-outline-danger btn-sm fw-bold">
+                    <i class="fas fa-truck-loading me-1"></i>Devolução ao CPI
+                </a>
             </div>
         </div>
-        <div class="col-md-8">
-            <div class="card bg-light border-left-info">
-                <div class="card-body">
-                    <div class="text-info fw-bold">Instruções Rápidas</div>
-                    <small class="text-muted">
-                        <strong>Novo Material:</strong> Primeiro crie um material tipo "MUNIÇÃO"
-                        | <strong>Novo Lote:</strong> Depois crie um lote com calibre e quantidades
-                        | <strong>Retirada/Devolução:</strong> Movimentações do controle
-                    </small>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-boxes me-2 text-primary"></i>Lotes Cadastrados</span>
+                    <span class="badge bg-primary">{{ lotes.count }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Lote</th>
+                                    <th>Calibre</th>
+                                    <th class="text-end">Qtd. Atual</th>
+                                    <th class="text-end">Estojos</th>
+                                    <th>Validade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lote in lotes %}
+                                <tr>
+                                    <td class="fw-semibold">{{ lote.material.nome }}</td>
+                                    <td>{{ lote.numero_lote }}</td>
+                                    <td>{{ lote.calibre }}</td>
+                                    <td class="text-end">{{ lote.quantidade_atual }}</td>
+                                    <td class="text-end">{{ lote.quantidade_estojos }}</td>
+                                    <td>{{ lote.data_validade|date:'d/m/Y' }}</td>
+                                    <td>
+                                        {% if lote.ativo %}
+                                        <span class="badge bg-success">Ativo</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inativo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">Nenhum lote de munição cadastrado.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tabela de Lotes -->
-    <div class="card shadow-lg border-0 mb-4 animate__animated animate__fadeIn">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-list me-2"></i>
-            <span class="fw-bold">Lotes de Munição Cadastrados</span>
-        </div>
-        <div class="card-body p-0">
-            {% if lotes %}
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-center"><i class="fas fa-box"></i> Material</th>
-                            <th class="text-center"><i class="fas fa-barcode"></i> Lote</th>
-                            <th class="text-center"><i class="fas fa-crosshairs"></i> Calibre</th>
-                            <th class="text-center"><i class="fas fa-cubes"></i> Quantidade</th>
-                            <th class="text-center"><i class="fas fa-calendar"></i> Validade</th>
-                            <th class="text-center"><i class="fas fa-check-circle"></i> Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lote in lotes %}
-                        <tr class="align-middle">
-                            <td>
-                                <strong>{{ lote.material.nome }}</strong>
-                                <br>
-                                <small class="text-muted">({{ lote.material.numero }})</small>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary">{{ lote.numero_lote }}</span>
-                            </td>
-                            <td class="text-center">
-                                <strong>{{ lote.calibre }}</strong>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-info">{{ lote.quantidade_atual }}/{{ lote.quantidade_inicial }}</span>
-                            </td>
-                            <td class="text-center">
-                                {% if lote.vencido %}
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ lote.data_validade|date:'d/m/Y' }}
-                                    </span>
-                                {% elif lote.data_validade %}
-                                    <span class="badge bg-success">{{ lote.data_validade|date:'d/m/Y' }}</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">S/ Validade</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if lote.ativo %}
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check me-1"></i>Ativo
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-times me-1"></i>Inativo
-                                    </span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-file-pdf me-2 text-danger"></i>Fechamento por Retirada (PDF)</span>
+                    <span class="badge bg-secondary">{{ retiradas_recentes|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Policial</th>
+                                    <th>Material</th>
+                                    <th>Lote</th>
+                                    <th class="text-end">Retirada</th>
+                                    <th class="text-end">Pendente</th>
+                                    <th class="text-end">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in retiradas_recentes %}
+                                <tr>
+                                    <td class="text-nowrap">{{ r.data_hora|date:'d/m/Y H:i' }}</td>
+                                    <td>{{ r.policial.nome }}</td>
+                                    <td>{{ r.material.nome }}</td>
+                                    <td>{{ r.lote.numero_lote }}</td>
+                                    <td class="text-end">{{ r.quantidade }}</td>
+                                    <td class="text-end">{{ r.quantidade_pendente }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'municoes:fechamento_retirada_pdf' r.pk %}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-file-pdf me-1"></i>PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">Nenhuma retirada registrada.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <div class="alert alert-info m-4 mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Nenhum lote de munição cadastrado.</strong>
-                <br>
-                <small>
-                    Clique em <strong>"Novo Material"</strong> para começar, depois em <strong>"Novo Lote"</strong> para criar um lote.
-                </small>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .border-left-primary {
-        border-left: 4px solid #007bff !important;
-    }
-    
-    .border-left-info {
-        border-left: 4px solid #17a2b8 !important;
-    }
-    
-    .btn-group .btn {
-        border-radius: 0.25rem;
-    }
-    
-    .table-hover tbody tr:hover {
-        background-color: #f5f5f5;
-    }
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        // Animação de entrada
-        $('.card').hide().fadeIn(500);
-        
-        // Tooltip para botões
-        $('[title]').tooltip();
-    });
-</script>
 {% endblock %}

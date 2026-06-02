@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Relatórios de Munições{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h2 class="text-primary mb-1"><i class="fas fa-file-alt me-2"></i>Central de Relatórios de Munições</h2>
+                <p class="text-muted mb-0">Aplique filtros e emita PDF no padrão institucional.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'municoes:dashboard' %}" class="btn btn-outline-secondary btn-sm fw-bold">
+                    <i class="fas fa-chart-line me-1"></i>Dashboard
+                </a>
+                <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-primary btn-sm fw-bold">
+                    <i class="fas fa-boxes me-1"></i>Lotes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold"><i class="fas fa-filter me-2 text-primary"></i>Filtros</div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-12 col-md-3">{{ form.data_inicio|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.data_fim|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.material|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.lote|as_crispy_field }}</div>
+                        <div class="col-12 col-md-4">{{ form.policial|as_crispy_field }}</div>
+                        <div class="col-12 col-md-4">{{ form.tipo_item_cpi|as_crispy_field }}</div>
+                        <div class="col-12 col-md-2 d-flex align-items-center">{{ form.somente_com_extravio|as_crispy_field }}</div>
+                        <div class="col-12 col-md-2 d-flex align-items-center">{{ form.somente_pendentes|as_crispy_field }}</div>
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <a href="{% url 'municoes:relatorios' %}" class="btn btn-outline-secondary">Limpar</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>Aplicar filtros</button>
+                            <button type="submit" name="export" value="pdf" class="btn btn-danger">
+                                <i class="fas fa-file-pdf me-1"></i>Emitir PDF
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total retirado</small><h4 class="mb-0">{{ totais.retirado }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total devolvido</small><h4 class="mb-0">{{ totais.devolvido }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total devolvido ao CPI</small><h4 class="mb-0">{{ totais.devolvido_cpi }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Total disparado</small><h4 class="mb-0">{{ totais.disparado }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Estojos registrados</small><h4 class="mb-0">{{ totais.estojos }}</h4></div></div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Extraviado</small><h4 class="mb-0 text-danger">{{ totais.extraviado }}</h4></div></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">Retiradas (até 100)</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Data</th><th>Policial</th><th>Lote</th><th class="text-end">Qtd</th><th class="text-end">Pendente</th></tr></thead>
+                            <tbody>
+                                {% for r in retiradas %}
+                                <tr><td>{{ r.data_hora|date:'d/m/Y H:i' }}</td><td>{{ r.policial.nome }}</td><td>{{ r.lote.numero_lote }}</td><td class="text-end">{{ r.quantidade }}</td><td class="text-end">{{ r.quantidade_pendente }}</td></tr>
+                                {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">Sem registros.</td></tr>{% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">Devoluções ao CPI (até 100)</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>Data</th><th>Lote</th><th>Tipo</th><th class="text-end">Qtd</th></tr></thead>
+                            <tbody>
+                                {% for d in devolucoes_cpi %}
+                                <tr><td>{{ d.data_hora|date:'d/m/Y H:i' }}</td><td>{{ d.lote.numero_lote }}</td><td>{{ d.get_tipo_item_display }}</td><td class="text-end">{{ d.quantidade }}</td></tr>
+                                {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">Sem registros.</td></tr>{% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

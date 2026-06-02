@@ -29,6 +29,7 @@ class LoteMunicao(models.Model):
     data_validade = models.DateField(_('Data de Validade'), blank=True, null=True)
     quantidade_inicial = models.PositiveIntegerField(_('Quantidade Inicial'))
     quantidade_atual = models.PositiveIntegerField(_('Quantidade Atual'))
+    quantidade_estojos = models.PositiveIntegerField(_('Quantidade de Estojos em Cautela'), default=0)
     ativo = models.BooleanField(_('Ativo'), default=True)
     data_cadastro = models.DateTimeField(_('Data de Cadastro'), auto_now_add=True)
     data_atualizacao = models.DateTimeField(_('Última Atualização'), auto_now=True)
@@ -121,8 +122,16 @@ class RegistroDisparoMunicao(models.Model):
         verbose_name=_('Devolução')
     )
     quantidade_disparada = models.PositiveIntegerField(_('Quantidade Disparada'), default=0)
+    quantidade_estojos = models.PositiveIntegerField(_('Quantidade de Estojos Devolvidos'), default=0)
     quantidade_extraviada = models.PositiveIntegerField(_('Quantidade Extraviada'), default=0)
     justificativa = models.TextField(_('Justificativa'), blank=True, null=True)
+    sindicancia = models.CharField(
+        _('Sindicância / Apuração'),
+        max_length=120,
+        blank=True,
+        null=True,
+        help_text=_('Número da sindicância, procedimento ou referência de apuração da perda/extravio.')
+    )
     boletim_ocorrencia = models.CharField(_('B.O. / Relatório'), max_length=100, blank=True, null=True)
     data_registro = models.DateTimeField(_('Data de Registro'), auto_now_add=True)
 
@@ -133,3 +142,36 @@ class RegistroDisparoMunicao(models.Model):
 
     def __str__(self):
         return f"Registro de Disparo - {self.devolucao.retirada.material} - {self.quantidade_disparada} disparadas / {self.quantidade_extraviada} extraviadas"
+
+
+class DevolucaoCPI(models.Model):
+    TIPO_ITEM_CHOICES = [
+        ('CARTUCHO', 'Cartucho intacto'),
+        ('ESTOJO', 'Estojo vazio'),
+    ]
+
+    lote = models.ForeignKey(
+        LoteMunicao,
+        on_delete=models.PROTECT,
+        related_name='devolucoes_cpi',
+        verbose_name=_('Lote de Munição')
+    )
+    tipo_item = models.CharField(_('Tipo do Item'), max_length=20, choices=TIPO_ITEM_CHOICES)
+    quantidade = models.PositiveIntegerField(_('Quantidade'))
+    documento_referencia = models.CharField(_('Documento / Recibo'), max_length=100, blank=True, null=True)
+    observacoes = models.TextField(_('Observações'), blank=True, null=True)
+    data_hora = models.DateTimeField(_('Data e Hora'), default=timezone.now)
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='devolucoes_cpi_registradas',
+        verbose_name=_('Registrado por')
+    )
+
+    class Meta:
+        verbose_name = _('Devolução ao CPI')
+        verbose_name_plural = _('Devoluções ao CPI')
+        ordering = ['-data_hora']
+
+    def __str__(self):
+        return f"Devolução CPI - {self.lote.numero_lote} - {self.get_tipo_item_display()} ({self.quantidade})"
