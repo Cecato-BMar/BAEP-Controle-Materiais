@@ -11,7 +11,8 @@ from datetime import timedelta
 from .models import (
     MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento,
     Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura,
-    PecaViatura, RetiradaPeca, EvidenciaManutencao, PlanoManutencaoPreventiva
+    PecaViatura, RetiradaPeca, EvidenciaManutencao, PlanoManutencaoPreventiva,
+    RetiradaPecaItem, ServicoManutencao
 )
 from .forms import (
     ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
@@ -293,7 +294,7 @@ def detalhe_viatura(request, pk):
     viatura = get_object_or_404(Viatura.objects.select_related('modelo', 'modelo__marca'), pk=pk)
     despachos = viatura.despachos.select_related('motorista', 'encarregado', 'registrado_por').order_by('-data_saida')[:10]
     abastecimentos = viatura.abastecimentos.select_related('motorista').order_by('-data_abastecimento')[:10]
-    manutencoes = viatura.manutencoes.order_by('-data_inicio')[:10]
+    manutencoes = viatura.manutencoes.order_by('-data_inicio')
     despacho_ativo = viatura.despachos.filter(data_retorno__isnull=True).first()
 
     # Totais
@@ -304,15 +305,199 @@ def detalhe_viatura(request, pk):
     total_combustivel = viatura.abastecimentos.aggregate(total=Sum('quantidade_litros'))['total'] or Decimal('0')
     custo_total_manutencao = sum(m.custo_total for m in viatura.manutencoes.all())
 
+    # 1. Total Manutenções
+    total_manutencoes = manutencoes.count()
+    concluidas_count = manutencoes.filter(status='CONCLUIDA').count()
+    preventivas_count = manutencoes.filter(tipo='PREVENTIVA').count()
+    corretivas_count = manutencoes.filter(tipo='CORRETIVA').count()
+
+    # 2. Total Peças Trocadas (Almoxarifado)
+    pecas_qs = RetiradaPecaItem.objects.filter(retirada__viatura=viatura).select_related('peca', 'retirada', 'retirada__policial').order_by('-retirada__data_retirada')
+    total_pecas_trocadas = pecas_qs.aggregate(total=Sum('quantidade'))['total'] or 0
+
+    # 3. Listar Manutenções com tempo de duração do serviço
+    manutencoes_calculadas = []
+    for m in manutencoes:
+        duracao_dias = None
+        if m.status == 'CONCLUIDA' and m.data_conclusao:
+            duracao_dias = (m.data_conclusao - m.data_inicio).days
+        manutencoes_calculadas.append({
+            'obj': m,
+            'duracao_dias': duracao_dias,
+            'custo_total': m.custo_total
+        })
+
+    # 4. Encontrar ocorrências por serviço ou peça recorrente
+    ocorrencias_por_item = {}
+
+    # Ocorrências de peças estruturadas
+    for p_item in pecas_qs:
+        nome_peca = p_item.peca.nome
+        if nome_peca not in ocorrencias_por_item:
+            ocorrencias_por_item[nome_peca] = []
+        
+        km = None
+        manut_vinculada = p_item.retirada.manutencao_vinculada.first()
+        if manut_vinculada:
+            km = manut_vinculada.odometro
+        
+        ocorrencias_por_item[nome_peca].append({
+            'data': p_item.retirada.data_retirada.date(),
+            'odometro': km or Decimal('0'),
+            'origem': 'Peça (Almoxarifado)'
+        })
+
+    # Ocorrências de serviços de oficina
+    servicos_qs = ServicoManutencao.objects.filter(
+        manutencao__viatura=viatura, 
+        manutencao__status='CONCLUIDA'
+    ).select_related('manutencao').order_by('manutencao__data_conclusao')
+    
+    for s in servicos_qs:
+        desc = s.descricao
+        match_grupo = None
+        desc_lower = desc.lower()
+        if 'óleo' in desc_lower or 'oleo' in desc_lower:
+            match_grupo = 'Troca de Óleo'
+        elif 'pastilha' in desc_lower or 'freio' in desc_lower:
+            match_grupo = 'Pastilhas de Freio'
+        elif 'pneu' in desc_lower:
+            match_grupo = 'Troca/Alinhamento de Pneus'
+        elif 'bateria' in desc_lower:
+            match_grupo = 'Troca de Bateria'
+        elif 'filtro' in desc_lower:
+            match_grupo = 'Troca de Filtros'
+        elif 'bieleta' in desc_lower or 'suspensão' in desc_lower or 'suspensao' in desc_lower:
+            match_grupo = 'Manutenção de Suspensão/Bieleta'
+        else:
+            match_grupo = desc.title()
+
+        if match_grupo not in ocorrencias_por_item:
+            ocorrencias_por_item[match_grupo] = []
+            
+        ocorrencias_por_item[match_grupo].append({
+            'data': s.manutencao.data_conclusao or s.manutencao.data_inicio,
+            'odometro': s.odometro or s.manutencao.odometro or Decimal('0'),
+            'origem': 'Serviço (Oficina)'
+        })
+
+    # Planos preventivos oficiais
+    planos_preventivos = PlanoManutencaoPreventiva.objects.filter(modelo=viatura.modelo, ativo=True)
+    planos_mapeados = {}
+    for p in planos_preventivos:
+        planos_mapeados[p.descricao] = p
+
+    # Garantir que todos os planos preventivos apareçam mesmo que nunca tenham sido feitos
+    for desc_plano, plano in planos_mapeados.items():
+        if desc_plano not in ocorrencias_por_item:
+            ocorrencias_por_item[desc_plano] = []
+
+    # Processamos cada item
+    analise_preventiva = []
+    
+    for item_nome, ocorrencias in ocorrencias_por_item.items():
+        ocorrencias = sorted(ocorrencias, key=lambda x: x['data'])
+        plano = planos_mapeados.get(item_nome)
+        
+        media_dias = None
+        media_km = None
+        
+        if len(ocorrencias) >= 2:
+            diferencas_dias = []
+            diferencas_km = []
+            for i in range(len(ocorrencias) - 1):
+                dias = (ocorrencias[i+1]['data'] - ocorrencias[i]['data']).days
+                diferencas_dias.append(dias)
+                
+                km_diff = ocorrencias[i+1]['odometro'] - ocorrencias[i]['odometro']
+                if km_diff > 0:
+                    diferencas_km.append(km_diff)
+            
+            if diferencas_dias:
+                media_dias = int(sum(diferencas_dias) / len(diferencas_dias))
+            if diferencas_km:
+                media_km = int(sum(diferencas_km) / len(diferencas_km))
+
+        ultima_data = None
+        ultimo_km = None
+        if ocorrencias:
+            ultima_data = ocorrencias[-1]['data']
+            ultimo_km = ocorrencias[-1]['odometro']
+        else:
+            ultima_data = viatura.data_cadastro.date()
+            ultimo_km = Decimal('0')
+
+        intervalo_dias_ref = 180
+        intervalo_km_ref = 10000
+
+        if plano:
+            if plano.intervalo_dias:
+                intervalo_dias_ref = plano.intervalo_dias
+            elif media_dias:
+                intervalo_dias_ref = media_dias
+                
+            if plano.intervalo_km:
+                intervalo_km_ref = plano.intervalo_km
+            elif media_km:
+                intervalo_km_ref = media_km
+        else:
+            if media_dias:
+                intervalo_dias_ref = media_dias
+            if media_km:
+                intervalo_km_ref = media_km
+
+        proxima_data = ultima_data + timedelta(days=intervalo_dias_ref)
+        proximo_km = ultimo_km + Decimal(str(intervalo_km_ref))
+
+        hoje = timezone.now().date()
+        restante_dias = (proxima_data - hoje).days
+        restante_km = float(proximo_km - viatura.odometro_atual)
+
+        if restante_dias < 0 or restante_km < 0:
+            status_prev = 'ATRASADO'
+        elif restante_dias <= 15 or restante_km <= 500:
+            status_prev = 'ALERTA'
+        else:
+            status_prev = 'OK'
+
+        analise_preventiva.append({
+            'nome': item_nome,
+            'plano_vinculado': plano,
+            'historico_count': len(ocorrencias),
+            'ultima_data': ocorrencias[-1]['data'] if ocorrencias else None,
+            'ultimo_km': ocorrencias[-1]['odometro'] if ocorrencias else None,
+            'media_dias_duracao': media_dias,
+            'media_km_duracao': media_km,
+            'proxima_data': proxima_data,
+            'proximo_km': proximo_km,
+            'restante_dias': restante_dias,
+            'restante_km': restante_km,
+            'status_prev': status_prev,
+            'recorrente': len(ocorrencias) >= 2 or plano is not None
+        })
+
+    # Filtrar para exibir itens recorrentes ou com plano vinculado
+    analise_preventiva = [item for item in analise_preventiva if item['recorrente']]
+
     return render(request, 'viaturas/detalhe_viatura.html', {
         'viatura': viatura,
         'despachos': despachos,
         'abastecimentos': abastecimentos,
-        'manutencoes': manutencoes,
+        'manutencoes': manutencoes[:10],
+        'manutencoes_calculadas': manutencoes_calculadas,
         'despacho_ativo': despacho_ativo,
         'total_km_rodado': total_km_rodado,
         'total_combustivel': total_combustivel,
         'custo_total_manutencao': custo_total_manutencao,
+        
+        # Novos indicadores inteligentes
+        'total_manutencoes': total_manutencoes,
+        'concluidas_count': concluidas_count,
+        'preventivas_count': preventivas_count,
+        'corretivas_count': corretivas_count,
+        'total_pecas_trocadas': total_pecas_trocadas,
+        'pecas_detalhadas': pecas_qs,
+        'analise_preventiva': analise_preventiva,
     })
 
 

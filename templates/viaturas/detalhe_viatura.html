@@ -80,62 +80,282 @@
     </div>
 
     <div class="col-md-8">
-        <!-- Últimos Despachos -->
-        <div class="card border-0 mb-3">
-            <div class="card-header d-flex justify-content-between">
-                <span><i class="fas fa-route me-2 text-warning"></i>Histórico de Saídas (Serviço Adm.)</span>
-                <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-xs btn-outline-warning btn-sm">Novo</a>
+        <!-- Navegação por Abas -->
+        <div class="card border-0 mb-4 shadow-sm">
+            <div class="card-header bg-transparent border-0 pb-0 pt-3">
+                <ul class="nav nav-tabs card-header-tabs" id="viaturaTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold text-dark" id="saidas-tab" data-bs-toggle="tab" data-bs-target="#saidas" type="button" role="tab" aria-controls="saidas" aria-selected="true">
+                            <i class="fas fa-route me-1 text-warning"></i> Saídas & Abastecimentos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-dark" id="manutencoes-tab" data-bs-toggle="tab" data-bs-target="#manutencoes" type="button" role="tab" aria-controls="manutencoes" aria-selected="false">
+                            <i class="fas fa-wrench me-1 text-danger"></i> Manutenções <span class="badge bg-secondary ms-1">{{ total_manutencoes }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-dark" id="pecas-tab" data-bs-toggle="tab" data-bs-target="#pecas" type="button" role="tab" aria-controls="pecas" aria-selected="false">
+                            <i class="fas fa-cog me-1 text-primary"></i> Peças Trocadas <span class="badge bg-primary ms-1">{{ total_pecas_trocadas }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold text-dark" id="preventiva-tab" data-bs-toggle="tab" data-bs-target="#preventiva" type="button" role="tab" aria-controls="preventiva" aria-selected="false">
+                            <i class="fas fa-chart-line me-1 text-success"></i> Vida Útil & Previsões <span class="badge bg-success text-white ms-1">Smart</span>
+                        </button>
+                    </li>
+                </ul>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead><tr><th>Motorista</th><th>Saída</th><th>Km Saída</th><th>Retorno</th><th>Km Retorno</th></tr></thead>
-                        <tbody>
-                            {% for d in despachos %}
-                            <tr>
-                                <td>{{ d.motorista.nome }}</td>
-                                <td><small>{{ d.data_saida|date:"d/m/Y H:i" }}</small></td>
-                                <td>{{ d.km_saida }}</td>
-                                <td>
-                                    {% if d.data_retorno %}<small>{{ d.data_retorno|date:"d/m/Y H:i" }}</small>
-                                    {% else %}<span class="badge bg-warning text-dark">Em curso</span>{% endif %}
-                                </td>
-                                <td>{{ d.km_retorno|default:"—" }}</td>
-                            </tr>
-                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem registros de saída.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <div class="card-body tab-content" id="viaturaTabsContent">
+                <!-- ABA 1: Saídas e Abastecimentos -->
+                <div class="tab-pane fade show active" id="saidas" role="tabpanel" aria-labelledby="saidas-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-secondary">Histórico de Saídas (Serviço Adm.)</h6>
+                        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-xs btn-outline-warning btn-sm"><i class="fas fa-plus me-1"></i>Registrar Saída</a>
+                    </div>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr><th>Motorista</th><th>Saída</th><th>Km Saída</th><th>Retorno</th><th>Km Retorno</th></tr></thead>
+                            <tbody>
+                                {% for d in despachos %}
+                                <tr>
+                                    <td>{{ d.motorista.nome }}</td>
+                                    <td><small>{{ d.data_saida|date:"d/m/Y H:i" }}</small></td>
+                                    <td>{{ d.km_saida }}</td>
+                                    <td>
+                                        {% if d.data_retorno %}<small>{{ d.data_retorno|date:"d/m/Y H:i" }}</small>
+                                        {% else %}<span class="badge bg-warning text-dark">Em curso</span>{% endif %}
+                                    </td>
+                                    <td>{{ d.km_retorno|default:"—" }}</td>
+                                </tr>
+                                {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem registros de saída.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-        <!-- Manutenções -->
-        <div class="card border-0">
-            <div class="card-header d-flex justify-content-between">
-                <span><i class="fas fa-wrench me-2 text-danger"></i>Manutenções</span>
-                <a href="{% url 'viaturas:criar_manutencao' %}" class="btn btn-xs btn-outline-danger btn-sm">Nova</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead><tr><th>Tipo</th><th>Início</th><th>Conclusão</th><th>Oficina</th><th>Custo Total</th></tr></thead>
-                        <tbody>
-                            {% for m in manutencoes %}
-                            <tr>
-                                <td><span class="badge {% if m.tipo == 'PREVENTIVA' %}bg-info{% else %}bg-danger{% endif %}">{{ m.get_tipo_display }}</span></td>
-                                <td><small>{{ m.data_inicio|date:"d/m/Y" }}</small></td>
-                                <td>
-                                    {% if m.data_conclusao %}<small>{{ m.data_conclusao|date:"d/m/Y" }}</small>
-                                    {% else %}<span class="badge bg-warning text-dark">Aberta</span>{% endif %}
-                                </td>
-                                <td>{{ m.oficina_fk|default:m.oficina }}</td>
-                                <td>R$ {{ m.custo_total|floatformat:2 }}</td>
-                            </tr>
-                            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma manutenção registrada.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-secondary">Últimos Abastecimentos</h6>
+                        <a href="{% url 'viaturas:criar_abastecimento' %}" class="btn btn-xs btn-outline-info btn-sm"><i class="fas fa-plus me-1"></i>Novo Abastecimento</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr><th>Data</th><th>Motorista</th><th>Combustível</th><th>Quantidade</th><th>Odômetro</th><th>Valor Total</th></tr></thead>
+                            <tbody>
+                                {% for a in abastecimentos %}
+                                <tr>
+                                    <td><small>{{ a.data_abastecimento|date:"d/m/Y H:i" }}</small></td>
+                                    <td>{{ a.motorista.nome|default:"—" }}</td>
+                                    <td>{{ a.get_combustivel_display }}</td>
+                                    <td>{{ a.quantidade_litros }} L</td>
+                                    <td>{{ a.odometro }} km</td>
+                                    <td>{% if a.valor_total %}R$ {{ a.valor_total|floatformat:2 }}{% else %}—{% endif %}</td>
+                                </tr>
+                                {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">Nenhum abastecimento registrado.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ABA 2: Manutenções Executadas -->
+                <div class="tab-pane fade" id="manutencoes" role="tabpanel" aria-labelledby="manutencoes-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-secondary">Todas as Manutenções Registradas</h6>
+                        <a href="{% url 'viaturas:criar_manutencao' %}" class="btn btn-xs btn-outline-danger btn-sm"><i class="fas fa-plus me-1"></i>Nova Manutenção</a>
+                    </div>
+                    
+                    <div class="row g-3 mb-3 text-center">
+                        <div class="col-4">
+                            <div class="border rounded p-2 bg-light shadow-sm">
+                                <div class="text-muted small">Total Concluído</div>
+                                <div class="fs-5 fw-bold text-success">{{ concluidas_count }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 bg-light shadow-sm">
+                                <div class="text-muted small">Preventivas</div>
+                                <div class="fs-5 fw-bold text-info">{{ preventivas_count }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2 bg-light shadow-sm">
+                                <div class="text-muted small">Corretivas</div>
+                                <div class="fs-5 fw-bold text-danger">{{ corretivas_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr><th>Tipo</th><th>Status</th><th>Início</th><th>Conclusão</th><th>Duração do Serviço</th><th>Oficina</th><th>Custo Total</th><th>Ações</th></tr></thead>
+                            <tbody>
+                                {% for mc in manutencoes_calculadas %}
+                                <tr>
+                                    <td><span class="badge {% if mc.obj.tipo == 'PREVENTIVA' %}bg-info{% else %}bg-danger{% endif %}">{{ mc.obj.get_tipo_display }}</span></td>
+                                    <td>
+                                        {% if mc.obj.status == 'CONCLUIDA' %}<span class="badge bg-success">Concluída</span>
+                                        {% elif mc.obj.status == 'ABERTA' %}<span class="badge bg-warning text-dark">Em Aberto</span>
+                                        {% elif mc.obj.status == 'AGUARDANDO_PECA' %}<span class="badge" style="background-color: #8e44ad; color: white;">Aguardando Peça</span>
+                                        {% elif mc.obj.status == 'CANCELADA' %}<span class="badge bg-secondary">Cancelada</span>
+                                        {% else %}<span class="badge bg-info">{{ mc.obj.get_status_display }}</span>{% endif %}
+                                    </td>
+                                    <td><small>{{ mc.obj.data_inicio|date:"d/m/Y" }}</small></td>
+                                    <td>
+                                        {% if mc.obj.data_conclusao %}<small>{{ mc.obj.data_conclusao|date:"d/m/Y" }}</small>
+                                        {% else %}<span class="text-muted">—</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if mc.obj.status == 'CONCLUIDA' %}
+                                            {% if mc.duracao_dias == 0 %}
+                                                <span class="badge bg-light text-dark">Mesmo dia</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">{{ mc.duracao_dias }} dia(s)</span>
+                                            {% endif %}
+                                        {% elif mc.obj.status == 'CANCELADA' %}
+                                            <span class="text-muted">Cancelada</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Em execução</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ mc.obj.oficina_fk|default:mc.obj.oficina }}</td>
+                                    <td class="fw-bold">R$ {{ mc.custo_total|floatformat:2 }}</td>
+                                    <td>
+                                        <a href="{% url 'viaturas:detalhe_manutencao' mc.obj.pk %}" class="btn btn-xs btn-outline-primary btn-sm px-2 py-0" title="Ver Detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}<tr><td colspan="8" class="text-center text-muted py-3">Nenhuma manutenção registrada.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ABA 3: Peças Trocadas -->
+                <div class="tab-pane fade" id="pecas" role="tabpanel" aria-labelledby="pecas-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-secondary">Peças Retiradas para esta Viatura (Almoxarifado)</h6>
+                        <a href="{% url 'viaturas:criar_retirada' %}" class="btn btn-xs btn-outline-primary btn-sm"><i class="fas fa-plus me-1"></i>Nova Retirada de Peça</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr><th>Data</th><th>Peça</th><th>Quantidade</th><th>Retirado por</th><th>Justificativa / OS</th></tr></thead>
+                            <tbody>
+                                {% for p in pecas_detalhadas %}
+                                <tr>
+                                    <td><small>{{ p.retirada.data_retirada|date:"d/m/Y H:i" }}</small></td>
+                                    <td class="fw-bold text-dark">{{ p.peca.nome }}</td>
+                                    <td><span class="badge bg-secondary">{{ p.quantidade }}</span></td>
+                                    <td>{{ p.retirada.policial.nome }}</td>
+                                    <td><small class="text-muted">{{ p.retirada.observacoes|default:"—" }}</small></td>
+                                </tr>
+                                {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Nenhum registro de retirada de peça.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ABA 4: Vida Útil & Previsões -->
+                <div class="tab-pane fade" id="preventiva" role="tabpanel" aria-labelledby="preventiva-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-secondary"><i class="fas fa-brain text-success me-1"></i>Estimativas de Próxima Manutenção e Durabilidade</h6>
+                        <a href="{% url 'viaturas:lista_planos_preventivos' %}" class="btn btn-xs btn-outline-success btn-sm"><i class="fas fa-calendar-alt me-1"></i>Planos de Manutenção</a>
+                    </div>
+                    <p class="text-muted small mb-3">Estes cálculos estimam a próxima troca com base nos planos preventivos oficiais cadastrados para o modelo, ou pela recorrência e intervalo médio das manutenções passadas.</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Peça ou Serviço</th>
+                                    <th class="text-center">Qtd. Trocas</th>
+                                    <th>Durabilidade Média (Vida Útil)</th>
+                                    <th>Última Troca</th>
+                                    <th>Próxima Troca Estimada</th>
+                                    <th>Tempo / Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in analise_preventiva %}
+                                <tr {% if item.status_prev == 'ATRASADO' %}class="table-danger-subtle"{% elif item.status_prev == 'ALERTA' %}class="table-warning-subtle"{% endif %}>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ item.nome }}</div>
+                                        {% if item.plano_vinculado %}
+                                            <span class="badge bg-success text-white small" style="font-size: 0.7rem;"><i class="fas fa-check-circle me-1"></i>Plano Ativo</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary text-white small" style="font-size: 0.7rem;"><i class="fas fa-sync me-1"></i>Recorrência</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-dark">{{ item.historico_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            {% if item.media_km_duracao %}
+                                                <i class="fas fa-tachometer-alt text-muted me-1"></i>a cada <strong>{{ item.media_km_duracao|floatformat:0 }} km</strong>
+                                            {% endif %}
+                                        </div>
+                                        <div class="small">
+                                            {% if item.media_dias_duracao %}
+                                                <i class="far fa-calendar-alt text-muted me-1"></i>a cada <strong>{{ item.media_dias_duracao }} dias</strong>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold">
+                                            {% if item.ultima_data %}
+                                                {{ item.ultima_data|date:"d/m/Y" }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-muted small" style="font-size: 0.75rem;">
+                                            {% if item.ultimo_km %}
+                                                com {{ item.ultimo_km|floatformat:0 }} km
+                                            {% else %}
+                                                km não reg.
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold text-primary">{{ item.proxima_data|date:"d/m/Y" }}</div>
+                                        <div class="text-muted small" style="font-size: 0.75rem;">com {{ item.proximo_km|floatformat:0 }} km</div>
+                                    </td>
+                                    <td>
+                                        {% if item.status_prev == 'ATRASADO' %}
+                                            <span class="badge bg-danger mb-1 d-block"><i class="fas fa-exclamation-triangle me-1"></i>Atrasado</span>
+                                            <div class="small text-danger fw-bold text-center">
+                                                {% if item.restante_dias < 0 %}
+                                                    Venceu há {{ item.restante_dias|stringformat:"d"|slice:"1:" }} dias
+                                                {% endif %}
+                                            </div>
+                                        {% elif item.status_prev == 'ALERTA' %}
+                                            <span class="badge bg-warning text-dark mb-1 d-block"><i class="fas fa-clock me-1"></i>Atenção</span>
+                                            <div class="small text-warning fw-bold text-center">Vence em {{ item.restante_dias }} dias</div>
+                                        {% else %}
+                                            <span class="badge bg-success mb-1 d-block"><i class="fas fa-check-circle me-1"></i>Regular</span>
+                                            <div class="small text-success fw-bold text-center">Restam {{ item.restante_dias }} dias</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-info-circle fa-2x mb-2 text-secondary"></i>
+                                        <div>Nenhum plano ativo ou serviço/peça recorrente para esta viatura.</div>
+                                        <div class="small text-muted mt-1">Crie planos de manutenção preventiva para o modelo da viatura ou registre manutenções passadas para gerar estimativas inteligentes.</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
