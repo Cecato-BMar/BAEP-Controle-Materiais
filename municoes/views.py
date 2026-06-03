@@ -288,6 +288,8 @@ def nova_retirada(request):
                 form.add_error('lote', 'O lote selecionado não pertence ao calibre/material informado.')
             elif lote.quantidade_atual < retirada.quantidade:
                 form.add_error('quantidade', 'Quantidade maior do que saldo disponível no lote.')
+            elif material.quantidade_disponivel < retirada.quantidade:
+                form.add_error('quantidade', 'Quantidade maior do que o saldo disponível em estoque para este material.')
             elif material.tipo != 'MUNICAO':
                 form.add_error('material', 'O material precisa ser do tipo Munição.')
             else:
