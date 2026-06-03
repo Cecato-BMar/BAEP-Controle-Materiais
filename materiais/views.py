@@ -145,9 +145,16 @@ def novo_material(request):
             material.quantidade_disponivel = material.quantidade
             material.save()
             messages.success(request, _('Material cadastrado com sucesso!'))
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('materiais:detalhe_material', material_id=material.pk)
     else:
-        form = MaterialForm()
+        initial = {}
+        tipo_param = request.GET.get('tipo')
+        if tipo_param:
+            initial['tipo'] = tipo_param
+        form = MaterialForm(initial=initial)
     
     return render(request, 'materiais/form_material.html', {
         'form': form,

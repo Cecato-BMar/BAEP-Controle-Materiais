@@ -17,6 +17,9 @@
                 <a href="{% url 'municoes:relatorios' %}" class="btn btn-outline-dark btn-sm fw-bold">
                     <i class="fas fa-file-alt me-1"></i>Relatórios
                 </a>
+                <a href="{% url 'materiais:novo_material' %}?tipo=MUNICAO&next={% url 'municoes:lista_lotes' %}" class="btn btn-outline-success btn-sm fw-bold">
+                    <i class="fas fa-plus-circle me-1"></i>Novo Material (Munição)
+                </a>
                 <a href="{% url 'municoes:novo_lote' %}" class="btn btn-primary btn-sm fw-bold">
                     <i class="fas fa-plus me-1"></i>Novo Lote
                 </a>
