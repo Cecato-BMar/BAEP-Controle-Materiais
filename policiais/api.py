@@ -22,11 +22,19 @@ def api_policiais(request):
 @login_required
 def api_policial_detalhe(request, policial_id):
     """
-    API para obter detalhes de um policial específico
+    API para obter detalhes de um policial específico.
+    Inclui foto_url para uso no painel de preview do formulário de retirada.
     """
     try:
         policial = Policial.objects.get(pk=policial_id)
-        
+
+        foto_url = None
+        if policial.foto:
+            try:
+                foto_url = request.build_absolute_uri(policial.foto.url)
+            except Exception:
+                foto_url = policial.foto.url
+
         policial_data = {
             'id': policial.id,
             're': policial.re,
@@ -34,11 +42,7 @@ def api_policial_detalhe(request, policial_id):
             'posto': policial.posto,
             'posto_display': policial.get_posto_display(),
             'situacao': policial.situacao,
-            'data_nascimento': policial.data_nascimento.strftime('%Y-%m-%d') if hasattr(policial, 'data_nascimento') and policial.data_nascimento else None,
-            'data_ingresso': policial.data_ingresso.strftime('%Y-%m-%d') if hasattr(policial, 'data_ingresso') and policial.data_ingresso else None,
-            'email': policial.email if hasattr(policial, 'email') else None,
-            'telefone': policial.telefone if hasattr(policial, 'telefone') else None,
-            'foto': policial.foto.url if policial.foto else None
+            'foto_url': foto_url,
         }
         
         return JsonResponse(policial_data)

@@ -41,7 +41,13 @@ class RetiradaMunicaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['material'].queryset = Material.objects.filter(tipo='MUNICAO')
+        # Queryset restrito para validação; o widget usa Select2 AJAX para a busca interativa
         self.fields['policial'].queryset = Policial.objects.filter(situacao='ATIVO')
+        self.fields['policial'].widget = forms.Select(attrs={
+            'class': 'form-select select2-policial-ajax',
+            'data-placeholder': 'Digite o nome ou RE do policial...',
+            'data-allow-clear': 'true',
+        })
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
