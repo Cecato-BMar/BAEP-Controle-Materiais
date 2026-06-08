@@ -15,7 +15,8 @@ class GroupMultipleChoiceField(forms.ModelMultipleChoiceField):
             'administracao': 'Administração do Sistema',
             'frota': 'Gestão de Frota (VTRs)',
             'patrimonio': 'Gestão de Patrimônio',
-            'telematica': 'Telemática e TI'
+            'telematica': 'Telemática e TI',
+            'material_belico': 'Material Bélico (Controle de Armamento)',
         }
         return labels.get(obj.name, obj.name.replace('_', ' ').title())
 
