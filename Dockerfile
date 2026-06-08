@@ -19,8 +19,8 @@ RUN apt-get update \
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput || true
+RUN python manage.py makemigrations --noinput && python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py makemigrations --noinput && python manage.py migrate --noinput && gunicorn reserva_baep.wsgi:application --bind 0.0.0.0:${PORT} --workers 3 --timeout 120"]
+CMD ["sh", "-c", "python manage.py migrate --noinput; gunicorn reserva_baep.wsgi:application --bind 0.0.0.0:${PORT} --workers 3 --timeout 120"]
