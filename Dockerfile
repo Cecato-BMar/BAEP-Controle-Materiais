@@ -2,6 +2,7 @@ FROM python:3.13-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
 ENV PORT=8000
 
 WORKDIR /app
@@ -9,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt ./
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential curl \
+    && apt-get install -y --no-install-recommends build-essential curl libpq-dev \
     && python -m pip install --upgrade pip setuptools wheel \
     && python -m pip install --default-timeout=100 --retries=5 -r requirements.txt \
     && apt-get remove -y build-essential \
@@ -18,7 +19,7 @@ RUN apt-get update \
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
