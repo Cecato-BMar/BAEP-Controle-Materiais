@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} — Material Bélico{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-bolt text-danger me-2"></i>{{ titulo }}</h2>
+        {% if tipo == 'taser' %}
+            <a href="{% url 'material_belico:taser_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo TASER</a>
+        {% elif tipo == 'algemas' %}
+            <a href="{% url 'material_belico:algemas_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novas Algemas</a>
+        {% endif %}
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    {% if tipo == 'taser' %}
+                    <tr><th>Série</th><th>Situação</th><th>Carga Bateria</th><th class="text-center">Ações</th></tr>
+                    {% else %}
+                    <tr><th>Número</th><th>Embalagem</th><th class="text-center">Ações</th></tr>
+                    {% endif %}
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr{% if tipo == 'taser' and item.carga_bateria_percent == 0 %} class="table-danger"{% elif tipo == 'taser' and item.carga_bateria_percent < 50 %} class="table-warning"{% endif %}>
+                        {% if tipo == 'taser' %}
+                        <td><strong>{{ item.serie }}</strong></td>
+                        <td>{{ item.situacao }}</td>
+                        <td>
+                            {% if item.carga_bateria_percent == 0 %}
+                                <span class="badge bg-danger">0% — BLOQUEADO</span>
+                            {% elif item.carga_bateria_percent < 50 %}
+                                <span class="badge bg-warning text-dark">{{ item.carga_bateria_percent }}% — Recarregar</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ item.carga_bateria_percent }}%</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:taser_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:taser_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% else %}
+                        <td><strong>{{ item.numero }}</strong></td>
+                        <td>{{ item.embalagem }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:algemas_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:algemas_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">Nenhum item cadastrado.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="{% url 'material_belico:dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Munições Químicas — Material Bélico{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-flask text-warning me-2"></i>{{ titulo }}</h2>
+        <a href="{% url 'material_belico:municao_quimica_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova</a>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr><th>Tipo</th><th>Armário</th><th>KTO</th><th>Bornal</th><th>Vencidas</th><th>Total</th><th>Validade</th><th class="text-center">Ações</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr{% if item.vencida %} class="table-danger"{% endif %}>
+                        <td><strong>{{ item.get_tipo_municao_display }}</strong></td>
+                        <td>{{ item.qtd_armario }}</td>
+                        <td>{{ item.qtd_kto }}</td>
+                        <td>{{ item.qtd_bornal }}</td>
+                        <td>{% if item.qtd_vencidas > 0 %}<span class="badge bg-danger">{{ item.qtd_vencidas }}</span>{% else %}0{% endif %}</td>
+                        <td><strong>{{ item.total }}</strong></td>
+                        <td>{% if item.validade_prazo %}{{ item.validade_prazo|date:"d/m/Y" }}{% if item.vencida %} <span class="badge bg-danger">VENCIDA</span>{% endif %}{% else %}—{% endif %}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:municao_quimica_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:municao_quimica_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">Nenhuma munição química cadastrada.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="{% url 'material_belico:dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard</a></div>
+</div>
+{% endblock %}

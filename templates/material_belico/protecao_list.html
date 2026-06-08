@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} — Material Bélico{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-shield-halved text-success me-2"></i>{{ titulo }}</h2>
+        {% if tipo == 'colete' %}
+            <a href="{% url 'material_belico:colete_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
+        {% elif tipo == 'escudo' %}
+            <a href="{% url 'material_belico:escudo_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
+        {% elif tipo == 'capacete' %}
+            <a href="{% url 'material_belico:capacete_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
+        {% endif %}
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    {% if tipo == 'colete' %}
+                    <tr><th>Marca</th><th>Tamanho</th><th>Série</th><th>Patrimônio</th><th>Situação</th><th>Capa</th><th>Validade</th><th class="text-center">Ações</th></tr>
+                    {% elif tipo == 'escudo' %}
+                    <tr><th>Nº</th><th>Material</th><th>Série</th><th>Patrimônio</th><th>Situação</th><th>Lote</th><th>Validade</th><th class="text-center">Ações</th></tr>
+                    {% elif tipo == 'capacete' %}
+                    <tr><th>Nº</th><th>Material</th><th>Série</th><th>Patrimônio</th><th>Condição</th><th>Validade</th><th>Lote</th><th class="text-center">Ações</th></tr>
+                    {% endif %}
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr{% if tipo == 'colete' and item.validade_vencida %} class="table-warning"{% elif tipo == 'escudo' and item.alerta_validade %} class="table-warning"{% elif tipo == 'capacete' and item.alerta_validade %} class="table-warning"{% endif %}>
+                        {% if tipo == 'colete' %}
+                        <td><strong>{{ item.marca }}</strong></td>
+                        <td>{{ item.tamanho }}</td>
+                        <td>{{ item.numero_serie }}</td>
+                        <td>{{ item.patrimonio|default:"—" }}</td>
+                        <td><span class="badge {% if item.situacao == 'DISPONIVEL' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ item.get_situacao_display }}</span></td>
+                        <td>{% if item.tem_capa %}<i class="fas fa-check text-success"></i>{% else %}<i class="fas fa-times text-muted"></i>{% endif %}</td>
+                        <td>{{ item.validade_descricao }}{% if item.validade_vencida %} <span class="badge bg-danger">VENCIDO</span>{% endif %}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:colete_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:colete_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% elif tipo == 'escudo' %}
+                        <td><strong>{{ item.numero }}</strong></td>
+                        <td class="small">{{ item.material|truncatechars:35 }}</td>
+                        <td>{{ item.numero_serie|default:"—" }}</td>
+                        <td>{{ item.patrimonio|default:"—" }}</td>
+                        <td><span class="badge {% if item.situacao == 'OP' %}bg-success{% else %}bg-secondary{% endif %}">{{ item.get_situacao_display }}</span></td>
+                        <td>{{ item.get_lote_companhia_display|default:"—" }}</td>
+                        <td>{% if item.validade %}{{ item.validade|date:"d/m/Y" }}{% if item.alerta_validade %} <span class="badge bg-danger">VENCIDO</span>{% endif %}{% else %}—{% endif %}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:escudo_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:escudo_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% elif tipo == 'capacete' %}
+                        <td><strong>{{ item.numero }}</strong></td>
+                        <td>{{ item.get_material_display }}</td>
+                        <td>{{ item.numero_serie|default:"SEM IDENTIFICAÇÃO" }}</td>
+                        <td>{{ item.patrimonio|default:"—" }}</td>
+                        <td><span class="badge {% if item.condicao == 'OPERANDO' %}bg-success{% else %}bg-danger{% endif %}">{{ item.get_condicao_display }}</span></td>
+                        <td>{{ item.validade|default:"—" }}{% if item.alerta_validade %} <span class="badge bg-danger">VENCIDO</span>{% endif %}</td>
+                        <td>{{ item.lote_companhia|default:"—" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:capacete_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:capacete_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">Nenhum item cadastrado.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="{% url 'material_belico:dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard</a></div>
+</div>
+{% endblock %}

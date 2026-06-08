@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Vinculação Acessório–Fuzil — Material Bélico{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-link text-primary me-2"></i>{{ titulo }}</h2>
+        <a href="{% url 'material_belico:vinculacao_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova Vinculação</a>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark"><tr><th>Fuzil</th><th>Red Dot</th><th>Magnificador</th><th>Supressor</th><th>Recibo Transf.</th><th class="text-center">Ações</th></tr></thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td><strong>{{ item.fuzil.get_tipo_display }} — {{ item.fuzil.patrimonio }}</strong></td>
+                        <td>{% if item.red_dot %}{{ item.red_dot.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>
+                        <td>{% if item.magnificador %}{{ item.magnificador.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>
+                        <td>{% if item.supressor %}{{ item.supressor.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>
+                        <td>{{ item.numero_recibo_transferencia|default:"—" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:vinculacao_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:vinculacao_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">Nenhuma vinculação cadastrada.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="{% url 'material_belico:dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard</a></div>
+</div>
+{% endblock %}

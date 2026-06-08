@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'telematica',
     'solicitacoes.apps.SolicitacoesConfig',
     'licenciamento',
+    'material_belico.apps.MaterialBelicoConfig',
 ]
 
 # ---------------------------------------------------------------------------

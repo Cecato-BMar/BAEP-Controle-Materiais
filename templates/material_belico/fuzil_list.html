@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Fuzis — Material Bélico{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-gun text-warning me-2"></i>{{ titulo }}</h2>
+        <a href="{% url 'material_belico:fuzil_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo Fuzil</a>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tipo</th><th>Patrimônio</th><th>Localização</th><th>Recibo</th><th>Status</th><th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td>{{ item.get_tipo_display }}</td>
+                        <td><strong>{{ item.patrimonio }}</strong></td>
+                        <td>{{ item.get_localizacao_display }}</td>
+                        <td>{{ item.numero_recibo|default:"—" }}</td>
+                        <td>
+                            {% if item.status == 'OK' %}<span class="badge bg-success">OK</span>
+                            {% elif item.status == 'BAIXADO' %}<span class="badge bg-secondary">Baixado</span>
+                            {% elif item.status == 'SINDICANCIA' %}<span class="badge bg-warning text-dark">Sindicância</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'material_belico:fuzil_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'material_belico:fuzil_delete' item.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Nenhum fuzil cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-3"><a href="{% url 'material_belico:dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard</a></div>
+</div>
+{% endblock %}

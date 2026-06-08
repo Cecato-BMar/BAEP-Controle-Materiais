@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Material Bélico — Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <div>
+            <h2 class="fw-bold"><i class="fas fa-crosshairs text-warning me-2"></i>Controle de Material Bélico</h2>
+            <p class="text-muted mb-0">2º Batalhão de Ações Especiais de Polícia</p>
+        </div>
+        <a href="{% url 'material_belico:kit_list' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-boxes-stacked me-1"></i> Kits Operacionais
+        </a>
+    </div>
+
+    <!-- Totalizadores Principais -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-gun text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Fuzis</h6>
+                            <h4 class="fw-bold mb-0">{{ total_fuzis }}</h4>
+                            <small class="text-muted">762: {{ total_fuzis_762 }} | 556: {{ total_fuzis_556 }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-gun text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Espingardas Cal.12</h6>
+                            <h4 class="fw-bold mb-0">{{ total_espingardas }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-gun text-secondary"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Pistolas</h6>
+                            <h4 class="fw-bold mb-0">{{ total_glocks|add:total_taurus }}</h4>
+                            <small class="text-muted">Glock: {{ total_glocks }} | Taurus: {{ total_taurus }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-boxes-stacked text-dark"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Kits Operacionais</h6>
+                            <h4 class="fw-bold mb-0">{{ total_kits }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Segunda linha de totalizadores -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-walkie-talkie text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Rádios HT (OP)</h6>
+                            <h4 class="fw-bold mb-0">{{ total_radios }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-bolt text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">TASER</h6>
+                            <h4 class="fw-bold mb-0">{{ total_tasers }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-shield-halved text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Proteção Balística</h6>
+                            <h4 class="fw-bold mb-0">{{ total_coletes|add:total_escudos_op|add:total_capacetes_op }}</h4>
+                            <small class="text-muted">Coletes: {{ total_coletes }} | Escudos: {{ total_escudos_op }} | Cap.: {{ total_capacetes_op }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;">
+                            <i class="fas fa-right-left text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Transferências</h6>
+                            <h4 class="fw-bold mb-0">{{ total_transferencias }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="row g-3 mb-4">
+        <!-- RN-02: Armas em Sindicância -->
+        {% if armas_sindiciancia %}
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning bg-opacity-25 fw-bold">
+                    <i class="fas fa-exclamation-triangle text-warning me-1"></i> Armas em Sindicância ({{ armas_sindiciancia|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for arma in armas_sindiciancia %}
+                        <li class="p-2 border-bottom"><strong>{{ arma.patrimonio }}</strong> — {{ arma.get_tipo_display }} <small class="text-muted">({{ arma.get_localizacao_display }})</small></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RN-02: Pistolas Apreendidas -->
+        {% if glocks_apreendidas %}
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger bg-opacity-25 fw-bold text-danger">
+                    <i class="fas fa-handcuffs me-1"></i> Pistolas Apreendidas ({{ glocks_apreendidas|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for p in glocks_apreendidas %}
+                        <li class="p-2 border-bottom"><strong>{{ p.numero_serie }}</strong> — BOPM: {{ p.numero_bopm|default:"-" }} <small class="text-muted">{{ p.observacoes|truncatechars:60 }}</small></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RN-07: TASER com bateria baixa -->
+        {% if tasers_bateria_baixa %}
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger bg-opacity-25 fw-bold text-danger">
+                    <i class="fas fa-battery-quarter me-1"></i> TASER — Bateria Baixa ({{ tasers_bateria_baixa|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for t in tasers_bateria_baixa %}
+                        <li class="p-2 border-bottom">
+                            <strong>{{ t.serie }}</strong> —
+                            {% if t.carga_bateria_percent == 0 %}
+                                <span class="badge bg-danger">BLOQUEADO (0%)</span>
+                            {% elif t.carga_bateria_percent < 25 %}
+                                <span class="badge bg-danger">{{ t.carga_bateria_percent }}%</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ t.carga_bateria_percent }}%</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RN-03: Munições Químicas Vencidas -->
+        {% if municoes_quimicas_vencidas %}
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger bg-opacity-25 fw-bold text-danger">
+                    <i class="fas fa-flask me-1"></i> Munições Químicas Vencidas ({{ municoes_quimicas_vencidas|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for mq in municoes_quimicas_vencidas %}
+                        <li class="p-2 border-bottom"><strong>{{ mq.get_tipo_municao_display }}</strong> — Validade: {{ mq.validade_prazo|date:"d/m/Y" }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RN-03: Escudos com Validade Vencida -->
+        {% if escudos_validade_vencida %}
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning bg-opacity-25 fw-bold">
+                    <i class="fas fa-shield me-1"></i> Escudos — Validade Vencida ({{ escudos_validade_vencida|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for e in escudos_validade_vencida %}
+                        <li class="p-2 border-bottom"><strong>Nº {{ e.numero }}</strong> — Val: {{ e.validade|date:"d/m/Y"|default:"N/I" }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RN-03: Capacetes Vencidos -->
+        {% if capacetes_vencidos %}
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning bg-opacity-25 fw-bold">
+                    <i class="fas fa-hard-hat me-1"></i> Capacetes — Validade Vencida ({{ capacetes_vencidos|length }})
+                </div>
+                <div class="card-body p-2" style="max-height:200px;overflow-y:auto;">
+                    <ul class="list-unstyled mb-0">
+                        {% for c in capacetes_vencidos %}
+                        <li class="p-2 border-bottom">Nº {{ c.numero }} — {{ c.get_material_display }} ({{ c.get_condicao_display }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Coletes com validade vencida -->
+        {% if coletes_validade_vencida %}
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning bg-opacity-25 fw-bold">
+                    <i class="fas fa-vest me-1"></i> Coletes — Validade Vencida ({{ coletes_validade_vencida|length }})
+                </div>
+                <div class="card-body p-2">
+                    <ul class="list-unstyled mb-0">
+                        {% for c in coletes_validade_vencida %}
+                        <li class="p-2 border-bottom"><strong>{{ c.marca }}</strong> — {{ c.numero_serie }} ({{ c.tamanho }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Transferências Paradas -->
+        {% if transferencias_paradas %}
+        <div class="col-md-6">
+            <div class="card border-secondary shadow-sm">
+                <div class="card-header bg-secondary bg-opacity-25 fw-bold">
+                    <i class="fas fa-clock me-1"></i> Transferências Paradas ({{ transferencias_paradas|length }})
+                </div>
+                <div class="card-body p-2" style="max-height:200px;overflow-y:auto;">
+                    <ul class="list-unstyled mb-0">
+                        {% for t in transferencias_paradas %}
+                        <li class="p-2 border-bottom"><strong>{{ t.especie }} {{ t.marca }}</strong> — {{ t.nome_policial }} ({{ t.get_situacao_display }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Navegação Rápida -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white fw-bold"><i class="fas fa-compass me-1"></i> Navegação Rápida</div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-auto"><a href="{% url 'material_belico:fuzil_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Fuzis</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:espingarda_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Espingardas</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:pistola_glock_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Glock</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:pistola_taurus_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Taurus</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:kit_list' %}" class="btn btn-warning btn-sm"><i class="fas fa-boxes-stacked me-1"></i>Kits</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:reddot_list' %}" class="btn btn-outline-primary btn-sm">Red Dots</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:magnificador_list' %}" class="btn btn-outline-primary btn-sm">Magnificadores</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:supressor_list' %}" class="btn btn-outline-primary btn-sm">Supressores</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:vinculacao_list' %}" class="btn btn-outline-primary btn-sm">Vinculações</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:radio_ht_list' %}" class="btn btn-outline-info btn-sm"><i class="fas fa-walkie-talkie me-1"></i>Rádios HT</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:am640_list' %}" class="btn btn-outline-info btn-sm">AM-640</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:am600_list' %}" class="btn btn-outline-info btn-sm">AM-600</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:taser_list' %}" class="btn btn-outline-danger btn-sm"><i class="fas fa-bolt me-1"></i>TASER</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:algemas_list' %}" class="btn btn-outline-secondary btn-sm">Algemas</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:municao_quimica_list' %}" class="btn btn-outline-warning btn-sm"><i class="fas fa-flask me-1"></i>Químicas</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:municao_convencional_list' %}" class="btn btn-outline-warning btn-sm"><i class="fas fa-bullseye me-1"></i>Munições</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:colete_list' %}" class="btn btn-outline-success btn-sm"><i class="fas fa-vest me-1"></i>Coletes</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:escudo_list' %}" class="btn btn-outline-success btn-sm"><i class="fas fa-shield me-1"></i>Escudos</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:capacete_list' %}" class="btn btn-outline-success btn-sm"><i class="fas fa-hard-hat me-1"></i>Capacetes</a></div>
+                <div class="col-auto"><a href="{% url 'material_belico:transferencia_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-right-left me-1"></i>Transferências</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

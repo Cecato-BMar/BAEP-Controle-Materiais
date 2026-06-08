@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Kit {{ kit.get_numero_kit_display }} — Material Bélico{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <h2 class="fw-bold"><i class="fas fa-box text-warning me-2"></i>{{ kit.get_numero_kit_display }}</h2>
+        <div>
+            <a href="{% url 'material_belico:kit_edit' kit.pk %}" class="btn btn-warning me-2"><i class="fas fa-edit me-1"></i>Editar</a>
+            <a href="{% url 'material_belico:kit_list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Voltar</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-dark text-white fw-bold"><i class="fas fa-gun me-1"></i> Armamento</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <tr><td class="text-muted">Fuzil 5.56 (1º):</td><td><strong>{{ kit.fuzil_556_1|default:"— não vinculado —" }}</strong></td></tr>
+                        <tr><td class="text-muted">Fuzil 5.56 (2º):</td><td><strong>{{ kit.fuzil_556_2|default:"— não vinculado —" }}</strong></td></tr>
+                        <tr><td class="text-muted">Fuzil 7.62:</td><td><strong>{{ kit.fuzil_762|default:"— não vinculado —" }}</strong></td></tr>
+                        <tr><td class="text-muted">Espingarda Cal.12:</td><td><strong>{{ kit.espingarda|default:"— não vinculada —" }}</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-dark text-white fw-bold"><i class="fas fa-walkie-talkie me-1"></i> Comunicação e Proteção</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <tr><td class="text-muted">Rádio HT:</td><td><strong>{{ kit.radio_ht|default:"— não vinculado —" }}</strong></td></tr>
+                        <tr><td class="text-muted">AM-640:</td><td><strong>{{ kit.am640|default:"— não vinculado —" }}</strong></td></tr>
+                        <tr><td class="text-muted">Escudo Balístico:</td><td><strong>{{ kit.escudo|default:"— não vinculado —" }}</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% if distribuicoes %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold"><i class="fas fa-bullseye me-1"></i> Distribuição de Munições</div>
+                <div class="card-body p-2">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead><tr><th>Calibre</th><th>Subtipo</th><th>Qtd. Cota</th></tr></thead>
+                        <tbody>
+                            {% for d in distribuicoes %}
+                            <tr><td>{{ d.calibre }}</td><td>{{ d.subtipo }}</td><td><strong>{{ d.quantidade_cota }}</strong></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if kit.observacoes %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body"><strong>Observações:</strong> {{ kit.observacoes }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

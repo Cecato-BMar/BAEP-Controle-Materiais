@@ -641,6 +641,12 @@
                 </li>
                 {% endif %}
 
+                <li class="nav-item">
+                    <a class="nav-link {% if 'material-belico' in request.path %}active{% endif %}" href="{% url 'material_belico:dashboard' %}">
+                        <i class="fas fa-crosshairs"></i> Material Bélico
+                    </a>
+                </li>
+
                 {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/" target="_blank">
