@@ -1,0 +1,92 @@
+{# Barra de pesquisa e filtros reutilizável para o módulo Material Bélico #}
+{# Uso: defina filter_fields (list[dict]) antes de incluir este template #}
+{# Cada dict: {label, field, choices: [{value, label}, ...]} #}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-auto flex-grow-1" style="min-width:220px;">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-search me-1"></i>Pesquisar</label>
+                <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="Digite para buscar..." autocomplete="off">
+            </div>
+            {% if filter_fields %}
+            {% for f in filter_fields %}
+            <div class="col-md-auto" style="min-width:150px;">
+                <label class="form-label small fw-bold text-muted mb-1">{{ f.label }}</label>
+                <select id="filter-{{ f.field }}" class="form-select form-select-sm filter-select">
+                    <option value="">Todos</option>
+                    {% for opt in f.choices %}
+                    <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="col-md-auto">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limparFiltros()"><i class="fas fa-times me-1"></i>Limpar</button>
+            </div>
+            <div class="col-md-auto ms-auto">
+                <span id="filterCount" class="badge bg-secondary"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var searchInput = document.getElementById('filterSearch');
+    if (!searchInput) return;
+    var selects = document.querySelectorAll('.filter-select');
+    var table = document.querySelector('.table');
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    var rows = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
+    var countEl = document.getElementById('filterCount');
+    var emptyRow = tbody ? tbody.querySelector('td[colspan]') : null;
+    var emptyRowParent = emptyRow ? emptyRow.parentElement : null;
+    var totalRows = rows.filter(function(r){ return !r.querySelector('td[colspan]'); }).length;
+
+    function aplicarFiltros() {
+        var termo = (searchInput.value || '').toLowerCase().trim();
+        var filtrosAtivos = {};
+        selects.forEach(function(sel) {
+            if (sel.value) {
+                var field = sel.id.replace('filter-', '');
+                filtrosAtivos[field] = sel.value.toLowerCase();
+            }
+        });
+        var visiveis = 0;
+        rows.forEach(function(row) {
+            if (row.querySelector('td[colspan]')) return;
+            var texto = row.textContent.toLowerCase();
+            var matchTexto = !termo || texto.indexOf(termo) !== -1;
+            var matchFiltros = true;
+            for (var field in filtrosAtivos) {
+                var cell = row.querySelector('[data-filter-' + field + ']');
+                if (cell) {
+                    var val = (cell.getAttribute('data-filter-' + field) || '').toLowerCase();
+                    if (val !== filtrosAtivos[field]) { matchFiltros = false; break; }
+                }
+            }
+            if (matchTexto && matchFiltros) {
+                row.style.display = '';
+                visiveis++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        if (countEl) countEl.textContent = visiveis + ' de ' + totalRows;
+        if (emptyRowParent) {
+            emptyRowParent.style.display = visiveis === 0 ? '' : 'none';
+        }
+    }
+
+    window.limparFiltros = function() {
+        searchInput.value = '';
+        selects.forEach(function(sel){ sel.value = ''; });
+        aplicarFiltros();
+    };
+
+    searchInput.addEventListener('input', aplicarFiltros);
+    selects.forEach(function(sel){ sel.addEventListener('change', aplicarFiltros); });
+    aplicarFiltros();
+});
+</script>

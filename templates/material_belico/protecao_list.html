@@ -12,6 +12,7 @@
             <a href="{% url 'material_belico:capacete_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
         {% endif %}
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -28,11 +29,11 @@
                     {% for item in itens %}
                     <tr{% if tipo == 'colete' and item.validade_vencida %} class="table-warning"{% elif tipo == 'escudo' and item.alerta_validade %} class="table-warning"{% elif tipo == 'capacete' and item.alerta_validade %} class="table-warning"{% endif %}>
                         {% if tipo == 'colete' %}
-                        <td><strong>{{ item.marca }}</strong></td>
-                        <td>{{ item.tamanho }}</td>
+                        <td data-filter-marca="{{ item.marca }}"><strong>{{ item.marca }}</strong></td>
+                        <td data-filter-tamanho="{{ item.tamanho }}">{{ item.tamanho }}</td>
                         <td>{{ item.numero_serie }}</td>
                         <td>{{ item.patrimonio|default:"—" }}</td>
-                        <td><span class="badge {% if item.situacao == 'DISPONIVEL' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ item.get_situacao_display }}</span></td>
+                        <td data-filter-situacao="{{ item.situacao }}"><span class="badge {% if item.situacao == 'DISPONIVEL' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ item.get_situacao_display }}</span></td>
                         <td>{% if item.tem_capa %}<i class="fas fa-check text-success"></i>{% else %}<i class="fas fa-times text-muted"></i>{% endif %}</td>
                         <td>{{ item.validade_descricao }}{% if item.validade_vencida %} <span class="badge bg-danger">VENCIDO</span>{% endif %}</td>
                         <td class="text-center">
@@ -44,8 +45,8 @@
                         <td class="small">{{ item.material|truncatechars:35 }}</td>
                         <td>{{ item.numero_serie|default:"—" }}</td>
                         <td>{{ item.patrimonio|default:"—" }}</td>
-                        <td><span class="badge {% if item.situacao == 'OP' %}bg-success{% else %}bg-secondary{% endif %}">{{ item.get_situacao_display }}</span></td>
-                        <td>{{ item.get_lote_companhia_display|default:"—" }}</td>
+                        <td data-filter-situacao="{{ item.situacao }}"><span class="badge {% if item.situacao == 'OP' %}bg-success{% else %}bg-secondary{% endif %}">{{ item.get_situacao_display }}</span></td>
+                        <td data-filter-lote="{{ item.lote_companhia|default:'' }}">{{ item.get_lote_companhia_display|default:"—" }}</td>
                         <td>{% if item.validade %}{{ item.validade|date:"d/m/Y" }}{% if item.alerta_validade %} <span class="badge bg-danger">VENCIDO</span>{% endif %}{% else %}—{% endif %}</td>
                         <td class="text-center">
                             <a href="{% url 'material_belico:escudo_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
@@ -53,10 +54,10 @@
                         </td>
                         {% elif tipo == 'capacete' %}
                         <td><strong>{{ item.numero }}</strong></td>
-                        <td>{{ item.get_material_display }}</td>
+                        <td data-filter-material="{{ item.material }}">{{ item.get_material_display }}</td>
                         <td>{{ item.numero_serie|default:"SEM IDENTIFICAÇÃO" }}</td>
                         <td>{{ item.patrimonio|default:"—" }}</td>
-                        <td><span class="badge {% if item.condicao == 'OPERANDO' %}bg-success{% else %}bg-danger{% endif %}">{{ item.get_condicao_display }}</span></td>
+                        <td data-filter-condicao="{{ item.condicao }}"><span class="badge {% if item.condicao == 'OPERANDO' %}bg-success{% else %}bg-danger{% endif %}">{{ item.get_condicao_display }}</span></td>
                         <td>{{ item.validade|default:"—" }}{% if item.alerta_validade %} <span class="badge bg-danger">VENCIDO</span>{% endif %}</td>
                         <td>{{ item.lote_companhia|default:"—" }}</td>
                         <td class="text-center">

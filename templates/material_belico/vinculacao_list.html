@@ -6,6 +6,7 @@
         <h2 class="fw-bold"><i class="fas fa-link text-primary me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:vinculacao_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova Vinculação</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -13,7 +14,7 @@
                 <tbody>
                     {% for item in itens %}
                     <tr>
-                        <td><strong>{{ item.fuzil.get_tipo_display }} — {{ item.fuzil.patrimonio }}</strong></td>
+                        <td data-filter-tipo_fuzil="{{ item.fuzil.tipo }}"><strong>{{ item.fuzil.get_tipo_display }} — {{ item.fuzil.patrimonio }}</strong></td>
                         <td>{% if item.red_dot %}{{ item.red_dot.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>
                         <td>{% if item.magnificador %}{{ item.magnificador.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>
                         <td>{% if item.supressor %}{{ item.supressor.patrimonio }}{% else %}<span class="text-muted">S/ Acessório</span>{% endif %}</td>

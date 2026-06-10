@@ -6,6 +6,7 @@
         <h2 class="fw-bold"><i class="fas fa-bullseye text-warning me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:municao_convencional_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -15,9 +16,9 @@
                 <tbody>
                     {% for item in itens %}
                     <tr>
-                        <td><strong>{{ item.calibre }}</strong></td>
-                        <td>{{ item.subtipo }}</td>
-                        <td><span class="badge {% if item.secao == 'RESERVA' %}bg-primary{% else %}bg-info{% endif %}">{{ item.get_secao_display }}</span></td>
+                        <td data-filter-calibre="{{ item.calibre }}"><strong>{{ item.calibre }}</strong></td>
+                        <td data-filter-subtipo="{{ item.subtipo }}">{{ item.subtipo }}</td>
+                        <td data-filter-secao="{{ item.secao }}"><span class="badge {% if item.secao == 'RESERVA' %}bg-primary{% else %}bg-info{% endif %}">{{ item.get_secao_display }}</span></td>
                         <td>{{ item.em_uso }}</td>
                         <td>{{ item.estoque }}</td>
                         <td>{{ item.manuseadas }}</td>

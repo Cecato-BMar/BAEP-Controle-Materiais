@@ -31,7 +31,7 @@ LOCALIZACAO_FUZIL_CHOICES = [
     ('RESERVA', 'Reserva'), ('CMT', 'Comandante'), ('SUBCMT', 'Subcomandante'),
     ('AT-01', 'AT-01'), ('AT-02', 'AT-02'), ('AT-03', 'AT-03'), ('AT-04', 'AT-04'),
     ('S-01', 'S-01'), ('S-02', 'S-02'), ('S-03', 'S-03'),
-    ('3ª CIA', '3ª CIA'),
+    ('3ª CIA', '3ª CIA'), ('CURSO', 'Curso'), ('P2', 'P2'), ('GUARDA', 'Guarda'),
 ]
 
 STATUS_ARMA_CHOICES = [

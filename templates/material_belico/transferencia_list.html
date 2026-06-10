@@ -6,6 +6,7 @@
         <h2 class="fw-bold"><i class="fas fa-right-left text-secondary me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:transferencia_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova Transferência</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -13,13 +14,13 @@
                 <tbody>
                     {% for item in itens %}
                     <tr>
-                        <td>{{ item.get_especie_display }}</td>
+                        <td data-filter-especie="{{ item.especie }}">{{ item.get_especie_display }}</td>
                         <td>{{ item.marca }} {{ item.modelo }}</td>
                         <td>{{ item.calibre }}</td>
                         <td>{{ item.numero_serie }}</td>
                         <td>{{ item.nome_policial }}{% if item.re_policial %} <small class="text-muted">(RE: {{ item.re_policial }})</small>{% endif %}</td>
-                        <td><span class="badge bg-secondary">{{ item.get_situacao_display }}</span></td>
-                        <td>{% if item.status == 'PARADO' %}<span class="badge bg-danger">Parado</span>{% else %}<span class="badge bg-success">Iniciado</span>{% endif %}</td>
+                        <td data-filter-situacao="{{ item.situacao }}"><span class="badge bg-secondary">{{ item.get_situacao_display }}</span></td>
+                        <td data-filter-status="{{ item.status }}">{% if item.status == 'PARADO' %}<span class="badge bg-danger">Parado</span>{% else %}<span class="badge bg-success">Iniciado</span>{% endif %}</td>
                         <td class="text-center">
                             <a href="{% url 'material_belico:transferencia_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
                             <a href="{% url 'material_belico:transferencia_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
