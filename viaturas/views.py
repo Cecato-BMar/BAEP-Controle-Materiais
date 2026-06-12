@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
@@ -13,7 +14,8 @@ from .models import (
     MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento,
     Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura,
     PecaViatura, RetiradaPeca, EvidenciaManutencao, PlanoManutencaoPreventiva,
-    RetiradaPecaItem, ServicoManutencao, DocumentoViatura
+    RetiradaPecaItem, ServicoManutencao, DocumentoViatura,
+    TipoViatura, StatusViatura, TipoDocumento,
 )
 from .forms import (
     ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
@@ -216,6 +218,99 @@ def dashboard_frota(request):
         data_vencimento__lt=hoje
     ).select_related('viatura').count()
 
+    # =========================================================================
+    # DASHBOARD EXECUTIVO — Chart.js (mensal/anal/garantias/próximas)
+    # =========================================================================
+    import calendar
+    from django.db.models.functions import TruncMonth
+
+    ano_atual = hoje.year
+    mes_atual = hoje.month
+    primeiro_dia_mes = hoje.replace(day=1)
+    primeiro_dia_ano = hoje.replace(month=1, day=1)
+
+    # Custo mensal (manutenções concluídas no mês)
+    custo_mes_qs = Manutencao.objects.filter(
+        status='CONCLUIDA',
+        data_conclusao__gte=primeiro_dia_mes,
+        data_conclusao__lte=hoje,
+    ).aggregate(
+        pecas=Sum('custo_pecas'),
+        mao_obra=Sum('custo_mao_obra'),
+    )
+    custo_mensal = (custo_mes_qs['pecas'] or Decimal('0')) + (custo_mes_qs['mao_obra'] or Decimal('0'))
+
+    # Custo anual (manutenções concluídas no ano)
+    custo_ano_qs = Manutencao.objects.filter(
+        status='CONCLUIDA',
+        data_conclusao__gte=primeiro_dia_ano,
+        data_conclusao__lte=hoje,
+    ).aggregate(
+        pecas=Sum('custo_pecas'),
+        mao_obra=Sum('custo_mao_obra'),
+    )
+    custo_anual = (custo_ano_qs['pecas'] or Decimal('0')) + (custo_ano_qs['mao_obra'] or Decimal('0'))
+
+    # Custo mensal de abastecimento no ano (12 meses)
+    custo_abastecimento_mes = (
+        Abastecimento.objects.filter(
+            data_abastecimento__year=ano_atual,
+        ).annotate(
+            mes=TruncMonth('data_abastecimento')
+        ).values('mes').annotate(
+            total=Sum('valor_total')
+        ).order_by('mes')
+    )
+    abast_mes_map = {row['mes'].month: float(row['total'] or 0) for row in custo_abastecimento_mes}
+
+    # Custos de manutenção por mês no ano (preventiva vs corretiva)
+    custos_mensais = (
+        Manutencao.objects.filter(
+            status='CONCLUIDA',
+            data_conclusao__year=ano_atual,
+        ).annotate(
+            mes=TruncMonth('data_conclusao')
+        ).values('mes', 'tipo').annotate(
+            total=Sum('custo_pecas') + Sum('custo_mao_obra')
+        ).order_by('mes', 'tipo')
+    )
+    prev_mes = {}
+    corr_mes = {}
+    for row in custos_mensais:
+        m = row['mes'].month
+        val = float(row['total'] or 0)
+        if row['tipo'] == 'PREVENTIVA':
+            prev_mes[m] = prev_mes.get(m, 0) + val
+        else:
+            corr_mes[m] = corr_mes.get(m, 0) + val
+
+    meses_labels = []
+    dados_preventiva = []
+    dados_corretiva = []
+    dados_abastecimento = []
+    for m in range(1, 13):
+        meses_labels.append(calendar.month_abbr[m].upper())
+        dados_preventiva.append(round(prev_mes.get(m, 0), 2))
+        dados_corretiva.append(round(corr_mes.get(m, 0), 2))
+        dados_abastecimento.append(round(abast_mes_map.get(m, 0), 2))
+
+    # Viaturas operacionais = disponíveis + em uso
+    operacionais = disponiveis + em_uso
+
+    # Próximas manutenções (agendadas futuras, ordenadas por data)
+    proximas_manutencoes = Manutencao.objects.filter(
+        status='AGENDADA',
+        data_inicio__gte=hoje,
+    ).select_related('viatura', 'oficina_fk').order_by('data_inicio')[:8]
+
+    # Garantias vencendo (próximos 30 dias) — count para KPI
+    garantias_vencendo_count = Manutencao.objects.filter(
+        status='CONCLUIDA',
+        data_validade_garantia__isnull=False,
+        data_validade_garantia__lte=limite_garantia,
+        data_validade_garantia__gte=hoje,
+    ).count()
+
     context = {
         'total': total,
         'disponiveis': disponiveis,
@@ -245,6 +340,18 @@ def dashboard_frota(request):
         'tempo_medio_oficina': tempo_medio_oficina,
         'total_manutencoes_concluidas': total_custos['total_registros'] or 0,
         'top_viaturas_custo': top_viaturas_custo,
+        # Dashboard Executivo — Chart.js
+        'operacionais': operacionais,
+        'custo_mensal': custo_mensal,
+        'custo_anual': custo_anual,
+        'proximas_manutencoes': proximas_manutencoes,
+        'garantias_vencendo_count': garantias_vencendo_count,
+        'chart_meses_labels': meses_labels,
+        'chart_preventiva': dados_preventiva,
+        'chart_corretiva': dados_corretiva,
+        'chart_abastecimento': dados_abastecimento,
+        'chart_status_labels': ['Disponível', 'Em Serviço', 'Manutenção', 'Baixada'],
+        'chart_status_data': [disponiveis, em_uso, manutencao, baixadas],
     }
     return render(request, 'viaturas/dashboard.html', context)
 
@@ -276,7 +383,7 @@ def lista_viaturas(request):
 
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
-    modelos_tipo = ModeloViatura.TIPO_CHOICES
+    modelos_tipo = TipoViatura.choices
 
     return render(request, 'viaturas/lista_viaturas.html', {
         'page_obj': page,
@@ -284,7 +391,7 @@ def lista_viaturas(request):
         'status_filtro': status,
         'q': q,
         'tipos_choices': modelos_tipo,
-        'status_choices': Viatura.STATUS_CHOICES,
+        'status_choices': StatusViatura.choices,
     })
 
 
@@ -605,13 +712,29 @@ def retorno_despacho(request, pk):
 def lista_abastecimentos(request):
     qs = Abastecimento.objects.select_related('viatura', 'motorista').order_by('-data_abastecimento')
     viatura_id = request.GET.get('viatura')
+    q = request.GET.get('q')
+    combustivel = request.GET.get('combustivel')
     if viatura_id:
         qs = qs.filter(viatura_id=viatura_id)
+    if q:
+        qs = qs.filter(
+            Q(viatura__prefixo__icontains=q) |
+            Q(posto_fornecedor__icontains=q) |
+            Q(cupom_fiscal__icontains=q)
+        )
+    if combustivel:
+        qs = qs.filter(combustivel=combustivel)
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get('page'))
     viaturas = Viatura.objects.all()
+    from .models import Combustivel
     return render(request, 'viaturas/lista_abastecimentos.html', {
-        'page_obj': page, 'viaturas': viaturas, 'viatura_filtro': viatura_id
+        'page_obj': page,
+        'viaturas': viaturas,
+        'viatura_filtro': viatura_id,
+        'q': q,
+        'combustivel_filtro': combustivel,
+        'combustiveis_choices': Combustivel.choices,
     })
 
 
@@ -645,13 +768,32 @@ def criar_abastecimento(request):
 def lista_manutencoes(request):
     qs = Manutencao.objects.select_related('viatura', 'oficina_fk').order_by('-data_inicio')
     status = request.GET.get('status', 'abertas')
+    q = request.GET.get('q')
+    tipo = request.GET.get('tipo')
     if status == 'abertas':
         qs = qs.filter(status__in=['ABERTA', 'AGUARDANDO_PECA'])
     elif status == 'concluidas':
         qs = qs.filter(status__in=['CONCLUIDA', 'CANCELADA'])
+    if q:
+        qs = qs.filter(
+            Q(viatura__prefixo__icontains=q) |
+            Q(ordem_servico__icontains=q) |
+            Q(oficina_fk__nome__icontains=q) |
+            Q(descricao__icontains=q)
+        )
+    if tipo:
+        qs = qs.filter(tipo=tipo)
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'viaturas/lista_manutencoes.html', {'page_obj': page, 'status_filtro': status})
+    from .models import TipoManutencao, StatusManutencao
+    return render(request, 'viaturas/lista_manutencoes.html', {
+        'page_obj': page,
+        'status_filtro': status,
+        'q': q,
+        'tipo_filtro': tipo,
+        'tipos_choices': TipoManutencao.choices,
+        'status_choices': StatusManutencao.choices,
+    })
 
 
 @login_required
@@ -925,9 +1067,30 @@ def editar_modelo(request, pk):
 @require_module_permission('frota')
 def lista_oficinas(request):
     qs = Oficina.objects.annotate(total_manutencoes=Count('manutencoes')).all()
+    q = request.GET.get('q')
+    cidade = request.GET.get('cidade')
+    ativo = request.GET.get('ativo')
+    if q:
+        qs = qs.filter(
+            Q(nome__icontains=q) |
+            Q(contato_responsavel__icontains=q) |
+            Q(telefone__icontains=q)
+        )
+    if cidade:
+        qs = qs.filter(cidade__icontains=cidade)
+    if ativo is not None and ativo != '':
+        qs = qs.filter(ativo=ativo == '1')
+    # Lista de cidades distintas para o filtro
+    cidades = Oficina.objects.values_list('cidade', flat=True).distinct().order_by('cidade')
     paginator = Paginator(qs, 20)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'viaturas/lista_oficinas.html', {'page_obj': page})
+    return render(request, 'viaturas/lista_oficinas.html', {
+        'page_obj': page,
+        'q': q,
+        'cidade_filtro': cidade,
+        'ativo_filtro': ativo,
+        'cidades': [c for c in cidades if c],
+    })
 
 
 @login_required
@@ -1530,7 +1693,7 @@ def lista_documentos(request, viatura_pk):
         'documentos': documentos,
         'tipo_filter': tipo_filter,
         'status_filter': status_filter,
-        'tipos': DocumentoViatura.TIPO_CHOICES,
+        'tipos': TipoDocumento.choices,
     })
 
 
@@ -1751,3 +1914,73 @@ def api_manutencoes(request):
         'count': qs.count(),
     }
     return JsonResponse(data)
+
+
+# =============================================================================
+# EXCLUSÃO — Viatura, Oficina, Manutenção, Abastecimento
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def excluir_viatura(request, pk):
+    viatura = get_object_or_404(Viatura, pk=pk)
+    if request.method == 'POST':
+        nome = viatura.prefixo
+        viatura.delete()
+        messages.success(request, f'Viatura {nome} excluída com sucesso.')
+        return redirect('viaturas:lista_viaturas')
+    return render(request, 'viaturas/confirmar_exclusao.html', {
+        'tipo_objeto': 'Viatura',
+        'nome_display': viatura.prefixo,
+        'detalhe_display': f'{viatura.modelo.marca.nome} {viatura.modelo.nome} — Placa: {viatura.placa or "—"}',
+        'cancelar_url': reverse('viaturas:lista_viaturas'),
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def excluir_oficina(request, pk):
+    oficina = get_object_or_404(Oficina, pk=pk)
+    if request.method == 'POST':
+        nome = oficina.nome
+        oficina.delete()
+        messages.success(request, f'Oficina {nome} excluída com sucesso.')
+        return redirect('viaturas:lista_oficinas')
+    return render(request, 'viaturas/confirmar_exclusao.html', {
+        'tipo_objeto': 'Oficina',
+        'nome_display': oficina.nome,
+        'detalhe_display': f'{oficina.cidade} — Contato: {oficina.contato_responsavel or "—"}',
+        'cancelar_url': reverse('viaturas:lista_oficinas'),
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def excluir_manutencao(request, pk):
+    manutencao = get_object_or_404(Manutencao, pk=pk)
+    if request.method == 'POST':
+        manutencao.delete()
+        messages.success(request, 'Manutenção excluída com sucesso.')
+        return redirect('viaturas:lista_manutencoes')
+    return render(request, 'viaturas/confirmar_exclusao.html', {
+        'tipo_objeto': 'Manutenção',
+        'nome_display': f'{manutencao.viatura.prefixo} — OS {manutencao.ordem_servico or "—"}',
+        'detalhe_display': f'{manutencao.get_tipo_display()} — {manutencao.get_status_display()} — Início: {manutencao.data_inicio.strftime("%d/%m/%Y")}',
+        'cancelar_url': reverse('viaturas:lista_manutencoes'),
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def excluir_abastecimento(request, pk):
+    abastecimento = get_object_or_404(Abastecimento, pk=pk)
+    if request.method == 'POST':
+        abastecimento.delete()
+        messages.success(request, 'Abastecimento excluído com sucesso.')
+        return redirect('viaturas:lista_abastecimentos')
+    return render(request, 'viaturas/confirmar_exclusao.html', {
+        'tipo_objeto': 'Abastecimento',
+        'nome_display': f'{abastecimento.viatura.prefixo} — {abastecimento.data_abastecimento.strftime("%d/%m/%Y %H:%M")}',
+        'detalhe_display': f'{abastecimento.get_combustivel_display()} — {abastecimento.quantidade_litros} L — R$ {abastecimento.valor_total or 0:.2f}',
+        'cancelar_url': reverse('viaturas:lista_abastecimentos'),
+    })

@@ -1,99 +1,322 @@
 {% extends 'base.html' %}
-{% block title %}Gestão de Frota — BAEP{% endblock %}
+{% block title %}Dashboard Executivo — Frota BAEP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card { transition: transform 0.2s; border-left: 4px solid transparent; }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-card .kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+    .kpi-card .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-card .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+    .chart-container { position: relative; width: 100%; }
+    .hover-translate { transition: transform 0.2s; }
+    .hover-translate:hover { transform: translateY(-3px); background-color: #fff; }
+</style>
+{% endblock %}
 
 {% block content %}
+<!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="mb-0 fw-bold"><i class="fas fa-car-side me-2 text-warning"></i>Gestão de Frota</h3>
-        <small class="text-muted">Painel de controle operacional da frota de viaturas</small>
+        <h3 class="mb-0 fw-bold"><i class="fas fa-tachometer-alt me-2 text-warning"></i>Dashboard Executivo</h3>
+        <small class="text-muted">Visão gerencial da frota — Atualizado em {% now "d/m/Y H:i" %}</small>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold">
-            <i class="fas fa-arrow-right me-1"></i> Registrar Saída
-        </a>
-        <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-plus me-1"></i> Nova Viatura
-        </a>
+        <a href="{% url 'viaturas:lista_viaturas' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-list me-1"></i>Viaturas</a>
+        <a href="{% url 'viaturas:criar_despacho' %}" class="btn btn-warning btn-sm fw-bold"><i class="fas fa-arrow-right me-1"></i>Registrar Saída</a>
+        <a href="{% url 'viaturas:criar_viatura' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-plus me-1"></i>Nova Viatura</a>
     </div>
 </div>
 
-<!-- KPIs -->
+<!-- ============================================================ -->
+<!-- KPIs EXECUTIVOS — 6 cards -->
+<!-- ============================================================ -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="card border-0 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center bg-success bg-opacity-10" style="width:52px;height:52px">
-                    <i class="fas fa-check-circle fa-lg text-success"></i>
-                </div>
+    <!-- Viaturas Operacionais -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #198754;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle"></i></div>
                 <div>
-                    <div class="text-muted small">Disponíveis</div>
-                    <div class="fs-2 fw-bold text-success">{{ disponiveis }}</div>
+                    <div class="kpi-label text-muted">Operacionais</div>
+                    <div class="kpi-value text-success">{{ operacionais }}</div>
+                    <div class="small text-muted">de {{ total }} viaturas</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning bg-opacity-10" style="width:52px;height:52px">
-                    <i class="fas fa-road fa-lg text-warning"></i>
-                </div>
+    <!-- Viaturas em Manutenção -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #dc3545;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-wrench"></i></div>
                 <div>
-                    <div class="text-muted small">Em Serviço Adm.</div>
-                    <div class="fs-2 fw-bold text-warning">{{ em_uso }}</div>
+                    <div class="kpi-label text-muted">Manutenção</div>
+                    <div class="kpi-value text-danger">{{ manutencao }}</div>
+                    <div class="small text-muted">em oficina</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger bg-opacity-10" style="width:52px;height:52px">
-                    <i class="fas fa-wrench fa-lg text-danger"></i>
-                </div>
+    <!-- Custo Mensal -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #fd7e14;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-calendar-day"></i></div>
                 <div>
-                    <div class="text-muted small">Manutenção</div>
-                    <div class="fs-2 fw-bold text-danger">{{ manutencao }}</div>
+                    <div class="kpi-label text-muted">Custo Mensal</div>
+                    <div class="kpi-value text-warning" style="font-size:1.35rem">R$ {{ custo_mensal|floatformat:0 }}</div>
+                    <div class="small text-muted">manutenção</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10" style="width:52px;height:52px">
-                    <i class="fas fa-car fa-lg text-secondary"></i>
-                </div>
+    <!-- Custo Anual -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #0d6efd;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-calendar-alt"></i></div>
                 <div>
-                    <div class="text-muted small">Total Frota</div>
-                    <div class="fs-2 fw-bold text-secondary">{{ total }}</div>
+                    <div class="kpi-label text-muted">Custo Anual</div>
+                    <div class="kpi-value text-primary" style="font-size:1.35rem">R$ {{ custo_anual|floatformat:0 }}</div>
+                    <div class="small text-muted">manutenção</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Próximas Manutenções -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #6f42c1;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-purple bg-opacity-10" style="background-color:rgba(111,66,193,0.1);color:#6f42c1"><i class="fas fa-clock"></i></div>
+                <div>
+                    <div class="kpi-label text-muted">Próx. Manutenções</div>
+                    <div class="kpi-value" style="color:#6f42c1">{{ proximas_manutencoes|length }}</div>
+                    <div class="small text-muted">agendadas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Garantias Vencendo -->
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card border-0 kpi-card h-100" style="border-left-color: #20c997;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="kpi-icon bg-teal bg-opacity-10" style="background-color:rgba(32,201,151,0.1);color:#20c997"><i class="fas fa-shield-alt"></i></div>
+                <div>
+                    <div class="kpi-label text-muted">Garantias</div>
+                    <div class="kpi-value" style="color:#20c997">{{ garantias_vencendo_count }}</div>
+                    <div class="small text-muted">vencendo (30d)</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <!-- Despachos Ativos -->
-    <div class="col-lg-8">
+<!-- ============================================================ -->
+<!-- GRÁFICOS — Linha 1: Status da Frota + Custos Mensais -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Doughnut: Status da Frota -->
+    <div class="col-lg-4 col-md-5">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 fw-bold">
+                <i class="fas fa-chart-pie me-2 text-primary"></i>Distribuição da Frota
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="chart-container" style="max-width:300px;max-height:300px;margin:0 auto;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <div class="d-flex justify-content-center gap-3 flex-wrap small">
+                    <span><span class="badge rounded-pill" style="background:#198754">&nbsp;</span> Disponível ({{ disponiveis }})</span>
+                    <span><span class="badge rounded-pill" style="background:#ffc107">&nbsp;</span> Em Serviço ({{ em_uso }})</span>
+                    <span><span class="badge rounded-pill" style="background:#dc3545">&nbsp;</span> Manutenção ({{ manutencao }})</span>
+                    <span><span class="badge rounded-pill" style="background:#6c757d">&nbsp;</span> Baixada ({{ baixadas }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bar: Custos Mensais (Preventiva vs Corretiva) -->
+    <div class="col-lg-8 col-md-7">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 fw-bold">
+                <i class="fas fa-chart-bar me-2 text-danger"></i>Custos de Manutenção por Mês — {% now "Y" %}
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height:300px">
+                    <canvas id="chartCustos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- GRÁFICO — Linha 2: Abastecimento Mensal -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
         <div class="card border-0">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-arrow-right me-2 text-warning"></i>Viaturas em Serviço Administrativo</span>
-                <a href="{% url 'viaturas:lista_despachos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+            <div class="card-header bg-transparent border-0 fw-bold">
+                <i class="fas fa-gas-pump me-2 text-info"></i>Custo de Abastecimento por Mês — {% now "Y" %}
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height:220px">
+                    <canvas id="chartAbastecimento"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TABELAS — Próximas Manutenções + Garantias + Top Custos -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-4">
+    <!-- Próximas Manutenções -->
+    <div class="col-lg-5">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="fas fa-clock me-2" style="color:#6f42c1"></i>Próximas Manutenções</span>
+                <a href="{% url 'viaturas:lista_agendamentos' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover table-sm mb-0">
                         <thead>
-                            <tr>
-                                <th>Viatura</th>
-                                <th>Motorista</th>
-                                <th>Encarregado</th>
-                                <th>Saída</th>
-                                <th>Km Saída</th>
-                                <th class="text-end">Ação</th>
-                            </tr>
+                            <tr><th>Viatura</th><th>Tipo</th><th>Data</th><th>Oficina</th></tr>
                         </thead>
+                        <tbody>
+                            {% for ag in proximas_manutencoes %}
+                            <tr>
+                                <td><span class="badge bg-dark fw-bold">{{ ag.viatura.prefixo }}</span></td>
+                                <td>
+                                    {% if ag.tipo == 'PREVENTIVA' %}<span class="badge bg-info bg-opacity-10 text-info rounded-pill"><i class="fas fa-sync-alt me-1"></i>Prev</span>
+                                    {% else %}<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Corr</span>{% endif %}
+                                </td>
+                                <td><small>{{ ag.data_inicio|date:"d/m/Y" }}</small></td>
+                                <td><small>{{ ag.oficina_fk.nome|default:"—" }}</small></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-3 text-muted"><i class="fas fa-calendar-check me-1 text-success"></i>Nenhuma manutenção agendada</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Garantias Vencendo -->
+    <div class="col-lg-3">
+        <div class="card border-0 h-100 {% if garantias_vencendo %}border-start border-warning border-4{% endif %}">
+            <div class="card-header bg-transparent border-0 fw-bold">
+                <i class="fas fa-shield-alt me-2 text-warning"></i>Garantias Vencendo
+                {% if garantias_vencendo_count > 0 %}<span class="badge bg-warning text-dark ms-1">{{ garantias_vencendo_count }}</span>{% endif %}
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for g in garantias_vencendo %}
+                    <li class="list-group-item py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-dark me-1">{{ g.viatura.prefixo }}</span>
+                                <small class="text-muted">{{ g.get_tipo_display }}</small>
+                            </div>
+                            <span class="badge bg-warning text-dark">{{ g.data_validade_garantia|date:"d/m" }}</span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center py-3 text-muted"><i class="fas fa-check-circle me-1 text-success"></i>Nenhuma garantia vencendo</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Top 5 Viaturas mais custosas -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 fw-bold">
+                <i class="fas fa-exclamation-circle me-2 text-danger"></i>Top 5 Viaturas (Custos)
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for v in top_viaturas_custo %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                        <span>
+                            <span class="badge bg-dark me-2">{{ v.prefixo }}</span>
+                            <small class="text-muted">{{ v.modelo.nome }}</small>
+                        </span>
+                        <span class="fw-bold text-danger">R$ {{ v.custo_manut|floatformat:2 }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3">Nenhum custo registrado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ALERTAS INTELIGENTES -->
+<!-- ============================================================ -->
+{% if garantias_vencendo or alertas_preventivas or manutencoes_longas or documentos_vencendo or documentos_vencidos %}
+<div class="card border-0 mb-4 border-start border-danger border-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="text-danger fw-bold"><i class="fas fa-bell me-2"></i>Alertas Importantes</span>
+    </div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {% for m in manutencoes_longas %}
+            <li class="list-group-item" style="background:rgba(220,53,69,0.05)">
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                <strong>{{ m.viatura.prefixo }}</strong>: Em manutenção há mais de 30 dias.
+            </li>
+            {% endfor %}
+            {% if documentos_vencidos > 0 %}
+            <li class="list-group-item" style="background:rgba(220,53,69,0.05)">
+                <i class="fas fa-file-times text-danger me-2"></i>
+                <strong>{{ documentos_vencidos }}</strong> documento(s) de viatura <strong>já vencido(s)</strong>.
+            </li>
+            {% endif %}
+            {% for doc in documentos_vencendo %}
+            <li class="list-group-item" style="background:rgba(255,193,7,0.05)">
+                <i class="fas fa-file-alt text-warning me-2"></i>
+                <strong>{{ doc.viatura.prefixo }}</strong> — {{ doc.get_tipo_display }} vence em {{ doc.data_vencimento|date:"d/m/Y" }}.
+            </li>
+            {% endfor %}
+            {% for g in garantias_vencendo %}
+            <li class="list-group-item" style="background:rgba(255,193,7,0.05)">
+                <i class="fas fa-certificate text-warning me-2"></i>
+                Garantia de <strong>{{ g.viatura.prefixo }}</strong> vence em {{ g.data_validade_garantia|date:"d/m/Y" }}.
+            </li>
+            {% endfor %}
+            {% for p in alertas_preventivas %}
+            <li class="list-group-item" style="background:rgba(13,110,253,0.05)">
+                <i class="fas fa-tools text-primary me-2"></i>
+                <strong>{{ p.viatura.prefixo }}</strong>: Preventiva pendente ({{ p.motivo }}).
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- OPERACIONAL — Despachos Ativos + Manutenções Abertas -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="fas fa-arrow-right me-2 text-warning"></i>Viaturas em Serviço Administrativo</span>
+                <a href="{% url 'viaturas:lista_despachos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead><tr><th>Viatura</th><th>Motorista</th><th>Encarregado</th><th>Saída</th><th>Km</th><th class="text-end">Ação</th></tr></thead>
                         <tbody>
                             {% for d in despachos_ativos %}
                             <tr>
@@ -102,14 +325,10 @@
                                 <td>{{ d.encarregado.nome|default:"—" }}</td>
                                 <td><small>{{ d.data_saida|date:"d/m H:i" }}</small></td>
                                 <td>{{ d.km_saida }} km</td>
-                                <td class="text-end">
-                                    <a href="{% url 'viaturas:retorno_despacho' d.pk %}" class="btn btn-xs btn-success btn-sm">
-                                        <i class="fas fa-undo me-1"></i>Retorno
-                                    </a>
-                                </td>
+                                <td class="text-end"><a href="{% url 'viaturas:retorno_despacho' d.pk %}" class="btn btn-xs btn-success btn-sm"><i class="fas fa-undo me-1"></i>Retorno</a></td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Nenhuma viatura em serviço administrativo no momento.</td></tr>
+                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-check-circle me-2 text-success"></i>Nenhuma viatura em serviço administrativo.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -117,21 +336,19 @@
             </div>
         </div>
     </div>
-
-    <!-- Manutenções Abertas -->
     <div class="col-lg-4">
-        <div class="card border-0">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-wrench me-2 text-danger"></i>Oficina (Em Manutenção)</span>
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="fas fa-wrench me-2 text-danger"></i>Oficina (Em Aberto)</span>
                 <a href="{% url 'viaturas:lista_manutencoes' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     {% for m in manutencoes_abertas %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                         <div>
                             <span class="badge bg-danger me-2">{{ m.viatura.prefixo }}</span>
-                            <small class="text-muted">{{ m.tipo|title }} — {{ m.oficina }}</small>
+                            <small class="text-muted">{{ m.get_tipo_display }}</small>
                         </div>
                         <small class="text-muted">{{ m.data_inicio|date:"d/m" }}</small>
                     </li>
@@ -141,234 +358,48 @@
                 </ul>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Alertas Inteligentes (Fase 3) -->
-        {% if garantias_vencendo or alertas_preventivas or manutencoes_longas or documentos_vencendo or documentos_vencidos %}
-        <div class="card border-0 mt-3 border-start border-danger border-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span class="text-danger fw-bold"><i class="fas fa-bell me-2"></i>Alertas Importantes</span>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for m in manutencoes_longas %}
-                    <li class="list-group-item bg-danger-subtle">
-                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                        <strong>{{ m.viatura.prefixo }}</strong>: Em manutenção há mais de 30 dias.
-                    </li>
-                    {% endfor %}
-                    {% for g in garantias_vencendo %}
-                    <li class="list-group-item bg-warning-subtle">
-                        <i class="fas fa-certificate text-warning me-2"></i>
-                        Garantia de <strong>{{ g.viatura.prefixo }}</strong> vence em {{ g.data_validade_garantia|date:"d/m" }}.
-                    </li>
-                    {% endfor %}
-                    {% for doc in documentos_vencendo %}
-                    <li class="list-group-item bg-warning-subtle">
-                        <i class="fas fa-file-alt text-warning me-2"></i>
-                        <strong>{{ doc.viatura.prefixo }}</strong> — {{ doc.get_tipo_display }} vence em {{ doc.data_vencimento|date:"d/m/Y" }}.
-                    </li>
-                    {% endfor %}
-                    {% if documentos_vencidos > 0 %}
-                    <li class="list-group-item bg-danger-subtle">
-                        <i class="fas fa-file-times text-danger me-2"></i>
-                        <strong>{{ documentos_vencidos }}</strong> documento(s) de viatura <strong>já vencido(s)</strong>.
-                    </li>
-                    {% endif %}
-                    {% for p in alertas_preventivas %}
-                    <li class="list-group-item bg-info-subtle">
-                        <i class="fas fa-tools text-info me-2"></i>
-                        <strong>{{ p.viatura.prefixo }}</strong>: Preventiva pendente ({{ p.motivo }}).
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+<!-- ============================================================ -->
+<!-- KPIs CONSOLIDADOS -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Custo Total Frota</div>
+            <div class="fs-5 fw-bold text-danger">R$ {{ custo_total_frota|floatformat:2 }}</div>
         </div>
-        {% endif %}
-
-        <!-- Últimos Abastecimentos -->
-        <div class="card border-0 mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-gas-pump me-2 text-info"></i>Últimos Abastecimentos</span>
-                <a href="{% url 'viaturas:lista_abastecimentos' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for ab in ultimos_abastecimentos %}
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span><span class="badge bg-secondary me-1">{{ ab.viatura.prefixo }}</span><small>{{ ab.quantidade_litros }}L</small></span>
-                            <small class="text-muted">{{ ab.data_abastecimento|date:"d/m H:i" }}</small>
-                        </div>
-                    </li>
-                    {% empty %}
-                    <li class="list-group-item text-center text-muted py-3">Nenhum abastecimento recente</li>
-                    {% endfor %}
-                </ul>
-            </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Custo Médio / OS</div>
+            <div class="fs-5 fw-bold text-warning">R$ {{ custo_medio|floatformat:2 }}</div>
         </div>
-
-        <!-- Últimas Retiradas de Peças -->
-        <div class="card border-0 mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>
-                    <i class="fas fa-toolbox me-2 text-success"></i>Retiradas de Peças
-                    {% if pecas_estoque_baixo > 0 %}
-                    <a href="{% url 'viaturas:lista_pecas' %}" class="badge bg-danger ms-2 text-decoration-none" title="{{ pecas_estoque_baixo }} peça(s) com estoque baixo">{{ pecas_estoque_baixo }} alerta(s)</a>
-                    {% endif %}
-                </span>
-                <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for ret in ultimas_retiradas %}
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span><span class="badge bg-dark me-1">{{ ret.viatura.prefixo }}</span><small>{{ ret.total_itens }} peça(s)</small></span>
-                            <small class="text-muted">{{ ret.data_retirada|date:"d/m H:i" }}</small>
-                        </div>
-                    </li>
-                    {% empty %}
-                    <li class="list-group-item text-center text-muted py-3">Nenhuma retirada recente</li>
-                    {% endfor %}
-                </ul>
-            </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">OS Concluídas</div>
+            <div class="fs-5 fw-bold">{{ total_manutencoes_concluidas }}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 text-center py-3">
+            <div class="text-muted small">Tempo Médio Oficina</div>
+            <div class="fs-5 fw-bold text-info">{{ tempo_medio_oficina|floatformat:1 }} dia(s)</div>
         </div>
     </div>
 </div>
 
-<!-- Agendamentos de Manutenção -->
-<div class="row g-4 mt-1">
-    <div class="col-12">
-        <div class="card border-0">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                    Agendamentos de Manutenção
-                    {% if agendamentos_atrasados > 0 %}
-                    <span class="badge bg-danger ms-2">{{ agendamentos_atrasados }} atrasado{{ agendamentos_atrasados|pluralize }}</span>
-                    {% endif %}
-                </span>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'viaturas:criar_agendamento' %}" class="btn btn-sm btn-primary fw-bold">
-                        <i class="fas fa-calendar-plus me-1"></i>Novo
-                    </a>
-                    <a href="{% url 'viaturas:lista_agendamentos' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th>Viatura</th>
-                                <th>Tipo</th>
-                                <th>Data Agendada</th>
-                                <th>Oficina</th>
-                                <th>Motivo</th>
-                                <th class="text-end">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for agend in agendamentos %}
-                            <tr class="{% if agend.data_inicio < hoje %}table-danger{% endif %}">
-                                <td><span class="badge bg-dark fw-bold">{{ agend.viatura.prefixo }}</span></td>
-                                <td>
-                                    {% if agend.tipo == 'PREVENTIVA' %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill"><i class="fas fa-sync-alt me-1"></i>Preventiva</span>
-                                    {% else %}
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Corretiva</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if agend.data_inicio < hoje %}
-                                        <span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }} (Atrasado)</span>
-                                    {% else %}
-                                        <span class="text-success"><i class="fas fa-calendar me-1"></i>{{ agend.data_inicio|date:"d/m/Y" }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ agend.oficina_fk|default:"—" }}</td>
-                                <td><small class="text-muted">{{ agend.descricao|truncatechars:50 }}</small></td>
-                                <td class="text-end">
-                                    <a href="{% url 'viaturas:converter_agendamento' agend.pk %}"
-                                       class="btn btn-sm btn-success"
-                                       onclick="return confirm('Iniciar manutenção agora para {{ agend.viatura.prefixo }}?')">
-                                        <i class="fas fa-play me-1"></i>Iniciar
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">
-                                    <i class="fas fa-calendar-check fa-2x mb-2 d-block text-success opacity-50"></i>
-                                    Nenhum agendamento pendente.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- KPIs de Manutenção (Fase 4) -->
-<div class="row g-4 mt-1">
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Desempenho e Custos de Manutenção</h6>
-            </div>
-            <div class="card-body">
-                <div class="row text-center mb-4">
-                    <div class="col-md-3">
-                        <div class="text-muted small">Custo Total</div>
-                        <div class="fs-5 fw-bold text-danger">R$ {{ custo_total_frota|floatformat:2 }}</div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-muted small">Custo Médio / OS</div>
-                        <div class="fs-5 fw-bold text-warning">R$ {{ custo_medio|floatformat:2 }}</div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-muted small">OS Concluídas</div>
-                        <div class="fs-5 fw-bold">{{ total_manutencoes_concluidas }}</div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-muted small">Tempo Médio (Oficina)</div>
-                        <div class="fs-5 fw-bold text-info">{{ tempo_medio_oficina|floatformat:1 }} dia(s)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-circle me-2 text-danger"></i>Top 5 Viaturas (Custos)</h6>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for v in top_viaturas_custo %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span><span class="badge bg-dark me-2">{{ v.prefixo }}</span> <small class="text-muted">{{ v.modelo.nome }}</small></span>
-                        <span class="fw-bold text-danger">R$ {{ v.custo_manut|floatformat:2 }}</span>
-                    </li>
-                    {% empty %}
-                    <li class="list-group-item text-center text-muted">Nenhum custo registrado.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Atalhos por Tipo -->
-<div class="row g-3 mt-2">
+<!-- ============================================================ -->
+<!-- FROTA POR CATEGORIA + ATALHOS -->
+<!-- ============================================================ -->
+<div class="row g-3 mb-3">
     <div class="col-12"><h6 class="text-muted text-uppercase fw-bold" style="letter-spacing:1px">Frota por Categoria</h6></div>
     {% for pt in por_tipo %}
     <div class="col-md-3 col-6">
         <a href="{% url 'viaturas:lista_viaturas' %}?tipo={{ pt.modelo__tipo }}" class="text-decoration-none">
-            <div class="card border-0 text-center py-3">
+            <div class="card border-0 text-center py-3 hover-translate">
                 <div class="mb-2">
                     {% if pt.modelo__tipo == '4_RODAS' %}<i class="fas fa-car fa-2x text-primary"></i>
                     {% elif pt.modelo__tipo == 'MOTO' %}<i class="fas fa-motorcycle fa-2x text-success"></i>
@@ -385,72 +416,148 @@
 </div>
 
 <!-- Cadastros Auxiliares -->
-<div class="card border-0 mt-4 shadow-sm">
-    <div class="card-header bg-white py-3">
-        <h6 class="mb-0 fw-bold"><i class="fas fa-cogs me-2 text-secondary"></i>Configurações e Cadastros Auxiliares</h6>
-    </div>
+<div class="card border-0 mb-4">
+    <div class="card-header bg-transparent border-0 fw-bold"><i class="fas fa-cogs me-2 text-secondary"></i>Cadastros Auxiliares</div>
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_marcas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate">
-                    <div>
-                        <i class="fas fa-industry me-3 text-warning"></i>
-                        <span class="fw-bold">Marcas</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_planos_preventivos' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-info border border-opacity-25">
-                    <div>
-                        <i class="fas fa-clipboard-list me-3 text-info"></i>
-                        <span class="fw-bold text-info">Planos Preventivos</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_modelos' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate">
-                    <div>
-                        <i class="fas fa-car-side me-3 text-warning"></i>
-                        <span class="fw-bold">Modelos</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_pecas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-primary border border-opacity-25">
-                    <div>
-                        <i class="fas fa-cogs me-3 text-primary"></i>
-                        <span class="fw-bold text-primary">Catálogo de Peças</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_retiradas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-success border border-opacity-25">
-                    <div>
-                        <i class="fas fa-toolbox me-3 text-success"></i>
-                        <span class="fw-bold text-success">Retiradas de Peças</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'viaturas:lista_baixas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-danger border border-opacity-25">
-                    <div>
-                        <i class="fas fa-arrow-down me-3 text-danger"></i>
-                        <span class="fw-bold text-danger">Baixas</span>
-                    </div>
-                    <i class="fas fa-chevron-right small text-muted"></i>
-                </a>
-            </div>
+            <div class="col-md-3"><a href="{% url 'viaturas:lista_marcas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate"><div><i class="fas fa-industry me-3 text-warning"></i><span class="fw-bold">Marcas</span></div><i class="fas fa-chevron-right small text-muted"></i></a></div>
+            <div class="col-md-3"><a href="{% url 'viaturas:lista_planos_preventivos' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-info border border-opacity-25"><div><i class="fas fa-clipboard-list me-3 text-info"></i><span class="fw-bold text-info">Planos Preventivos</span></div><i class="fas fa-chevron-right small text-muted"></i></a></div>
+            <div class="col-md-3"><a href="{% url 'viaturas:lista_oficinas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate"><div><i class="fas fa-tools me-3 text-primary"></i><span class="fw-bold">Oficinas</span></div><i class="fas fa-chevron-right small text-muted"></i></a></div>
+            <div class="col-md-3"><a href="{% url 'viaturas:lista_pecas' %}" class="btn btn-light w-100 text-start d-flex align-items-center justify-content-between py-3 px-4 shadow-sm hover-translate border-primary border border-opacity-25"><div><i class="fas fa-cogs me-3 text-primary"></i><span class="fw-bold text-primary">Catálogo de Peças</span></div><i class="fas fa-chevron-right small text-muted"></i></a></div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<style>
-    .hover-translate { transition: transform 0.2s; }
-    .hover-translate:hover { transform: translateY(-3px); background-color: #fff; }
-</style>
+<!-- ============================================================ -->
+<!-- CHART.JS — Inicialização dos Gráficos -->
+<!-- ============================================================ -->
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const mesesLabels = {{ chart_meses_labels|safe }};
+    const dadosPreventiva = {{ chart_preventiva|safe }};
+    const dadosCorretiva = {{ chart_corretiva|safe }};
+    const dadosAbastecimento = {{ chart_abastecimento|safe }};
+    const statusLabels = {{ chart_status_labels|safe }};
+    const statusData = {{ chart_status_data|safe }};
+
+    const fmtBRL = function(v) {
+        return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    };
+
+    // 1. Doughnut: Status da Frota
+    new Chart(document.getElementById('chartStatus'), {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusData,
+                backgroundColor: ['#198754', '#ffc107', '#dc3545', '#6c757d'],
+                borderWidth: 2,
+                borderColor: '#fff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '60%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                            return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Bar Stacked: Custos Manutenção (Preventiva vs Corretiva)
+    new Chart(document.getElementById('chartCustos'), {
+        type: 'bar',
+        data: {
+            labels: mesesLabels,
+            datasets: [
+                {
+                    label: 'Preventiva',
+                    data: dadosPreventiva,
+                    backgroundColor: 'rgba(13,110,253,0.7)',
+                    borderColor: '#0d6efd',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Corretiva',
+                    data: dadosCorretiva,
+                    backgroundColor: 'rgba(220,53,69,0.7)',
+                    borderColor: '#dc3545',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: {
+                    stacked: true,
+                    ticks: { callback: function(v) { return fmtBRL(v); } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ctx.dataset.label + ': ' + fmtBRL(ctx.parsed.y); }
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Bar: Custo Abastecimento Mensal
+    new Chart(document.getElementById('chartAbastecimento'), {
+        type: 'bar',
+        data: {
+            labels: mesesLabels,
+            datasets: [{
+                label: 'Abastecimento',
+                data: dadosAbastecimento,
+                backgroundColor: 'rgba(13,202,240,0.6)',
+                borderColor: '#0dcaf0',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    ticks: { callback: function(v) { return fmtBRL(v); } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return 'Total: ' + fmtBRL(ctx.parsed.y); }
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

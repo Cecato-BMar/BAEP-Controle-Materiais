@@ -41,6 +41,7 @@ urlpatterns = [
     path('relatorios/', include('relatorios.urls')),
     path('estoque/', include('estoque.urls')),
     path('frota/', include('viaturas.urls', namespace='viaturas')),
+    path('api/frota/', include('viaturas.api.urls')),
     path('patrimonio/', include('patrimonio.urls')),
     path('telematica/', include('telematica.urls', namespace='telematica')),
     path('solicitacoes/', include('solicitacoes.urls')),

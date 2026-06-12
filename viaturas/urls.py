@@ -12,6 +12,7 @@ urlpatterns = [
     path('viaturas/importar/', views.importar_viaturas, name='importar_viaturas'),
     path('viaturas/<int:pk>/', views.detalhe_viatura, name='detalhe_viatura'),
     path('viaturas/<int:pk>/editar/', views.editar_viatura, name='editar_viatura'),
+    path('viaturas/<int:pk>/excluir/', views.excluir_viatura, name='excluir_viatura'),
 
     # Despacho
     path('despachos/', views.lista_despachos, name='lista_despachos'),
@@ -21,6 +22,7 @@ urlpatterns = [
     # Abastecimento
     path('abastecimentos/', views.lista_abastecimentos, name='lista_abastecimentos'),
     path('abastecimentos/novo/', views.criar_abastecimento, name='criar_abastecimento'),
+    path('abastecimentos/<int:pk>/excluir/', views.excluir_abastecimento, name='excluir_abastecimento'),
 
     # Manutenção
     path('manutencoes/', views.lista_manutencoes, name='lista_manutencoes'),
@@ -28,6 +30,7 @@ urlpatterns = [
     path('manutencoes/<int:pk>/', views.detalhe_manutencao, name='detalhe_manutencao'),
     path('manutencoes/<int:pk>/editar/', views.editar_manutencao, name='editar_manutencao'),
     path('manutencoes/<int:pk>/concluir/', views.concluir_manutencao, name='concluir_manutencao'),
+    path('manutencoes/<int:pk>/excluir/', views.excluir_manutencao, name='excluir_manutencao'),
 
     # Agendamentos de Manutenção
     path('agendamentos/', views.lista_agendamentos, name='lista_agendamentos'),
@@ -47,6 +50,7 @@ urlpatterns = [
     path('oficinas/', views.lista_oficinas, name='lista_oficinas'),
     path('oficinas/nova/', views.criar_oficina, name='criar_oficina'),
     path('oficinas/<int:pk>/editar/', views.editar_oficina, name='editar_oficina'),
+    path('oficinas/<int:pk>/excluir/', views.excluir_oficina, name='excluir_oficina'),
 
     # Checklists
     path('checklists/', views.lista_checklists, name='lista_checklists'),

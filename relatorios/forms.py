@@ -8,6 +8,7 @@ from materiais.models import Material
 from policiais.models import Policial
 from estoque.models import Produto
 from patrimonio.models import ItemPatrimonial, CategoriaPatrimonio
+from viaturas.models import Viatura, Oficina
 
 
 class RelatorioDownloadForm(forms.Form):
@@ -443,3 +444,118 @@ class RelatorioTelematicaForm(forms.Form):
                 css_class='mt-3'
             )
         )
+
+
+class RelatorioFrotaDetalhadoForm(forms.Form):
+    """Formulário para relatórios detalhados de Frota (histórico e gastos)."""
+
+    TIPO_CHOICES = [
+        ('FROTA_HISTORICO_VIATURA', 'Histórico da Viatura'),
+        ('FROTA_HISTORICO_MANUTENCAO', 'Histórico de Manutenção'),
+        ('FROTA_GASTOS_PERIODO', 'Gastos por Período'),
+        ('FROTA_GASTOS_OFICINA', 'Gastos por Oficina'),
+        ('FROTA_GASTOS_VIATURA', 'Gastos por Viatura'),
+    ]
+
+    titulo = forms.CharField(
+        label='Título do Relatório',
+        max_length=100,
+        initial='Relatório de Frota',
+    )
+
+    tipo_relatorio = forms.ChoiceField(
+        label='Tipo de Relatório',
+        choices=TIPO_CHOICES,
+    )
+
+    viatura = forms.ModelChoiceField(
+        label='Viatura',
+        queryset=Viatura.objects.select_related('modelo', 'modelo__marca').order_by('prefixo'),
+        required=False,
+        empty_label='Todas as Viaturas',
+    )
+
+    oficina = forms.ModelChoiceField(
+        label='Oficina',
+        queryset=Oficina.objects.filter(ativo=True).order_by('nome'),
+        required=False,
+        empty_label='Todas as Oficinas',
+    )
+
+    tipo_manutencao = forms.ChoiceField(
+        label='Tipo de Manutenção',
+        choices=[('', 'Todas'), ('PREVENTIVA', 'Preventiva'), ('CORRETIVA', 'Corretiva')],
+        required=False,
+    )
+
+    status = forms.ChoiceField(
+        label='Status',
+        choices=[
+            ('', 'Todos'),
+            ('AGENDADA', 'Agendada'),
+            ('ABERTA', 'Aberta'),
+            ('AGUARDANDO_PECA', 'Aguardando Peça'),
+            ('CONCLUIDA', 'Concluída'),
+            ('CANCELADA', 'Cancelada'),
+        ],
+        required=False,
+    )
+
+    data_inicio = forms.DateField(
+        label='Data Início',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=False,
+    )
+
+    data_fim = forms.DateField(
+        label='Data Fim',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=False,
+    )
+
+    observacoes = forms.CharField(
+        label='Observações',
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'titulo',
+            'tipo_relatorio',
+            Row(
+                Column('viatura', css_class='col-md-6'),
+                Column('oficina', css_class='col-md-6'),
+            ),
+            Row(
+                Column('tipo_manutencao', css_class='col-md-4'),
+                Column('status', css_class='col-md-4'),
+                Column('', css_class='col-md-4'),
+            ),
+            Row(
+                Column('data_inicio', css_class='col-md-6'),
+                Column('data_fim', css_class='col-md-6'),
+            ),
+            'observacoes',
+            Div(
+                Submit('submit', 'Gerar Relatório PDF', css_class='btn btn-primary w-100'),
+                css_class='mt-3',
+            ),
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo_relatorio')
+        data_i = cleaned_data.get('data_inicio')
+        data_f = cleaned_data.get('data_fim')
+
+        if data_i and data_f and data_i > data_f:
+            raise forms.ValidationError('A data de início não pode ser posterior à data de fim.')
+
+        if tipo == 'FROTA_HISTORICO_VIATURA' and not cleaned_data.get('viatura'):
+            raise forms.ValidationError('Selecione uma viatura para o histórico.')
+
+        return cleaned_data

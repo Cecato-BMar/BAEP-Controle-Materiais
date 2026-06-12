@@ -5,7 +5,7 @@ from reportlab.lib.units import cm
 from .utils import PDFReportGenerator
 from materiais.models import Material
 from estoque.models import Produto, MovimentacaoEstoque
-from viaturas.models import Viatura, Manutencao
+from viaturas.models import Viatura, Manutencao, DespachoViatura, Abastecimento, Oficina, ServicoManutencao, DocumentoViatura
 from patrimonio.models import ItemPatrimonial
 from movimentacoes.models import Movimentacao
 from telematica.models import Equipamento, SolicitacaoSuporteTI, LinhaMovel, ServicoTI, CategoriaEquipamento
@@ -349,3 +349,583 @@ class EstoqueSituacaoProvider(ReportProvider):
             'data': data,
             'col_widths': [7*cm, 3.5*cm, 2*cm, 2*cm, 2*cm]
         }]
+
+
+# ============================================================================
+# PROVIDERS DE FROTA — RELATÓRIOS DETALHADOS
+# ============================================================================
+from decimal import Decimal
+
+
+class FrotaHistoricoViaturaProvider(ReportProvider):
+    """Histórico completo de uma viatura: despachos, manutenções, abastecimentos e documentos."""
+
+    def get_data_and_columns(self, filters=None):
+        from reportlab.platypus import Paragraph, Spacer
+        from reportlab.lib.units import cm as cm_unit
+
+        filters = filters or {}
+        viatura_id = filters.get('viatura')
+        if not viatura_id:
+            return [{'title': 'Erro', 'columns': ['Aviso'], 'data': [['Viatura não selecionada.']]}]
+
+        try:
+            viatura = Viatura.objects.select_related('modelo', 'modelo__marca').get(pk=viatura_id)
+        except Viatura.DoesNotExist:
+            return [{'title': 'Erro', 'columns': ['Aviso'], 'data': [['Viatura não encontrada.']]}]
+
+        data_inicio = filters.get('data_inicio')
+        data_fim = filters.get('data_fim')
+        results = []
+
+        # ——— Cabeçalho: Dados da Viatura ———
+        results.append({
+            'title': f"DADOS DA VIATURA: {viatura.prefixo}",
+            'columns': ['Campo', 'Valor'],
+            'data': [
+                ['Prefixo', viatura.prefixo],
+                ['Placa', viatura.placa or 'N/A'],
+                ['Marca / Modelo', f"{viatura.modelo.marca.nome} {viatura.modelo.nome}"],
+                ['Tipo', viatura.modelo.get_tipo_display()],
+                ['Ano', str(viatura.ano_fabricacao) if viatura.ano_fabricacao else 'N/A'],
+                ['Odômetro Atual', f"{viatura.odometro_atual} km"],
+                ['Status', viatura.get_status_display()],
+                ['Combustível', viatura.get_tipo_combustivel_display()],
+            ],
+            'col_widths': [6 * cm_unit, 10 * cm_unit],
+        })
+
+        # ——— Despachos ———
+        despachos = DespachoViatura.objects.filter(
+            viatura=viatura
+        ).select_related('motorista').order_by('-data_saida')
+        if data_inicio:
+            despachos = despachos.filter(data_saida__date__gte=data_inicio)
+        if data_fim:
+            despachos = despachos.filter(data_saida__date__lte=data_fim)
+
+        desp_data = []
+        for d in despachos:
+            desp_data.append([
+                d.data_saida.strftime('%d/%m/%Y %H:%M'),
+                str(d.motorista.nome) if d.motorista else 'N/A',
+                str(d.km_saida),
+                d.data_retorno.strftime('%d/%m/%Y %H:%M') if d.data_retorno else 'Em curso',
+                str(d.km_retorno) if d.km_retorno else '-',
+            ])
+        if desp_data:
+            results.append({
+                'title': f"DESPACHOS ({len(desp_data)} registros)",
+                'columns': ['Saída', 'Motorista', 'Km Saída', 'Retorno', 'Km Retorno'],
+                'data': desp_data,
+                'col_widths': [3.5 * cm_unit, 4 * cm_unit, 2.5 * cm_unit, 3.5 * cm_unit, 2.5 * cm_unit],
+            })
+
+        # ——— Manutenções ———
+        manutencoes = Manutencao.objects.filter(
+            viatura=viatura
+        ).select_related('oficina_fk').order_by('-data_inicio')
+        if data_inicio:
+            manutencoes = manutencoes.filter(data_inicio__gte=data_inicio)
+        if data_fim:
+            manutencoes = manutencoes.filter(data_inicio__lte=data_fim)
+
+        manut_data = []
+        custo_total_manut = Decimal('0')
+        for m in manutencoes:
+            manut_data.append([
+                m.get_tipo_display(),
+                m.data_inicio.strftime('%d/%m/%Y'),
+                m.data_conclusao.strftime('%d/%m/%Y') if m.data_conclusao else 'Aberta',
+                m.get_status_display(),
+                m.oficina_fk.nome if m.oficina_fk else (m.oficina or '-'),
+                f"R$ {m.custo_total:,.2f}",
+            ])
+            custo_total_manut += m.custo_total
+        if manut_data:
+            results.append({
+                'title': f"MANUTENÇÕES ({len(manut_data)} registros) — Total: R$ {custo_total_manut:,.2f}",
+                'columns': ['Tipo', 'Início', 'Conclusão', 'Status', 'Oficina', 'Custo'],
+                'data': manut_data,
+                'col_widths': [2.5 * cm_unit, 2.5 * cm_unit, 2.5 * cm_unit, 2.5 * cm_unit, 3.5 * cm_unit, 2.5 * cm_unit],
+            })
+
+        # ——— Abastecimentos ———
+        abastecimentos = Abastecimento.objects.filter(
+            viatura=viatura
+        ).select_related('motorista').order_by('-data_abastecimento')
+        if data_inicio:
+            abastecimentos = abastecimentos.filter(data_abastecimento__date__gte=data_inicio)
+        if data_fim:
+            abastecimentos = abastecimentos.filter(data_abastecimento__date__lte=data_fim)
+
+        abast_data = []
+        total_litros = Decimal('0')
+        total_valor = Decimal('0')
+        for a in abastecimentos:
+            abast_data.append([
+                a.data_abastecimento.strftime('%d/%m/%Y'),
+                a.get_combustivel_display(),
+                f"{a.quantidade_litros} L",
+                f"R$ {a.valor_total:,.2f}" if a.valor_total else '-',
+                str(a.odometro),
+                a.motorista.nome if a.motorista else '-',
+            ])
+            total_litros += a.quantidade_litros
+            total_valor += (a.valor_total or Decimal('0'))
+        if abast_data:
+            results.append({
+                'title': f"ABASTECIMENTOS ({len(abast_data)} registros) — {total_litros} L / R$ {total_valor:,.2f}",
+                'columns': ['Data', 'Combustível', 'Litros', 'Valor', 'Odômetro', 'Motorista'],
+                'data': abast_data,
+                'col_widths': [2.5 * cm_unit, 3 * cm_unit, 2 * cm_unit, 2.5 * cm_unit, 2.5 * cm_unit, 3.5 * cm_unit],
+            })
+
+        # ——— Documentos ———
+        documentos = DocumentoViatura.objects.filter(
+            viatura=viatura, ativo=True
+        ).order_by('data_vencimento')
+        doc_data = []
+        for doc in documentos:
+            doc_data.append([
+                doc.get_tipo_display(),
+                doc.numero_documento or 'N/A',
+                doc.data_emissao.strftime('%d/%m/%Y') if doc.data_emissao else '-',
+                doc.data_vencimento.strftime('%d/%m/%Y') if doc.data_vencimento else '-',
+            ])
+        if doc_data:
+            results.append({
+                'title': f"DOCUMENTOS ({len(doc_data)} registros)",
+                'columns': ['Tipo', 'Número', 'Emissão', 'Vencimento'],
+                'data': doc_data,
+                'col_widths': [5 * cm_unit, 5 * cm_unit, 3 * cm_unit, 3 * cm_unit],
+            })
+
+        return results
+
+
+class FrotaHistoricoManutencaoProvider(ReportProvider):
+    """Histórico de manutenções com serviços executados e custos."""
+
+    def get_data_and_columns(self, filters=None):
+        filters = filters or {}
+        manutencoes = Manutencao.objects.select_related(
+            'viatura', 'viatura__modelo', 'viatura__modelo__marca', 'oficina_fk'
+        ).all().order_by('-data_inicio')
+
+        if filters.get('data_inicio'):
+            manutencoes = manutencoes.filter(data_inicio__gte=filters['data_inicio'])
+        if filters.get('data_fim'):
+            manutencoes = manutencoes.filter(data_inicio__lte=filters['data_fim'])
+        if filters.get('tipo_manutencao'):
+            manutencoes = manutencoes.filter(tipo=filters['tipo_manutencao'])
+        if filters.get('viatura'):
+            manutencoes = manutencoes.filter(viatura_id=filters['viatura'])
+        if filters.get('status'):
+            manutencoes = manutencoes.filter(status=filters['status'])
+
+        results = []
+        custo_geral = Decimal('0')
+
+        # Tabela principal
+        data = []
+        for m in manutencoes:
+            custo_geral += m.custo_total
+            data.append([
+                m.viatura.prefixo,
+                m.get_tipo_display(),
+                m.data_inicio.strftime('%d/%m/%Y'),
+                m.data_conclusao.strftime('%d/%m/%Y') if m.data_conclusao else 'Aberta',
+                m.get_status_display(),
+                f"{m.odometro} km",
+                m.oficina_fk.nome if m.oficina_fk else (m.oficina or '-'),
+                m.ordem_servico or '-',
+                f"R$ {m.custo_pecas:,.2f}",
+                f"R$ {m.custo_mao_obra:,.2f}",
+                f"R$ {m.custo_total:,.2f}",
+            ])
+
+        if data:
+            results.append({
+                'title': f"HISTÓRICO DE MANUTENÇÕES ({len(data)} registros) — Custo Total: R$ {custo_geral:,.2f}",
+                'columns': ['Viatura', 'Tipo', 'Início', 'Conclusão', 'Status', 'KM', 'Oficina', 'O.S.', 'Peças', 'M.O.', 'Total'],
+                'data': data,
+                'col_widths': [1.5 * cm, 1.5 * cm, 1.8 * cm, 1.8 * cm, 1.5 * cm, 1.5 * cm, 2.5 * cm, 1.5 * cm, 1.5 * cm, 1.5 * cm, 1.5 * cm],
+            })
+
+        # Detalhes dos serviços executados (últimas 50)
+        servicos = ServicoManutencao.objects.filter(
+            manutencao__in=manutencoes[:50]
+        ).select_related('manutencao', 'manutencao__viatura').order_by('-manutencao__data_inicio')
+
+        if servicos.exists():
+            serv_data = []
+            for s in servicos:
+                serv_data.append([
+                    s.manutencao.viatura.prefixo,
+                    s.manutencao.ordem_servico or str(s.manutencao.pk),
+                    s.descricao[:60],
+                    f"{s.odometro} km" if s.odometro else '-',
+                    f"R$ {s.custo_pecas + s.custo_mao_obra:,.2f}",
+                ])
+            if serv_data:
+                results.append({
+                    'title': f"SERVIÇOS EXECUTADOS ({len(serv_data)} registros)",
+                    'columns': ['Viatura', 'O.S.', 'Descrição', 'Odômetro', 'Custo'],
+                    'data': serv_data,
+                    'col_widths': [2 * cm, 2.5 * cm, 8 * cm, 2 * cm, 2 * cm],
+                })
+
+        return results
+
+
+class FrotaGastosPeriodoProvider(ReportProvider):
+    """Gastos de manutenção e abastecimento agrupados por mês."""
+
+    def get_data_and_columns(self, filters=None):
+        from django.db.models.functions import TruncMonth
+
+        filters = filters or {}
+        data_inicio = filters.get('data_inicio')
+        data_fim = filters.get('data_fim')
+
+        # ——— Gastos de Manutenção por Mês ———
+        manut_qs = Manutencao.objects.filter(status='CONCLUIDA')
+        if data_inicio:
+            manut_qs = manut_qs.filter(data_inicio__gte=data_inicio)
+        if data_fim:
+            manut_qs = manut_qs.filter(data_inicio__lte=data_fim)
+
+        manut_mes = (
+            manut_qs
+            .annotate(mes=TruncMonth('data_inicio'))
+            .values('mes')
+            .annotate(
+                total_pecas=Sum('custo_pecas'),
+                total_mao_obra=Sum('custo_mao_obra'),
+                qtd=Count('id'),
+            )
+            .order_by('mes')
+        )
+
+        results = []
+        manut_data = []
+        total_pecas = Decimal('0')
+        total_mo = Decimal('0')
+        for row in manut_mes:
+            pecas = row['total_pecas'] or Decimal('0')
+            mo = row['total_mao_obra'] or Decimal('0')
+            total_pecas += pecas
+            total_mo += mo
+            manut_data.append([
+                row['mes'].strftime('%m/%Y') if row['mes'] else '-',
+                str(row['qtd']),
+                f"R$ {pecas:,.2f}",
+                f"R$ {mo:,.2f}",
+                f"R$ {pecas + mo:,.2f}",
+            ])
+        if manut_data:
+            manut_data.append([
+                'TOTAL', '', f"R$ {total_pecas:,.2f}",
+                f"R$ {total_mo:,.2f}", f"R$ {total_pecas + total_mo:,.2f}",
+            ])
+            results.append({
+                'title': f"GASTOS DE MANUTENÇÃO POR MÊS — Total: R$ {total_pecas + total_mo:,.2f}",
+                'columns': ['Mês', 'Qtd.', 'Peças', 'Mão de Obra', 'Total'],
+                'data': manut_data,
+                'col_widths': [3 * cm, 2 * cm, 4 * cm, 4 * cm, 4 * cm],
+            })
+
+        # ——— Gastos de Abastecimento por Mês ———
+        abast_qs = Abastecimento.objects.all()
+        if data_inicio:
+            abast_qs = abast_qs.filter(data_abastecimento__date__gte=data_inicio)
+        if data_fim:
+            abast_qs = abast_qs.filter(data_abastecimento__date__lte=data_fim)
+
+        abast_mes = (
+            abast_qs
+            .annotate(mes=TruncMonth('data_abastecimento'))
+            .values('mes')
+            .annotate(
+                total_litros=Sum('quantidade_litros'),
+                total_valor=Sum('valor_total'),
+                qtd=Count('id'),
+            )
+            .order_by('mes')
+        )
+
+        abast_data = []
+        total_litros = Decimal('0')
+        total_valor_abast = Decimal('0')
+        for row in abast_mes:
+            litros = row['total_litros'] or Decimal('0')
+            valor = row['total_valor'] or Decimal('0')
+            total_litros += litros
+            total_valor_abast += valor
+            abast_data.append([
+                row['mes'].strftime('%m/%Y') if row['mes'] else '-',
+                str(row['qtd']),
+                f"{litros:,.1f} L",
+                f"R$ {valor:,.2f}",
+            ])
+        if abast_data:
+            abast_data.append([
+                'TOTAL', '', f"{total_litros:,.1f} L",
+                f"R$ {total_valor_abast:,.2f}",
+            ])
+            results.append({
+                'title': f"GASTOS DE ABASTECIMENTO POR MÊS — Total: R$ {total_valor_abast:,.2f}",
+                'columns': ['Mês', 'Qtd.', 'Litros', 'Valor'],
+                'data': abast_data,
+                'col_widths': [4 * cm, 3 * cm, 4.5 * cm, 4.5 * cm],
+            })
+
+        # ——— Resumo Consolidado ———
+        if manut_data or abast_data:
+            resumo = [
+                ['Manutenção', f"R$ {total_pecas + total_mo:,.2f}"],
+                ['Abastecimento', f"R$ {total_valor_abast:,.2f}"],
+                ['TOTAL GERAL', f"R$ {total_pecas + total_mo + total_valor_abast:,.2f}"],
+            ]
+            results.insert(0, {
+                'title': "RESUMO CONSOLIDADO",
+                'columns': ['Categoria', 'Valor Total'],
+                'data': resumo,
+                'col_widths': [8 * cm, 8 * cm],
+            })
+
+        return results
+
+
+class FrotaGastosOficinaProvider(ReportProvider):
+    """Gastos agrupados por oficina (com contagem de manutenções e custo médio)."""
+
+    def get_data_and_columns(self, filters=None):
+        filters = filters or {}
+        manut_qs = Manutencao.objects.all()
+        if filters.get('data_inicio'):
+            manut_qs = manut_qs.filter(data_inicio__gte=filters['data_inicio'])
+        if filters.get('data_fim'):
+            manut_qs = manut_qs.filter(data_inicio__lte=filters['data_fim'])
+
+        # ——— Por Oficina cadastrada ———
+        oficina_agg = (
+            manut_qs
+            .filter(oficina_fk__isnull=False)
+            .values('oficina_fk__nome', 'oficina_fk__cidade')
+            .annotate(
+                total_pecas=Sum('custo_pecas'),
+                total_mao_obra=Sum('custo_mao_obra'),
+                qtd_manutencoes=Count('id'),
+            )
+            .order_by('-total_pecas', '-total_mao_obra')
+        )
+
+        results = []
+        data = []
+        custo_geral = Decimal('0')
+        for row in oficina_agg:
+            pecas = row['total_pecas'] or Decimal('0')
+            mo = row['total_mao_obra'] or Decimal('0')
+            total = pecas + mo
+            custo_geral += total
+            qtd = row['qtd_manutencoes']
+            custo_medio = total / qtd if qtd else Decimal('0')
+            data.append([
+                row['oficina_fk__nome'],
+                row.get('oficina_fk__cidade') or '-',
+                str(qtd),
+                f"R$ {pecas:,.2f}",
+                f"R$ {mo:,.2f}",
+                f"R$ {total:,.2f}",
+                f"R$ {custo_medio:,.2f}",
+            ])
+
+        # ——— Por Oficina texto livre ———
+        texto_agg = (
+            manut_qs
+            .filter(oficina_fk__isnull=True, oficina__isnull=False)
+            .exclude(oficina='')
+            .values('oficina')
+            .annotate(
+                total_pecas=Sum('custo_pecas'),
+                total_mao_obra=Sum('custo_mao_obra'),
+                qtd_manutencoes=Count('id'),
+            )
+            .order_by('-total_pecas', '-total_mao_obra')
+        )
+        for row in texto_agg:
+            pecas = row['total_pecas'] or Decimal('0')
+            mo = row['total_mao_obra'] or Decimal('0')
+            total = pecas + mo
+            custo_geral += total
+            qtd = row['qtd_manutencoes']
+            custo_medio = total / qtd if qtd else Decimal('0')
+            data.append([
+                row['oficina'], '-', str(qtd),
+                f"R$ {pecas:,.2f}", f"R$ {mo:,.2f}",
+                f"R$ {total:,.2f}", f"R$ {custo_medio:,.2f}",
+            ])
+
+        if data:
+            data.append([
+                'TOTAL', '', str(sum(int(r[2]) for r in data)),
+                '', '', f"R$ {custo_geral:,.2f}", '',
+            ])
+            results.append({
+                'title': f"GASTOS POR OFICINA — Total: R$ {custo_geral:,.2f}",
+                'columns': ['Oficina', 'Cidade', 'Qtd.', 'Peças', 'M. Obra', 'Total', 'Custo Médio'],
+                'data': data,
+                'col_widths': [4 * cm, 2 * cm, 1.5 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 2 * cm],
+            })
+
+        # ——— Detalhamento por oficina (top 5) ———
+        top_oficinas = sorted(
+            list(oficina_agg) + list(texto_agg),
+            key=lambda x: float((x.get('total_pecas') or 0) + (x.get('total_mao_obra') or 0)),
+            reverse=True,
+        )[:5]
+
+        for of in top_oficinas:
+            nome = of.get('oficina_fk__nome') or of.get('oficina', 'N/A')
+            manuts = manut_qs.filter(
+                oficina_fk__nome=nome
+            ) if of.get('oficina_fk__nome') else manut_qs.filter(oficina=nome)
+
+            detalhe = []
+            for m in manuts.order_by('-data_inicio')[:20]:
+                detalhe.append([
+                    m.viatura.prefixo,
+                    m.get_tipo_display(),
+                    m.data_inicio.strftime('%d/%m/%Y'),
+                    m.descricao[:50],
+                    f"R$ {m.custo_total:,.2f}",
+                ])
+            if detalhe:
+                results.append({
+                    'title': f"Detalhamento — {nome}",
+                    'columns': ['Viatura', 'Tipo', 'Data', 'Descrição', 'Custo'],
+                    'data': detalhe,
+                    'col_widths': [2.5 * cm, 2.5 * cm, 2.5 * cm, 7 * cm, 2.5 * cm],
+                })
+
+        return results
+
+
+class FrotaGastosViaturaProvider(ReportProvider):
+    """Gastos agrupados por viatura (manutenção + abastecimento)."""
+
+    def get_data_and_columns(self, filters=None):
+        filters = filters or {}
+        data_inicio = filters.get('data_inicio')
+        data_fim = filters.get('data_fim')
+
+        # Manutenções por viatura
+        manut_qs = Manutencao.objects.filter(status='CONCLUIDA')
+        if data_inicio:
+            manut_qs = manut_qs.filter(data_inicio__gte=data_inicio)
+        if data_fim:
+            manut_qs = manut_qs.filter(data_inicio__lte=data_fim)
+
+        manut_agg = (
+            manut_qs
+            .values(
+                'viatura__prefixo',
+                'viatura__modelo__marca__nome',
+                'viatura__modelo__nome',
+            )
+            .annotate(
+                total_pecas=Sum('custo_pecas'),
+                total_mao_obra=Sum('custo_mao_obra'),
+                qtd_manut=Count('id'),
+            )
+            .order_by('viatura__prefixo')
+        )
+        manut_dict = {}
+        for row in manut_agg:
+            key = row['viatura__prefixo']
+            manut_dict[key] = {
+                'modelo': f"{row['viatura__modelo__marca__nome']} {row['viatura__modelo__nome']}",
+                'qtd_manut': row['qtd_manut'],
+                'pecas': row['total_pecas'] or Decimal('0'),
+                'mao_obra': row['total_mao_obra'] or Decimal('0'),
+            }
+
+        # Abastecimentos por viatura
+        abast_qs = Abastecimento.objects.all()
+        if data_inicio:
+            abast_qs = abast_qs.filter(data_abastecimento__date__gte=data_inicio)
+        if data_fim:
+            abast_qs = abast_qs.filter(data_abastecimento__date__lte=data_fim)
+
+        abast_agg = (
+            abast_qs
+            .values('viatura__prefixo')
+            .annotate(
+                total_litros=Sum('quantidade_litros'),
+                total_valor=Sum('valor_total'),
+                qtd_abast=Count('id'),
+            )
+        )
+        abast_dict = {}
+        for row in abast_agg:
+            abast_dict[row['viatura__prefixo']] = {
+                'qtd_abast': row['qtd_abast'],
+                'litros': row['total_litros'] or Decimal('0'),
+                'valor': row['total_valor'] or Decimal('0'),
+            }
+
+        # Consolidar
+        all_prefixos = sorted(set(list(manut_dict.keys()) + list(abast_dict.keys())))
+        results = []
+        data = []
+        grand_total = Decimal('0')
+
+        for prefixo in all_prefixos:
+            m = manut_dict.get(prefixo, {})
+            a = abast_dict.get(prefixo, {})
+            custo_manut = m.get('pecas', Decimal('0')) + m.get('mao_obra', Decimal('0'))
+            custo_abast = a.get('valor', Decimal('0'))
+            total = custo_manut + custo_abast
+            grand_total += total
+            data.append([
+                prefixo,
+                m.get('modelo', '-'),
+                str(m.get('qtd_manut', 0)),
+                f"R$ {custo_manut:,.2f}",
+                str(a.get('qtd_abast', 0)),
+                f"{a.get('litros', Decimal('0')):,.1f} L",
+                f"R$ {custo_abast:,.2f}",
+                f"R$ {total:,.2f}",
+            ])
+
+        if data:
+            data.append([
+                'TOTAL', '', '', '', '', '', '',
+                f"R$ {grand_total:,.2f}",
+            ])
+            periodo_str = ''
+            if data_inicio and data_fim:
+                periodo_str = f" ({data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')})"
+            elif data_inicio:
+                periodo_str = f" (a partir de {data_inicio.strftime('%d/%m/%Y')})"
+
+            results.append({
+                'title': f"GASTOS POR VIATURA{periodo_str} — Total: R$ {grand_total:,.2f}",
+                'columns': ['Prefixo', 'Modelo', 'Manut.', 'Custo Manut.', 'Abast.', 'Litros', 'Custo Abast.', 'Total'],
+                'data': data,
+                'col_widths': [1.8 * cm, 3.5 * cm, 1.2 * cm, 2.2 * cm, 1.2 * cm, 1.8 * cm, 2.2 * cm, 2.5 * cm],
+            })
+
+        # Top 5 mais custosas
+        top5 = sorted(data[:-1], key=lambda r: float(r[-1].replace('R$ ', '').replace('.', '').replace(',', '.')), reverse=True)[:5]
+        if len(top5) > 1:
+            results.append({
+                'title': "TOP 5 VIATURAS MAIS CUSTOSAS",
+                'columns': ['Prefixo', 'Modelo', 'Manut.', 'Custo Manut.', 'Abast.', 'Litros', 'Custo Abast.', 'Total'],
+                'data': top5,
+                'col_widths': [1.8 * cm, 3.5 * cm, 1.2 * cm, 2.2 * cm, 1.2 * cm, 1.8 * cm, 2.2 * cm, 2.5 * cm],
+            })
+
+        return results

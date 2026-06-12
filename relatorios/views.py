@@ -25,7 +25,8 @@ from .forms import (
     RelatorioMovimentacoesForm,
     RelatorioMateriaisForm,
     RelatorioPatrimonioForm,
-    RelatorioFrotaForm
+    RelatorioFrotaForm,
+    RelatorioFrotaDetalhadoForm,
 )
 from .utils import PDFReportGenerator
 from . import providers
@@ -71,6 +72,11 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         'TELEMATICA_INVENTARIO': providers.TelematicaProvider,
         'TELEMATICA_MANUTENCAO': providers.TelematicaProvider,
         'TELEMATICA_LINHAS': providers.TelematicaProvider,
+        'FROTA_HISTORICO_VIATURA': providers.FrotaHistoricoViaturaProvider,
+        'FROTA_HISTORICO_MANUTENCAO': providers.FrotaHistoricoManutencaoProvider,
+        'FROTA_GASTOS_PERIODO': providers.FrotaGastosPeriodoProvider,
+        'FROTA_GASTOS_OFICINA': providers.FrotaGastosOficinaProvider,
+        'FROTA_GASTOS_VIATURA': providers.FrotaGastosViaturaProvider,
     }
     
     provider_class = provider_map.get(tipo_chave)
@@ -184,6 +190,11 @@ def detalhe_relatorio(request, relatorio_id):
             'TELEMATICA_INVENTARIO': providers.TelematicaProvider,
             'TELEMATICA_MANUTENCAO': providers.TelematicaProvider,
             'TELEMATICA_LINHAS': providers.TelematicaProvider,
+            'FROTA_HISTORICO_VIATURA': providers.FrotaHistoricoViaturaProvider,
+            'FROTA_HISTORICO_MANUTENCAO': providers.FrotaHistoricoManutencaoProvider,
+            'FROTA_GASTOS_PERIODO': providers.FrotaGastosPeriodoProvider,
+            'FROTA_GASTOS_OFICINA': providers.FrotaGastosOficinaProvider,
+            'FROTA_GASTOS_VIATURA': providers.FrotaGastosViaturaProvider,
         }
         
         provider_class = provider_map.get(relatorio.tipo)
@@ -631,4 +642,51 @@ def gerar_relatorio_telematica(request):
         'total_ativos': Equipamento.objects.count(),
         'em_manutencao': Equipamento.objects.filter(status='MANUTENCAO').count(),
         'manut_abertas': SolicitacaoSuporteTI.objects.filter(status__in=['PENDENTE', 'EM_ATENDIMENTO', 'AGUARDANDO_PECA']).count()
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def gerar_relatorio_frota_detalhado(request):
+    """View unificada para os 5 relatórios detalhados de Frota."""
+    if request.method == 'POST':
+        form = RelatorioFrotaDetalhadoForm(request.POST)
+        if form.is_valid():
+            tipo = form.cleaned_data.get('tipo_relatorio')
+            titulo = form.cleaned_data.get('titulo') or 'Relatório de Frota'
+
+            # Mapeamento tipo → título padrão
+            titulos_padrao = {
+                'FROTA_HISTORICO_VIATURA': 'Histórico da Viatura',
+                'FROTA_HISTORICO_MANUTENCAO': 'Histórico de Manutenção',
+                'FROTA_GASTOS_PERIODO': 'Gastos por Período',
+                'FROTA_GASTOS_OFICINA': 'Gastos por Oficina',
+                'FROTA_GASTOS_VIATURA': 'Gastos por Viatura',
+            }
+            if titulo == 'Relatório de Frota':
+                titulo = titulos_padrao.get(tipo, titulo)
+
+            # Preparar filtros para os providers
+            filtros = dict(form.cleaned_data)
+            # Converter objetos Model para PK (providers usam filtros Django)
+            if filtros.get('viatura'):
+                filtros['viatura'] = filtros['viatura'].pk
+            if filtros.get('oficina'):
+                filtros['oficina'] = filtros['oficina'].pk
+
+            relatorio = _gerar_pdf_unificado(request, tipo, titulo, filtros)
+            if relatorio:
+                messages.success(request, 'Relatório Gerado com Sucesso!')
+                return redirect('relatorios:detalhe_relatorio', relatorio_id=relatorio.pk)
+    else:
+        form = RelatorioFrotaDetalhadoForm(
+            initial={'titulo': f"Relatório de Frota - {timezone.now().strftime('%d/%m/%Y')}"}
+        )
+
+    from viaturas.models import Viatura
+    return render(request, 'relatorios/form_relatorio_frota_detalhado.html', {
+        'form': form,
+        'viaturas_count': Viatura.objects.count(),
+        'disponiveis_count': Viatura.objects.filter(status='DISPONIVEL').count(),
+        'manutencao_count': Viatura.objects.filter(status='MANUTENCAO').count(),
     })

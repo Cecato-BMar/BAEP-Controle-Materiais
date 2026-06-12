@@ -15,5 +15,7 @@ xlrd
 openpyxl
 pandas
 django-simple-history
+djangorestframework
+django-filter
 
 

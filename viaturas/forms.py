@@ -18,6 +18,7 @@ from .models import (
     PlanoManutencaoPreventiva,
     ServicoManutencao,
     DocumentoViatura,
+    LocalizacaoViatura,
 )
 from django.forms import inlineformset_factory
 from policiais.models import Policial
@@ -182,7 +183,7 @@ class AbastecimentoForm(forms.ModelForm):
 
 class ManutencaoForm(forms.ModelForm):
     localizacao_fisica = forms.ChoiceField(
-        choices=Viatura.LOCALIZACAO_CHOICES,
+        choices=LocalizacaoViatura.choices,
         label="Onde a viatura ficará estacionada?",
         help_text="Fisicamente, onde o veículo permanecerá durante a manutenção.",
         required=False

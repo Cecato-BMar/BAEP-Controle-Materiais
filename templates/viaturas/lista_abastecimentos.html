@@ -11,11 +11,14 @@
     <a href="{% url 'viaturas:criar_abastecimento' %}" class="btn btn-info btn-sm fw-bold text-white"><i class="fas fa-plus me-1"></i>Novo Abastecimento</a>
 </div>
 
-<!-- Filtro por viatura -->
+<!-- Filtros -->
 <div class="card border-0 mb-3">
     <div class="card-body py-2">
-        <form method="get" class="row gx-2 align-items-end">
-            <div class="col-md-5">
+        <form method="get" class="row gx-2 gy-1 align-items-end">
+            <div class="col-md-3">
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar por prefixo, posto, cupom..." value="{{ q|default:'' }}">
+            </div>
+            <div class="col-md-3">
                 <select name="viatura" class="form-select form-select-sm">
                     <option value="">— Todas as Viaturas —</option>
                     {% for v in viaturas %}
@@ -23,10 +26,16 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-search me-1"></i>Filtrar</button>
+            <div class="col-md-3">
+                <select name="combustivel" class="form-select form-select-sm">
+                    <option value="">— Todos os Combustíveis —</option>
+                    {% for val, lbl in combustiveis_choices %}
+                    <option value="{{ val }}" {% if combustivel_filtro == val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="fas fa-search me-1"></i>Filtrar</button>
                 <a href="{% url 'viaturas:lista_abastecimentos' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times"></i></a>
             </div>
         </form>
@@ -47,6 +56,7 @@
                         <th>Valor Total</th>
                         <th>Motorista</th>
                         <th>Posto/Cupom</th>
+                        <th class="text-end">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,9 +70,12 @@
                         <td>{% if ab.valor_total %}R$ {{ ab.valor_total|floatformat:2 }}{% else %}—{% endif %}</td>
                         <td>{{ ab.motorista.nome|default:"—" }}</td>
                         <td><small>{{ ab.posto_fornecedor|default:"" }} {% if ab.cupom_fiscal %}<code>{{ ab.cupom_fiscal }}</code>{% endif %}</small></td>
+                        <td class="text-end">
+                            <a href="{% url 'viaturas:excluir_abastecimento' ab.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                        </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" class="text-center py-5 text-muted">Nenhum abastecimento registrado.</td></tr>
+                    <tr><td colspan="9" class="text-center py-5 text-muted">Nenhum abastecimento registrado.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -71,9 +84,9 @@
     {% if page_obj.has_other_pages %}
     <div class="card-footer bg-transparent">
         <nav><ul class="pagination pagination-sm justify-content-center mb-0">
-            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&viatura={{ viatura_filtro|default:'' }}">&laquo;</a></li>{% endif %}
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&viatura={{ viatura_filtro|default:'' }}&q={{ q|default:'' }}&combustivel={{ combustivel_filtro|default:'' }}">&laquo;</a></li>{% endif %}
             <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&viatura={{ viatura_filtro|default:'' }}">&raquo;</a></li>{% endif %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&viatura={{ viatura_filtro|default:'' }}&q={{ q|default:'' }}&combustivel={{ combustivel_filtro|default:'' }}">&raquo;</a></li>{% endif %}
         </ul></nav>
     </div>
     {% endif %}

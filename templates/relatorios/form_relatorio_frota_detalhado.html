@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Relatórios Detalhados de Frota — SIS LOGÍSTICA BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 px-md-5 animate__animated animate__fadeIn" style="background: #fdfdfd;">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">Início</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-muted text-decoration-none">Relatórios</a></li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Frota Detalhado</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-soft overflow-hidden" style="border-radius: 32px; background: #fff;">
+                <div class="row g-0">
+                    <!-- Coluna Lateral -->
+                    <div class="col-lg-4 d-none d-lg-block p-5 text-white" style="background: linear-gradient(165deg, #1e3a8a, #1e40af); position: relative;">
+                        <div class="position-relative z-index-2">
+                            <div class="mb-5">
+                                <div class="bg-white bg-opacity-10 rounded-4 p-3 d-inline-block backdrop-blur mb-4 border border-white border-opacity-10">
+                                    <i class="fas fa-file-pdf fa-2x"></i>
+                                </div>
+                                <h3 class="fw-bold">Relatórios de Frota</h3>
+                                <p class="opacity-70">Histórico completo, análise de gastos e auditoria de manutenções.</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10">
+                                    <h6 class="fw-bold mb-1 text-info"><i class="fas fa-history me-2"></i>Histórico</h6>
+                                    <p class="small opacity-60 mb-0">Despachos, manutenções, abastecimentos e documentos por viatura.</p>
+                                </div>
+                                <div class="p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 mt-3">
+                                    <h6 class="fw-bold mb-1 text-warning"><i class="fas fa-chart-bar me-2"></i>Gastos</h6>
+                                    <p class="small opacity-60 mb-0">Custos por período, oficina ou viatura com totais consolidados.</p>
+                                </div>
+                                <div class="p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 mt-3">
+                                    <h6 class="fw-bold mb-1 text-success"><i class="fas fa-wrench me-2"></i>Manutenção</h6>
+                                    <p class="small opacity-60 mb-0">Serviços executados, custos de peças e mão de obra detalhados.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-5 opacity-40 text-center">
+                                <img src="{% static 'img/brasao_pmesp.png' %}" alt="PMESP" style="max-width: 80px; filter: grayscale(1) brightness(2);">
+                            </div>
+                        </div>
+                        <div class="position-absolute top-0 start-0 w-100 h-100 overflow-hidden opacity-10 pointer-events-none">
+                            <i class="fas fa-truck position-absolute" style="font-size: 20rem; bottom: -2rem; right: -2rem;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Formulário -->
+                    <div class="col-lg-8 p-4 p-md-5">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <h2 class="fw-black text-dark mb-1 tracking-tighter">Relatório Detalhado</h2>
+                                <p class="text-muted mb-0">Selecione o tipo de relatório e configure os filtros</p>
+                            </div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold small">
+                                <i class="fas fa-car-side me-1"></i>FROTA
+                            </span>
+                        </div>
+
+                        <!-- Mini Dashboard -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Viaturas</p>
+                                    <h4 class="fw-black mb-0 text-primary">{{ viaturas_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Disponíveis</p>
+                                    <h4 class="fw-black mb-0 text-success">{{ disponiveis_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-4 bg-light border border-light shadow-sm">
+                                    <p class="smaller text-uppercase fw-bold text-muted mb-1">Em Manutenção</p>
+                                    <h4 class="fw-black mb-0 text-danger">{{ manutencao_count|default:"--" }}</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tipos de Relatório (cards) -->
+                        <div class="row g-2 mb-4">
+                            <div class="col-12">
+                                <label class="smaller text-uppercase fw-bold text-muted mb-2">Tipo de Relatório</label>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="tipo-card d-block">
+                                    <input type="radio" name="tipo_card" value="FROTA_HISTORICO_VIATURA" class="d-none" checked>
+                                    <div class="p-3 rounded-4 border border-2 text-center h-100 transition-all">
+                                        <i class="fas fa-history fa-lg text-primary mb-2"></i>
+                                        <p class="small fw-bold mb-0">Histórico da Viatura</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="tipo-card d-block">
+                                    <input type="radio" name="tipo_card" value="FROTA_HISTORICO_MANUTENCAO" class="d-none">
+                                    <div class="p-3 rounded-4 border border-2 text-center h-100 transition-all">
+                                        <i class="fas fa-wrench fa-lg text-warning mb-2"></i>
+                                        <p class="small fw-bold mb-0">Histórico de Manutenção</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="tipo-card d-block">
+                                    <input type="radio" name="tipo_card" value="FROTA_GASTOS_PERIODO" class="d-none">
+                                    <div class="p-3 rounded-4 border border-2 text-center h-100 transition-all">
+                                        <i class="fas fa-calendar-alt fa-lg text-info mb-2"></i>
+                                        <p class="small fw-bold mb-0">Gastos por Período</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="tipo-card d-block">
+                                    <input type="radio" name="tipo_card" value="FROTA_GASTOS_OFICINA" class="d-none">
+                                    <div class="p-3 rounded-4 border border-2 text-center h-100 transition-all">
+                                        <i class="fas fa-industry fa-lg text-secondary mb-2"></i>
+                                        <p class="small fw-bold mb-0">Gastos por Oficina</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="tipo-card d-block">
+                                    <input type="radio" name="tipo_card" value="FROTA_GASTOS_VIATURA" class="d-none">
+                                    <div class="p-3 rounded-4 border border-2 text-center h-100 transition-all">
+                                        <i class="fas fa-chart-pie fa-lg text-danger mb-2"></i>
+                                        <p class="small fw-bold mb-0">Gastos por Viatura</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <form method="post" novalidate class="premium-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="tipo_relatorio" id="id_tipo_relatorio" value="FROTA_HISTORICO_VIATURA">
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    {{ form.titulo|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.viatura|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.oficina|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.tipo_manutencao|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.status|as_crispy_field }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.data_inicio|as_crispy_field }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.data_fim|as_crispy_field }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form.observacoes|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            {% if form.errors %}
+                            <div class="alert alert-danger mt-3 rounded-4">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <p class="mb-0 small"><strong>{{ field }}:</strong> {{ error }}</p>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="mt-4 d-grid">
+                                <button type="submit" class="btn btn-navy btn-xl rounded-4 fw-bold shadow-lg py-3 transition-all hover-scale">
+                                    <span class="d-flex align-items-center justify-content-center text-white">
+                                        <i class="fas fa-file-pdf fa-lg me-3"></i>
+                                        GERAR RELATÓRIO PDF
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-link text-muted text-decoration-none small hover-dark">
+                                    <i class="fas fa-arrow-left me-2"></i>Voltar à Central de Relatórios
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-black { font-weight: 900; }
+    .tracking-tighter { letter-spacing: -1.5px; }
+    .smaller { font-size: 0.7rem; }
+    .z-index-2 { z-index: 2; }
+    .pointer-events-none { pointer-events: none; }
+    .shadow-soft { box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08); }
+    .backdrop-blur { backdrop-filter: blur(12px); }
+
+    .premium-form .form-control,
+    .premium-form .form-select {
+        border-radius: 16px !important;
+        border: 2px solid #f1f5f9 !important;
+        padding: 12px 18px !important;
+        background-color: #f8fafc !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-weight: 500; color: #334155;
+    }
+    .premium-form .form-control:focus,
+    .premium-form .form-select:focus {
+        border-color: #1e40af !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1) !important;
+    }
+    .premium-form label {
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        font-weight: 800 !important;
+        color: #64748b !important;
+        margin-bottom: 8px !important;
+        letter-spacing: 1px !important;
+    }
+
+    /* Cards de tipo */
+    .tipo-card input:checked + div {
+        border-color: #1e40af !important;
+        background: rgba(30, 64, 175, 0.05) !important;
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+    }
+    .tipo-card div { border-color: #e2e8f0; cursor: pointer; }
+    .tipo-card div:hover { border-color: #94a3b8; background: #f8fafc; }
+
+    .btn-navy { background: linear-gradient(135deg, #1e3a8a, #1e40af); border: none; }
+    .btn-xl { font-size: 1.1rem; letter-spacing: 1px; }
+    .hover-scale:hover { transform: scale(1.01); }
+    .hover-dark:hover { color: #1e293b !important; transform: translateX(-5px); }
+    .transition-all { transition: all 0.3s ease; }
+
+    @media (max-width: 991.98px) { .card { border-radius: 20px; } }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.tipo-card input[type="radio"]');
+    const hiddenInput = document.getElementById('id_tipo_relatorio');
+
+    cards.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            hiddenInput.value = this.value;
+        });
+    });
+
+    // Sincronizar ao carregar
+    if (hiddenInput.value) {
+        const matching = document.querySelector('.tipo-card input[value="' + hiddenInput.value + '"]');
+        if (matching) matching.checked = true;
+    }
+});
+</script>
+{% endblock %}
