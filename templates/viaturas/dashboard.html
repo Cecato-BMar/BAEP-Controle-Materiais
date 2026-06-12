@@ -143,7 +143,7 @@
         </div>
 
         <!-- Alertas Inteligentes (Fase 3) -->
-        {% if garantias_vencendo or alertas_preventivas or manutencoes_longas %}
+        {% if garantias_vencendo or alertas_preventivas or manutencoes_longas or documentos_vencendo or documentos_vencidos %}
         <div class="card border-0 mt-3 border-start border-danger border-4">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <span class="text-danger fw-bold"><i class="fas fa-bell me-2"></i>Alertas Importantes</span>
@@ -162,6 +162,18 @@
                         Garantia de <strong>{{ g.viatura.prefixo }}</strong> vence em {{ g.data_validade_garantia|date:"d/m" }}.
                     </li>
                     {% endfor %}
+                    {% for doc in documentos_vencendo %}
+                    <li class="list-group-item bg-warning-subtle">
+                        <i class="fas fa-file-alt text-warning me-2"></i>
+                        <strong>{{ doc.viatura.prefixo }}</strong> — {{ doc.get_tipo_display }} vence em {{ doc.data_vencimento|date:"d/m/Y" }}.
+                    </li>
+                    {% endfor %}
+                    {% if documentos_vencidos > 0 %}
+                    <li class="list-group-item bg-danger-subtle">
+                        <i class="fas fa-file-times text-danger me-2"></i>
+                        <strong>{{ documentos_vencidos }}</strong> documento(s) de viatura <strong>já vencido(s)</strong>.
+                    </li>
+                    {% endif %}
                     {% for p in alertas_preventivas %}
                     <li class="list-group-item bg-info-subtle">
                         <i class="fas fa-tools text-info me-2"></i>
@@ -211,7 +223,7 @@
                     {% for ret in ultimas_retiradas %}
                     <li class="list-group-item">
                         <div class="d-flex justify-content-between">
-                            <span><span class="badge bg-dark me-1">{{ ret.viatura.prefixo }}</span><small>{{ ret.itens.count }} peça(s)</small></span>
+                            <span><span class="badge bg-dark me-1">{{ ret.viatura.prefixo }}</span><small>{{ ret.total_itens }} peça(s)</small></span>
                             <small class="text-muted">{{ ret.data_retirada|date:"d/m H:i" }}</small>
                         </div>
                     </li>

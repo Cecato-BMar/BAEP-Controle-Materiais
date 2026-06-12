@@ -78,4 +78,15 @@ urlpatterns = [
     path('planos-preventivos/', views.lista_planos_preventivos, name='lista_planos_preventivos'),
     path('planos-preventivos/novo/', views.criar_plano_preventivo, name='criar_plano_preventivo'),
     path('planos-preventivos/<int:pk>/editar/', views.editar_plano_preventivo, name='editar_plano_preventivo'),
+
+    # Documentos de Viatura
+    path('viaturas/<int:viatura_pk>/documentos/', views.lista_documentos, name='lista_documentos'),
+    path('viaturas/<int:viatura_pk>/documentos/novo/', views.criar_documento, name='criar_documento'),
+    path('documentos/<int:pk>/editar/', views.editar_documento, name='editar_documento'),
+
+    # API REST
+    path('api/viaturas/', views.api_viaturas, name='api_viaturas'),
+    path('api/viaturas/<int:viatura_id>/', views.api_viatura_detalhe, name='api_viatura_detalhe'),
+    path('api/despachos/ativos/', views.api_despachos_ativos, name='api_despachos_ativos'),
+    path('api/manutencoes/', views.api_manutencoes, name='api_manutencoes'),
 ]

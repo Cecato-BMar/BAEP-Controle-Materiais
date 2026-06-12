@@ -4,7 +4,7 @@ from .models import (
     MarcaViatura, ModeloViatura, Viatura, DespachoViatura, 
     Abastecimento, Manutencao, Oficina, ChecklistViatura,
     SolicitacaoBaixaViatura, PecaViatura, RetiradaPeca, RetiradaPecaItem,
-    EvidenciaManutencao, PlanoManutencaoPreventiva
+    EvidenciaManutencao, PlanoManutencaoPreventiva, DocumentoViatura
 )
 
 
@@ -147,3 +147,12 @@ class PlanoManutencaoPreventivaAdmin(admin.ModelAdmin):
     list_display = ('modelo', 'descricao', 'intervalo_km', 'intervalo_dias', 'ativo')
     list_filter = ('ativo', 'modelo__marca')
     search_fields = ('descricao', 'modelo__nome')
+
+
+@admin.register(DocumentoViatura)
+class DocumentoViaturaAdmin(admin.ModelAdmin):
+    list_display = ('viatura', 'tipo', 'numero_documento', 'data_emissao', 'data_vencimento', 'ativo')
+    search_fields = ('viatura__prefixo', 'viatura__placa', 'numero_documento')
+    list_filter = ('tipo', 'ativo', 'data_vencimento')
+    autocomplete_fields = ['viatura']
+    readonly_fields = ('data_cadastro', 'data_atualizacao', 'registrado_por')

@@ -17,6 +17,7 @@ from .models import (
     EvidenciaManutencao,
     PlanoManutencaoPreventiva,
     ServicoManutencao,
+    DocumentoViatura,
 )
 from django.forms import inlineformset_factory
 from policiais.models import Policial
@@ -737,3 +738,38 @@ class PlanoManutencaoPreventivaForm(forms.ModelForm):
         )
 
 
+class DocumentoViaturaForm(forms.ModelForm):
+    """Formulário para cadastro/edição de documentos de viatura."""
+    class Meta:
+        model = DocumentoViatura
+        fields = [
+            'tipo', 'numero_documento', 'data_emissao', 'data_vencimento',
+            'arquivo', 'observacoes', 'ativo',
+        ]
+        widgets = {
+            'data_emissao': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'observacoes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column('tipo', css_class='col-md-4'),
+                Column('numero_documento', css_class='col-md-4'),
+                Column('ativo', css_class='col-md-4 d-flex align-items-center mt-3'),
+            ),
+            Row(
+                Column('data_emissao', css_class='col-md-6'),
+                Column('data_vencimento', css_class='col-md-6'),
+            ),
+            Row(
+                Column('arquivo', css_class='col-12'),
+            ),
+            Row(
+                Column('observacoes', css_class='col-12'),
+            ),
+        )

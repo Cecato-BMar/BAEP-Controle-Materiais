@@ -616,3 +616,59 @@ class PlanoManutencaoPreventiva(models.Model):
         if self.intervalo_dias:
             partes.append(f"a cada {self.intervalo_dias} dias")
         return f"{self.modelo} — {' / '.join(partes)}"
+
+
+class DocumentoViatura(models.Model):
+    """Documentos de viatura: CRLV, Seguro, IPVA, DPVAT, Vistoria, etc."""
+    TIPO_CHOICES = [
+        ('CRLV', 'CRLV (Certificado de Registro e Licenciamento)'),
+        ('SEGURO', 'Apólice de Seguro'),
+        ('IPVA', 'IPVA (Imposto sobre Propriedade)'),
+        ('DPVAT', 'DPVAT (Seguro Obrigatório)'),
+        ('VISTORIA', 'Laudo de Vistoria'),
+        ('OUTRO', 'Outro Documento'),
+    ]
+    viatura = models.ForeignKey(Viatura, on_delete=models.CASCADE, related_name='documentos')
+    tipo = models.CharField(_('Tipo de Documento'), max_length=20, choices=TIPO_CHOICES)
+    numero_documento = models.CharField(_('Número do Documento'), max_length=100, blank=True)
+    data_emissao = models.DateField(_('Data de Emissão'), null=True, blank=True)
+    data_vencimento = models.DateField(_('Data de Vencimento'), null=True, blank=True)
+    arquivo = models.FileField(
+        _('Arquivo Digital'),
+        upload_to='viaturas/documentos/%Y/%m/',
+        blank=True, null=True,
+        help_text='PDF ou imagem do documento'
+    )
+    observacoes = models.TextField(_('Observações'), blank=True)
+    ativo = models.BooleanField(_('Ativo'), default=True)
+    registrado_por = models.ForeignKey(
+        User, on_delete=models.PROTECT,
+        verbose_name=_('Registrado por'),
+        related_name='documentos_registrados'
+    )
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Documento de Viatura')
+        verbose_name_plural = _('Documentos de Viatura')
+        ordering = ['tipo', 'data_vencimento']
+        unique_together = ['viatura', 'tipo', 'numero_documento']
+
+    def __str__(self):
+        venc = f" — vence em {self.data_vencimento:%d/%m/%Y}" if self.data_vencimento else ""
+        return f"{self.get_tipo_display()}{venc} ({self.viatura.prefixo})"
+
+    @property
+    def status_vencimento(self):
+        """Retorna status do documento baseado na data de vencimento."""
+        from django.utils import timezone
+        if not self.data_vencimento:
+            return 'INDETERMINADO'
+        hoje = timezone.now().date()
+        dias = (self.data_vencimento - hoje).days
+        if dias < 0:
+            return 'VENCIDO'
+        elif dias <= 30:
+            return 'EXPIRANDO'
+        return 'VIGENTE'

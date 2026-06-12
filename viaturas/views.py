@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models import Q, Sum, Count, Avg, F
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from decimal import Decimal
 from datetime import timedelta
 
@@ -12,7 +13,7 @@ from .models import (
     MarcaViatura, ModeloViatura, Viatura, DespachoViatura, Abastecimento,
     Manutencao, Oficina, ChecklistViatura, SolicitacaoBaixaViatura,
     PecaViatura, RetiradaPeca, EvidenciaManutencao, PlanoManutencaoPreventiva,
-    RetiradaPecaItem, ServicoManutencao
+    RetiradaPecaItem, ServicoManutencao, DocumentoViatura
 )
 from .forms import (
     ViaturaForm, DespachoSaidaForm, DespachoRetornoForm,
@@ -22,6 +23,7 @@ from .forms import (
     PecaViaturaForm, RetiradaPecaForm, RetiradaPecaItemFormSet, AnexarReciboRetiradaForm,
     ConcluirManutencaoForm, CancelarManutencaoForm, EvidenciaManutencaoForm,
     PlanoManutencaoPreventivaForm, ServicoManutencaoForm,
+    DocumentoViaturaForm,
 )
 from reserva_baep.decorators import require_module_permission
 from .services.manutencao_historico import (
@@ -37,16 +39,8 @@ from .services.manutencao_historico import (
 import xml.etree.ElementTree as ET
 import pandas as pd
 from django.db import transaction
+from django.db.models import Subquery, OuterRef
 import io
-
-FROTA_GROUPS = ['frota', 'reserva_armas']  # grupos com acesso ao módulo
-
-
-def _has_frota_permission(user):
-    """Verifica se o usuário tem acesso ao módulo de frota."""
-    if user.is_superuser:
-        return True
-    return user.groups.filter(name__in=FROTA_GROUPS).exists()
 
 
 # =============================================================================
@@ -56,11 +50,14 @@ def _has_frota_permission(user):
 @login_required
 @require_module_permission('frota')
 def dashboard_frota(request):
-    total = Viatura.objects.count()
-    disponiveis = Viatura.objects.filter(status='DISPONIVEL').count()
-    em_uso = Viatura.objects.filter(status='EM_USO').count()
-    manutencao = Viatura.objects.filter(status='MANUTENCAO').count()
-    baixadas = Viatura.objects.filter(status='BAIXADA').count()
+    # Contagens de status consolidadas (1 query em vez de 5)
+    status_counts = Viatura.objects.values('status').annotate(total=Count('id'))
+    status_map = {row['status']: row['total'] for row in status_counts}
+    total = sum(status_map.values())
+    disponiveis = status_map.get('DISPONIVEL', 0)
+    em_uso = status_map.get('EM_USO', 0)
+    manutencao = status_map.get('MANUTENCAO', 0)
+    baixadas = status_map.get('BAIXADA', 0)
 
     # Por tipo
     por_tipo = (
@@ -88,7 +85,9 @@ def dashboard_frota(request):
 
     # Dados de Peças
     pecas_estoque_baixo = PecaViatura.objects.filter(quantidade_estoque__lte=F('limite_minimo'), ativo=True).count()
-    ultimas_retiradas = RetiradaPeca.objects.select_related('viatura').order_by('-data_retirada')[:5]
+    ultimas_retiradas = RetiradaPeca.objects.select_related('viatura').annotate(
+        total_itens=Count('itens')
+    ).order_by('-data_retirada')[:5]
 
     # =========================================================================
     # ALERTAS INTELIGENTES (Fase 3)
@@ -119,41 +118,53 @@ def dashboard_frota(request):
     ).select_related('viatura').order_by('data_inicio')[:10]
     
     # Alertas de manutenção preventiva (baseado em PlanoManutencaoPreventiva)
+    # Otimizado: Subquery em vez de N+1 loop
     alertas_preventivas = []
     planos_ativos = PlanoManutencaoPreventiva.objects.filter(ativo=True).select_related('modelo')
-    for plano in planos_ativos:
-        viaturas_plano = Viatura.objects.filter(
-            modelo=plano.modelo,
+    if planos_ativos:
+        planos_por_modelo = {}
+        for plano in planos_ativos:
+            planos_por_modelo.setdefault(plano.modelo_id, []).append(plano)
+
+        modelos_ids = list(planos_por_modelo.keys())
+
+        ultima_prev_sub = Manutencao.objects.filter(
+            viatura=OuterRef('pk'), tipo='PREVENTIVA', status='CONCLUIDA'
+        ).order_by('-data_conclusao')
+
+        viaturas_ativas = Viatura.objects.filter(
+            modelo_id__in=modelos_ids,
             status__in=['DISPONIVEL', 'EM_USO']
+        ).select_related('modelo').annotate(
+            ultima_prev_data=Subquery(ultima_prev_sub.values('data_conclusao')[:1]),
+            ultima_prev_km=Subquery(ultima_prev_sub.values('odometro')[:1]),
         )
-        for vtr in viaturas_plano:
-            ultima_prev = Manutencao.objects.filter(
-                viatura=vtr, tipo='PREVENTIVA', status='CONCLUIDA',
-                descricao__icontains=plano.descricao[:30]
-            ).order_by('-data_conclusao').first()
-            
-            alerta = False
-            motivo = ''
-            if plano.intervalo_km and ultima_prev:
-                km_desde = vtr.odometro_atual - ultima_prev.odometro
-                if km_desde >= Decimal(str(plano.intervalo_km)):
+
+        for vtr in viaturas_ativas:
+            planos = planos_por_modelo.get(vtr.modelo_id, [])
+            for plano in planos:
+                alerta = False
+                motivo = ''
+                if plano.intervalo_km and vtr.ultima_prev_km is not None:
+                    km_desde = vtr.odometro_atual - vtr.ultima_prev_km
+                    if km_desde >= Decimal(str(plano.intervalo_km)):
+                        alerta = True
+                        motivo = f'{km_desde:,.0f} km desde a última ({plano.descricao})'
+                if plano.intervalo_dias and vtr.ultima_prev_data is not None:
+                    dias_desde = (hoje - vtr.ultima_prev_data).days
+                    if dias_desde >= plano.intervalo_dias:
+                        alerta = True
+                        motivo = f'{dias_desde} dias desde a última ({plano.descricao})'
+                if vtr.ultima_prev_data is None and (plano.intervalo_km or plano.intervalo_dias):
                     alerta = True
-                    motivo = f'{km_desde:,.0f} km desde a última ({plano.descricao})'
-            if plano.intervalo_dias and ultima_prev and ultima_prev.data_conclusao:
-                dias_desde = (hoje - ultima_prev.data_conclusao).days
-                if dias_desde >= plano.intervalo_dias:
-                    alerta = True
-                    motivo = f'{dias_desde} dias desde a última ({plano.descricao})'
-            if not ultima_prev and (plano.intervalo_km or plano.intervalo_dias):
-                alerta = True
-                motivo = f'Nunca realizou: {plano.descricao}'
-            
-            if alerta:
-                alertas_preventivas.append({
-                    'viatura': vtr,
-                    'plano': plano,
-                    'motivo': motivo
-                })
+                    motivo = f'Nunca realizou: {plano.descricao}'
+
+                if alerta:
+                    alertas_preventivas.append({
+                        'viatura': vtr,
+                        'plano': plano,
+                        'motivo': motivo
+                    })
     
     # =========================================================================
     # KPIs DE FROTA (Fase 4)
@@ -188,6 +199,23 @@ def dashboard_frota(request):
         .order_by('-custo_manut')[:5]
     )
 
+    # =========================================================================
+    # ALERTAS DE DOCUMENTOS VENCENDO (próximos 30 dias)
+    # =========================================================================
+    limite_doc = hoje + timedelta(days=30)
+    documentos_vencendo = DocumentoViatura.objects.filter(
+        ativo=True,
+        data_vencimento__isnull=False,
+        data_vencimento__lte=limite_doc,
+        data_vencimento__gte=hoje
+    ).select_related('viatura').order_by('data_vencimento')[:10]
+
+    documentos_vencidos = DocumentoViatura.objects.filter(
+        ativo=True,
+        data_vencimento__isnull=False,
+        data_vencimento__lt=hoje
+    ).select_related('viatura').count()
+
     context = {
         'total': total,
         'disponiveis': disponiveis,
@@ -208,6 +236,9 @@ def dashboard_frota(request):
         'garantias_vencidas': garantias_vencidas,
         'manutencoes_longas': manutencoes_longas,
         'alertas_preventivas': alertas_preventivas[:10],
+        # Alertas de Documentos
+        'documentos_vencendo': documentos_vencendo,
+        'documentos_vencidos': documentos_vencidos,
         # KPIs (Fase 4)
         'custo_total_frota': custo_total_frota,
         'custo_medio': custo_medio,
@@ -1459,3 +1490,264 @@ def historico_manutencao(request, pk):
         'pode_registrar_servico': man.status not in ('CONCLUIDA', 'CANCELADA'),
     })
 
+
+# =============================================================================
+# DOCUMENTOS DE VIATURA (CRLV, Seguro, IPVA, DPVAT, Vistoria, etc.)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def lista_documentos(request, viatura_pk):
+    """Lista todos os documentos de uma viatura com filtro por tipo."""
+    viatura = get_object_or_404(Viatura, pk=viatura_pk)
+    documentos = DocumentoViatura.objects.filter(
+        viatura=viatura
+    ).select_related('registrado_por').order_by('tipo', 'data_vencimento')
+
+    # Filtro por tipo
+    tipo_filter = request.GET.get('tipo')
+    if tipo_filter:
+        documentos = documentos.filter(tipo=tipo_filter)
+
+    # Filtro por status de vencimento
+    status_filter = request.GET.get('status')
+    hoje = timezone.now().date()
+    if status_filter == 'vencido':
+        documentos = documentos.filter(data_vencimento__isnull=False, data_vencimento__lt=hoje)
+    elif status_filter == 'expirando':
+        limite = hoje + timedelta(days=30)
+        documentos = documentos.filter(
+            data_vencimento__isnull=False,
+            data_vencimento__gte=hoje,
+            data_vencimento__lte=limite
+        )
+    elif status_filter == 'vigente':
+        limite = hoje + timedelta(days=30)
+        documentos = documentos.filter(data_vencimento__isnull=False, data_vencimento__gt=limite)
+
+    return render(request, 'viaturas/lista_documentos.html', {
+        'viatura': viatura,
+        'documentos': documentos,
+        'tipo_filter': tipo_filter,
+        'status_filter': status_filter,
+        'tipos': DocumentoViatura.TIPO_CHOICES,
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def criar_documento(request, viatura_pk):
+    """Cadastra um novo documento para a viatura."""
+    viatura = get_object_or_404(Viatura, pk=viatura_pk)
+
+    if request.method == 'POST':
+        form = DocumentoViaturaForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save(commit=False)
+            doc.viatura = viatura
+            doc.registrado_por = request.user
+            doc.save()
+            messages.success(request, f'Documento {doc.get_tipo_display()} cadastrado com sucesso para {viatura.prefixo}!')
+            return redirect('viaturas:lista_documentos', viatura_pk=viatura.pk)
+    else:
+        form = DocumentoViaturaForm()
+
+    return render(request, 'viaturas/form_documento.html', {
+        'form': form,
+        'viatura': viatura,
+        'titulo': f'Novo Documento — {viatura.prefixo}',
+    })
+
+
+@login_required
+@require_module_permission('frota')
+def editar_documento(request, pk):
+    """Edita um documento existente."""
+    documento = get_object_or_404(DocumentoViatura, pk=pk)
+
+    if request.method == 'POST':
+        form = DocumentoViaturaForm(request.POST, request.FILES, instance=documento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Documento atualizado com sucesso!')
+            return redirect('viaturas:lista_documentos', viatura_pk=documento.viatura.pk)
+    else:
+        form = DocumentoViaturaForm(instance=documento)
+
+    return render(request, 'viaturas/form_documento.html', {
+        'form': form,
+        'viatura': documento.viatura,
+        'titulo': f'Editar Documento — {documento.get_tipo_display()}',
+    })
+
+
+# =============================================================================
+# API REST DA FROTA (JsonResponse nativo — padrao do projeto)
+# =============================================================================
+
+@login_required
+@require_module_permission('frota')
+def api_viaturas(request):
+    """GET /frota/api/viaturas/?status=&tipo=&q=&page="""
+    qs = Viatura.objects.select_related('modelo', 'modelo__marca').all()
+
+    status = request.GET.get('status')
+    if status:
+        qs = qs.filter(status=status)
+
+    tipo = request.GET.get('tipo')
+    if tipo:
+        qs = qs.filter(modelo__tipo=tipo)
+
+    q = request.GET.get('q')
+    if q:
+        qs = qs.filter(
+            Q(prefixo__icontains=q) | Q(placa__icontains=q) | Q(chassi__icontains=q)
+        )
+
+    paginator = Paginator(qs.order_by('prefixo'), 20)
+    page = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page)
+
+    data = {
+        'results': [
+            {
+                'id': v.id,
+                'prefixo': v.prefixo,
+                'placa': v.placa,
+                'chassi': v.chassi,
+                'renavam': v.renavam,
+                'modelo': v.modelo.nome if v.modelo else None,
+                'marca': v.modelo.marca.nome if v.modelo and v.modelo.marca else None,
+                'tipo': v.modelo.tipo if v.modelo else None,
+                'status': v.status,
+                'localizacao': v.localizacao,
+                'odometro_atual': v.odometro_atual,
+                'combustivel': v.tipo_combustivel,
+                'ano_fabricacao': v.ano_fabricacao,
+            }
+            for v in page_obj
+        ],
+        'count': paginator.count,
+        'num_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+    }
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+@require_module_permission('frota')
+def api_viatura_detalhe(request, viatura_id):
+    """GET /frota/api/viaturas/<id>/"""
+    v = get_object_or_404(
+        Viatura.objects.select_related('modelo', 'modelo__marca'),
+        pk=viatura_id
+    )
+
+    despachos_count = DespachoViatura.objects.filter(viatura=v).count()
+    abastecimentos_count = Abastecimento.objects.filter(viatura=v).count()
+    manutencoes_count = Manutencao.objects.filter(viatura=v).count()
+    manutencoes_abertas = Manutencao.objects.filter(
+        viatura=v, status__in=['ABERTA', 'AGUARDANDO_PECA', 'AGENDADA']
+    ).count()
+
+    data = {
+        'id': v.id,
+        'prefixo': v.prefixo,
+        'placa': v.placa,
+        'chassi': v.chassi,
+        'renavam': v.renavam,
+        'modelo': v.modelo.nome if v.modelo else None,
+        'marca': v.modelo.marca.nome if v.modelo and v.modelo.marca else None,
+        'tipo': v.modelo.tipo if v.modelo else None,
+        'status': v.status,
+        'status_display': v.get_status_display(),
+        'localizacao': v.localizacao,
+        'localizacao_display': v.get_localizacao_display(),
+        'odometro_atual': v.odometro_atual,
+        'combustivel': v.tipo_combustivel,
+        'combustivel_display': v.get_tipo_combustivel_display(),
+        'ano_fabricacao': v.ano_fabricacao,
+        'observacoes': v.observacoes,
+        'contagens': {
+            'despachos': despachos_count,
+            'abastecimentos': abastecimentos_count,
+            'manutencoes': manutencoes_count,
+            'manutencoes_abertas': manutencoes_abertas,
+        }
+    }
+    return JsonResponse(data)
+
+
+@login_required
+@require_module_permission('frota')
+def api_despachos_ativos(request):
+    """GET /frota/api/despachos/ativos/"""
+    despachos = DespachoViatura.objects.filter(
+        data_retorno__isnull=True
+    ).select_related('viatura', 'viatura__modelo', 'motorista', 'encarregado').order_by('-data_saida')
+
+    data = {
+        'results': [
+            {
+                'id': d.id,
+                'viatura': {
+                    'id': d.viatura.id,
+                    'prefixo': d.viatura.prefixo,
+                    'placa': d.viatura.placa,
+                    'modelo': d.viatura.modelo.nome if d.viatura.modelo else None,
+                },
+                'motorista': {
+                    'id': d.motorista.id,
+                    'nome': d.motorista.nome,
+                    're': d.motorista.re,
+                },
+                'encarregado': {
+                    'nome': d.encarregado.nome,
+                } if d.encarregado else None,
+                'data_saida': d.data_saida.isoformat() if d.data_saida else None,
+                'km_saida': d.km_saida,
+            }
+            for d in despachos
+        ],
+        'count': despachos.count(),
+    }
+    return JsonResponse(data)
+
+
+@login_required
+@require_module_permission('frota')
+def api_manutencoes(request):
+    """GET /frota/api/manutencoes/?status="""
+    qs = Manutencao.objects.select_related('viatura', 'oficina_fk').all()
+
+    status = request.GET.get('status')
+    if status:
+        qs = qs.filter(status=status)
+
+    qs = qs.order_by('-data_inicio')[:100]
+
+    data = {
+        'results': [
+            {
+                'id': m.id,
+                'viatura': {
+                    'id': m.viatura.id,
+                    'prefixo': m.viatura.prefixo,
+                    'placa': m.viatura.placa,
+                },
+                'tipo': m.tipo,
+                'tipo_display': m.get_tipo_display(),
+                'status': m.status,
+                'status_display': m.get_status_display(),
+                'data_inicio': m.data_inicio.isoformat() if m.data_inicio else None,
+                'data_conclusao': m.data_conclusao.isoformat() if m.data_conclusao else None,
+                'oficina': m.oficina_fk.nome if m.oficina_fk else m.oficina,
+                'descricao': m.descricao,
+                'custo_total': float(m.custo_total) if m.custo_total else 0,
+            }
+            for m in qs
+        ],
+        'count': qs.count(),
+    }
+    return JsonResponse(data)
