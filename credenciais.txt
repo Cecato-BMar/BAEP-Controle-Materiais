@@ -7,3 +7,10 @@ Painel de Administração (Django Admin): http://127.0.0.1:8000/admin/
 Login: master
 Senha: C3c4t0118*
 E-mail: master@baep.com.br
+
+===========================================================================
+
+As credenciais configuradas para acessar o ambiente de teste na porta 9090 são:
+
+Usuário: master
+Senha: master2024
