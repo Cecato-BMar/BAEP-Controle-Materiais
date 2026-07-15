@@ -68,22 +68,62 @@ class DevolucaoMunicaoForm(forms.ModelForm):
         model = DevolucaoMunicao
         fields = ['retirada', 'quantidade', 'estado_devolucao', 'observacoes']
 
-    disparos = forms.IntegerField(label=_('Disparos'), min_value=0, required=False, initial=0)
-    estojos = forms.IntegerField(label=_('Estojos Vazios Devolvidos'), min_value=0, required=False, initial=0)
-    estojos_extraviados = forms.IntegerField(label=_('Estojos Extraviados (Treinamento)'), min_value=0, required=False, initial=0)
-    extravios = forms.IntegerField(label=_('Cartuchos Intactos Extraviados'), min_value=0, required=False, initial=0)
-    justificativa = forms.CharField(label=_('Justificativa'), required=False, widget=forms.Textarea(attrs={'rows': 3}))
+    disparos = forms.IntegerField(
+        label=_('Quantidade Disparada'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Número de cartuchos efetivamente disparados nesta devolução.')
+    )
+    estojos = forms.IntegerField(
+        label=_('Estojos Vazios Devolvidos'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Estojos resultantes dos disparos, entregues fisicamente. (Obrigatório em Instrução)')
+    )
+    estojos_extraviados = forms.IntegerField(
+        label=_('Estojos Extraviados (Instrução)'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Estojos não recuperados durante a instrução. Exige justificativa.')
+    )
+    extravios = forms.IntegerField(
+        label=_('Munições Intactas Extraviadas'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Cartuchos intactos não devolvidos e não disparados. Exige sindicância obrigatória.')
+    )
+    justificativa = forms.CharField(
+        label=_('Justificativa'),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3}),
+        help_text=_('Descreva detalhadamente o motivo dos disparos, perdas ou extraviados.')
+    )
     sindicancia = forms.CharField(
         label=_('Sindicância / Apuração'),
         required=False,
         max_length=120,
-        help_text=_('Preencha quando houver perda de munições intactas ou perda de estojos em instrução.')
+        help_text=_('Número da sindicância ou procedimento de apuração. Obrigatório em caso de extravio de munição intacta.')
     )
-    boletim_ocorrencia = forms.CharField(label=_('B.O. / Relatório de Tiro'), required=False, max_length=100)
+    boletim_ocorrencia = forms.CharField(
+        label=_('B.O. / Relatório de Disparo'),
+        required=False,
+        max_length=100,
+        help_text=_('Número do Boletim de Ocorrência ou Relatório de Tiro/Instrução.')
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['retirada'].queryset = RetiradaMunicao.objects.filter().order_by('-data_hora')
+        self.fields['quantidade'].label = _('Total de Unidades Devolvidas (esta entrega)')
+        self.fields['quantidade'].help_text = _(
+            'Some intactas + disparadas + extraviadas. '
+            'Não pode exceder o saldo pendente da retirada.'
+        )
+        self.fields['estado_devolucao'].help_text = _('Estado físico geral das munições/estojos entregues.')
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.layout = Layout(

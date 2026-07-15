@@ -5,274 +5,494 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4 align-items-center">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'municoes:lista_lotes' %}">Lotes</a></li>
-                    <li class="breadcrumb-item active">Registrar Devolução</li>
-                </ol>
-            </nav>
-            <h1 class="fw-bold mb-0 h3">
-                <i class="fas fa-undo text-success me-2"></i>Registrar Devolução de Munição
-            </h1>
-            <p class="text-muted mb-0 mt-1">Documente a entrega física das munições e estojos pelo policial responsável.</p>
-        </div>
-        <div class="col-auto">
-            <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i>Voltar
-            </a>
-        </div>
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'municoes:lista_lotes' %}">Lotes</a></li>
+          <li class="breadcrumb-item active">Registrar Devolução</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3">
+        <i class="fas fa-undo text-success me-2"></i>Registrar Devolução de Munição
+      </h1>
+      <p class="text-muted mb-0 mt-1">Documente a entrega física das munições e estojos pelo policial responsável.</p>
     </div>
-
-    <div class="row justify-content-center">
-        <div class="col-12 col-xl-10">
-            <form method="post" novalidate id="form-devolucao">
-                {% csrf_token %}
-
-                <!-- Seção: Retirada de Referência -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="fw-bold mb-0 text-primary">
-                            <i class="fas fa-link me-2"></i>Vincular à Retirada de Referência
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-8">
-                                {{ form.retirada|as_crispy_field }}
-                            </div>
-                            <div class="col-12 col-md-4">
-                                {{ form.quantidade|as_crispy_field }}
-                            </div>
-                            <div class="col-12 col-md-6">
-                                {{ form.estado_devolucao|as_crispy_field }}
-                            </div>
-                        </div>
-
-                        <!-- Painel de situação da retirada -->
-                        <div id="painel-retirada" class="alert alert-secondary mt-3 mb-0 d-none">
-                            <div class="row g-2 text-center">
-                                <div class="col-4">
-                                    <div class="fw-bold fs-5" id="info-retirado">—</div>
-                                    <small class="text-muted">Retirado</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="fw-bold fs-5 text-success" id="info-devolvido">—</div>
-                                    <small class="text-muted">Já devolvido</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="fw-bold fs-5 text-warning" id="info-pendente">—</div>
-                                    <small class="text-muted">Pendente</small>
-                                </div>
-                            </div>
-                            <div class="mt-2 text-center">
-                                <small class="text-muted">Tipo de uso: <strong id="info-tipo-uso">—</strong></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Seção: Contagem de Munições e Estojos -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="fw-bold mb-0 text-primary">
-                            <i class="fas fa-calculator me-2"></i>Contagem de Munições e Estojos
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-
-                        <!-- Uso Operacional -->
-                        <div id="secao-operacional">
-                            <div class="alert alert-primary border-0 mb-4">
-                                <i class="fas fa-shield-alt me-2"></i>
-                                <strong>Uso Operacional:</strong> Informe a quantidade de disparos efetuados. Os estojos vazios não precisam ser devolvidos.
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6">
-                                    {{ form.disparos|as_crispy_field }}
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    {{ form.extravios|as_crispy_field }}
-                                    <small class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Somente cartuchos intactos perdidos (não estojos).</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Uso em Instrução -->
-                        <div id="secao-instrucao" class="d-none">
-                            <div class="alert alert-info border-0 mb-4">
-                                <i class="fas fa-graduation-cap me-2"></i>
-                                <strong>Instrução / Treinamento:</strong> A prestação de contas dos estojos vazios é <strong>obrigatória</strong>.
-                                A fórmula a respeitar é: <code>Disparos = Estojos Devolvidos + Estojos Extraviados</code>.
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-12 col-md-4">
-                                    {{ form.disparos|as_crispy_field }}
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    {{ form.estojos|as_crispy_field }}
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    {{ form.estojos_extraviados|as_crispy_field }}
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    {{ form.extravios|as_crispy_field }}
-                                    <small class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Somente cartuchos intactos extraviados. Exige sindicância.</small>
-                                </div>
-                            </div>
-
-                            <!-- Contador de conciliação ao vivo -->
-                            <div id="conciliacao-box" class="card bg-light border mt-3">
-                                <div class="card-body py-2 px-3">
-                                    <div class="row g-0 align-items-center text-center">
-                                        <div class="col">
-                                            <div class="small text-muted">Disparos</div>
-                                            <div class="fw-bold fs-5" id="c-disparos">0</div>
-                                        </div>
-                                        <div class="col-auto px-2 fs-5 text-muted">=</div>
-                                        <div class="col">
-                                            <div class="small text-muted">Estojos Dev.</div>
-                                            <div class="fw-bold fs-5" id="c-estojos">0</div>
-                                        </div>
-                                        <div class="col-auto px-2 fs-5 text-muted">+</div>
-                                        <div class="col">
-                                            <div class="small text-muted">Estojos Extr.</div>
-                                            <div class="fw-bold fs-5" id="c-estojos-ext">0</div>
-                                        </div>
-                                        <div class="col-auto px-3">
-                                            <div id="conciliacao-status" class="badge fs-6 bg-secondary">
-                                                <i class="fas fa-question-circle"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Seção: Documentação e Justificativa -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="fw-bold mb-0 text-primary">
-                            <i class="fas fa-file-signature me-2"></i>Documentação e Justificativa
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                {{ form.boletim_ocorrencia|as_crispy_field }}
-                            </div>
-                            <div class="col-12 col-md-6">
-                                {{ form.sindicancia|as_crispy_field }}
-                            </div>
-                            <div class="col-12">
-                                {{ form.justificativa|as_crispy_field }}
-                            </div>
-                            <div class="col-12">
-                                {{ form.observacoes|as_crispy_field }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
-                    <button type="submit" class="btn btn-success fw-bold px-5">
-                        <i class="fas fa-check-double me-2"></i>Confirmar Devolução
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div class="col-auto">
+      <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+      </a>
     </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+      <form method="post" novalidate id="form-devolucao">
+        {% csrf_token %}
+
+        <!-- ========== SEÇÃO 1: Retirada de Referência ========== -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom py-3">
+            <h6 class="fw-bold mb-0 text-primary">
+              <i class="fas fa-link me-2"></i>Vincular à Retirada de Referência
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                {{ form.retirada|as_crispy_field }}
+              </div>
+              <div class="col-12 col-md-4">
+                {{ form.estado_devolucao|as_crispy_field }}
+              </div>
+            </div>
+
+            <!-- Painel de situação da retirada (carregado via AJAX) -->
+            <div id="painel-retirada" class="mt-4 d-none">
+              <!-- Info do policial/material -->
+              <div class="alert alert-secondary border-0 mb-3 py-2">
+                <div class="row g-2 small">
+                  <div class="col-md-4"><i class="fas fa-user me-1 text-primary"></i><strong>Policial:</strong> <span id="info-policial">—</span></div>
+                  <div class="col-md-4"><i class="fas fa-box me-1 text-primary"></i><strong>Material:</strong> <span id="info-material">—</span></div>
+                  <div class="col-md-4"><i class="fas fa-barcode me-1 text-primary"></i><strong>Lote:</strong> <span id="info-lote">—</span></div>
+                  <div class="col-md-4"><i class="fas fa-calendar me-1 text-primary"></i><strong>Data retirada:</strong> <span id="info-data">—</span></div>
+                  <div class="col-md-4"><i class="fas fa-bullseye me-1 text-primary"></i><strong>Finalidade:</strong> <span id="info-finalidade">—</span></div>
+                  <div class="col-md-4"><i class="fas fa-tag me-1 text-primary"></i><strong>Tipo de uso:</strong> <span id="info-tipo-uso" class="badge bg-secondary">—</span></div>
+                </div>
+              </div>
+
+              <!-- Cards de situação do saldo -->
+              <div class="row g-3 mb-3">
+                <div class="col-4">
+                  <div class="card border-0 bg-light text-center py-3">
+                    <div class="fw-bold fs-3 text-dark" id="info-retirado">—</div>
+                    <div class="small text-muted">Retirado</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card border-0 text-center py-3" style="background:#e8f5e9">
+                    <div class="fw-bold fs-3 text-success" id="info-ja-devolvido">—</div>
+                    <div class="small text-muted">Já devolvido</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card border-0 text-center py-3" style="background:#fff8e1">
+                    <div class="fw-bold fs-3 text-warning" id="info-pendente">—</div>
+                    <div class="small text-muted">Pendente</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Histórico de devoluções anteriores -->
+              <div id="historico-box" class="d-none">
+                <p class="small text-muted fw-bold mb-1"><i class="fas fa-history me-1"></i>Devoluções anteriores acumuladas:</p>
+                <div class="row g-2 text-center">
+                  <div class="col"><div class="small text-muted">Intactas dev.</div><div class="fw-bold text-success" id="h-intactas">0</div></div>
+                  <div class="col"><div class="small text-muted">Disparadas</div><div class="fw-bold text-primary" id="h-disparadas">0</div></div>
+                  <div class="col"><div class="small text-muted">Estojos dev.</div><div class="fw-bold text-info" id="h-estojos">0</div></div>
+                  <div class="col"><div class="small text-muted">Estojos extr.</div><div class="fw-bold text-warning" id="h-estojos-ext">0</div></div>
+                  <div class="col"><div class="small text-muted">Extraviadas</div><div class="fw-bold text-danger" id="h-extraviadas">0</div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado sem retirada selecionada -->
+            <div id="painel-vazio" class="alert alert-light border text-center text-muted mt-3">
+              <i class="fas fa-search me-2"></i>Selecione uma retirada acima para carregar os detalhes e limites de devolução.
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== SEÇÃO 2: Entrega Física ========== -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom py-3">
+            <h6 class="fw-bold mb-0 text-primary">
+              <i class="fas fa-hand-holding me-2"></i>Entrega Física — O que foi devolvido
+            </h6>
+          </div>
+          <div class="card-body p-4">
+
+            <div class="row g-3 mb-4">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-bold">Munições Intactas Devolvidas <span class="text-danger">*</span></label>
+                <input type="number" id="id_qtd_intactas" name="qtd_intactas_display" class="form-control form-control-lg" min="0" value="0" readonly
+                       style="background:#e8f5e9; font-size:1.5rem; font-weight:700; color:#388e3c; cursor:default;">
+                <small class="text-muted">Calculado automaticamente: Total devolvido − Disparados − Extraviados</small>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-bold">Estojos Vazios Devolvidos</label>
+                <input type="number" id="id_qtd_estojos_display" name="qtd_estojos_display" class="form-control form-control-lg" min="0" value="0" readonly
+                       style="background:#e3f2fd; font-size:1.5rem; font-weight:700; color:#1565c0; cursor:default;">
+                <small class="text-muted">Calculado automaticamente a partir dos disparos declarados</small>
+              </div>
+            </div>
+
+            <hr class="my-3">
+            <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>Preencha os campos abaixo. Os totais acima serão recalculados em tempo real.</p>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                {{ form.quantidade|as_crispy_field }}
+                <small class="text-muted d-block mt-1"><i class="fas fa-arrow-up me-1"></i>Total de unidades entregues agora (intactas + estojos).</small>
+              </div>
+              <div class="col-12 col-md-4">
+                {{ form.disparos|as_crispy_field }}
+              </div>
+              <div class="col-12 col-md-4">
+                {{ form.extravios|as_crispy_field }}
+                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Somente cartuchos intactos perdidos. Exige sindicância.</small>
+              </div>
+            </div>
+
+            <!-- Seção exclusiva Instrução -->
+            <div id="secao-instrucao" class="d-none mt-3">
+              <div class="alert alert-info border-0 mb-3">
+                <i class="fas fa-graduation-cap me-2"></i>
+                <strong>Instrução / Treinamento:</strong> A prestação de contas dos estojos vazios é <strong>obrigatória</strong>.
+                Fórmula: <code>Disparos = Estojos Devolvidos + Estojos Extraviados</code>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  {{ form.estojos|as_crispy_field }}
+                </div>
+                <div class="col-12 col-md-6">
+                  {{ form.estojos_extraviados|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+
+            <!-- ========== PAINEL DE CONCILIAÇÃO EM TEMPO REAL ========== -->
+            <div class="card mt-4" id="conciliacao-card" style="border: 2px solid #dee2e6; border-radius: 12px;">
+              <div class="card-header py-2 px-3" style="background:#f8f9fa; border-radius:10px 10px 0 0;">
+                <span class="fw-bold small text-dark"><i class="fas fa-balance-scale me-2"></i>Conciliação em Tempo Real</span>
+                <span id="conciliacao-badge" class="badge ms-2 bg-secondary fs-6">—</span>
+              </div>
+              <div class="card-body py-3 px-3">
+
+                <!-- Linha: balanço total -->
+                <div class="row g-0 align-items-center text-center mb-3">
+                  <div class="col">
+                    <div class="small text-muted">Total Devolvido</div>
+                    <div class="fw-bold fs-5" id="c-total-dev">0</div>
+                  </div>
+                  <div class="col-auto px-2 text-muted">=</div>
+                  <div class="col">
+                    <div class="small text-muted">🟢 Intactas</div>
+                    <div class="fw-bold fs-5 text-success" id="c-intactas">0</div>
+                  </div>
+                  <div class="col-auto px-2 text-muted">+</div>
+                  <div class="col">
+                    <div class="small text-muted">🔵 Estojos (disp.)</div>
+                    <div class="fw-bold fs-5 text-primary" id="c-estojos-calc">0</div>
+                  </div>
+                  <div class="col-auto px-2 text-muted">+</div>
+                  <div class="col">
+                    <div class="small text-muted">🔴 Extraviadas</div>
+                    <div class="fw-bold fs-5 text-danger" id="c-extraviadas">0</div>
+                  </div>
+                </div>
+
+                <!-- Linha: balanço de estojos (instrução) -->
+                <div id="conciliacao-instrucao" class="d-none">
+                  <hr class="my-2">
+                  <p class="small text-muted mb-1 fw-bold">Prestação de contas de estojos:</p>
+                  <div class="row g-0 align-items-center text-center">
+                    <div class="col">
+                      <div class="small text-muted">Disparos</div>
+                      <div class="fw-bold fs-5" id="c-disparos">0</div>
+                    </div>
+                    <div class="col-auto px-2 text-muted">=</div>
+                    <div class="col">
+                      <div class="small text-muted">Estojos Dev.</div>
+                      <div class="fw-bold fs-5 text-info" id="c-estojos">0</div>
+                    </div>
+                    <div class="col-auto px-2 text-muted">+</div>
+                    <div class="col">
+                      <div class="small text-muted">Estojos Extr.</div>
+                      <div class="fw-bold fs-5 text-warning" id="c-estojos-ext">0</div>
+                    </div>
+                    <div class="col-auto px-3">
+                      <div id="estojo-status" class="badge fs-6 bg-secondary"><i class="fas fa-question-circle"></i></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Saldo final -->
+                <hr class="my-2">
+                <div class="row g-0 align-items-center text-center">
+                  <div class="col">
+                    <div class="small text-muted">Pendente antes</div>
+                    <div class="fw-bold fs-6 text-warning" id="c-pendente-antes">—</div>
+                  </div>
+                  <div class="col-auto px-2 text-muted">−</div>
+                  <div class="col">
+                    <div class="small text-muted">Total devolvido agora</div>
+                    <div class="fw-bold fs-6" id="c-dev-agora">0</div>
+                  </div>
+                  <div class="col-auto px-2 text-muted">=</div>
+                  <div class="col">
+                    <div class="small text-muted">Novo saldo pendente</div>
+                    <div class="fw-bold fs-5" id="c-novo-saldo">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========== SEÇÃO 3: Documentação ========== -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom py-3">
+            <h6 class="fw-bold mb-0 text-primary">
+              <i class="fas fa-file-signature me-2"></i>Documentação e Justificativa
+            </h6>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                {{ form.boletim_ocorrencia|as_crispy_field }}
+              </div>
+              <div class="col-12 col-md-6">
+                {{ form.sindicancia|as_crispy_field }}
+              </div>
+              <div class="col-12">
+                {{ form.justificativa|as_crispy_field }}
+              </div>
+              <div class="col-12">
+                {{ form.observacoes|as_crispy_field }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-5">
+          <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+          <button type="submit" class="btn btn-success fw-bold px-5">
+            <i class="fas fa-check-double me-2"></i>Confirmar Devolução
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const secaoOperacional = document.getElementById('secao-operacional');
-    const secaoInstrucao = document.getElementById('secao-instrucao');
-    const painelRetirada = document.getElementById('painel-retirada');
-    const retiradaSelect = document.getElementById('id_retirada');
+(function() {
+  'use strict';
 
-    // Campos de contagem
-    const inputDisparos = document.getElementById('id_disparos');
-    const inputEstojos = document.getElementById('id_estojos');
-    const inputEstojosExt = document.getElementById('id_estojos_extraviados');
-    const cDisparos = document.getElementById('c-disparos');
-    const cEstojos = document.getElementById('c-estojos');
-    const cEstojosExt = document.getElementById('c-estojos-ext');
-    const conciliacaoStatus = document.getElementById('conciliacao-status');
+  // URL base para API de detalhes
+  const API_BASE = '/municoes/api/retirada/';
 
-    let tipoUsoAtual = 'OPERACIONAL';
+  // Elementos do DOM
+  const retiradaSelect    = document.getElementById('id_retirada');
+  const painelRetirada    = document.getElementById('painel-retirada');
+  const painelVazio       = document.getElementById('painel-vazio');
+  const secaoInstrucao    = document.getElementById('secao-instrucao');
+  const conciliacaoInstr  = document.getElementById('conciliacao-instrucao');
+  const historicoBox      = document.getElementById('historico-box');
 
-    // Busca dados da retirada via API (campo retirada selecionado)
-    function carregarInfoRetirada() {
-        const retiradaId = retiradaSelect ? retiradaSelect.value : null;
-        if (!retiradaId) {
-            painelRetirada.classList.add('d-none');
-            return;
-        }
-        // Simples fetch de dados já carregados (a retirada selecionada contém textos descritivos no <option>)
-        const selectedOption = retiradaSelect.options[retiradaSelect.selectedIndex];
-        if (selectedOption) {
-            painelRetirada.classList.remove('d-none');
-        }
+  // Campos do formulário
+  const inputQtd          = document.getElementById('id_quantidade');
+  const inputDisparos     = document.getElementById('id_disparos');
+  const inputExtravios    = document.getElementById('id_extravios');
+  const inputEstojos      = document.getElementById('id_estojos');
+  const inputEstojosExt   = document.getElementById('id_estojos_extraviados');
+
+  // Displays calculados (readonly)
+  const displayIntactas   = document.getElementById('id_qtd_intactas');
+  const displayEstojos    = document.getElementById('id_qtd_estojos_display');
+
+  // Painel de info da retirada
+  const infoPolicial      = document.getElementById('info-policial');
+  const infoMaterial      = document.getElementById('info-material');
+  const infoLote          = document.getElementById('info-lote');
+  const infoData          = document.getElementById('info-data');
+  const infoFinalidade    = document.getElementById('info-finalidade');
+  const infoTipoUso       = document.getElementById('info-tipo-uso');
+  const infoRetirado      = document.getElementById('info-retirado');
+  const infoJaDevolvido   = document.getElementById('info-ja-devolvido');
+  const infoPendente      = document.getElementById('info-pendente');
+
+  // Histórico
+  const hIntactas         = document.getElementById('h-intactas');
+  const hDisparadas       = document.getElementById('h-disparadas');
+  const hEstojos          = document.getElementById('h-estojos');
+  const hEstojosExt       = document.getElementById('h-estojos-ext');
+  const hExtraviadas      = document.getElementById('h-extraviadas');
+
+  // Conciliação
+  const cTotalDev         = document.getElementById('c-total-dev');
+  const cIntactas         = document.getElementById('c-intactas');
+  const cEstojosCalc      = document.getElementById('c-estojos-calc');
+  const cExtraviadas      = document.getElementById('c-extraviadas');
+  const cDisparos         = document.getElementById('c-disparos');
+  const cEstojos          = document.getElementById('c-estojos');
+  const cEstojosExt       = document.getElementById('c-estojos-ext');
+  const cPendenteAntes    = document.getElementById('c-pendente-antes');
+  const cDevAgora         = document.getElementById('c-dev-agora');
+  const cNovoSaldo        = document.getElementById('c-novo-saldo');
+  const conciliacaoBadge  = document.getElementById('conciliacao-badge');
+  const estojoStatus      = document.getElementById('estojo-status');
+
+  let dadosRetirada = null;  // Dados carregados via AJAX
+  let tipoUso = 'OPERACIONAL';
+
+  // ---------- Carrega dados da retirada via AJAX ----------
+  function carregarDetalheRetirada(id) {
+    if (!id) {
+      painelRetirada.classList.add('d-none');
+      painelVazio.classList.remove('d-none');
+      dadosRetirada = null;
+      tipoUso = 'OPERACIONAL';
+      atualizarSecaoPorTipo();
+      atualizarConciliacao();
+      return;
     }
 
-    function atualizarSecaoPorTipo(tipo) {
-        tipoUsoAtual = tipo;
-        if (tipo === 'INSTRUCAO') {
-            secaoOperacional.classList.add('d-none');
-            secaoInstrucao.classList.remove('d-none');
+    fetch(API_BASE + id + '/detalhe/')
+      .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function(dados) {
+        dadosRetirada = dados;
+        tipoUso = dados.tipo_uso;
+
+        // Preencher painel de info
+        infoPolicial.textContent    = dados.policial;
+        infoMaterial.textContent    = dados.material + (dados.calibre ? ' (' + dados.calibre + ')' : '');
+        infoLote.textContent        = dados.lote;
+        infoData.textContent        = dados.data_hora;
+        infoFinalidade.textContent  = dados.finalidade;
+        infoTipoUso.textContent     = dados.tipo_uso_display;
+        infoTipoUso.className       = 'badge ' + (tipoUso === 'INSTRUCAO' ? 'bg-info' : 'bg-primary');
+
+        infoRetirado.textContent    = dados.quantidade_retirada;
+        infoJaDevolvido.textContent = dados.quantidade_ja_devolvida;
+        infoPendente.textContent    = dados.quantidade_pendente;
+
+        // Histórico
+        var h = dados.historico;
+        if (h && dados.quantidade_ja_devolvida > 0) {
+          hIntactas.textContent   = h.total_intactos_devolvidos;
+          hDisparadas.textContent = h.total_disparado;
+          hEstojos.textContent    = h.total_estojos_devolvidos;
+          hEstojosExt.textContent = h.total_estojos_extraviados;
+          hExtraviadas.textContent= h.total_extraviados;
+          historicoBox.classList.remove('d-none');
         } else {
-            secaoOperacional.classList.remove('d-none');
-            secaoInstrucao.classList.add('d-none');
+          historicoBox.classList.add('d-none');
         }
+
+        // Mostrar painel
+        painelRetirada.classList.remove('d-none');
+        painelVazio.classList.add('d-none');
+
+        atualizarSecaoPorTipo();
+        atualizarConciliacao();
+      })
+      .catch(function() {
+        painelRetirada.classList.add('d-none');
+        painelVazio.classList.remove('d-none');
+        dadosRetirada = null;
+      });
+  }
+
+  // ---------- Alterna seções por tipo de uso ----------
+  function atualizarSecaoPorTipo() {
+    if (tipoUso === 'INSTRUCAO') {
+      secaoInstrucao.classList.remove('d-none');
+      conciliacaoInstr.classList.remove('d-none');
+    } else {
+      secaoInstrucao.classList.add('d-none');
+      conciliacaoInstr.classList.add('d-none');
+      // Limpar campos de instrução para evitar envio de valores
+      if (inputEstojos)    inputEstojos.value    = 0;
+      if (inputEstojosExt) inputEstojosExt.value = 0;
+    }
+  }
+
+  // ---------- Atualiza conciliação em tempo real ----------
+  function atualizarConciliacao() {
+    var total   = parseInt(inputQtd      ? inputQtd.value      : 0) || 0;
+    var disp    = parseInt(inputDisparos ? inputDisparos.value  : 0) || 0;
+    var extr    = parseInt(inputExtravios? inputExtravios.value : 0) || 0;
+    var estoj   = parseInt(inputEstojos  ? inputEstojos.value   : 0) || 0;
+    var estojEx = parseInt(inputEstojosExt ? inputEstojosExt.value : 0) || 0;
+
+    // Intactas = total devolvido − disparados − extraviados
+    var intactas = Math.max(total - disp - extr, 0);
+
+    // Displays calculados
+    if (displayIntactas) displayIntactas.value = intactas;
+    if (displayEstojos)  displayEstojos.value  = estoj;
+
+    // Painel de conciliação
+    if (cTotalDev)     cTotalDev.textContent     = total;
+    if (cIntactas)     cIntactas.textContent     = intactas;
+    if (cEstojosCalc)  cEstojosCalc.textContent  = disp;
+    if (cExtraviadas)  cExtraviadas.textContent  = extr;
+    if (cDisparos)     cDisparos.textContent     = disp;
+    if (cEstojos)      cEstojos.textContent      = estoj;
+    if (cEstojosExt)   cEstojosExt.textContent   = estojEx;
+    if (cDevAgora)     cDevAgora.textContent     = total;
+
+    // Saldo pendente
+    var pendente = dadosRetirada ? dadosRetirada.quantidade_pendente : null;
+    if (cPendenteAntes) cPendenteAntes.textContent = pendente !== null ? pendente : '—';
+    var novoSaldo = pendente !== null ? pendente - total : null;
+    if (cNovoSaldo) {
+      cNovoSaldo.textContent = novoSaldo !== null ? novoSaldo : '—';
+      cNovoSaldo.className   = 'fw-bold fs-5 ' + (novoSaldo > 0 ? 'text-warning' : novoSaldo === 0 ? 'text-success' : 'text-danger');
     }
 
-    function atualizarConciliacao() {
-        const d = parseInt(inputDisparos ? inputDisparos.value : 0) || 0;
-        const e = parseInt(inputEstojos ? inputEstojos.value : 0) || 0;
-        const ex = parseInt(inputEstojosExt ? inputEstojosExt.value : 0) || 0;
-
-        if (cDisparos) cDisparos.textContent = d;
-        if (cEstojos) cEstojos.textContent = e;
-        if (cEstojosExt) cEstojosExt.textContent = ex;
-
-        if (conciliacaoStatus) {
-            if (d === e + ex) {
-                conciliacaoStatus.className = 'badge fs-6 bg-success';
-                conciliacaoStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i>OK';
-            } else {
-                conciliacaoStatus.className = 'badge fs-6 bg-danger';
-                conciliacaoStatus.innerHTML = '<i class="fas fa-times-circle me-1"></i>Divergente';
-            }
-        }
+    // Badge de conciliação principal
+    var ok = (total === intactas + disp + extr) && (intactas >= 0);
+    if (conciliacaoBadge) {
+      if (total === 0) {
+        conciliacaoBadge.className = 'badge ms-2 bg-secondary fs-6';
+        conciliacaoBadge.innerHTML = '<i class="fas fa-question-circle"></i>';
+      } else if (ok) {
+        conciliacaoBadge.className = 'badge ms-2 bg-success fs-6';
+        conciliacaoBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>OK';
+      } else {
+        conciliacaoBadge.className = 'badge ms-2 bg-danger fs-6';
+        conciliacaoBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Divergente';
+      }
     }
 
-    // Detectar tipo de uso a partir do texto da retirada selecionada
-    if (retiradaSelect) {
-        retiradaSelect.addEventListener('change', function() {
-            carregarInfoRetirada();
-            const text = this.options[this.selectedIndex].text || '';
-            if (text.toLowerCase().includes('instrução') || text.toLowerCase().includes('instrucao') || text.toLowerCase().includes('treina')) {
-                atualizarSecaoPorTipo('INSTRUCAO');
-            } else {
-                atualizarSecaoPorTipo('OPERACIONAL');
-            }
-        });
+    // Badge de estojos (instrução)
+    if (estojoStatus) {
+      var estojOk = (disp === estoj + estojEx);
+      if (tipoUso === 'INSTRUCAO') {
+        estojoStatus.className = 'badge fs-6 ' + (estojOk ? 'bg-success' : 'bg-danger');
+        estojoStatus.innerHTML = estojOk
+          ? '<i class="fas fa-check-circle me-1"></i>OK'
+          : '<i class="fas fa-times-circle me-1"></i>Divergente';
+      } else {
+        estojoStatus.className = 'badge fs-6 bg-secondary';
+        estojoStatus.innerHTML = '<i class="fas fa-minus-circle"></i>';
+      }
     }
+  }
 
-    // Atualização ao vivo da conciliação
-    [inputDisparos, inputEstojos, inputEstojosExt].forEach(function(el) {
-        if (el) el.addEventListener('input', atualizarConciliacao);
+  // ---------- Eventos ----------
+  if (retiradaSelect) {
+    retiradaSelect.addEventListener('change', function() {
+      carregarDetalheRetirada(this.value);
     });
+    // Carregar se já houver valor selecionado (pós-erro de form)
+    if (retiradaSelect.value) {
+      carregarDetalheRetirada(retiradaSelect.value);
+    }
+  }
 
-    // Inicialização
-    atualizarSecaoPorTipo('OPERACIONAL');
-    atualizarConciliacao();
-});
+  [inputQtd, inputDisparos, inputExtravios, inputEstojos, inputEstojosExt].forEach(function(el) {
+    if (el) el.addEventListener('input', atualizarConciliacao);
+  });
+
+  // Inicialização
+  atualizarSecaoPorTipo();
+  atualizarConciliacao();
+})();
 </script>
 {% endblock %}
