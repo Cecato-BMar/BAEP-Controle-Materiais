@@ -8,5 +8,6 @@ class MaterialBelicoConfig(AppConfig):
 
     def ready(self):
         import material_belico.signals  # noqa: F401
+        import material_belico.sync  # noqa: F401
         from material_belico.signals import setup_on_startup
         setup_on_startup()
