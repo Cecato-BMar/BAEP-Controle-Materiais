@@ -56,13 +56,12 @@ def sync_material(numero_serie, nome, tipo, categoria, status_str, observacoes="
             changed = True
         
         # Apenas atualiza o status se for diferente e se nao estiver EM_USO (pois a reserva quem controla o uso real).
-        # Se a planilha/importação forcar um baixado/sindicancia, atualiza.
-        if material.status != 'EM_USO' or status_final in ['BAIXADO', 'MANUTENCAO', 'APREENDIDO']:
+        if material.status != 'EM_USO':
             if material.status != status_final:
                 material.status = status_final
                 changed = True
 
-        if observacoes and material.observacoes != observacoes:
+        if material.observacoes != observacoes:
             material.observacoes = observacoes
             changed = True
 

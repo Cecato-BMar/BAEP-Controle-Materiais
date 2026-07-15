@@ -7,9 +7,33 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-arrow-right me-2"></i>Nova Retirada</h1>
-        <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-warning" id="btn-retirar-kit" data-bs-toggle="modal" data-bs-target="#modalKitOperacional">
+                <i class="fas fa-boxes me-2"></i>Retirar Kit Completo
+            </button>
+            <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal: Seleção de Kit Operacional -->
+    <div class="modal fade" id="modalKitOperacional" tabindex="-1" aria-labelledby="modalKitLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="modalKitLabel"><i class="fas fa-boxes me-2"></i>Selecionar Kit Operacional</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="modal-kit-body">
+            <div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2">Carregando kits...</p></div>
+          </div>
+          <div class="modal-footer">
+            <small class="text-muted me-auto"><i class="fas fa-info-circle me-1"></i>Apenas itens <span class="badge bg-success">Disponível</span> serão adicionados à retirada.</small>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="card">
@@ -616,5 +640,103 @@
             return true;
         });
     });
+
+    // ======= RETIRAR KIT COMPLETO =======
+    let kitsCache = [];
+
+    function renderKits(kits) {
+        if (!kits || kits.length === 0) {
+            $('#modal-kit-body').html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum kit operacional cadastrado.</div>');
+            return;
+        }
+        let html = '<div class="row g-3">';
+        kits.forEach(function(kit) {
+            const badgeClass = kit.todos_disponiveis ? 'bg-success' : 'bg-warning text-dark';
+            const badgeText = kit.todos_disponiveis ? 'Completo' : 'Incompleto';
+            const btnClass = kit.todos_disponiveis ? 'btn-success' : 'btn-outline-warning';
+            const btnText = kit.todos_disponiveis
+                ? '<i class="fas fa-plus-circle me-1"></i>Adicionar Kit Completo'
+                : '<i class="fas fa-exclamation-triangle me-1"></i>Adicionar Disponíveis';
+
+            html += '<div class="col-md-6">';
+            html += '<div class="card h-100 border-2">';
+            html += '<div class="card-header d-flex justify-content-between align-items-center">';
+            html += '<strong><i class="fas fa-box me-2"></i>' + kit.numero_kit_display + '</strong>';
+            html += '<span class="badge ' + badgeClass + '">' + badgeText + '</span>';
+            html += '</div>';
+            html += '<div class="card-body p-2">';
+            html += '<table class="table table-sm mb-0">';
+            html += '<thead><tr><th>Item</th><th>Patrimônio</th><th>Status</th></tr></thead><tbody>';
+            kit.itens.forEach(function(item) {
+                const statusIcon = item.disponivel
+                    ? '<span class="badge bg-success">Disponível</span>'
+                    : '<span class="badge bg-danger">' + (item.status === 'EM_USO' ? 'Em Uso' : item.status === 'NAO_CADASTRADO' ? 'Não Cadastrado' : item.status) + '</span>';
+                html += '<tr>';
+                html += '<td><small>' + item.descricao_kit + '</small></td>';
+                html += '<td><small class="font-monospace">' + item.numero + '</small></td>';
+                html += '<td>' + statusIcon + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            html += '</div>';
+            html += '<div class="card-footer text-end">';
+            html += '<button type="button" class="btn btn-sm ' + btnClass + ' btn-adicionar-kit" data-kit-id="' + kit.id + '">' + btnText + '</button>';
+            html += '</div></div></div>';
+        });
+        html += '</div>';
+        $('#modal-kit-body').html(html);
+
+        // Evento de adicionar kit
+        $(document).off('click', '.btn-adicionar-kit').on('click', '.btn-adicionar-kit', function() {
+            const kitId = parseInt($(this).data('kit-id'));
+            const kit = kitsCache.find(k => k.id === kitId);
+            if (!kit) return;
+
+            let adicionados = 0;
+            let jaExistiam = 0;
+            kit.itens.forEach(function(item) {
+                if (!item.disponivel || !item.material_id) return;
+                const ja = materiaisSelecionados.find(m => m.id == item.material_id);
+                if (ja) { jaExistiam++; return; }
+                materiaisSelecionados.push({
+                    id: item.material_id,
+                    nome: item.nome,
+                    numero: item.numero,
+                    tipo: item.tipo_display,
+                    raw_tipo: item.tipo,
+                    quantidade: 1,
+                    max: 1,
+                    lote_id: null,
+                    lotes: []
+                });
+                adicionados++;
+            });
+            atualizarCampoOculto();
+            atualizarListaMateriais();
+
+            let msg = adicionados + ' item(s) do ' + kit.numero_kit_display + ' adicionados à retirada.';
+            if (jaExistiam > 0) msg += ' (' + jaExistiam + ' já estavam na lista.)';
+            alert(msg);
+            $('#modalKitOperacional').modal('hide');
+        });
+    }
+
+    $('#btn-retirar-kit').on('click', function() {
+        if (kitsCache.length > 0) { renderKits(kitsCache); return; }
+        $('#modal-kit-body').html('<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2">Carregando kits...</p></div>');
+        $.ajax({
+            url: '{% url "movimentacoes:api_kits_operacionais" %}',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                kitsCache = data.kits || [];
+                renderKits(kitsCache);
+            },
+            error: function() {
+                $('#modal-kit-body').html('<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>Erro ao carregar kits operacionais.</div>');
+            }
+        });
+    });
+    // ======= FIM RETIRAR KIT COMPLETO =======
 </script>
 {% endblock %}
