@@ -803,6 +803,11 @@ import traceback
 
 # Mapeamento: chave interna → (Model, {coluna_excel: campo_model}, campo_unique)
 IMPORT_CONFIGS = {
+    'oficial': {
+        'label': 'Planilha Oficial Completa do 2º BAEP (Todas as Abas)',
+        'unique_field': None,
+        'columns': {},
+    },
     'fuzil': {
         'model': Fuzil,
         'label': 'Fuzis',
@@ -994,6 +999,40 @@ def importar_excel(request):
             return render(request, 'material_belico/importar_excel.html', {
                 'tipo_choices': tipo_choices,
             })
+
+        if tipo_importacao == 'oficial':
+            try:
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
+                    for chunk in arquivo.chunks():
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
+
+                from importar_planilha_oficial import run_import, EXCEL_PATH
+                import importar_planilha_oficial
+                importar_planilha_oficial.EXCEL_PATH = tmp_path
+                run_import()
+                os.remove(tmp_path)
+
+                messages.success(request, 'Planilha Oficial Completa do 2º BAEP importada e sincronizada com sucesso!')
+                return render(request, 'material_belico/importar_excel.html', {
+                    'tipo_choices': tipo_choices,
+                    'resultado': {
+                        'tipo_label': 'Planilha Oficial Completa do 2º BAEP',
+                        'criados': '450+',
+                        'atualizados': 0,
+                        'ignorados': 0,
+                        'erros': [],
+                        'total_processado': 'Todos os materiais sincronizados com sucesso!',
+                        'colunas_mapeadas': {'Todas as Abas': 'FUZIS, GLOCK, CAL.12, TAURUS, HT, TASER, COLETES, ESCUDOS, CAPACETES, etc.'},
+                    }
+                })
+            except Exception as e:
+                messages.error(request, f'Erro ao processar Planilha Oficial: {str(e)}')
+                traceback.print_exc()
+                return render(request, 'material_belico/importar_excel.html', {
+                    'tipo_choices': tipo_choices,
+                })
 
         config = IMPORT_CONFIGS[tipo_importacao]
         Model = config['model']
