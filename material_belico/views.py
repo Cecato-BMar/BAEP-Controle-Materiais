@@ -792,3 +792,319 @@ def capacete_edit(request, pk):
 @require_module_permission('material_belico')
 def capacete_delete(request, pk):
     return _crud_delete(request, pk, CapaceteBalistico, 'material_belico:capacete_list', 'Capacete Balístico')
+
+
+# =============================================================================
+# IMPORTAÇÃO VIA EXCEL
+# =============================================================================
+
+import openpyxl
+import traceback
+
+# Mapeamento: chave interna → (Model, {coluna_excel: campo_model}, campo_unique)
+IMPORT_CONFIGS = {
+    'fuzil': {
+        'model': Fuzil,
+        'label': 'Fuzis',
+        'unique_field': 'patrimonio',
+        'columns': {
+            'tipo': 'tipo',
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'localização': 'localizacao',
+            'localizacao': 'localizacao',
+            'nº recibo': 'numero_recibo',
+            'numero recibo': 'numero_recibo',
+            'status': 'status',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'espingarda': {
+        'model': EspingardaCal12,
+        'label': 'Espingardas Cal.12',
+        'unique_field': 'numero_espingarda',
+        'columns': {
+            'número': 'numero_espingarda',
+            'numero': 'numero_espingarda',
+            'numero espingarda': 'numero_espingarda',
+            'número da espingarda': 'numero_espingarda',
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'kit vinculado': 'kit_vinculado',
+            'kit': 'kit_vinculado',
+            'status': 'status',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'glock': {
+        'model': PistolaGlock,
+        'label': 'Pistolas Glock',
+        'unique_field': 'numero_serie',
+        'columns': {
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'número de série': 'numero_serie',
+            'numero de serie': 'numero_serie',
+            'numero serie': 'numero_serie',
+            'nº série': 'numero_serie',
+            'serie': 'numero_serie',
+            'série': 'numero_serie',
+            'modelo': 'modelo',
+            'cód. opm': 'cod_opm',
+            'cod opm': 'cod_opm',
+            'unidade': 'unidade',
+            'situação': 'situacao_reserva',
+            'situacao': 'situacao_reserva',
+            'situação reserva': 'situacao_reserva',
+            'nº bopm': 'numero_bopm',
+            'bopm': 'numero_bopm',
+            'nº bopc': 'numero_bopc',
+            'bopc': 'numero_bopc',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'taurus': {
+        'model': PistolaTaurus,
+        'label': 'Pistolas Taurus',
+        'unique_field': 'numero_serie',
+        'columns': {
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'número de série': 'numero_serie',
+            'numero de serie': 'numero_serie',
+            'numero serie': 'numero_serie',
+            'serie': 'numero_serie',
+            'série': 'numero_serie',
+            'modelo': 'modelo',
+            'unidade': 'unidade',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'radio_ht': {
+        'model': RadioHT,
+        'label': 'Rádios HT',
+        'unique_field': 'serie',
+        'columns': {
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'serie': 'serie',
+            'série': 'serie',
+            'kit vinculado': 'kit_vinculado',
+            'kit': 'kit_vinculado',
+            'situação': 'situacao',
+            'situacao': 'situacao',
+            'chamado dtic': 'chamado_dtic',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'am640': {
+        'model': AM640,
+        'label': 'AM-640',
+        'unique_field': 'serie',
+        'columns': {
+            'serie': 'serie',
+            'série': 'serie',
+            'situação': 'situacao',
+            'situacao': 'situacao',
+        },
+    },
+    'colete': {
+        'model': ColeteBalistico,
+        'label': 'Coletes Balísticos',
+        'unique_field': 'numero_serie',
+        'columns': {
+            'marca': 'marca',
+            'tamanho': 'tamanho',
+            'patrimonio': 'patrimonio',
+            'patrimônio': 'patrimonio',
+            'número de série': 'numero_serie',
+            'numero de serie': 'numero_serie',
+            'numero serie': 'numero_serie',
+            'serie': 'numero_serie',
+            'série': 'numero_serie',
+            'situação': 'situacao',
+            'situacao': 'situacao',
+            'validade': 'validade_descricao',
+            'capa': 'tem_capa',
+            'tem capa': 'tem_capa',
+            'observações': 'obs',
+            'observacoes': 'obs',
+            'obs': 'obs',
+        },
+    },
+    'taser': {
+        'model': TASER,
+        'label': 'TASER',
+        'unique_field': 'serie',
+        'columns': {
+            'serie': 'serie',
+            'série': 'serie',
+            'situação': 'situacao',
+            'situacao': 'situacao',
+            'carga bateria': 'carga_bateria_percent',
+            'bateria': 'carga_bateria_percent',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+    'algemas': {
+        'model': Algemas,
+        'label': 'Algemas',
+        'unique_field': 'numero',
+        'columns': {
+            'número': 'numero',
+            'numero': 'numero',
+            'observações': 'observacoes',
+            'observacoes': 'observacoes',
+        },
+    },
+}
+
+
+def _normalize_header(h):
+    """Normaliza cabeçalho de coluna para matching flexível."""
+    import unicodedata
+    if h is None:
+        return ''
+    h = str(h).strip().lower()
+    # Remove acentos
+    nfkd = unicodedata.normalize('NFKD', h)
+    return ''.join(c for c in nfkd if not unicodedata.combining(c))
+
+
+@login_required
+@require_module_permission('material_belico')
+def importar_excel(request):
+    """Importa dados de uma planilha Excel para o modelo selecionado."""
+    tipo_choices = [(k, v['label']) for k, v in IMPORT_CONFIGS.items()]
+    resultado = None
+
+    if request.method == 'POST' and request.FILES.get('arquivo_excel'):
+        tipo_importacao = request.POST.get('tipo_importacao', '')
+        modo = request.POST.get('modo', 'ignorar')  # ignorar | atualizar
+        arquivo = request.FILES['arquivo_excel']
+
+        if tipo_importacao not in IMPORT_CONFIGS:
+            messages.error(request, 'Selecione um tipo de material válido.')
+            return render(request, 'material_belico/importar_excel.html', {
+                'tipo_choices': tipo_choices,
+            })
+
+        config = IMPORT_CONFIGS[tipo_importacao]
+        Model = config['model']
+        col_map = config['columns']
+        unique_field = config['unique_field']
+
+        try:
+            wb = openpyxl.load_workbook(arquivo, read_only=True, data_only=True)
+            ws = wb.active
+
+            # Lê cabeçalhos da primeira linha
+            headers_raw = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+            headers_norm = [_normalize_header(h) for h in headers_raw]
+
+            # Mapeia índices → campos do model
+            field_map = {}  # idx -> campo_model
+            for idx, h_norm in enumerate(headers_norm):
+                # Tenta match direto
+                if h_norm in col_map:
+                    field_map[idx] = col_map[h_norm]
+                else:
+                    # Tenta match normalizado sem acentos do col_map
+                    for col_key, col_field in col_map.items():
+                        if _normalize_header(col_key) == h_norm:
+                            field_map[idx] = col_field
+                            break
+
+            if not field_map:
+                messages.error(request, f'Nenhuma coluna reconhecida na planilha. Cabeçalhos encontrados: {headers_raw}')
+                return render(request, 'material_belico/importar_excel.html', {
+                    'tipo_choices': tipo_choices,
+                })
+
+            # Processa linhas
+            criados = 0
+            atualizados = 0
+            ignorados = 0
+            erros = []
+
+            for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                try:
+                    dados = {}
+                    for idx, campo in field_map.items():
+                        if idx < len(row):
+                            valor = row[idx]
+                            if valor is not None:
+                                valor = str(valor).strip()
+                                if valor == '':
+                                    valor = None
+                            # Converte booleanos
+                            if campo == 'tem_capa' and valor is not None:
+                                valor = valor.lower() in ('sim', 's', 'true', '1', 'x', 'yes')
+                            # Converte inteiros
+                            if campo == 'carga_bateria_percent' and valor is not None:
+                                try:
+                                    valor = int(float(valor))
+                                except (ValueError, TypeError):
+                                    valor = 100
+                            dados[campo] = valor
+
+                    # Pula linhas completamente vazias
+                    if not any(v is not None for v in dados.values()):
+                        continue
+
+                    unique_val = dados.get(unique_field)
+                    if not unique_val:
+                        erros.append(f'Linha {row_num}: campo obrigatório "{unique_field}" vazio.')
+                        continue
+
+                    # Verifica duplicata
+                    existente = Model.objects.filter(**{unique_field: unique_val}).first()
+                    if existente:
+                        if modo == 'atualizar':
+                            for campo, valor in dados.items():
+                                if valor is not None and campo != unique_field:
+                                    setattr(existente, campo, valor)
+                            existente.save()
+                            atualizados += 1
+                        else:
+                            ignorados += 1
+                    else:
+                        Model.objects.create(**{k: v for k, v in dados.items() if v is not None})
+                        criados += 1
+
+                except Exception as e:
+                    erros.append(f'Linha {row_num}: {str(e)}')
+
+            wb.close()
+
+            resultado = {
+                'tipo_label': config['label'],
+                'criados': criados,
+                'atualizados': atualizados,
+                'ignorados': ignorados,
+                'erros': erros,
+                'total_processado': criados + atualizados + ignorados,
+                'colunas_mapeadas': {headers_raw[idx]: campo for idx, campo in field_map.items() if idx < len(headers_raw)},
+            }
+
+            if criados > 0 or atualizados > 0:
+                messages.success(request, f'Importação concluída: {criados} criados, {atualizados} atualizados.')
+            if ignorados > 0:
+                messages.info(request, f'{ignorados} registros duplicados ignorados.')
+            if erros:
+                messages.warning(request, f'{len(erros)} linhas com erro.')
+
+        except Exception as e:
+            messages.error(request, f'Erro ao processar a planilha: {str(e)}')
+            traceback.print_exc()
+
+    return render(request, 'material_belico/importar_excel.html', {
+        'tipo_choices': tipo_choices,
+        'resultado': resultado,
+    })

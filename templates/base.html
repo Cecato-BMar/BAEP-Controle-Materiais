@@ -650,9 +650,26 @@
 
                 {% if user.is_superuser or user|has_group:'material_belico' %}
                 <li class="nav-item">
-                    <a class="nav-link {% if 'material-belico' in request.path %}active{% endif %}" href="{% url 'material_belico:dashboard' %}">
-                        <i class="fas fa-crosshairs"></i> Material Bélico
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'material-belico' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseMaterialBelico" role="button">
+                        <span><i class="fas fa-crosshairs"></i> Material Bélico</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
                     </a>
+                    <div class="collapse {% if 'material-belico' in request.path %}show{% endif %}" id="collapseMaterialBelico">
+                        <ul class="nav flex-column sidebar-submenu">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'material-belico' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'material_belico:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'importar-excel' in request.path %}active{% endif %}" href="{% url 'material_belico:importar_excel' %}">
+                                    <i class="fas fa-file-excel me-1 text-success opacity-75"></i>Importar Excel
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'kits' in request.path %}active{% endif %}" href="{% url 'material_belico:kit_list' %}">Kits Operacionais</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 {% endif %}
 

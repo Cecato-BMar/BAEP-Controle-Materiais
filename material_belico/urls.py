@@ -7,6 +7,7 @@ app_name = 'material_belico'
 urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
+    path('importar-excel/', views.importar_excel, name='importar_excel'),
 
     # Fuzis
     path('fuzis/', views.fuzil_list, name='fuzil_list'),
