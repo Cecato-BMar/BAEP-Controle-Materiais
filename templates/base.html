@@ -410,6 +410,11 @@
                                 <a class="nav-link {% if 'materiais' in request.path %}active{% endif %}" href="{% url 'materiais:lista_materiais' %}">Armamentos</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {% if 'importar-excel' in request.path %}active{% endif %}" href="{% url 'material_belico:importar_excel' %}">
+                                    <i class="fas fa-file-excel me-1 text-success opacity-75"></i>Importar Excel (MB)
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {% if 'policiais' in request.path %}active{% endif %}" href="{% url 'policiais:lista_policiais' %}">Efetivo</a>
                             </li>
                             <li class="nav-item">
