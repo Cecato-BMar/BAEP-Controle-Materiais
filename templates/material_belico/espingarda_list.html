@@ -8,6 +8,7 @@
         <h2 class="fw-bold"><i class="fas fa-gun text-info me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:espingarda_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova Espingarda</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -20,7 +21,7 @@
                         <td><strong>{{ item.numero_espingarda }}</strong></td>
                         <td>{{ item.patrimonio|default:"—" }}</td>
                         <td>{{ item.get_kit_vinculado_display|default:"—" }}</td>
-                        <td>{% if item.status == 'OK' %}<span class="badge bg-success">OK</span>{% else %}<span class="badge bg-secondary">Baixado</span>{% endif %}</td>
+                        <td data-filter-status="{{ item.status }}">{% if item.status == 'OK' %}<span class="badge bg-success">OK</span>{% elif item.status == 'EM_USO' %}<span class="badge bg-primary">Em Uso</span>{% elif item.status == 'MANUTENCAO' %}<span class="badge bg-warning text-dark">Manutenção</span>{% elif item.status == 'BAIXADO' %}<span class="badge bg-secondary">Baixado</span>{% else %}<span class="badge bg-info">{{ item.get_status_display }}</span>{% endif %}</td>
                         <td class="text-center">
                             <a href="{% url 'material_belico:espingarda_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
                             <a href="{% url 'material_belico:espingarda_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>

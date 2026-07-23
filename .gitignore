@@ -61,3 +61,7 @@ lcm_diversos_categorizado.xml
 *.key
 *.pfx
 *.p12
+
+# Diretórios clonados/worktrees locais
+BAEP-Controle-Materiais-*/
+BAEP-Controle-Materiais-*.worktrees/

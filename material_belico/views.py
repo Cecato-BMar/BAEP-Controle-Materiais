@@ -13,6 +13,7 @@ from .models import (
     TASER, Algemas, MunicaoQuimica,
     MunicaoConvencional, DistribuicaoMunicaoKit,
     ColeteBalistico, EscudoBalistico, CapaceteBalistico,
+    STATUS_ARMA_CHOICES,
 )
 from .forms import (
     FuzilForm, EspingardaCal12Form, PistolaGlockForm, PistolaTaurusForm,
@@ -171,7 +172,17 @@ def _crud_delete(request, pk, model, redirect_name, titulo):
 @require_module_permission('material_belico')
 def fuzil_list(request):
     itens = Fuzil.objects.all().order_by('tipo', 'patrimonio')
-    return render(request, 'material_belico/fuzil_list.html', {'itens': itens, 'titulo': 'Fuzis'})
+    # Extrair localizações únicas dos dados existentes
+    locs = sorted(set(itens.values_list('localizacao', flat=True)))
+    loc_map = dict(Fuzil._meta.get_field('localizacao').choices)
+    tipo_map = dict(Fuzil.TIPO_CHOICES)
+    status_map = dict(Fuzil._meta.get_field('status').choices)
+    filter_fields = [
+        {'label': 'Tipo', 'field': 'tipo', 'choices': [{'value': v, 'label': l} for v, l in Fuzil.TIPO_CHOICES]},
+        {'label': 'Status', 'field': 'status', 'choices': [{'value': v, 'label': l} for v, l in STATUS_ARMA_CHOICES]},
+        {'label': 'Localização', 'field': 'localizacao', 'choices': [{'value': loc, 'label': loc_map.get(loc, loc)} for loc in locs]},
+    ]
+    return render(request, 'material_belico/fuzil_list.html', {'itens': itens, 'titulo': 'Fuzis', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -197,7 +208,11 @@ def fuzil_delete(request, pk):
 @require_module_permission('material_belico')
 def espingarda_list(request):
     itens = EspingardaCal12.objects.all()
-    return render(request, 'material_belico/espingarda_list.html', {'itens': itens, 'titulo': 'Espingardas Cal.12'})
+    status_map = dict(EspingardaCal12.STATUS_CHOICES)
+    filter_fields = [
+        {'label': 'Status', 'field': 'status', 'choices': [{'value': v, 'label': l} for v, l in EspingardaCal12.STATUS_CHOICES]},
+    ]
+    return render(request, 'material_belico/espingarda_list.html', {'itens': itens, 'titulo': 'Espingardas Cal.12', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -223,7 +238,12 @@ def espingarda_delete(request, pk):
 @require_module_permission('material_belico')
 def pistola_glock_list(request):
     itens = PistolaGlock.objects.all()
-    return render(request, 'material_belico/glock_list.html', {'itens': itens, 'titulo': 'Pistolas Glock'})
+    modelos = sorted(set(itens.values_list('modelo', flat=True)))
+    filter_fields = [
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in PistolaGlock.SITUACAO_CHOICES]},
+        {'label': 'Modelo', 'field': 'modelo', 'choices': [{'value': m, 'label': m} for m in modelos]},
+    ]
+    return render(request, 'material_belico/glock_list.html', {'itens': itens, 'titulo': 'Pistolas Glock', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -249,7 +269,10 @@ def pistola_glock_delete(request, pk):
 @require_module_permission('material_belico')
 def pistola_taurus_list(request):
     itens = PistolaTaurus.objects.all()
-    return render(request, 'material_belico/taurus_list.html', {'itens': itens, 'titulo': 'Pistolas Taurus'})
+    filter_fields = [
+        {'label': 'Modelo', 'field': 'modelo', 'choices': [{'value': v, 'label': l} for v, l in PistolaTaurus.MODELO_CHOICES]},
+    ]
+    return render(request, 'material_belico/taurus_list.html', {'itens': itens, 'titulo': 'Pistolas Taurus', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -275,7 +298,12 @@ def pistola_taurus_delete(request, pk):
 @require_module_permission('material_belico')
 def transferencia_list(request):
     itens = ArmaTransferenciaPendente.objects.all()
-    return render(request, 'material_belico/transferencia_list.html', {'itens': itens, 'titulo': 'Transferências Pendentes'})
+    filter_fields = [
+        {'label': 'Espécie', 'field': 'especie', 'choices': [{'value': v, 'label': l} for v, l in ArmaTransferenciaPendente.ESPECIE_CHOICES]},
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in ArmaTransferenciaPendente.SITUACAO_CHOICES]},
+        {'label': 'Status', 'field': 'status', 'choices': [{'value': v, 'label': l} for v, l in ArmaTransferenciaPendente.STATUS_CHOICES]},
+    ]
+    return render(request, 'material_belico/transferencia_list.html', {'itens': itens, 'titulo': 'Transferências Pendentes', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -301,7 +329,12 @@ def transferencia_delete(request, pk):
 @require_module_permission('material_belico')
 def reddot_list(request):
     itens = RedDot.objects.all()
-    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Red Dots', 'tipo': 'reddot'})
+    locs = sorted(set(itens.values_list('localizacao', flat=True)))
+    loc_map = dict(RedDot._meta.get_field('localizacao').choices)
+    filter_fields = [
+        {'label': 'Localização', 'field': 'localizacao', 'choices': [{'value': loc, 'label': loc_map.get(loc, loc)} for loc in locs]},
+    ]
+    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Red Dots', 'tipo': 'reddot', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -327,7 +360,13 @@ def reddot_delete(request, pk):
 @require_module_permission('material_belico')
 def magnificador_list(request):
     itens = Magnificador.objects.all()
-    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Magnificadores', 'tipo': 'magnificador'})
+    locs = sorted(set(itens.values_list('localizacao', flat=True)))
+    loc_map = dict(Magnificador._meta.get_field('localizacao').choices)
+    filter_fields = [
+        {'label': 'Localização', 'field': 'localizacao', 'choices': [{'value': loc, 'label': loc_map.get(loc, loc)} for loc in locs]},
+        {'label': 'Status', 'field': 'status', 'choices': [{'value': v, 'label': l} for v, l in Magnificador.STATUS_CHOICES]},
+    ]
+    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Magnificadores', 'tipo': 'magnificador', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -353,7 +392,10 @@ def magnificador_delete(request, pk):
 @require_module_permission('material_belico')
 def supressor_list(request):
     itens = Supressor.objects.all()
-    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Supressores', 'tipo': 'supressor'})
+    filter_fields = [
+        {'label': 'Localização', 'field': 'localizacao', 'choices': [{'value': v, 'label': l} for v, l in Supressor.LOCALIZACAO_SUPRESSOR]},
+    ]
+    return render(request, 'material_belico/acessorio_list.html', {'itens': itens, 'titulo': 'Supressores', 'tipo': 'supressor', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -379,7 +421,10 @@ def supressor_delete(request, pk):
 @require_module_permission('material_belico')
 def vinculacao_list(request):
     itens = VinculacaoAcessorioFuzil.objects.select_related('fuzil', 'red_dot', 'magnificador', 'supressor')
-    return render(request, 'material_belico/vinculacao_list.html', {'itens': itens, 'titulo': 'Vinculação Acessório–Fuzil'})
+    filter_fields = [
+        {'label': 'Tipo de Fuzil', 'field': 'tipo_fuzil', 'choices': [{'value': v, 'label': l} for v, l in Fuzil.TIPO_CHOICES]},
+    ]
+    return render(request, 'material_belico/vinculacao_list.html', {'itens': itens, 'titulo': 'Vinculação Acessório–Fuzil', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -407,7 +452,10 @@ def kit_list(request):
     itens = KitOperacional.objects.select_related(
         'fuzil_556_1', 'fuzil_556_2', 'fuzil_762', 'espingarda', 'radio_ht', 'am640', 'escudo'
     )
-    return render(request, 'material_belico/kit_list.html', {'itens': itens, 'titulo': 'Kits Operacionais'})
+    filter_fields = [
+        {'label': 'Kit', 'field': 'numero_kit', 'choices': [{'value': v, 'label': l} for v, l in KitOperacional.NUMERO_KIT_CHOICES]},
+    ]
+    return render(request, 'material_belico/kit_list.html', {'itens': itens, 'titulo': 'Kits Operacionais', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -443,7 +491,10 @@ def kit_detail(request, pk):
 @require_module_permission('material_belico')
 def radio_ht_list(request):
     itens = RadioHT.objects.all()
-    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'Rádios HT', 'tipo': 'radio_ht'})
+    filter_fields = [
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in RadioHT.SITUACAO_CHOICES]},
+    ]
+    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'Rádios HT', 'tipo': 'radio_ht', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -469,7 +520,10 @@ def radio_ht_delete(request, pk):
 @require_module_permission('material_belico')
 def am640_list(request):
     itens = AM640.objects.all()
-    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'AM-640', 'tipo': 'am640'})
+    filter_fields = [
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in AM640.SITUACAO_CHOICES]},
+    ]
+    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'AM-640', 'tipo': 'am640', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -495,7 +549,7 @@ def am640_delete(request, pk):
 @require_module_permission('material_belico')
 def am600_list(request):
     itens = AM600.objects.all()
-    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'AM-600', 'tipo': 'am600'})
+    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'AM-600', 'tipo': 'am600', 'filter_fields': []})
 
 @login_required
 @require_module_permission('material_belico')
@@ -516,7 +570,7 @@ def am600_delete(request, pk):
 @require_module_permission('material_belico')
 def mosquetao_list(request):
     itens = MosquetaoFederal.objects.all()
-    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'Mosquetão Federal 201/Z', 'tipo': 'mosquetao'})
+    return render(request, 'material_belico/comunicacao_list.html', {'itens': itens, 'titulo': 'Mosquetão Federal 201/Z', 'tipo': 'mosquetao', 'filter_fields': []})
 
 @login_required
 @require_module_permission('material_belico')
@@ -537,7 +591,14 @@ def mosquetao_delete(request, pk):
 @require_module_permission('material_belico')
 def taser_list(request):
     itens = TASER.objects.all()
-    return render(request, 'material_belico/nao_letal_list.html', {'itens': itens, 'titulo': 'TASER', 'tipo': 'taser'})
+    situacoes = sorted(set(itens.values_list('situacao', flat=True)))
+    filter_fields = [
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': s, 'label': s} for s in situacoes]},
+        {'label': 'Bateria', 'field': 'bateria', 'choices': [
+            {'value': 'ok', 'label': '≥50% OK'}, {'value': 'baixa', 'label': '<50% Recarregar'}, {'value': 'zero', 'label': '0% Bloqueado'},
+        ]},
+    ]
+    return render(request, 'material_belico/nao_letal_list.html', {'itens': itens, 'titulo': 'TASER', 'tipo': 'taser', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -563,7 +624,7 @@ def taser_delete(request, pk):
 @require_module_permission('material_belico')
 def algemas_list(request):
     itens = Algemas.objects.all()
-    return render(request, 'material_belico/nao_letal_list.html', {'itens': itens, 'titulo': 'Algemas', 'tipo': 'algemas'})
+    return render(request, 'material_belico/nao_letal_list.html', {'itens': itens, 'titulo': 'Algemas', 'tipo': 'algemas', 'filter_fields': []})
 
 @login_required
 @require_module_permission('material_belico')
@@ -589,7 +650,10 @@ def algemas_delete(request, pk):
 @require_module_permission('material_belico')
 def municao_quimica_list(request):
     itens = MunicaoQuimica.objects.all()
-    return render(request, 'material_belico/municao_quimica_list.html', {'itens': itens, 'titulo': 'Munições Químicas'})
+    filter_fields = [
+        {'label': 'Tipo', 'field': 'tipo', 'choices': [{'value': v, 'label': l} for v, l in MunicaoQuimica.TIPO_CHOICES]},
+    ]
+    return render(request, 'material_belico/municao_quimica_list.html', {'itens': itens, 'titulo': 'Munições Químicas', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -615,7 +679,12 @@ def municao_quimica_delete(request, pk):
 @require_module_permission('material_belico')
 def municao_convencional_list(request):
     itens = MunicaoConvencional.objects.all().order_by('calibre', 'subtipo', 'secao')
-    return render(request, 'material_belico/municao_convencional_list.html', {'itens': itens, 'titulo': 'Munições Convencionais'})
+    filter_fields = [
+        {'label': 'Calibre', 'field': 'calibre', 'choices': [{'value': v, 'label': l} for v, l in MunicaoConvencional.CALIBRE_CHOICES]},
+        {'label': 'Subtipo', 'field': 'subtipo', 'choices': [{'value': v, 'label': l} for v, l in MunicaoConvencional.SUBTIPO_CHOICES]},
+        {'label': 'Seção', 'field': 'secao', 'choices': [{'value': v, 'label': l} for v, l in MunicaoConvencional.SECAO_CHOICES]},
+    ]
+    return render(request, 'material_belico/municao_convencional_list.html', {'itens': itens, 'titulo': 'Munições Convencionais', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -641,7 +710,13 @@ def municao_convencional_delete(request, pk):
 @require_module_permission('material_belico')
 def colete_list(request):
     itens = ColeteBalistico.objects.all()
-    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Coletes Balísticos', 'tipo': 'colete'})
+    tamanhos = sorted(set(itens.values_list('tamanho', flat=True)))
+    filter_fields = [
+        {'label': 'Marca', 'field': 'marca', 'choices': [{'value': v, 'label': l} for v, l in ColeteBalistico.MARCA_CHOICES]},
+        {'label': 'Tamanho', 'field': 'tamanho', 'choices': [{'value': t, 'label': t} for t in tamanhos]},
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in ColeteBalistico.SITUACAO_CHOICES]},
+    ]
+    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Coletes Balísticos', 'tipo': 'colete', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -667,7 +742,11 @@ def colete_delete(request, pk):
 @require_module_permission('material_belico')
 def escudo_list(request):
     itens = EscudoBalistico.objects.all()
-    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Escudos Balísticos', 'tipo': 'escudo'})
+    filter_fields = [
+        {'label': 'Situação', 'field': 'situacao', 'choices': [{'value': v, 'label': l} for v, l in EscudoBalistico.SITUACAO_CHOICES]},
+        {'label': 'Lote/Cia', 'field': 'lote', 'choices': [{'value': v, 'label': l} for v, l in EscudoBalistico.LOTE_CHOICES]},
+    ]
+    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Escudos Balísticos', 'tipo': 'escudo', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')
@@ -693,7 +772,11 @@ def escudo_delete(request, pk):
 @require_module_permission('material_belico')
 def capacete_list(request):
     itens = CapaceteBalistico.objects.all()
-    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Capacetes Balísticos', 'tipo': 'capacete'})
+    filter_fields = [
+        {'label': 'Material', 'field': 'material', 'choices': [{'value': v, 'label': l} for v, l in CapaceteBalistico.MATERIAL_CHOICES]},
+        {'label': 'Condição', 'field': 'condicao', 'choices': [{'value': v, 'label': l} for v, l in CapaceteBalistico.CONDICAO_CHOICES]},
+    ]
+    return render(request, 'material_belico/protecao_list.html', {'itens': itens, 'titulo': 'Capacetes Balísticos', 'tipo': 'capacete', 'filter_fields': filter_fields})
 
 @login_required
 @require_module_permission('material_belico')

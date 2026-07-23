@@ -19,4 +19,5 @@ urlpatterns = [
     # Novas APIs
     path('api/movimentacoes/retiradas/<int:retirada_id>/', api.api_retirada_detalhe, name='api_retirada_detalhe'),
     path('api/movimentacoes/retiradas-pendentes/', api.api_retiradas_pendentes, name='api_retiradas_pendentes'),
+    path('api/kits-operacionais/', api.api_kits_operacionais, name='api_kits_operacionais'),
 ]

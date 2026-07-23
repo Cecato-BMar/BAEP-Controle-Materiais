@@ -12,6 +12,7 @@
             <a href="{% url 'material_belico:supressor_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
         {% endif %}
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -20,8 +21,8 @@
                     {% for item in itens %}
                     <tr>
                         <td><strong>{{ item.patrimonio }}</strong></td>
-                        <td>{{ item.get_localizacao_display }}</td>
-                        <td>{% if item.status == 'OK' %}<span class="badge bg-success">OK</span>{% else %}<span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>{% endif %}</td>
+                        <td data-filter-localizacao="{{ item.localizacao }}">{{ item.get_localizacao_display }}</td>
+                        <td data-filter-status="{{ item.status }}">{% if item.status == 'OK' %}<span class="badge bg-success">OK</span>{% else %}<span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>{% endif %}</td>
                         <td class="text-center">
                             {% if tipo == 'reddot' %}
                                 <a href="{% url 'material_belico:reddot_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>

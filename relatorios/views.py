@@ -60,6 +60,7 @@ def _gerar_pdf_unificado(request, tipo_chave, titulo, filters):
         'MOVIMENTACOES_PERIODO': providers.MovimentacoesProvider,
         'MOVIMENTACOES_POLICIAL': providers.MovimentacoesProvider,
         'MOVIMENTACOES_MATERIAL': providers.MovimentacoesProvider,
+        'MOVIMENTACOES_MODELO2': providers.MovimentacoesProviderModelo2,
         'FROTA_GERAL': providers.FrotaGeralProvider,
         'ABASTECIMENTO': providers.FrotaAbastecimentoProvider,
         'MANUTENCAO': providers.FrotaManutencaoProvider,
@@ -173,6 +174,7 @@ def detalhe_relatorio(request, relatorio_id):
             'MOVIMENTACOES_PERIODO': providers.MovimentacoesProvider,
             'MOVIMENTACOES_POLICIAL': providers.MovimentacoesProvider,
             'MOVIMENTACOES_MATERIAL': providers.MovimentacoesProvider,
+            'MOVIMENTACOES_MODELO2': providers.MovimentacoesProviderModelo2,
             'FROTA_GERAL': providers.FrotaGeralProvider,
             'ABASTECIMENTO': providers.FrotaAbastecimentoProvider,
             'MANUTENCAO': providers.FrotaManutencaoProvider,
@@ -260,8 +262,15 @@ def gerar_relatorio_movimentacoes(request):
     if request.method == 'POST':
         form = RelatorioMovimentacoesForm(request.POST)
         if form.is_valid():
-            tipo = form.cleaned_data.get('tipo_relatorio', 'MOVIMENTACOES')
+            if 'btn_modelo2' in request.POST:
+                tipo = 'MOVIMENTACOES_MODELO2'
+            else:
+                tipo = form.cleaned_data.get('tipo_relatorio', 'MOVIMENTACOES')
+                
             titulo = form.cleaned_data.get('titulo') or "Histórico de Movimentações"
+            if tipo == 'MOVIMENTACOES_MODELO2':
+                titulo += " (Modelo 2 - Detalhado)"
+                
             relatorio = _gerar_pdf_unificado(request, tipo, titulo, form.cleaned_data)
             if relatorio:
                 messages.success(request, _('Relatório Gerado com Sucesso!'))

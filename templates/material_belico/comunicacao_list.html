@@ -14,6 +14,7 @@
             <a href="{% url 'material_belico:mosquetao_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo</a>
         {% endif %}
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -31,7 +32,7 @@
                         <td><strong>{{ item.patrimonio }}</strong></td>
                         <td>{{ item.serie }}</td>
                         <td>{{ item.kit_vinculado|default:"—" }}</td>
-                        <td>{% if item.situacao == 'OP' %}<span class="badge bg-success">OP</span>{% else %}<span class="badge bg-warning text-dark">Manutenção</span>{% endif %}</td>
+                        <td data-filter-situacao="{{ item.situacao }}">{% if item.situacao == 'OP' %}<span class="badge bg-success">OP</span>{% elif item.situacao == 'EM_USO' %}<span class="badge bg-primary">Em Uso</span>{% else %}<span class="badge bg-warning text-dark">Manutenção</span>{% endif %}</td>
                         <td>{{ item.controle_bateria_numero|default:"—" }}</td>
                         <td class="text-center">
                             <a href="{% url 'material_belico:radio_ht_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
@@ -39,7 +40,13 @@
                         </td>
                         {% else %}
                         <td><strong>{{ item.serie }}</strong></td>
-                        <td><span class="badge bg-secondary">{{ item.situacao }}</span></td>
+                        <td data-filter-situacao="{{ item.situacao }}">
+                            {% if item.situacao == 'EM_USO' %}
+                                <span class="badge bg-primary">Em Uso</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ item.situacao }}</span>
+                            {% endif %}
+                        </td>
                         <td class="text-center">
                             {% if tipo == 'am640' %}
                                 <a href="{% url 'material_belico:am640_edit' item.pk %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>

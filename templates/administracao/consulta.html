@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}Central de Consultas Administrativas - 2º BAEP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 16px;
+    }
+    .preset-btn {
+        transition: all 0.2s ease-in-out;
+    }
+    .preset-btn:hover {
+        transform: translateY(-2px);
+    }
+    .badge-em-uso-badge {
+        background-color: #f39c12;
+        color: #fff;
+    }
+    .badge-devolvido-badge {
+        background-color: #27ae60;
+        color: #fff;
+    }
+    .stat-card-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--secondary-color);">
+                <i class="fas fa-search-location text-warning me-2"></i>Central de Consultas Administrativas
+            </h2>
+            <p class="text-muted small mb-0">Pesquisa de utilização por período, modelo de armamento e emissão de relatórios executivos</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'administracao:imprimir_relatorio' %}?data_inicio={{ data_inicio|date:'Y-m-d' }}&data_fim={{ data_fim|date:'Y-m-d' }}&tipo_recurso={{ tipo_recurso }}&categoria={{ categoria }}&status_devolucao={{ status_devolucao }}&policial_id={{ policial_id }}&busca={{ busca }}" target="_blank" class="btn btn-outline-danger shadow-sm rounded-3 fw-bold">
+                <i class="fas fa-file-pdf me-2"></i>Imprimir / Salvar PDF
+            </a>
+            <a href="{% url 'administracao:exportar_excel' %}?data_inicio={{ data_inicio|date:'Y-m-d' }}&data_fim={{ data_fim|date:'Y-m-d' }}&tipo_recurso={{ tipo_recurso }}&categoria={{ categoria }}&status_devolucao={{ status_devolucao }}&policial_id={{ policial_id }}&busca={{ busca }}" class="btn btn-success shadow-sm rounded-3 fw-bold">
+                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Presets de Consulta Guiada ("Perguntas Frequentes do Gestor") -->
+    <div class="card filter-card p-3 mb-4 shadow-sm">
+        <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-lightbulb text-warning me-2"></i>
+            <span class="fw-bold text-dark small text-uppercase">Pesquisas Rápidas e Exemplos de Consultas</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="?preset=armas_julho_exemplo&tipo_recurso=ARMA" class="btn btn-sm btn-outline-primary rounded-pill preset-btn px-3">
+                <i class="fas fa-calendar-alt me-1"></i> Armas Utilizadas entre 10 e 14 de Julho
+            </a>
+            <a href="?preset=ultimos_7_dias&tipo_recurso=ARMA" class="btn btn-sm btn-outline-secondary rounded-pill preset-btn px-3">
+                <i class="fas fa-clock me-1"></i> Armas Cauteladas nos Últimos 7 Dias
+            </a>
+            <a href="?preset=este_mes&tipo_recurso=ARMA" class="btn btn-sm btn-outline-info rounded-pill preset-btn px-3">
+                <i class="fas fa-calendar-check me-1"></i> Cautelas deste Mês
+            </a>
+            <a href="?preset=este_mes&tipo_recurso=ARMA&status_devolucao=EM_USO" class="btn btn-sm btn-outline-warning rounded-pill preset-btn px-3">
+                <i class="fas fa-exclamation-circle me-1"></i> Armas Atualmente em Uso (Não Devolvidas)
+            </a>
+            <a href="?tipo_recurso=VIATURA&preset=este_mes" class="btn btn-sm btn-outline-dark rounded-pill preset-btn px-3">
+                <i class="fas fa-car-side me-1"></i> Despachos de Viaturas no Mês
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulário de Filtros -->
+    <div class="card filter-card shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-filter text-primary me-2"></i>Filtros de Pesquisa Periodizada
+            </h5>
+        </div>
+        <div class="card-body pt-0">
+            <form method="GET" action="{% url 'administracao:consulta_dinamica' %}" class="row g-3">
+                
+                <!-- Data Inicial -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Data Inicial</label>
+                    <input type="date" name="data_inicio" class="form-control rounded-3" value="{{ data_inicio|date:'Y-m-d' }}">
+                </div>
+
+                <!-- Data Final -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Data Final</label>
+                    <input type="date" name="data_fim" class="form-control rounded-3" value="{{ data_fim|date:'Y-m-d' }}">
+                </div>
+
+                <!-- Tipo de Recurso -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Tipo de Recurso</label>
+                    <select name="tipo_recurso" class="form-select rounded-3">
+                        <option value="ARMA" {% if tipo_recurso == 'ARMA' %}selected{% endif %}>Armas / Armamento</option>
+                        <option value="MUNICAO" {% if tipo_recurso == 'MUNICAO' %}selected{% endif %}>Munições</option>
+                        <option value="COLETE" {% if tipo_recurso == 'COLETE' %}selected{% endif %}>Coletes Balísticos</option>
+                        <option value="RADIO" {% if tipo_recurso == 'RADIO' %}selected{% endif %}>Rádios / Comunicação</option>
+                        <option value="VIATURA" {% if tipo_recurso == 'VIATURA' %}selected{% endif %}>Viaturas</option>
+                        <option value="TODOS" {% if tipo_recurso == 'TODOS' %}selected{% endif %}>Todos os Materiais</option>
+                    </select>
+                </div>
+
+                <!-- Categoria Específica -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Categoria de Arma</label>
+                    <select name="categoria" class="form-select rounded-3">
+                        <option value="">Todas as Categorias</option>
+                        {% for cat_key, cat_val in categorias_arma %}
+                            <option value="{{ cat_key }}" {% if categoria == cat_key %}selected{% endif %}>{{ cat_val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Policial -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small text-muted">Policial Responsável</label>
+                    <select name="policial_id" class="form-select select2 rounded-3">
+                        <option value="">Todos os Policiais</option>
+                        {% for pol in policiais %}
+                            <option value="{{ pol.id }}" {% if policial_id|add:0 == pol.id %}selected{% endif %}>
+                                {{ pol.get_posto_display }} {{ pol.nome }} (RE: {{ pol.re }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status de Devolução -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-muted">Status do Material</label>
+                    <select name="status_devolucao" class="form-select rounded-3">
+                        <option value="TODOS" {% if status_devolucao == 'TODOS' %}selected{% endif %}>Todos os Status</option>
+                        <option value="DEVOLVIDO" {% if status_devolucao == 'DEVOLVIDO' %}selected{% endif %}>Devolvidos</option>
+                        <option value="EM_USO" {% if status_devolucao == 'EM_USO' %}selected{% endif %}>Em Uso / Cautelado</option>
+                    </select>
+                </div>
+
+                <!-- Busca por Texto -->
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold small text-muted">Busca por Palavra-Chave / Nº Série</label>
+                    <div class="input-group">
+                        <input type="text" name="busca" class="form-control rounded-start-3" placeholder="Ex: Taurus, 9mm, nº de série, nome do PM..." value="{{ busca }}">
+                        <button type="submit" class="btn btn-primary rounded-end-3 px-4 fw-bold">
+                            <i class="fas fa-search me-1"></i> Consultar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards de Resultados / Métricas Resumidas -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small text-uppercase mb-2">Total de Recurso Utilizados no Período</h6>
+                    <div class="stat-card-number text-primary">{{ total_registros }}</div>
+                    <small class="text-muted">Entre {{ data_inicio|date:"d/m/Y" }} e {{ data_fim|date:"d/m/Y" }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small text-uppercase mb-2">Itens Devolvidos à Reserva</h6>
+                    <div class="stat-card-number text-success">{{ total_devolvidos }}</div>
+                    <small class="text-muted">Baixas concluídas com sucesso</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 text-center">
+                    <h6 class="text-muted small text-uppercase mb-2">Itens em Uso / Cautela Ativa</h6>
+                    <div class="stat-card-number text-warning">{{ total_em_uso }}</div>
+                    <small class="text-muted">Atualmente em posse dos policiais</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agrupamento por Categoria/Modelo de Armamento -->
+    {% if estatisticas_categorias %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-chart-pie me-2 text-warning"></i>Distribuição por Categoria / Modelo</h5>
+        </div>
+        <div class="card-body pt-0">
+            <div class="row g-3">
+                {% for cat_nome, qtd in estatisticas_categorias.items %}
+                <div class="col-md-3 col-6">
+                    <div class="p-3 rounded-3 bg-light border border-1 border-opacity-10 d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold text-secondary">{{ cat_nome }}</span>
+                        <span class="badge bg-primary rounded-pill fs-6">{{ qtd }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabela Detalhada de Resultados (O Relatório) -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-list-alt me-2 text-primary"></i>Relatório Detalhado de Utilização
+            </h5>
+            <span class="badge bg-dark rounded-pill">{{ total_registros }} registros encontrados</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Material / Recurso</th>
+                        <th>Nº de Série</th>
+                        <th>Categoria</th>
+                        <th>Policial Cautelante</th>
+                        <th>Data/Hora Retirada</th>
+                        <th>Data/Hora Devolução</th>
+                        <th>Status</th>
+                        <th>Finalidade / Obs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td class="fw-bold text-dark">
+                            <i class="fas fa-shield-alt me-1 text-warning small"></i>{{ item.nome_material }}
+                        </td>
+                        <td><span class="badge bg-secondary font-monospace">{{ item.numero_serie }}</span></td>
+                        <td><span class="badge bg-light text-dark border">{{ item.categoria }}</span></td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ item.policial_nome }}</div>
+                            <small class="text-muted">RE: {{ item.policial_rg }}</small>
+                        </td>
+                        <td>
+                            <span class="small"><i class="far fa-clock me-1 text-muted"></i>{{ item.data_retirada|date:"d/m/Y H:i" }}</span>
+                        </td>
+                        <td>
+                            {% if item.data_devolucao %}
+                                <span class="small text-success fw-semibold"><i class="far fa-check-circle me-1"></i>{{ item.data_devolucao|date:"d/m/Y H:i" }}</span>
+                            {% else %}
+                                <span class="badge badge-em-uso-badge px-2 py-1"><i class="fas fa-spinner fa-spin me-1"></i>Em Uso</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.is_devolvido %}
+                                <span class="badge badge-devolvido-badge px-2 py-1">Devolvido</span>
+                            {% else %}
+                                <span class="badge badge-em-uso-badge px-2 py-1">Em Cautela</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">
+                            {{ item.finalidade|default:"-" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3 text-secondary opacity-50 d-block"></i>
+                            <h6 class="fw-bold mb-1">Nenhum registro encontrado no período selecionado</h6>
+                            <p class="small mb-0">Tente ajustar o intervalo de datas ou alterar os filtros de busca.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        if ($('.select2').length) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Selecione...'
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'solicitacoes.apps.SolicitacoesConfig',
     'licenciamento',
     'material_belico.apps.MaterialBelicoConfig',
+    'administracao',
 ]
 
 # ---------------------------------------------------------------------------
@@ -252,9 +253,34 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # ---------------------------------------------------------------------------
 # Logging (produção registra warnings+ em arquivo, dev exibe no console)
-# ---------------------------------------------------------------------------
 LOG_DIR = BASE_DIR / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
+# Log file permission check for local execution
+log_file_path = LOG_DIR / 'baep_sistema.log'
+try:
+    log_file_writable = True
+    with open(log_file_path, 'a', encoding='utf-8') as f:
+        pass
+except (PermissionError, OSError):
+    log_file_writable = False
+
+_handlers = ['console', 'file'] if log_file_writable else ['console']
+
+_handlers_dict = {
+    'console': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple',
+    },
+}
+if log_file_writable:
+    _handlers_dict['file'] = {
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': log_file_path,
+        'maxBytes': 10 * 1024 * 1024,   # 10 MB
+        'backupCount': 5,
+        'formatter': 'verbose',
+        'encoding': 'utf-8',
+    }
 
 LOGGING = {
     'version': 1,
@@ -269,32 +295,19 @@ LOGGING = {
             'style': '{',
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOG_DIR / 'baep_sistema.log',
-            'maxBytes': 10 * 1024 * 1024,   # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-    },
+    'handlers': _handlers_dict,
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': _handlers,
         'level': 'WARNING' if not DEBUG else 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': _handlers,
             'level': 'WARNING',
             'propagate': False,
         },
         'django.request': {
-            'handlers': ['file'],
+            'handlers': _handlers,
             'level': 'ERROR',
             'propagate': False,
         },

@@ -10,6 +10,7 @@
             <a href="{% url 'material_belico:algemas_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novas Algemas</a>
         {% endif %}
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -25,8 +26,8 @@
                     <tr{% if tipo == 'taser' and item.carga_bateria_percent == 0 %} class="table-danger"{% elif tipo == 'taser' and item.carga_bateria_percent < 50 %} class="table-warning"{% endif %}>
                         {% if tipo == 'taser' %}
                         <td><strong>{{ item.serie }}</strong></td>
-                        <td>{{ item.situacao }}</td>
-                        <td>
+                        <td data-filter-situacao="{{ item.situacao }}">{{ item.situacao }}</td>
+                        <td data-filter-bateria="{% if item.carga_bateria_percent == 0 %}zero{% elif item.carga_bateria_percent < 50 %}baixa{% else %}ok{% endif %}">
                             {% if item.carga_bateria_percent == 0 %}
                                 <span class="badge bg-danger">0% — BLOQUEADO</span>
                             {% elif item.carga_bateria_percent < 50 %}

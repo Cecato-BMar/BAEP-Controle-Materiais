@@ -46,6 +46,7 @@ urlpatterns = [
     path('solicitacoes/', include('solicitacoes.urls')),
     path('licenciamento/', include('licenciamento.urls')),
     path('material-belico/', include('material_belico.urls')),
+    path('administracao/', include('administracao.urls')),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('termos/', views.termos, name='termos'),
     path('privacidade/', views.privacidade, name='privacidade'),

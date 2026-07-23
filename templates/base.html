@@ -601,6 +601,13 @@
                         <i class="fas fa-file-pdf text-danger"></i> Central de Relatórios
                     </a>
                 </li>
+                {% if user.is_superuser or user.is_staff or user|has_group:'administracao' %}
+                <li class="nav-item">
+                    <a class="nav-link {% if 'administracao' in request.path %}active{% endif %}" href="{% url 'administracao:consulta_dinamica' %}">
+                        <i class="fas fa-search-location text-warning"></i> Consultas Administrativas
+                    </a>
+                </li>
+                {% endif %}
 
                 <!-- APOIO TÉCNICO & ADMIN -->
                 <div class="sidebar-heading"><i class="fas fa-cogs"></i> Apoio & Sistema</div>

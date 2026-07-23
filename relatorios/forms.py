@@ -198,8 +198,9 @@ class RelatorioMovimentacoesForm(forms.Form):
             'material',
             'observacoes',
             Div(
-                Submit('submit', _('Gerar Relatório'), css_class='btn btn-primary'),
-                css_class='text-center'
+                Submit('submit', _('Relatório (Modelo 1 - Padrão)'), css_class='btn btn-primary me-2'),
+                Submit('btn_modelo2', _('Relatório (Modelo 2 - Completo)'), css_class='btn btn-success'),
+                css_class='text-center mt-4'
             )
         )
     

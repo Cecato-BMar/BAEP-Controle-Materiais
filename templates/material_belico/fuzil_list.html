@@ -8,6 +8,7 @@
         <h2 class="fw-bold"><i class="fas fa-gun text-warning me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:fuzil_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Novo Fuzil</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -19,14 +20,16 @@
                 <tbody>
                     {% for item in itens %}
                     <tr>
-                        <td>{{ item.get_tipo_display }}</td>
+                        <td data-filter-tipo="{{ item.tipo }}">{{ item.get_tipo_display }}</td>
                         <td><strong>{{ item.patrimonio }}</strong></td>
-                        <td>{{ item.get_localizacao_display }}</td>
+                        <td data-filter-localizacao="{{ item.localizacao }}">{{ item.get_localizacao_display }}</td>
                         <td>{{ item.numero_recibo|default:"—" }}</td>
-                        <td>
+                        <td data-filter-status="{{ item.status }}">
                             {% if item.status == 'OK' %}<span class="badge bg-success">OK</span>
+                            {% elif item.status == 'EM_USO' %}<span class="badge bg-primary">Em Uso</span>
                             {% elif item.status == 'BAIXADO' %}<span class="badge bg-secondary">Baixado</span>
-                            {% elif item.status == 'SINDICANCIA' %}<span class="badge bg-warning text-dark">Sindicância</span>
+                            {% elif item.status == 'SINDICANCIA' or item.status == 'MANUTENCAO' %}<span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>
+                            {% else %}<span class="badge bg-info">{{ item.get_status_display }}</span>
                             {% endif %}
                         </td>
                         <td class="text-center">

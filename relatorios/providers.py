@@ -349,3 +349,71 @@ class EstoqueSituacaoProvider(ReportProvider):
             'data': data,
             'col_widths': [7*cm, 3.5*cm, 2*cm, 2*cm, 2*cm]
         }]
+
+
+class MovimentacoesProviderModelo2(ReportProvider):
+    def get_data_and_columns(self, filters=None):
+        from movimentacoes.models import Retirada
+        retiradas = Retirada.objects.select_related(
+            'movimentacao__material', 'movimentacao__policial'
+        ).prefetch_related('devolucoes__movimentacao').all().order_by('-movimentacao__data_hora')
+        
+        if filters:
+            if filters.get('data_inicio'): 
+                retiradas = retiradas.filter(movimentacao__data_hora__date__gte=filters['data_inicio'])
+            if filters.get('data_fim'): 
+                retiradas = retiradas.filter(movimentacao__data_hora__date__lte=filters['data_fim'])
+            if filters.get('policial'):
+                retiradas = retiradas.filter(movimentacao__policial_id=filters['policial'])
+            if filters.get('material'):
+                retiradas = retiradas.filter(movimentacao__material_id=filters['material'])
+                
+        # Calculate statistics
+        total_retiradas = 0
+        total_devolvidos = 0
+        total_em_uso = 0
+        
+        data = []
+        for ret in retiradas[:1000]:  # Limit to 1000 to avoid excessive memory
+            total_retiradas += ret.movimentacao.quantidade
+            
+            material = ret.movimentacao.material
+            policial = ret.movimentacao.policial
+            data_retirada = timezone.localtime(ret.movimentacao.data_hora).strftime('%d/%m/%Y %H:%M')
+            
+            devs = ret.devolucoes.all()
+            devolucao = devs[0] if devs else None
+            if devolucao:
+                data_devolucao = timezone.localtime(devolucao.movimentacao.data_hora).strftime('%d/%m/%Y %H:%M')
+                total_devolvidos += ret.movimentacao.quantidade
+            else:
+                # Not returned yet
+                data_devolucao = material.get_status_display() if material else 'Em Uso'
+                total_em_uso += ret.movimentacao.quantidade
+                
+            data.append([
+                material.identificacao if material else "-",
+                policial.nome if policial else "-",
+                str(ret.movimentacao.quantidade),
+                data_retirada,
+                data_devolucao
+            ])
+            
+        results = []
+        
+        results.append({
+            'title': "Resumo Quantitativo do Período",
+            'columns': ['Total Retirado', 'Total Devolvido', 'Saldo (Em Uso/Pendente)'],
+            'data': [[str(total_retiradas), str(total_devolvidos), str(total_em_uso)]],
+            'col_widths': [5*cm, 5*cm, 6*cm]
+        })
+        
+        results.append({
+            'title': "Histórico Detalhado (Modelo 2)",
+            'columns': ['Material', 'Militar', 'Qtd', 'Data/Hora Retirada', 'Data/Hora Devol.'],
+            'data': data,
+            'col_widths': [3.5*cm, 5.5*cm, 1.5*cm, 3.5*cm, 3.5*cm]
+        })
+        
+        return results
+

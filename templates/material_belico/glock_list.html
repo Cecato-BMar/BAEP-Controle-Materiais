@@ -8,6 +8,7 @@
         <h2 class="fw-bold"><i class="fas fa-gun text-secondary me-2"></i>{{ titulo }}</h2>
         <a href="{% url 'material_belico:pistola_glock_create' %}" class="btn btn-warning"><i class="fas fa-plus me-1"></i> Nova Pistola</a>
     </div>
+    {% include "material_belico/_filter_bar.html" %}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
@@ -19,12 +20,14 @@
                     <tr{% if item.situacao_reserva == 'APREENDIDA' %} class="table-danger"{% elif item.situacao_reserva == 'NOVIDADE' %} class="table-warning"{% endif %}>
                         <td>{{ item.patrimonio|default:"—" }}</td>
                         <td><strong>{{ item.numero_serie }}</strong></td>
-                        <td>{{ item.modelo }}</td>
+                        <td data-filter-modelo="{{ item.modelo }}">{{ item.modelo }}</td>
                         <td>{{ item.unidade }}</td>
-                        <td>
+                        <td data-filter-situacao="{{ item.situacao_reserva }}">
                             {% if item.situacao_reserva == 'ok' %}<span class="badge bg-success">OK</span>
+                            {% elif item.situacao_reserva == 'EM_USO' %}<span class="badge bg-primary">Em Uso</span>
                             {% elif item.situacao_reserva == 'APREENDIDA' %}<span class="badge bg-danger">Apreendida</span>
                             {% elif item.situacao_reserva == 'NOVIDADE' %}<span class="badge bg-warning text-dark">Novidade</span>
+                            {% else %}<span class="badge bg-info">{{ item.get_situacao_reserva_display }}</span>
                             {% endif %}
                         </td>
                         <td>{{ item.numero_bopm|default:"—" }}</td>

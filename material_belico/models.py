@@ -31,13 +31,15 @@ LOCALIZACAO_FUZIL_CHOICES = [
     ('RESERVA', 'Reserva'), ('CMT', 'Comandante'), ('SUBCMT', 'Subcomandante'),
     ('AT-01', 'AT-01'), ('AT-02', 'AT-02'), ('AT-03', 'AT-03'), ('AT-04', 'AT-04'),
     ('S-01', 'S-01'), ('S-02', 'S-02'), ('S-03', 'S-03'),
-    ('3ª CIA', '3ª CIA'),
+    ('3ª CIA', '3ª CIA'), ('CURSO', 'Curso'), ('P2', 'P2'), ('GUARDA', 'Guarda'),
 ]
 
 STATUS_ARMA_CHOICES = [
     ('OK', 'OK'),
+    ('EM_USO', 'Em Uso'),
     ('BAIXADO', 'Baixado'),
     ('SINDICANCIA', 'Sindicância'),
+    ('MANUTENCAO', 'Manutenção'),
 ]
 
 KIT_ESPINGARDA_CHOICES = [(str(i), f'KIT-{i:02d}') for i in range(1, 13)] + \
@@ -84,7 +86,7 @@ class Fuzil(models.Model):
 
 class EspingardaCal12(models.Model):
     """Espingardas Calibre 12"""
-    STATUS_CHOICES = [('OK', 'OK'), ('BAIXADO', 'Baixado')]
+    STATUS_CHOICES = [('OK', 'OK'), ('EM_USO', 'Em Uso'), ('BAIXADO', 'Baixado'), ('MANUTENCAO', 'Manutenção')]
     numero_espingarda = models.CharField(_('Número da Espingarda'), max_length=30, unique=True)
     patrimonio = models.CharField(_('Patrimônio'), max_length=30, blank=True, null=True)
     kit_vinculado = models.CharField(_('Kit Vinculado'), max_length=10, choices=KIT_ESPINGARDA_CHOICES, blank=True, null=True)
@@ -107,6 +109,7 @@ class PistolaGlock(models.Model):
     """Pistolas Glock G22 G5 .40"""
     SITUACAO_CHOICES = [
         ('ok', 'OK'),
+        ('EM_USO', 'Em Uso'),
         ('APREENDIDA', 'Apreendida'),
         ('NOVIDADE', 'Novidade'),
     ]
@@ -366,7 +369,7 @@ class KitOperacional(models.Model):
 
 class RadioHT(models.Model):
     """Rádios HT Motorola APX 2000"""
-    SITUACAO_CHOICES = [('OP', 'Operacional'), ('MANUTENCAO', 'Manutenção')]
+    SITUACAO_CHOICES = [('OP', 'Operacional'), ('EM_USO', 'Em Uso'), ('MANUTENCAO', 'Manutenção')]
     patrimonio = models.CharField(_('Patrimônio'), max_length=30, unique=True)
     serie = models.CharField(_('Série'), max_length=50, unique=True)
     kit_vinculado = models.CharField(_('Kit Vinculado'), max_length=50, blank=True, null=True,
@@ -393,7 +396,7 @@ class RadioHT(models.Model):
 class AM640(models.Model):
     """AM-640"""
     SITUACAO_CHOICES = [(f'KIT-{i:02d}', f'KIT-{i:02d}') for i in range(1, 11)] + [
-        ('RESERVA', 'Reserva'), ('CMT', 'Comandante'), ('BAIXADO', 'Baixado'),
+        ('RESERVA', 'Reserva'), ('CMT', 'Comandante'), ('EM_USO', 'Em Uso'), ('BAIXADO', 'Baixado'),
     ]
     serie = models.CharField(_('Série'), max_length=50, unique=True)
     situacao = models.CharField(_('Situação'), max_length=20, choices=SITUACAO_CHOICES, default='RESERVA')
@@ -616,7 +619,7 @@ class ColeteBalistico(models.Model):
         ('INBRATERRESTRE', 'INBRATERRESTRE'),
     ]
     SITUACAO_CHOICES = [
-        ('DISPONIVEL', 'Disponível'), ('SINDICANCIA', 'Sindicância'),
+        ('DISPONIVEL', 'Disponível'), ('EM_USO', 'Em Uso'), ('SINDICANCIA', 'Sindicância'),
     ]
     marca = models.CharField(_('Marca'), max_length=30, choices=MARCA_CHOICES)
     tamanho = models.CharField(_('Tamanho'), max_length=30)
@@ -655,7 +658,7 @@ class ColeteBalistico(models.Model):
 
 class EscudoBalistico(models.Model):
     """Escudos Balísticos — RN-03 alerta de validade"""
-    SITUACAO_CHOICES = [('OP', 'Operacional'), ('BXA', 'Baixado')]
+    SITUACAO_CHOICES = [('OP', 'Operacional'), ('EM_USO', 'Em Uso'), ('BXA', 'Baixado')]
     LOTE_CHOICES = [('1cia', '1ª CIA'), ('2cia', '2ª CIA'), ('EM', 'EM')]
 
     numero = models.PositiveIntegerField(_('Número'), unique=True)
@@ -694,7 +697,7 @@ class CapaceteBalistico(models.Model):
         ('COM_VISOR', 'CAP BAL NIVEL II C VISOR'),
         ('SEM_VISOR', 'CAP BAL NIVEL II S VISOR'),
     ]
-    CONDICAO_CHOICES = [('OPERANDO', 'Operando'), ('DANIFICADO', 'Danificado')]
+    CONDICAO_CHOICES = [('OPERANDO', 'Operando'), ('EM_USO', 'Em Uso'), ('DANIFICADO', 'Danificado')]
 
     numero = models.PositiveIntegerField(_('Número'), unique=True)
     material = models.CharField(_('Material'), max_length=50, choices=MATERIAL_CHOICES)

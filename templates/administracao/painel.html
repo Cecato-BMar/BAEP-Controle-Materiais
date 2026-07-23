@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel de Administração - 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--secondary-color);">
+                <i class="fas fa-user-shield text-warning me-2"></i>Painel de Administração
+            </h2>
+            <p class="text-muted small mb-0">Gestão geral do sistema e controle de movimentações operacionais</p>
+        </div>
+        <div>
+            <a href="{% url 'administracao:consulta_dinamica' %}" class="btn btn-primary shadow-sm fw-bold rounded-3">
+                <i class="fas fa-search-dollar me-2"></i>Central de Consultas e Relatórios
+            </a>
+        </div>
+    </div>
+
+    <!-- Cards de Métricas Principais -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-warning">
+                        <i class="fas fa-gun fa-2x"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted small text-uppercase mb-1">Armas Cadastradas</h6>
+                        <h3 class="fw-bold mb-0 text-dark">{{ total_armas }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3 text-warning">
+                        <i class="fas fa-hand-holding fa-2x"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted small text-uppercase mb-1">Armas Cauteladas</h6>
+                        <h3 class="fw-bold mb-0 text-warning">{{ armas_em_uso }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3 text-info">
+                        <i class="fas fa-exchange-alt fa-2x"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted small text-uppercase mb-1">Movimentações no Mês</h6>
+                        <h3 class="fw-bold mb-0 text-info">{{ movimentacoes_mes }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted small text-uppercase mb-1">Efetivo Ativo</h6>
+                        <h3 class="fw-bold mb-0 text-success">{{ policiais_ativos }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Módulos de Atalho Rápido -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-search me-2 text-primary"></i>Central de Consultas Avançadas</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Realize pesquisas detalhadas por período de datas, espécies de armas, coletes, munições e viaturas com exportação em relatório executivo.</p>
+                    <a href="{% url 'administracao:consulta_dinamica' %}" class="btn btn-outline-primary rounded-3 w-100 py-2 fw-semibold">
+                        Acessar Central de Consultas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-users-cog me-2 text-success"></i>Gestão de Usuários e Permissões</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Gerencie os acessos do efetivo, permissões de armeiros, perfis de frota e senhas de operadores.</p>
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-success rounded-3 w-100 py-2 fw-semibold">
+                        Gerenciar Usuários
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
