@@ -316,6 +316,7 @@
         <div class="card-header bg-dark text-white fw-bold"><i class="fas fa-compass me-1"></i> Navegação Rápida</div>
         <div class="card-body">
             <div class="row g-2">
+                <div class="col-auto"><a href="{% url 'material_belico:exportar_relatorio_detalhado' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-excel me-1"></i>Relatório Detalhado</a></div>
                 <div class="col-auto"><a href="{% url 'material_belico:importar_excel' %}" class="btn btn-success btn-sm"><i class="fas fa-file-excel me-1"></i>Importar Excel</a></div>
                 <div class="col-auto"><a href="{% url 'material_belico:fuzil_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Fuzis</a></div>
                 <div class="col-auto"><a href="{% url 'material_belico:espingarda_list' %}" class="btn btn-outline-dark btn-sm"><i class="fas fa-gun me-1"></i>Espingardas</a></div>
