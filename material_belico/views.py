@@ -835,7 +835,7 @@ def exportar_relatorio_detalhado(request):
         
     # Pistolas
     for p in PistolaGlock.objects.all():
-        add_row('Pistola Glock', p.modelo, p.patrimonio, p.numero_serie, p.get_situacao_display(), p.numero_bopm or '-')
+        add_row('Pistola Glock', p.modelo, p.patrimonio, p.numero_serie, p.get_situacao_reserva_display(), p.numero_bopm or '-')
 
     for p in PistolaTaurus.objects.all():
         add_row('Pistola Taurus', p.get_modelo_display(), p.patrimonio, p.numero_serie, '-', p.unidade)
@@ -845,17 +845,17 @@ def exportar_relatorio_detalhado(request):
         add_row('TASER', 'TASER', '-', t.serie, t.situacao, f"Bateria: {t.carga_bateria_percent}%")
 
     for a in Algemas.objects.all():
-        add_row('Algemas', a.marca, '-', a.numero_serie, '-', '-')
+        add_row('Algemas', a.embalagem, a.numero, '-', '-', a.observacoes)
 
     for mq in MunicaoQuimica.objects.all():
-        add_row('Munição Química', mq.get_tipo_display(), '-', '-', '-', f"Validade: {mq.validade_prazo.strftime('%d/%m/%Y') if mq.validade_prazo else '-'}")
+        add_row('Munição Química', mq.get_tipo_municao_display(), '-', '-', f"Armário: {mq.qtd_armario} | KTO: {mq.qtd_kto}", f"Validade: {mq.validade_prazo.strftime('%d/%m/%Y') if mq.validade_prazo else '-'}")
 
     # Proteção Balística
     for c in ColeteBalistico.objects.all():
         add_row('Colete Balístico', c.get_marca_display(), '-', c.numero_serie, c.get_situacao_display(), f"Tamanho: {c.tamanho}")
 
     for e in EscudoBalistico.objects.all():
-        add_row('Escudo Balístico', e.material, str(e.numero), e.numero_serie, e.get_situacao_display(), e.get_lote_display())
+        add_row('Escudo Balístico', e.material, str(e.numero), e.numero_serie, e.get_situacao_display(), e.get_lote_companhia_display() if e.lote_companhia else '-')
 
     for c in CapaceteBalistico.objects.all():
         add_row('Capacete Balístico', c.get_material_display(), str(c.numero), c.numero_serie, c.get_condicao_display(), '-')
