@@ -795,8 +795,88 @@ def capacete_delete(request, pk):
 
 
 # =============================================================================
-# IMPORTAÇÃO VIA EXCEL
 # =============================================================================
+# EXPORTAÇÃO DETALHADA EM EXCEL
+# =============================================================================
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from django.http import HttpResponse
+
+@login_required
+@require_module_permission('material_belico')
+def exportar_relatorio_detalhado(request):
+    """Gera um relatório detalhado em Excel com todos os itens do Material Bélico."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Relatório Material Bélico"
+    
+    header_fill = PatternFill(start_color="1E272E", end_color="1E272E", fill_type="solid")
+    header_font = Font(name="Calibri", size=12, bold=True, color="F1C40F")
+    center_align = Alignment(horizontal="center", vertical="center")
+    
+    headers = ["Categoria", "Tipo / Modelo", "Patrimônio", "Série / Número", "Status / Situação", "Localização / Observações"]
+    ws.append(headers)
+    
+    for col_idx in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center_align
+
+    def add_row(cat, tipo, pat, serie, status, loc):
+        ws.append([str(cat), str(tipo), str(pat or '-'), str(serie or '-'), str(status or '-'), str(loc or '-')])
+
+    # Armas Longas
+    for f in Fuzil.objects.all():
+        add_row('Fuzil', f.get_tipo_display(), f.patrimonio, f.numero_recibo or '-', f.get_status_display(), f.get_localizacao_display())
+        
+    for e in EspingardaCal12.objects.all():
+        add_row('Espingarda Cal.12', 'Calibre 12', e.patrimonio, e.numero_espingarda, e.get_status_display(), e.observacoes)
+        
+    # Pistolas
+    for p in PistolaGlock.objects.all():
+        add_row('Pistola Glock', p.modelo, p.patrimonio, p.numero_serie, p.get_situacao_display(), p.numero_bopm or '-')
+
+    for p in PistolaTaurus.objects.all():
+        add_row('Pistola Taurus', p.get_modelo_display(), p.patrimonio, p.numero_serie, '-', p.unidade)
+
+    # Não Letal
+    for t in TASER.objects.all():
+        add_row('TASER', 'TASER', '-', t.serie, t.situacao, f"Bateria: {t.carga_bateria_percent}%")
+
+    for a in Algemas.objects.all():
+        add_row('Algemas', a.marca, '-', a.numero_serie, '-', '-')
+
+    for mq in MunicaoQuimica.objects.all():
+        add_row('Munição Química', mq.get_tipo_display(), '-', '-', '-', f"Validade: {mq.validade_prazo.strftime('%d/%m/%Y') if mq.validade_prazo else '-'}")
+
+    # Proteção Balística
+    for c in ColeteBalistico.objects.all():
+        add_row('Colete Balístico', c.get_marca_display(), '-', c.numero_serie, c.get_situacao_display(), f"Tamanho: {c.tamanho}")
+
+    for e in EscudoBalistico.objects.all():
+        add_row('Escudo Balístico', e.material, str(e.numero), e.numero_serie, e.get_situacao_display(), e.get_lote_display())
+
+    for c in CapaceteBalistico.objects.all():
+        add_row('Capacete Balístico', c.get_material_display(), str(c.numero), c.numero_serie, c.get_condicao_display(), '-')
+
+    # Comunicação / Outros
+    for r in RadioHT.objects.all():
+        add_row('Rádio HT', 'Motorola APX 2000', r.patrimonio, r.serie, r.get_situacao_display(), f"Kit: {r.kit_vinculado or '-'}")
+
+    # Ajustar larguras
+    for col in ws.columns:
+        max_len = 0
+        col_letter = openpyxl.utils.get_column_letter(col[0].column)
+        for cell in col:
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max_len + 2
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="Relatorio_Detalhado_Material_Belico_{timezone.now().strftime("%Y%m%d_%H%M")}.xlsx"'
+    wb.save(response)
+    return response
 
 import openpyxl
 import traceback
