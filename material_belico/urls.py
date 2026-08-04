@@ -10,6 +10,7 @@ urlpatterns = [
     path('importar-excel/', views.importar_excel, name='importar_excel'),
     path('relatorio-detalhado/', views.exportar_relatorio_detalhado, name='exportar_relatorio_detalhado'),
     path('relatorio-detalhado-pdf/', views.exportar_relatorio_detalhado_pdf, name='exportar_relatorio_detalhado_pdf'),
+    path('relatorio/<str:categoria>/<str:formato>/', views.exportar_relatorio_categoria, name='exportar_relatorio_categoria'),
 
     # Fuzis
     path('fuzis/', views.fuzil_list, name='fuzil_list'),

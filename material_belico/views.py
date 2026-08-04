@@ -1009,6 +1009,89 @@ def exportar_relatorio_detalhado_pdf(request):
     response['Content-Disposition'] = f'inline; filename="Relatorio_Detalhado_Material_Belico_{timezone.now().strftime("%Y%m%d_%H%M")}.pdf"'
     return response
 
+
+@login_required
+@require_module_permission('material_belico')
+def exportar_relatorio_categoria(request, categoria, formato):
+    """Gera relatório individual por categoria de item (PDF ou Excel)."""
+    import io
+    import openpyxl
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.units import cm
+    from relatorios.utils import PDFReportGenerator
+
+    CATEGORY_MAP = {
+        'fuzil': (Fuzil, 'FUZIS', ['Tipo', 'Patrimônio', 'Nº Recibo', 'Status', 'Localização'], [4*cm, 3.5*cm, 3.5*cm, 3*cm, 4*cm], lambda f: [f.get_tipo_display(), f.patrimonio, f.numero_recibo or '-', f.get_status_display(), f.get_localizacao_display()]),
+        'espingarda': (EspingardaCal12, 'ESPINGARDAS CAL.12', ['Patrimônio', 'Nº Espingarda', 'Status', 'Observações'], [4*cm, 4*cm, 3.5*cm, 6.5*cm], lambda e: [e.patrimonio or '-', e.numero_espingarda, e.get_status_display(), e.observacoes or '-']),
+        'glock': (PistolaGlock, 'PISTOLAS GLOCK', ['Modelo', 'Patrimônio', 'Nº Série', 'Situação Reserva', 'BOPM'], [5*cm, 3.5*cm, 3.5*cm, 3*cm, 3*cm], lambda g: [g.modelo, g.patrimonio or '-', g.numero_serie, g.get_situacao_reserva_display(), g.numero_bopm or '-']),
+        'taurus': (PistolaTaurus, 'PISTOLAS TAURUS', ['Modelo', 'Patrimônio', 'Nº Série', 'Unidade'], [6*cm, 4*cm, 4*cm, 4*cm], lambda t: [t.get_modelo_display(), t.patrimonio or '-', t.numero_serie, t.unidade]),
+        'taser': (TASER, 'ARMAS NÃO LETAIS - TASER', ['Série', 'Situação', 'Carga Bateria (%)', 'Observações'], [4.5*cm, 4*cm, 3.5*cm, 6*cm], lambda t: [t.serie, t.situacao, f"{t.carga_bateria_percent}%", t.observacoes or '-']),
+        'algemas': (Algemas, 'ALGEMAS', ['Embalagem', 'Número', 'Observações'], [5*cm, 5*cm, 8*cm], lambda a: [a.embalagem, a.numero, a.observacoes or '-']),
+        'municao_quimica': (MunicaoQuimica, 'MUNIÇÕES QUÍMICAS', ['Tipo', 'Armário', 'KTO', 'Vencidas', 'Validade'], [6*cm, 3*cm, 3*cm, 3*cm, 3*cm], lambda mq: [mq.get_tipo_municao_display(), str(mq.qtd_armario), str(mq.qtd_kto), str(mq.qtd_vencidas), mq.validade_prazo.strftime('%d/%m/%Y') if mq.validade_prazo else '-']),
+        'colete': (ColeteBalistico, 'COLETES BALÍSTICOS', ['Marca', 'Tamanho', 'Nº Série', 'Situação'], [5*cm, 3.5*cm, 5*cm, 4.5*cm], lambda c: [c.get_marca_display(), c.tamanho, c.numero_serie, c.get_situacao_display()]),
+        'escudo': (EscudoBalistico, 'ESCUDOS BALÍSTICOS', ['Número', 'Material', 'Nº Série', 'Situação', 'Lote/Cia'], [2.5*cm, 6.5*cm, 3.5*cm, 2.5*cm, 3*cm], lambda e: [str(e.numero), e.material, e.numero_serie or '-', e.get_situacao_display(), e.get_lote_companhia_display() if e.lote_companhia else '-']),
+        'capacete': (CapaceteBalistico, 'CAPACETES BALÍSTICOS', ['Número', 'Material', 'Nº Série', 'Condição'], [3*cm, 7*cm, 4*cm, 4*cm], lambda c: [str(c.numero), c.get_material_display(), c.numero_serie or '-', c.get_condicao_display()]),
+        'radio_ht': (RadioHT, 'RÁDIOS HT MOTOROLA', ['Patrimônio', 'Série', 'Situação', 'Kit Vinculado'], [4*cm, 5*cm, 4*cm, 5*cm], lambda r: [r.patrimonio, r.serie, r.get_situacao_display(), r.kit_vinculado or '-']),
+        'municao_convencional': (MunicaoConvencional, 'MUNIÇÕES CONVENCIONAIS', ['Calibre', 'Subtipo', 'Estoque', 'Em Uso', 'Danificadas', 'Estojos'], [3.5*cm, 3.5*cm, 3*cm, 3*cm, 2.5*cm, 2.5*cm], lambda m: [m.get_calibre_display(), m.get_subtipo_display(), str(m.estoque), str(m.em_uso), str(m.danificado), str(m.capsulas)]),
+    }
+
+    if categoria not in CATEGORY_MAP:
+        raise Http404("Categoria não encontrada.")
+
+    model_cls, title, headers, col_widths, extractor = CATEGORY_MAP[categoria]
+    queryset = model_cls.objects.all()
+    timestamp = timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M')
+
+    if formato == 'excel':
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = title[:31]
+
+        # Estilo do cabeçalho
+        header_fill = openpyxl.styles.PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+        header_font = openpyxl.styles.Font(color="FFFFFF", bold=True)
+
+        ws.append(headers)
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = openpyxl.styles.Alignment(horizontal="center")
+
+        for obj in queryset:
+            ws.append(extractor(obj))
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="Relatorio_{categoria.upper()}_{timestamp}.xlsx"'
+        wb.save(response)
+        return response
+
+    elif formato == 'pdf':
+        buffer = io.BytesIO()
+        generator = PDFReportGenerator(buffer, f"RELATÓRIO DE {title}", user=request.user)
+        elements = [Paragraph(title, generator.styles['SectionHeader'])]
+
+        rows = [headers]
+        for obj in queryset:
+            rows.append(extractor(obj))
+
+        elements.append(generator.create_table(rows, col_widths=col_widths))
+        generator.generate(elements)
+
+        pdf_content = buffer.getvalue()
+        buffer.close()
+
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Relatorio_{categoria.upper()}_{timestamp}.pdf"'
+        return response
+
+    else:
+        raise Http404("Formato não suportado.")
+
 import openpyxl
 import traceback
 

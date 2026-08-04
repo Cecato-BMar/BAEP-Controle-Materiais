@@ -11,12 +11,40 @@
             <h2 class="fw-bold"><i class="fas fa-crosshairs text-warning me-2"></i>Controle de Material Bélico</h2>
             <p class="text-muted mb-0">2º Batalhão de Ações Especiais de Polícia</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
+            <div class="dropdown">
+                <button class="btn btn-outline-dark btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-list-check me-1"></i> Relatórios por Item
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><h6 class="dropdown-header text-uppercase fw-bold">Armamento</h6></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'fuzil' 'pdf' %}" target="_blank"><span><i class="fas fa-gun text-warning me-2"></i>Fuzis</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'fuzil' 'excel' %}"><span><i class="fas fa-gun text-warning me-2"></i>Fuzis</span> <span class="badge bg-success">Excel</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'espingarda' 'pdf' %}" target="_blank"><span><i class="fas fa-gun text-info me-2"></i>Espingardas Cal.12</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'espingarda' 'excel' %}"><span><i class="fas fa-gun text-info me-2"></i>Espingardas Cal.12</span> <span class="badge bg-success">Excel</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'glock' 'pdf' %}" target="_blank"><span><i class="fas fa-gun text-secondary me-2"></i>Pistolas Glock</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'glock' 'excel' %}"><span><i class="fas fa-gun text-secondary me-2"></i>Pistolas Glock</span> <span class="badge bg-success">Excel</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'taurus' 'pdf' %}" target="_blank"><span><i class="fas fa-gun text-secondary me-2"></i>Pistolas Taurus</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'taurus' 'excel' %}"><span><i class="fas fa-gun text-secondary me-2"></i>Pistolas Taurus</span> <span class="badge bg-success">Excel</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header text-uppercase fw-bold">Equipamentos & Proteção</h6></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'taser' 'pdf' %}" target="_blank"><span><i class="fas fa-bolt text-warning me-2"></i>TASER</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'colete' 'pdf' %}" target="_blank"><span><i class="fas fa-shield-halved text-success me-2"></i>Coletes Balísticos</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'escudo' 'pdf' %}" target="_blank"><span><i class="fas fa-shield-halved text-success me-2"></i>Escudos Balísticos</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'capacete' 'pdf' %}" target="_blank"><span><i class="fas fa-helmet-safety text-success me-2"></i>Capacetes Balísticos</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'algemas' 'pdf' %}" target="_blank"><span><i class="fas fa-link text-secondary me-2"></i>Algemas</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'municao_quimica' 'pdf' %}" target="_blank"><span><i class="fas fa-flask text-danger me-2"></i>Munição Química</span> <span class="badge bg-danger">PDF</span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'material_belico:exportar_relatorio_categoria' 'radio_ht' 'pdf' %}" target="_blank"><span><i class="fas fa-walkie-talkie text-primary me-2"></i>Rádios HT</span> <span class="badge bg-danger">PDF</span></a></li>
+                </ul>
+            </div>
             <a href="{% url 'material_belico:exportar_relatorio_detalhado_pdf' %}" class="btn btn-outline-danger btn-lg" target="_blank">
-                <i class="fas fa-file-pdf me-1"></i> Relatório PDF
+                <i class="fas fa-file-pdf me-1"></i> Relatório Geral PDF
             </a>
             <a href="{% url 'material_belico:exportar_relatorio_detalhado' %}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-file-excel me-1"></i> Relatório Excel
+                <i class="fas fa-file-excel me-1"></i> Relatório Geral Excel
             </a>
             <a href="{% url 'material_belico:importar_excel' %}" class="btn btn-outline-success btn-lg">
                 <i class="fas fa-upload me-1"></i> Importar Excel
