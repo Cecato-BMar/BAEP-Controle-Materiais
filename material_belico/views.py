@@ -878,6 +878,137 @@ def exportar_relatorio_detalhado(request):
     wb.save(response)
     return response
 
+@login_required
+@require_module_permission('material_belico')
+def exportar_relatorio_detalhado_pdf(request):
+    """Gera um relatório detalhado em PDF com todos os itens do Material Bélico."""
+    import io
+    from relatorios.utils import PDFReportGenerator
+    from reportlab.platypus import Paragraph, Spacer
+    from reportlab.lib.units import cm
+
+    buffer = io.BytesIO()
+    generator = PDFReportGenerator(buffer, "RELATÓRIO DETALHADO - MATERIAL BÉLICO", user=request.user)
+    elements = []
+
+    # 1. Fuzis
+    fuzis = Fuzil.objects.all()
+    if fuzis.exists():
+        elements.append(Paragraph("FUZIS", generator.styles['SectionHeader']))
+        rows = [['Tipo', 'Patrimônio', 'Nº Recibo', 'Status', 'Localização']]
+        for f in fuzis:
+            rows.append([f.get_tipo_display(), f.patrimonio, f.numero_recibo or '-', f.get_status_display(), f.get_localizacao_display()])
+        elements.append(generator.create_table(rows, col_widths=[4*cm, 3.5*cm, 3.5*cm, 3*cm, 4*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 2. Espingardas Cal.12
+    espingardas = EspingardaCal12.objects.all()
+    if espingardas.exists():
+        elements.append(Paragraph("ESPINGARDAS CAL.12", generator.styles['SectionHeader']))
+        rows = [['Patrimônio', 'Nº Espingarda', 'Status', 'Observações']]
+        for e in espingardas:
+            rows.append([e.patrimonio or '-', e.numero_espingarda, e.get_status_display(), e.observacoes or '-'])
+        elements.append(generator.create_table(rows, col_widths=[4*cm, 4*cm, 3.5*cm, 6.5*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 3. Pistolas Glock
+    glocks = PistolaGlock.objects.all()
+    if glocks.exists():
+        elements.append(Paragraph("PISTOLAS GLOCK", generator.styles['SectionHeader']))
+        rows = [['Modelo', 'Patrimônio', 'Nº Série', 'Situação Reserva', 'BOPM']]
+        for g in glocks:
+            rows.append([g.modelo, g.patrimonio or '-', g.numero_serie, g.get_situacao_reserva_display(), g.numero_bopm or '-'])
+        elements.append(generator.create_table(rows, col_widths=[5*cm, 3.5*cm, 3.5*cm, 3*cm, 3*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 4. Pistolas Taurus
+    taurus = PistolaTaurus.objects.all()
+    if taurus.exists():
+        elements.append(Paragraph("PISTOLAS TAURUS", generator.styles['SectionHeader']))
+        rows = [['Modelo', 'Patrimônio', 'Nº Série', 'Unidade']]
+        for t in taurus:
+            rows.append([t.get_modelo_display(), t.patrimonio or '-', t.numero_serie, t.unidade])
+        elements.append(generator.create_table(rows, col_widths=[6*cm, 4*cm, 4*cm, 4*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 5. TASER
+    tasers = TASER.objects.all()
+    if tasers.exists():
+        elements.append(Paragraph("ARMAS NÃO LETAIS - TASER", generator.styles['SectionHeader']))
+        rows = [['Série', 'Situação', 'Carga Bateria (%)', 'Observações']]
+        for t in tasers:
+            rows.append([t.serie, t.situacao, f"{t.carga_bateria_percent}%", t.observacoes or '-'])
+        elements.append(generator.create_table(rows, col_widths=[4.5*cm, 4*cm, 3.5*cm, 6*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 6. Algemas
+    algemas = Algemas.objects.all()
+    if algemas.exists():
+        elements.append(Paragraph("ALGEMAS", generator.styles['SectionHeader']))
+        rows = [['Embalagem', 'Número', 'Observações']]
+        for a in algemas:
+            rows.append([a.embalagem, a.numero, a.observacoes or '-'])
+        elements.append(generator.create_table(rows, col_widths=[5*cm, 5*cm, 8*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 7. Munições Químicas
+    mqs = MunicaoQuimica.objects.all()
+    if mqs.exists():
+        elements.append(Paragraph("MUNIÇÕES QUÍMICAS", generator.styles['SectionHeader']))
+        rows = [['Tipo', 'Armário', 'KTO', 'Vencidas', 'Validade']]
+        for mq in mqs:
+            val_str = mq.validade_prazo.strftime('%d/%m/%Y') if mq.validade_prazo else '-'
+            rows.append([mq.get_tipo_municao_display(), str(mq.qtd_armario), str(mq.qtd_kto), str(mq.qtd_vencidas), val_str])
+        elements.append(generator.create_table(rows, col_widths=[6*cm, 3*cm, 3*cm, 3*cm, 3*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 8. Proteção Balística (Coletes, Escudos, Capacetes)
+    coletes = ColeteBalistico.objects.all()
+    if coletes.exists():
+        elements.append(Paragraph("COLETES BALÍSTICOS", generator.styles['SectionHeader']))
+        rows = [['Marca', 'Tamanho', 'Nº Série', 'Situação']]
+        for c in coletes:
+            rows.append([c.get_marca_display(), c.tamanho, c.numero_serie, c.get_situacao_display()])
+        elements.append(generator.create_table(rows, col_widths=[5*cm, 3.5*cm, 5*cm, 4.5*cm]))
+        elements.append(Spacer(1, 10))
+
+    escudos = EscudoBalistico.objects.all()
+    if escudos.exists():
+        elements.append(Paragraph("ESCUDOS BALÍSTICOS", generator.styles['SectionHeader']))
+        rows = [['Número', 'Material', 'Nº Série', 'Situação', 'Lote/Cia']]
+        for e in escudos:
+            lote_str = e.get_lote_companhia_display() if e.lote_companhia else '-'
+            rows.append([str(e.numero), e.material, e.numero_serie or '-', e.get_situacao_display(), lote_str])
+        elements.append(generator.create_table(rows, col_widths=[2.5*cm, 6.5*cm, 3.5*cm, 2.5*cm, 3*cm]))
+        elements.append(Spacer(1, 10))
+
+    capacetes = CapaceteBalistico.objects.all()
+    if capacetes.exists():
+        elements.append(Paragraph("CAPACETES BALÍSTICOS", generator.styles['SectionHeader']))
+        rows = [['Número', 'Material', 'Nº Série', 'Condição']]
+        for c in capacetes:
+            rows.append([str(c.numero), c.get_material_display(), c.numero_serie or '-', c.get_condicao_display()])
+        elements.append(generator.create_table(rows, col_widths=[3*cm, 7*cm, 4*cm, 4*cm]))
+        elements.append(Spacer(1, 10))
+
+    # 9. Rádios HT
+    radios = RadioHT.objects.all()
+    if radios.exists():
+        elements.append(Paragraph("RÁDIOS HT MOTOROLA", generator.styles['SectionHeader']))
+        rows = [['Patrimônio', 'Série', 'Situação', 'Kit Vinculado']]
+        for r in radios:
+            rows.append([r.patrimonio, r.serie, r.get_situacao_display(), r.kit_vinculado or '-'])
+        elements.append(generator.create_table(rows, col_widths=[4*cm, 5*cm, 4*cm, 5*cm]))
+        elements.append(Spacer(1, 10))
+
+    generator.generate(elements)
+    pdf_content = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Relatorio_Detalhado_Material_Belico_{timezone.now().strftime("%Y%m%d_%H%M")}.pdf"'
+    return response
+
 import openpyxl
 import traceback
 
