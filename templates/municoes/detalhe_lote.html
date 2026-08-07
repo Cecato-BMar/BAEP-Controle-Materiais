@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes do Lote {{ lote.numero_lote }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'municoes:lista_lotes' %}">Lotes</a></li>
+          <li class="breadcrumb-item active">Lote {{ lote.numero_lote }}</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3">
+        <i class="fas fa-box text-primary me-2"></i>Ficha do Lote: {{ lote.numero_lote }}
+      </h1>
+      <p class="text-muted mb-0 mt-1">{{ lote.material.nome }} — Calibre {{ lote.calibre }}</p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      <a href="{% url 'municoes:relatorio_lote_pdf' lote.pk %}" target="_blank" class="btn btn-danger fw-bold">
+        <i class="fas fa-file-pdf me-2"></i>Imprimir Relatório (PDF)
+      </a>
+      <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar aos Lotes
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards Indicadores de Estoque -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3">
+        <div class="fw-bold fs-3 text-secondary">{{ lote.quantidade_inicial }}</div>
+        <div class="small text-muted">Quantidade Inicial</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#e8f5e9">
+        <div class="fw-bold fs-3 text-success">{{ lote.quantidade_atual }}</div>
+        <div class="small text-muted">Cartuchos no Armário / Disponíveis</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#e3f2fd">
+        <div class="fw-bold fs-3 text-primary">{{ lote.quantidade_estojos }}</div>
+        <div class="small text-muted">Estojos Vazios em Cautela</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#fff3e0">
+        <div class="fw-bold fs-3 text-warning">{{ estatisticas.total_retirado }}</div>
+        <div class="small text-muted">Total Retirado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Informações do Lote -->
+  <div class="row mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Ficha Técnica do Lote</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless table-sm mb-0">
+            <tbody>
+              <tr>
+                <th style="width:160px;" class="text-muted">Material:</th>
+                <td class="fw-bold text-dark">{{ lote.material.nome }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted">Número do Lote:</th>
+                <td class="fw-bold text-primary">{{ lote.numero_lote }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted">Calibre:</th>
+                <td>{{ lote.calibre }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted">Marca / Fabricante:</th>
+                <td>{{ lote.marca|default:'-' }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted">Tipo de Munição:</th>
+                <td><span class="badge bg-secondary">{{ lote.get_tipo_municao_display }}</span></td>
+              </tr>
+              <tr>
+                <th class="text-muted">Data de Fabricação:</th>
+                <td>{{ lote.data_fabricacao|date:'d/m/Y'|default:'-' }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted">Data de Validade:</th>
+                <td>
+                  {% if lote.vencido %}
+                    <span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ lote.data_validade|date:'d/m/Y' }} (Vencido)</span>
+                  {% else %}
+                    {{ lote.data_validade|date:'d/m/Y'|default:'-' }}
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="text-muted">Status do Lote:</th>
+                <td>
+                  {% if lote.ativo %}
+                    <span class="badge bg-success">Ativo</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inativo</span>
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estatísticas Acumuladas -->
+    <div class="col-12 col-lg-6 mt-3 mt-lg-0">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-chart-bar me-2"></i>Estatísticas do Lote</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Total Retirado por Policiais:</span>
+              <span class="fw-bold text-dark fs-6">{{ estatisticas.total_retirado }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Total Disparado Declarado:</span>
+              <span class="fw-bold text-primary fs-6">{{ estatisticas.total_disparado }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Estojos Vazios Devolvidos:</span>
+              <span class="fw-bold text-info fs-6">{{ estatisticas.total_estojos }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Estojos Extraviados (Treinamento):</span>
+              <span class="fw-bold text-warning fs-6">{{ estatisticas.total_estojos_extraviados }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Cartuchos Intactos Extraviados (Perda):</span>
+              <span class="fw-bold text-danger fs-6">{{ estatisticas.total_extraviado }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-light fw-bold py-2 mt-2">
+              <span>Devolvidos ao CPI (Cartuchos / Estojos):</span>
+              <span class="fs-5 text-secondary">{{ estatisticas.total_cpi }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Retiradas do Lote -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-list me-2"></i>Histórico de Retiradas deste Lote</h6>
+      <span class="badge bg-primary">{{ retiradas.count }} retiradas</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Data/Hora</th>
+              <th>Policial</th>
+              <th>Uso / Finalidade</th>
+              <th class="text-end">Qtd Retirada</th>
+              <th class="text-end">Pendente</th>
+              <th class="text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in retiradas %}
+            <tr>
+              <td class="text-nowrap small fw-semibold">{{ r.data_hora|date:'d/m/Y H:i' }}</td>
+              <td class="fw-semibold">{{ r.policial.nome }}</td>
+              <td>
+                <span class="badge {% if r.tipo_uso == 'INSTRUCAO' %}bg-info{% else %}bg-primary{% endif %} me-1">
+                  {{ r.get_tipo_uso_display }}
+                </span>
+                <small class="text-muted">{{ r.finalidade }}</small>
+              </td>
+              <td class="text-end fw-bold">{{ r.quantidade }}</td>
+              <td class="text-end fw-bold {% if r.quantidade_pendente > 0 %}text-warning{% else %}text-success{% endif %}">
+                {{ r.quantidade_pendente }}
+              </td>
+              <td class="text-center">
+                <a href="{% url 'municoes:detalhe_movimentacao' r.pk %}" class="btn btn-outline-primary btn-sm me-1" title="Ver Detalhes">
+                  <i class="fas fa-eye me-1"></i>Detalhes
+                </a>
+                <a href="{% url 'municoes:fechamento_retirada_pdf' r.pk %}" target="_blank" class="btn btn-outline-danger btn-sm" title="Imprimir PDF">
+                  <i class="fas fa-file-pdf me-1"></i>PDF
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">Nenhuma retirada realizada para este lote.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Devoluções ao CPI do Lote -->
+  {% if devolucoes_cpi %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0 text-danger"><i class="fas fa-truck-loading me-2"></i>Devoluções ao CPI deste Lote</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Data/Hora</th>
+              <th>Tipo de Item</th>
+              <th class="text-end">Quantidade</th>
+              <th>Documento / Recibo</th>
+              <th>Registrado Por</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in devolucoes_cpi %}
+            <tr>
+              <td class="small fw-semibold">{{ c.data_hora|date:'d/m/Y H:i' }}</td>
+              <td><span class="badge bg-secondary">{{ c.get_tipo_item_display }}</span></td>
+              <td class="text-end fw-bold">{{ c.quantidade }}</td>
+              <td>{{ c.documento_referencia|default:'-' }}</td>
+              <td>{{ c.registrado_por.get_full_name|default:c.registrado_por.username }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

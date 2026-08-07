@@ -438,6 +438,11 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
+                                            <a class="nav-link py-1 {% if request.resolver_match.url_name == 'lista_movimentacoes' %}active{% endif %}" href="{% url 'municoes:lista_movimentacoes' %}">
+                                                <i class="fas fa-exchange-alt me-1 small"></i>Movimentações
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
                                             <a class="nav-link py-1 {% if request.resolver_match.url_name == 'relatorios' and 'municoes' in request.path %}active{% endif %}" href="{% url 'municoes:relatorios' %}">
                                                 <i class="fas fa-file-alt me-1 small"></i>Relatórios
                                             </a>

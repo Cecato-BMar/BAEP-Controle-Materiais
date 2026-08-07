@@ -13,8 +13,13 @@ urlpatterns = [
     path('retirada/<int:retirada_id>/fechamento/pdf/', views.fechamento_retirada_pdf, name='fechamento_retirada_pdf'),
     path('devolucao/nova/', views.nova_devolucao, name='nova_devolucao'),
     path('devolucao/cpi/', views.devolucao_cpi, name='devolucao_cpi'),
+    path('movimentacoes/', views.lista_movimentacoes, name='lista_movimentacoes'),
+    path('movimentacoes/<int:retirada_id>/', views.detalhe_movimentacao, name='detalhe_movimentacao'),
+    path('lotes/<int:lote_id>/', views.detalhe_lote, name='detalhe_lote'),
+    path('lotes/<int:lote_id>/pdf/', views.relatorio_lote_pdf, name='relatorio_lote_pdf'),
     path('api/lotes/', api.api_lotes, name='api_lotes'),
     path('api/retiradas-pendentes/', api.api_retiradas_pendentes, name='api_retiradas_pendentes'),
     path('api/retirada/<int:retirada_id>/detalhe/', api.api_retirada_detalhe, name='api_retirada_detalhe'),
 ]
+
 

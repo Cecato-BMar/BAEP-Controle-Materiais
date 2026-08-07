@@ -14,6 +14,9 @@
                 <a href="{% url 'municoes:dashboard' %}" class="btn btn-outline-primary btn-sm fw-bold">
                     <i class="fas fa-chart-line me-1"></i>Dashboard
                 </a>
+                <a href="{% url 'municoes:lista_movimentacoes' %}" class="btn btn-outline-info btn-sm fw-bold">
+                    <i class="fas fa-exchange-alt me-1"></i>Movimentações
+                </a>
                 <a href="{% url 'municoes:relatorios' %}" class="btn btn-outline-dark btn-sm fw-bold">
                     <i class="fas fa-file-alt me-1"></i>Relatórios
                 </a>
@@ -55,15 +58,24 @@
                                     <th class="text-end">Estojos</th>
                                     <th>Validade</th>
                                     <th>Status</th>
+                                    <th class="text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for lote in lotes %}
                                 <tr>
-                                    <td class="fw-semibold">{{ lote.material.nome }}</td>
-                                    <td>{{ lote.numero_lote }}</td>
+                                    <td class="fw-semibold">
+                                        <a href="{% url 'municoes:detalhe_lote' lote.pk %}" class="text-decoration-none text-dark fw-bold">
+                                            {{ lote.material.nome }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'municoes:detalhe_lote' lote.pk %}" class="text-decoration-none fw-bold">
+                                            {{ lote.numero_lote }}
+                                        </a>
+                                    </td>
                                     <td>{{ lote.calibre }}</td>
-                                    <td class="text-end">{{ lote.quantidade_atual }}</td>
+                                    <td class="text-end fw-bold">{{ lote.quantidade_atual }}</td>
                                     <td class="text-end">{{ lote.quantidade_estojos }}</td>
                                     <td>{{ lote.data_validade|date:'d/m/Y' }}</td>
                                     <td>
@@ -73,10 +85,20 @@
                                         <span class="badge bg-secondary">Inativo</span>
                                         {% endif %}
                                     </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'municoes:detalhe_lote' lote.pk %}" class="btn btn-outline-primary" title="Ver Detalhes do Lote">
+                                                <i class="fas fa-eye me-1"></i>Detalhes
+                                            </a>
+                                            <a href="{% url 'municoes:relatorio_lote_pdf' lote.pk %}" target="_blank" class="btn btn-outline-danger" title="Imprimir Relatório em PDF">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">Nenhum lote de munição cadastrado.</td>
+                                    <td colspan="8" class="text-center text-muted py-4">Nenhum lote de munição cadastrado.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -105,7 +127,7 @@
                                     <th>Lote</th>
                                     <th class="text-end">Retirada</th>
                                     <th class="text-end">Pendente</th>
-                                    <th class="text-end">Ação</th>
+                                    <th class="text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -114,13 +136,24 @@
                                     <td class="text-nowrap">{{ r.data_hora|date:'d/m/Y H:i' }}</td>
                                     <td>{{ r.policial.nome }}</td>
                                     <td>{{ r.material.nome }}</td>
-                                    <td>{{ r.lote.numero_lote }}</td>
-                                    <td class="text-end">{{ r.quantidade }}</td>
-                                    <td class="text-end">{{ r.quantidade_pendente }}</td>
-                                    <td class="text-end">
-                                        <a href="{% url 'municoes:fechamento_retirada_pdf' r.pk %}" target="_blank" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-file-pdf me-1"></i>PDF
+                                    <td>
+                                        <a href="{% url 'municoes:detalhe_lote' r.lote.id %}" class="text-decoration-none fw-bold">
+                                            {{ r.lote.numero_lote }}
                                         </a>
+                                    </td>
+                                    <td class="text-end">{{ r.quantidade }}</td>
+                                    <td class="text-end fw-bold {% if r.quantidade_pendente > 0 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ r.quantidade_pendente }}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'municoes:detalhe_movimentacao' r.pk %}" class="btn btn-outline-primary" title="Ver Detalhes da Movimentação">
+                                                <i class="fas fa-eye me-1"></i>Detalhes
+                                            </a>
+                                            <a href="{% url 'municoes:fechamento_retirada_pdf' r.pk %}" target="_blank" class="btn btn-outline-danger" title="Imprimir PDF">
+                                                <i class="fas fa-file-pdf me-1"></i>PDF
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -137,3 +170,4 @@
     </div>
 </div>
 {% endblock %}
+

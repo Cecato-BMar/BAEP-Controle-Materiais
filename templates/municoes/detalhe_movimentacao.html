@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Movimentação - Retirada #{{ retirada.pk }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'municoes:dashboard' %}">Munições</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'municoes:lista_movimentacoes' %}">Movimentações</a></li>
+          <li class="breadcrumb-item active">Retirada #{{ retirada.pk }}</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3">
+        <i class="fas fa-file-invoice text-primary me-2"></i>Detalhes da Movimentação #{{ retirada.pk }}
+      </h1>
+      <p class="text-muted mb-0 mt-1">Ficha completa de cautela de munição e histórico de prestação de contas.</p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      <a href="{% url 'municoes:fechamento_retirada_pdf' retirada.pk %}" target="_blank" class="btn btn-danger fw-bold">
+        <i class="fas fa-file-pdf me-2"></i>Imprimir Detalhes (PDF)
+      </a>
+      <a href="{% url 'municoes:detalhe_lote' retirada.lote.id %}" class="btn btn-outline-primary">
+        <i class="fas fa-box me-1"></i>Ver Lote
+      </a>
+      <a href="{% url 'municoes:lista_movimentacoes' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards Indicadores -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3">
+        <div class="fw-bold fs-3 text-dark">{{ retirada.quantidade }}</div>
+        <div class="small text-muted">Total Retirado</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#e8f5e9">
+        <div class="fw-bold fs-3 text-success">{{ resumo.total_intactas }}</div>
+        <div class="small text-muted">Devolvidos Intactos</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#e3f2fd">
+        <div class="fw-bold fs-3 text-primary">{{ resumo.total_disparadas }}</div>
+        <div class="small text-muted">Munições Disparadas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:{% if resumo.pendente > 0 %}#fff8e1{% else %}#f8f9fa{% endif %}">
+        <div class="fw-bold fs-3 {% if resumo.pendente > 0 %}text-warning{% else %}text-success{% endif %}">{{ resumo.pendente }}</div>
+        <div class="small text-muted">Saldo Pendente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ficha da Retirada -->
+  <div class="row mb-4">
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-user-shield me-2"></i>Informações da Cautela / Retirada</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-borderless table-sm mb-0">
+              <tbody>
+                <tr>
+                  <th style="width:160px;" class="text-muted">Policial:</th>
+                  <td class="fw-bold text-dark">{{ retirada.policial.nome }} (RE: {{ retirada.policial.re }})</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Material / Munição:</th>
+                  <td>{{ retirada.material.nome }}</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Lote:</th>
+                  <td>
+                    <a href="{% url 'municoes:detalhe_lote' retirada.lote.id %}" class="fw-bold text-primary text-decoration-none">
+                      {{ retirada.lote.numero_lote }} ({{ retirada.lote.calibre }})
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Tipo de Uso:</th>
+                  <td>
+                    <span class="badge {% if retirada.tipo_uso == 'INSTRUCAO' %}bg-info{% else %}bg-primary{% endif %}">
+                      {{ retirada.get_tipo_uso_display }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Finalidade:</th>
+                  <td>{{ retirada.finalidade }}</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Local de Uso:</th>
+                  <td>{{ retirada.local_uso|default:'-' }}</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Data da Retirada:</th>
+                  <td>{{ retirada.data_hora|date:'d/m/Y H:i' }}</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Registrado por:</th>
+                  <td>{{ retirada.registrado_por.get_full_name|default:retirada.registrado_por.username }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consolidado Físico -->
+    <div class="col-12 col-lg-5 mt-3 mt-lg-0">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-balance-scale me-2"></i>Balanço da Prestação de Contas</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Munições Intactas Devolvidas:</span>
+              <span class="fw-bold text-success fs-6">{{ resumo.total_intactas }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Munições Disparadas (Total):</span>
+              <span class="fw-bold text-primary fs-6">{{ resumo.total_disparadas }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Estojos Vazios Recolhidos/Devolvidos:</span>
+              <span class="fw-bold text-info fs-6">{{ resumo.total_estojos }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Estojos Extraviados (Treinamento):</span>
+              <span class="fw-bold text-warning fs-6">{{ resumo.total_estojos_extraviados }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Cartuchos Intactos Extraviados (Perda):</span>
+              <span class="fw-bold text-danger fs-6">{{ resumo.total_extraviados }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-light fw-bold py-2 mt-2">
+              <span>Saldo Pendente de Entrega:</span>
+              <span class="fs-5 {% if resumo.pendente > 0 %}text-warning{% else %}text-success{% endif %}">{{ resumo.pendente }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Histórico de Devoluções Vinculadas -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-history me-2"></i>Devoluções e Registros de Disparo Realizados</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Data/Hora</th>
+              <th class="text-end">Total Devolvido</th>
+              <th class="text-end">Intactas</th>
+              <th class="text-end">Disparadas</th>
+              <th class="text-end">Estojos Dev.</th>
+              <th class="text-end">Estojos Extr.</th>
+              <th class="text-end">Cartuchos Extr.</th>
+              <th>Documento / Justificativa</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in devolucoes_detalhadas %}
+            <tr>
+              <td class="fw-semibold small">{{ item.devolucao.data_hora|date:'d/m/Y H:i' }}</td>
+              <td class="text-end fw-bold">{{ item.devolucao.quantidade }}</td>
+              <td class="text-end text-success fw-bold">{{ item.intactas }}</td>
+              <td class="text-end text-primary fw-bold">{{ item.disparadas }}</td>
+              <td class="text-end text-info fw-bold">{{ item.estojos }}</td>
+              <td class="text-end text-warning fw-bold">{{ item.estojos_extraviados }}</td>
+              <td class="text-end text-danger fw-bold">{{ item.extraviadas }}</td>
+              <td class="small">
+                {% if item.registro %}
+                  {% if item.registro.boletim_ocorrencia %}<div><strong>B.O.:</strong> {{ item.registro.boletim_ocorrencia }}</div>{% endif %}
+                  {% if item.registro.sindicancia %}<div><strong>Sindicância:</strong> {{ item.registro.sindicancia }}</div>{% endif %}
+                  {% if item.registro.justificativa %}<div class="text-muted"><em>{{ item.registro.justificativa|truncatewords:10 }}</em></div>{% endif %}
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">Nenhuma devolução registrada para esta retirada ainda.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

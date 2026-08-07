@@ -521,3 +521,304 @@ def fechamento_retirada_pdf(request, retirada_id):
     response = HttpResponse(pdf_content, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="fechamento_retirada_municao_{retirada.pk}.pdf"'
     return response
+
+
+@login_required
+def lista_movimentacoes(request):
+    """
+    Tela de consulta e acompanhamento de todas as movimentações do módulo munições
+    (Retiradas, Devoluções e Remessas ao CPI).
+    """
+    tipo_filtro = request.GET.get('tipo', '').strip()
+    busca = request.GET.get('q', '').strip()
+    data_inicio = request.GET.get('data_inicio', '').strip()
+    data_fim = request.GET.get('data_fim', '').strip()
+
+    retiradas_qs = RetiradaMunicao.objects.select_related('material', 'lote', 'policial', 'registrado_por').all()
+    devolucoes_qs = DevolucaoMunicao.objects.select_related('retirada', 'retirada__material', 'retirada__lote', 'retirada__policial', 'registro_disparo').all()
+    cpi_qs = DevolucaoCPI.objects.select_related('lote', 'lote__material', 'registrado_por').all()
+
+    if busca:
+        retiradas_qs = retiradas_qs.filter(
+            Q(policial__nome__icontains=busca) |
+            Q(policial__re__icontains=busca) |
+            Q(material__nome__icontains=busca) |
+            Q(lote__numero_lote__icontains=busca) |
+            Q(finalidade__icontains=busca)
+        )
+        devolucoes_qs = devolucoes_qs.filter(
+            Q(retirada__policial__nome__icontains=busca) |
+            Q(retirada__policial__re__icontains=busca) |
+            Q(retirada__material__nome__icontains=busca) |
+            Q(retirada__lote__numero_lote__icontains=busca)
+        )
+        cpi_qs = cpi_qs.filter(
+            Q(lote__numero_lote__icontains=busca) |
+            Q(lote__material__nome__icontains=busca) |
+            Q(documento_referencia__icontains=busca)
+        )
+
+    if data_inicio:
+        try:
+            dt_i = datetime.strptime(data_inicio, '%Y-%m-%d')
+            retiradas_qs = retiradas_qs.filter(data_hora__gte=dt_i)
+            devolucoes_qs = devolucoes_qs.filter(data_hora__gte=dt_i)
+            cpi_qs = cpi_qs.filter(data_hora__gte=dt_i)
+        except ValueError:
+            pass
+
+    if data_fim:
+        try:
+            dt_f = datetime.combine(datetime.strptime(data_fim, '%Y-%m-%d'), time.max)
+            retiradas_qs = retiradas_qs.filter(data_hora__lte=dt_f)
+            devolucoes_qs = devolucoes_qs.filter(data_hora__lte=dt_f)
+            cpi_qs = cpi_qs.filter(data_hora__lte=dt_f)
+        except ValueError:
+            pass
+
+    movimentacoes = []
+
+    if not tipo_filtro or tipo_filtro == 'RETIRADA':
+        for r in retiradas_qs[:100]:
+            movimentacoes.append({
+                'tipo': 'RETIRADA',
+                'tipo_display': 'Retirada de Cautela',
+                'data_hora': r.data_hora,
+                'policial': r.policial.nome,
+                'material': r.material.nome,
+                'lote': r.lote.numero_lote,
+                'calibre': r.lote.calibre,
+                'quantidade': r.quantidade,
+                'pendente': r.quantidade_pendente,
+                'detalhe_url': f"/municoes/movimentacoes/{r.id}/",
+                'pdf_url': f"/municoes/retirada/{r.id}/fechamento/pdf/",
+                'lote_id': r.lote.id,
+                'objeto': r
+            })
+
+    if not tipo_filtro or tipo_filtro == 'DEVOLUCAO':
+        for d in devolucoes_qs[:100]:
+            reg = getattr(d, 'registro_disparo', None)
+            disp = reg.quantidade_disparada if reg else 0
+            ext = reg.quantidade_extraviada if reg else 0
+            intactas = max(d.quantidade - (disp + ext), 0)
+            movimentacoes.append({
+                'tipo': 'DEVOLUCAO',
+                'tipo_display': 'Devolução Policial',
+                'data_hora': d.data_hora,
+                'policial': d.retirada.policial.nome,
+                'material': d.retirada.material.nome,
+                'lote': d.retirada.lote.numero_lote,
+                'calibre': d.retirada.lote.calibre,
+                'quantidade': d.quantidade,
+                'intactas': intactas,
+                'disparos': disp,
+                'extravios': ext,
+                'detalhe_url': f"/municoes/movimentacoes/{d.retirada.id}/",
+                'pdf_url': f"/municoes/retirada/{d.retirada.id}/fechamento/pdf/",
+                'lote_id': d.retirada.lote.id,
+                'objeto': d
+            })
+
+    if not tipo_filtro or tipo_filtro == 'CPI':
+        for c in cpi_qs[:100]:
+            movimentacoes.append({
+                'tipo': 'CPI',
+                'tipo_display': f"Devolução CPI ({c.get_tipo_item_display()})",
+                'data_hora': c.data_hora,
+                'policial': c.registrado_por.get_full_name() or c.registrado_por.username,
+                'material': c.lote.material.nome,
+                'lote': c.lote.numero_lote,
+                'calibre': c.lote.calibre,
+                'quantidade': c.quantidade,
+                'pendente': 0,
+                'detalhe_url': None,
+                'pdf_url': None,
+                'lote_id': c.lote.id,
+                'objeto': c
+            })
+
+    movimentacoes.sort(key=lambda x: x['data_hora'], reverse=True)
+
+    context = {
+        'movimentacoes': movimentacoes[:150],
+        'tipo_filtro': tipo_filtro,
+        'busca': busca,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'totais_mov': {
+            'retiradas': retiradas_qs.count(),
+            'devolucoes': devolucoes_qs.count(),
+            'cpi': cpi_qs.count(),
+        }
+    }
+    return render(request, 'municoes/lista_movimentacoes.html', context)
+
+
+@login_required
+def detalhe_movimentacao(request, retirada_id):
+    """
+    Tela de detalhe completo da movimentação (Retirada e suas devoluções).
+    """
+    retirada = get_object_or_404(
+        RetiradaMunicao.objects.select_related('material', 'lote', 'policial', 'registrado_por'),
+        pk=retirada_id
+    )
+    devolucoes = list(retirada.devolucoes.select_related('registro_disparo').order_by('-data_hora'))
+
+    total_devolvido = sum(d.quantidade for d in devolucoes)
+    total_intactas = 0
+    total_disparadas = 0
+    total_estojos = 0
+    total_estojos_extraviados = 0
+    total_extraviados = 0
+
+    devolucoes_detalhadas = []
+    for dev in devolucoes:
+        reg = getattr(dev, 'registro_disparo', None)
+        disp = reg.quantidade_disparada if reg else 0
+        ext = reg.quantidade_extraviada if reg else 0
+        est = reg.quantidade_estojos if reg else 0
+        est_ext = reg.quantidade_estojos_extraviados if reg else 0
+        intact = max(dev.quantidade - (disp + ext), 0)
+
+        total_intactas += intact
+        total_disparadas += disp
+        total_estojos += est
+        total_estojos_extraviados += est_ext
+        total_extraviados += ext
+
+        devolucoes_detalhadas.append({
+            'devolucao': dev,
+            'registro': reg,
+            'intactas': intact,
+            'disparadas': disp,
+            'estojos': est,
+            'estojos_extraviados': est_ext,
+            'extraviadas': ext,
+        })
+
+    context = {
+        'retirada': retirada,
+        'devolucoes_detalhadas': devolucoes_detalhadas,
+        'resumo': {
+            'total_devolvido': total_devolvido,
+            'total_intactas': total_intactas,
+            'total_disparadas': total_disparadas,
+            'total_estojos': total_estojos,
+            'total_estojos_extraviados': total_estojos_extraviados,
+            'total_extraviados': total_extraviados,
+            'pendente': retirada.quantidade_pendente,
+        }
+    }
+    return render(request, 'municoes/detalhe_movimentacao.html', context)
+
+
+@login_required
+def detalhe_lote(request, lote_id):
+    """
+    Tela de detalhe completo do Lote de Munição (Ficha técnica + Histórico).
+    """
+    lote = get_object_or_404(
+        LoteMunicao.objects.select_related('material'),
+        pk=lote_id
+    )
+    retiradas = RetiradaMunicao.objects.filter(lote=lote).select_related('policial', 'registrado_por').order_by('-data_hora')
+    devolucoes_cpi = DevolucaoCPI.objects.filter(lote=lote).select_related('registrado_por').order_by('-data_hora')
+
+    total_retirado = retiradas.aggregate(s=Sum('quantidade'))['s'] or 0
+    total_cpi = devolucoes_cpi.aggregate(s=Sum('quantidade'))['s'] or 0
+
+    totais_reg = RegistroDisparoMunicao.objects.filter(devolucao__retirada__lote=lote).aggregate(
+        disp=Sum('quantidade_disparada'),
+        est=Sum('quantidade_estojos'),
+        ext=Sum('quantidade_extraviada'),
+        est_ext=Sum('quantidade_estojos_extraviados')
+    )
+
+    context = {
+        'lote': lote,
+        'retiradas': retiradas,
+        'devolucoes_cpi': devolucoes_cpi,
+        'estatisticas': {
+            'total_retirado': total_retirado,
+            'total_cpi': total_cpi,
+            'total_disparado': totais_reg.get('disp') or 0,
+            'total_estojos': totais_reg.get('est') or 0,
+            'total_extraviado': totais_reg.get('ext') or 0,
+            'total_estojos_extraviados': totais_reg.get('est_ext') or 0,
+        }
+    }
+    return render(request, 'municoes/detalhe_lote.html', context)
+
+
+@login_required
+def relatorio_lote_pdf(request, lote_id):
+    """
+    Gera o PDF com a ficha técnica e histórico do Lote.
+    """
+    lote = get_object_or_404(LoteMunicao.objects.select_related('material'), pk=lote_id)
+    retiradas = list(RetiradaMunicao.objects.filter(lote=lote).select_related('policial').order_by('-data_hora')[:30])
+    devolucoes_cpi = list(DevolucaoCPI.objects.filter(lote=lote).order_by('-data_hora')[:20])
+
+    buffer = io.BytesIO()
+    generator = PDFReportGenerator(
+        buffer=buffer,
+        title=f"Relatório do Lote {lote.numero_lote}",
+        user=request.user,
+    )
+    styles = generator.styles
+    elements = []
+
+    elements.append(Paragraph("FICHA TÉCNICA DO LOTE", styles['SectionHeader']))
+    elements.append(generator.create_table([
+        ['Material', lote.material.nome],
+        ['Número do Lote', lote.numero_lote],
+        ['Calibre', lote.calibre],
+        ['Marca', lote.marca or '-'],
+        ['Tipo de Munição', lote.get_tipo_municao_display()],
+        ['Data de Fabricação', lote.data_fabricacao.strftime('%d/%m/%Y') if lote.data_fabricacao else '-'],
+        ['Data de Validade', lote.data_validade.strftime('%d/%m/%Y') if lote.data_validade else '-'],
+        ['Quantidade Inicial', str(lote.quantidade_inicial)],
+        ['Quantidade Atual em Estoque', str(lote.quantidade_atual)],
+        ['Estojos Vazios em Cautela', str(lote.quantidade_estojos)],
+        ['Status', 'Ativo' if lote.ativo else 'Inativo'],
+    ], col_widths=[6 * cm, 10 * cm]))
+    elements.append(Spacer(1, 0.4 * cm))
+
+    elements.append(Paragraph("HISTÓRICO DE RETIRADAS (ATÉ 30 REGISTROS)", styles['SectionHeader']))
+    linhas_ret = [['Data/Hora', 'Policial', 'Qtd', 'Pendente', 'Finalidade']]
+    for r in retiradas:
+        linhas_ret.append([
+            r.data_hora.strftime('%d/%m/%Y %H:%M'),
+            r.policial.nome,
+            str(r.quantidade),
+            str(r.quantidade_pendente),
+            r.finalidade,
+        ])
+    if len(linhas_ret) == 1:
+        linhas_ret.append(['-', '-', '0', '0', '-'])
+    elements.append(generator.create_table(linhas_ret, col_widths=[3.5 * cm, 4.5 * cm, 1.8 * cm, 1.8 * cm, 4.4 * cm]))
+    elements.append(Spacer(1, 0.4 * cm))
+
+    elements.append(Paragraph("DEVOLUÇÕES AO CPI", styles['SectionHeader']))
+    linhas_cpi = [['Data/Hora', 'Tipo Item', 'Quantidade', 'Documento/Recibo']]
+    for c in devolucoes_cpi:
+        linhas_cpi.append([
+            c.data_hora.strftime('%d/%m/%Y %H:%M'),
+            c.get_tipo_item_display(),
+            str(c.quantidade),
+            c.documento_referencia or '-',
+        ])
+    if len(linhas_cpi) == 1:
+        linhas_cpi.append(['-', '-', '0', '-'])
+    elements.append(generator.create_table(linhas_cpi, col_widths=[3.5 * cm, 3.5 * cm, 2.0 * cm, 7.0 * cm]))
+
+    generator.generate(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="relatorio_lote_{lote.numero_lote}.pdf"'
+    return response
+
