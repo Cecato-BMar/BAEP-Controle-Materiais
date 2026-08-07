@@ -67,11 +67,45 @@ class DevolucaoMunicaoForm(forms.ModelForm):
     class Meta:
         model = DevolucaoMunicao
         fields = ['retirada', 'quantidade', 'estado_devolucao', 'observacoes']
+        widgets = {
+            'quantidade': forms.HiddenInput(),
+        }
 
-    disparos = forms.IntegerField(label=_('Disparos'), min_value=0, required=False, initial=0)
-    estojos = forms.IntegerField(label=_('Estojos Vazios Devolvidos'), min_value=0, required=False, initial=0)
-    estojos_extraviados = forms.IntegerField(label=_('Estojos Extraviados (Treinamento)'), min_value=0, required=False, initial=0)
-    extravios = forms.IntegerField(label=_('Cartuchos Intactos Extraviados'), min_value=0, required=False, initial=0)
+    quantidade_intactas = forms.IntegerField(
+        label=_('Munições Devolvidas Intactas'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Munições não disparadas devolvidas ao estoque.')
+    )
+    disparos = forms.IntegerField(
+        label=_('Munições Disparadas / Estojos Vazios'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Quantidade de munições deflagradas.')
+    )
+    extravios = forms.IntegerField(
+        label=_('Cartuchos Intactos Extraviados'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Cartuchos intactos perdidos ou extraviados (exige sindicância).')
+    )
+    estojos_extraviados = forms.IntegerField(
+        label=_('Estojos Extraviados (Treinamento)'),
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=_('Estojos não recuperados durante a instrução/treinamento.')
+    )
+    estojos = forms.IntegerField(
+        label=_('Estojos Vazios Devolvidos'),
+        min_value=0,
+        required=False,
+        initial=0,
+        widget=forms.HiddenInput()
+    )
     justificativa = forms.CharField(label=_('Justificativa'), required=False, widget=forms.Textarea(attrs={'rows': 3}))
     sindicancia = forms.CharField(
         label=_('Sindicância / Apuração'),
@@ -84,16 +118,18 @@ class DevolucaoMunicaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['retirada'].queryset = RetiradaMunicao.objects.filter().order_by('-data_hora')
+        self.fields['quantidade'].required = False
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
             'retirada',
-            'quantidade',
-            'estado_devolucao',
+            'quantidade_intactas',
             'disparos',
-            'estojos',
-            'estojos_extraviados',
             'extravios',
+            'estojos_extraviados',
+            'estado_devolucao',
+            'quantidade',
+            'estojos',
             'justificativa',
             'sindicancia',
             'boletim_ocorrencia',
@@ -104,35 +140,39 @@ class DevolucaoMunicaoForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         retirada = cleaned_data.get('retirada')
-        quantidade = cleaned_data.get('quantidade')
+
+        intactas = cleaned_data.get('quantidade_intactas') or 0
         disparos = cleaned_data.get('disparos') or 0
         extravios = cleaned_data.get('extravios') or 0
-        estojos = cleaned_data.get('estojos') or 0
         estojos_extraviados = cleaned_data.get('estojos_extraviados') or 0
+
         justificativa = cleaned_data.get('justificativa', '').strip()
         sindicancia = cleaned_data.get('sindicancia', '').strip()
         boletim_ocorrencia = cleaned_data.get('boletim_ocorrencia', '').strip()
 
-        if retirada and quantidade is not None:
-            if quantidade > retirada.quantidade_pendente:
-                self.add_error('quantidade', _('A quantidade não pode exceder o pendente da retirada selecionada.'))
-            
-            if disparos + extravios > quantidade:
-                self.add_error('quantidade', _('A soma de disparos e cartuchos extraviados não pode passar da quantidade total devolvida.'))
-            
-            if estojos > disparos:
-                self.add_error('estojos', _('Estojos devolvidos não podem ser maiores que a quantidade disparada.'))
+        # Total de unidades prestadas da retirada
+        total_prestado = intactas + disparos + extravios
+        cleaned_data['quantidade'] = total_prestado
+
+        if retirada:
+            if total_prestado <= 0:
+                self.add_error('quantidade_intactas', _('Informe ao menos uma munição devolvida (intacta, disparada ou extraviada).'))
+
+            if total_prestado > retirada.quantidade_pendente:
+                self.add_error('quantidade_intactas', f"A soma total prestada ({total_prestado}) não pode exceder o saldo pendente da retirada ({retirada.quantidade_pendente}).")
 
             if retirada.tipo_uso == 'INSTRUCAO':
-                # Em instrução, todo disparo deve ser convertido em estojo devolvido ou estojo perdido (extraviado)
-                if disparos != (estojos + estojos_extraviados):
-                    self.add_error('estojos_extraviados', _('Para Instrução, a soma de Estojos Devolvidos e Estojos Extraviados deve ser exatamente igual à Quantidade Disparada.'))
-                
+                if estojos_extraviados > disparos:
+                    self.add_error('estojos_extraviados', _('A quantidade de estojos extraviados não pode ser maior do que o total de disparos.'))
+                estojos_devolvidos = max(disparos - estojos_extraviados, 0)
+                cleaned_data['estojos'] = estojos_devolvidos
+
                 if estojos_extraviados > 0 and not justificativa:
-                    self.add_error('justificativa', _('Informe uma justificativa detalhando a perda/danificação de estojos em instrução.'))
+                    self.add_error('justificativa', _('Informe uma justificativa detalhando a perda de estojos em instrução.'))
             else:  # OPERACIONAL
-                if estojos_extraviados > 0:
-                    self.add_error('estojos_extraviados', _('Uso Operacional não gera controle de estojos extraviados.'))
+                estojos_devolvidos = disparos
+                cleaned_data['estojos'] = estojos_devolvidos
+                cleaned_data['estojos_extraviados'] = 0
 
             if extravios > 0:
                 if not justificativa:
@@ -147,6 +187,7 @@ class DevolucaoMunicaoForm(forms.ModelForm):
                 self.add_error('boletim_ocorrencia', _('Informe o B.O. ou Relatório de Disparo/Instrução.'))
 
         return cleaned_data
+
 
 
 class DevolucaoCPIForm(forms.ModelForm):

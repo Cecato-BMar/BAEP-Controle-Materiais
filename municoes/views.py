@@ -323,6 +323,7 @@ def nova_devolucao(request):
             retirada = devolucao.retirada
             material = retirada.material
             lote = retirada.lote
+            intactas = form.cleaned_data.get('quantidade_intactas') or 0
             disparos = form.cleaned_data.get('disparos') or 0
             extravios = form.cleaned_data.get('extravios') or 0
             estojos = form.cleaned_data.get('estojos') or 0
@@ -346,7 +347,7 @@ def nova_devolucao(request):
                 )
 
             # Recalculate stock
-            retorno_intactas = devolucao.quantidade - (disparos + extravios)
+            retorno_intactas = intactas
             
             lote.quantidade_atual += retorno_intactas
             lote.quantidade_estojos += estojos

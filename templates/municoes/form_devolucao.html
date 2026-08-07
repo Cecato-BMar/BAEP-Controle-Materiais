@@ -108,40 +108,28 @@
         <div class="card border-0 shadow-sm mb-4">
           <div class="card-header bg-white border-bottom py-3">
             <h6 class="fw-bold mb-0 text-primary">
-              <i class="fas fa-hand-holding me-2"></i>Entrega Física — O que foi devolvido
+              <i class="fas fa-hand-holding me-2"></i>Entrega Física — O que está sendo devolvido / prestado contas
             </h6>
           </div>
           <div class="card-body p-4">
 
-            <div class="row g-3 mb-4">
-              <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Munições Intactas Devolvidas <span class="text-danger">*</span></label>
-                <input type="number" id="id_qtd_intactas" name="qtd_intactas_display" class="form-control form-control-lg" min="0" value="0" readonly
-                       style="background:#e8f5e9; font-size:1.5rem; font-weight:700; color:#388e3c; cursor:default;">
-                <small class="text-muted">Calculado automaticamente: Total devolvido − Disparados − Extraviados</small>
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Estojos Vazios Devolvidos</label>
-                <input type="number" id="id_qtd_estojos_display" name="qtd_estojos_display" class="form-control form-control-lg" min="0" value="0" readonly
-                       style="background:#e3f2fd; font-size:1.5rem; font-weight:700; color:#1565c0; cursor:default;">
-                <small class="text-muted">Calculado automaticamente a partir dos disparos declarados</small>
-              </div>
+            <div class="alert alert-light border mb-4">
+              <i class="fas fa-info-circle text-primary me-2"></i>
+              Informe abaixo as quantidades físicas entregues ou justificadas. O <strong>total prestado</strong> e o <strong>saldo pendente</strong> serão recalculados automaticamente.
             </div>
-
-            <hr class="my-3">
-            <p class="text-muted small mb-3"><i class="fas fa-info-circle me-1"></i>Preencha os campos abaixo. Os totais acima serão recalculados em tempo real.</p>
 
             <div class="row g-3">
               <div class="col-12 col-md-4">
-                {{ form.quantidade|as_crispy_field }}
-                <small class="text-muted d-block mt-1"><i class="fas fa-arrow-up me-1"></i>Total de unidades entregues agora (intactas + estojos).</small>
+                {{ form.quantidade_intactas|as_crispy_field }}
+                <small class="text-success d-block mt-1"><i class="fas fa-check-circle me-1"></i>Cartuchos intactos retornando ao estoque.</small>
               </div>
               <div class="col-12 col-md-4">
                 {{ form.disparos|as_crispy_field }}
+                <small class="text-primary d-block mt-1"><i class="fas fa-bullseye me-1"></i>Cartuchos deflagrados (estojos devolvidos).</small>
               </div>
               <div class="col-12 col-md-4">
                 {{ form.extravios|as_crispy_field }}
-                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Somente cartuchos intactos perdidos. Exige sindicância.</small>
+                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Cartuchos intactos perdidos. Exige sindicância.</small>
               </div>
             </div>
 
@@ -150,17 +138,17 @@
               <div class="alert alert-info border-0 mb-3">
                 <i class="fas fa-graduation-cap me-2"></i>
                 <strong>Instrução / Treinamento:</strong> A prestação de contas dos estojos vazios é <strong>obrigatória</strong>.
-                Fórmula: <code>Disparos = Estojos Devolvidos + Estojos Extraviados</code>
+                Se algum estojo de munição deflagrada foi perdido no estande, informe no campo abaixo.
               </div>
               <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  {{ form.estojos|as_crispy_field }}
-                </div>
                 <div class="col-12 col-md-6">
                   {{ form.estojos_extraviados|as_crispy_field }}
                 </div>
               </div>
             </div>
+
+            {{ form.quantidade }}
+            {{ form.estojos }}
 
             <!-- ========== PAINEL DE CONCILIAÇÃO EM TEMPO REAL ========== -->
             <div class="card mt-4" id="conciliacao-card" style="border: 2px solid #dee2e6; border-radius: 12px;">
@@ -173,8 +161,8 @@
                 <!-- Linha: balanço total -->
                 <div class="row g-0 align-items-center text-center mb-3">
                   <div class="col">
-                    <div class="small text-muted">Total Devolvido</div>
-                    <div class="fw-bold fs-5" id="c-total-dev">0</div>
+                    <div class="small text-muted">Total Prestado Contas</div>
+                    <div class="fw-bold fs-5 text-dark" id="c-total-dev">0</div>
                   </div>
                   <div class="col-auto px-2 text-muted">=</div>
                   <div class="col">
@@ -183,7 +171,7 @@
                   </div>
                   <div class="col-auto px-2 text-muted">+</div>
                   <div class="col">
-                    <div class="small text-muted">🔵 Estojos (disp.)</div>
+                    <div class="small text-muted">🔵 Disparadas / Estojos</div>
                     <div class="fw-bold fs-5 text-primary" id="c-estojos-calc">0</div>
                   </div>
                   <div class="col-auto px-2 text-muted">+</div>
@@ -196,7 +184,7 @@
                 <!-- Linha: balanço de estojos (instrução) -->
                 <div id="conciliacao-instrucao" class="d-none">
                   <hr class="my-2">
-                  <p class="small text-muted mb-1 fw-bold">Prestação de contas de estojos:</p>
+                  <p class="small text-muted mb-1 fw-bold">Prestação de contas de estojos (Instrução):</p>
                   <div class="row g-0 align-items-center text-center">
                     <div class="col">
                       <div class="small text-muted">Disparos</div>
@@ -227,8 +215,8 @@
                   </div>
                   <div class="col-auto px-2 text-muted">−</div>
                   <div class="col">
-                    <div class="small text-muted">Total devolvido agora</div>
-                    <div class="fw-bold fs-6" id="c-dev-agora">0</div>
+                    <div class="small text-muted">Total prestado agora</div>
+                    <div class="fw-bold fs-6 text-dark" id="c-dev-agora">0</div>
                   </div>
                   <div class="col-auto px-2 text-muted">=</div>
                   <div class="col">
@@ -282,7 +270,7 @@
 (function() {
   'use strict';
 
-  // URL base para API de detalhes
+  // URL base para API de detalhes da retirada
   const API_BASE = '/municoes/api/retirada/';
 
   // Elementos do DOM
@@ -294,15 +282,12 @@
   const historicoBox      = document.getElementById('historico-box');
 
   // Campos do formulário
-  const inputQtd          = document.getElementById('id_quantidade');
+  const inputIntactas     = document.getElementById('id_quantidade_intactas');
   const inputDisparos     = document.getElementById('id_disparos');
   const inputExtravios    = document.getElementById('id_extravios');
-  const inputEstojos      = document.getElementById('id_estojos');
   const inputEstojosExt   = document.getElementById('id_estojos_extraviados');
-
-  // Displays calculados (readonly)
-  const displayIntactas   = document.getElementById('id_qtd_intactas');
-  const displayEstojos    = document.getElementById('id_qtd_estojos_display');
+  const inputQtd          = document.getElementById('id_quantidade');
+  const inputEstojos      = document.getElementById('id_estojos');
 
   // Painel de info da retirada
   const infoPolicial      = document.getElementById('info-policial');
@@ -370,6 +355,11 @@
         infoJaDevolvido.textContent = dados.quantidade_ja_devolvida;
         infoPendente.textContent    = dados.quantidade_pendente;
 
+        // Preencher intactas inicialmente com o saldo pendente se o campo estiver zerado
+        if (inputIntactas && (!inputIntactas.value || parseInt(inputIntactas.value) === 0)) {
+          inputIntactas.value = dados.quantidade_pendente;
+        }
+
         // Histórico
         var h = dados.historico;
         if (h && dados.quantidade_ja_devolvida > 0) {
@@ -390,7 +380,8 @@
         atualizarSecaoPorTipo();
         atualizarConciliacao();
       })
-      .catch(function() {
+      .catch(function(err) {
+        console.error('Erro ao carregar detalhes da retirada:', err);
         painelRetirada.classList.add('d-none');
         painelVazio.classList.remove('d-none');
         dadosRetirada = null;
@@ -405,64 +396,63 @@
     } else {
       secaoInstrucao.classList.add('d-none');
       conciliacaoInstr.classList.add('d-none');
-      // Limpar campos de instrução para evitar envio de valores
-      if (inputEstojos)    inputEstojos.value    = 0;
       if (inputEstojosExt) inputEstojosExt.value = 0;
     }
   }
 
   // ---------- Atualiza conciliação em tempo real ----------
   function atualizarConciliacao() {
-    var total   = parseInt(inputQtd      ? inputQtd.value      : 0) || 0;
-    var disp    = parseInt(inputDisparos ? inputDisparos.value  : 0) || 0;
-    var extr    = parseInt(inputExtravios? inputExtravios.value : 0) || 0;
-    var estoj   = parseInt(inputEstojos  ? inputEstojos.value   : 0) || 0;
-    var estojEx = parseInt(inputEstojosExt ? inputEstojosExt.value : 0) || 0;
+    var intactas = parseInt(inputIntactas ? inputIntactas.value : 0) || 0;
+    var disp     = parseInt(inputDisparos ? inputDisparos.value : 0) || 0;
+    var extr     = parseInt(inputExtravios? inputExtravios.value: 0) || 0;
+    var estojEx  = parseInt(inputEstojosExt ? inputEstojosExt.value : 0) || 0;
 
-    // Intactas = total devolvido − disparados − extraviados
-    var intactas = Math.max(total - disp - extr, 0);
+    var totalPrestado = intactas + disp + extr;
+    var estojDevolvidos = (tipoUso === 'INSTRUCAO') ? Math.max(disp - estojEx, 0) : disp;
 
-    // Displays calculados
-    if (displayIntactas) displayIntactas.value = intactas;
-    if (displayEstojos)  displayEstojos.value  = estoj;
+    // Atualizar os campos ocultos que vão para o servidor
+    if (inputQtd)     inputQtd.value     = totalPrestado;
+    if (inputEstojos) inputEstojos.value = estojDevolvidos;
 
     // Painel de conciliação
-    if (cTotalDev)     cTotalDev.textContent     = total;
-    if (cIntactas)     cIntactas.textContent     = intactas;
-    if (cEstojosCalc)  cEstojosCalc.textContent  = disp;
-    if (cExtraviadas)  cExtraviadas.textContent  = extr;
-    if (cDisparos)     cDisparos.textContent     = disp;
-    if (cEstojos)      cEstojos.textContent      = estoj;
-    if (cEstojosExt)   cEstojosExt.textContent   = estojEx;
-    if (cDevAgora)     cDevAgora.textContent     = total;
+    if (cTotalDev)    cTotalDev.textContent    = totalPrestado;
+    if (cIntactas)    cIntactas.textContent    = intactas;
+    if (cEstojosCalc) cEstojosCalc.textContent = disp;
+    if (cExtraviadas) cExtraviadas.textContent = extr;
+    if (cDisparos)    cDisparos.textContent    = disp;
+    if (cEstojos)     cEstojos.textContent     = estojDevolvidos;
+    if (cEstojosExt)  cEstojosExt.textContent  = estojEx;
+    if (cDevAgora)    cDevAgora.textContent    = totalPrestado;
 
     // Saldo pendente
     var pendente = dadosRetirada ? dadosRetirada.quantidade_pendente : null;
     if (cPendenteAntes) cPendenteAntes.textContent = pendente !== null ? pendente : '—';
-    var novoSaldo = pendente !== null ? pendente - total : null;
+    var novoSaldo = pendente !== null ? pendente - totalPrestado : null;
     if (cNovoSaldo) {
       cNovoSaldo.textContent = novoSaldo !== null ? novoSaldo : '—';
       cNovoSaldo.className   = 'fw-bold fs-5 ' + (novoSaldo > 0 ? 'text-warning' : novoSaldo === 0 ? 'text-success' : 'text-danger');
     }
 
     // Badge de conciliação principal
-    var ok = (total === intactas + disp + extr) && (intactas >= 0);
     if (conciliacaoBadge) {
-      if (total === 0) {
+      if (totalPrestado === 0) {
         conciliacaoBadge.className = 'badge ms-2 bg-secondary fs-6';
         conciliacaoBadge.innerHTML = '<i class="fas fa-question-circle"></i>';
-      } else if (ok) {
+      } else if (pendente !== null && totalPrestado <= pendente) {
+        conciliacaoBadge.className = 'badge ms-2 bg-success fs-6';
+        conciliacaoBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>VÁLIDO';
+      } else if (pendente !== null && totalPrestado > pendente) {
+        conciliacaoBadge.className = 'badge ms-2 bg-danger fs-6';
+        conciliacaoBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Excede Saldo';
+      } else {
         conciliacaoBadge.className = 'badge ms-2 bg-success fs-6';
         conciliacaoBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>OK';
-      } else {
-        conciliacaoBadge.className = 'badge ms-2 bg-danger fs-6';
-        conciliacaoBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Divergente';
       }
     }
 
     // Badge de estojos (instrução)
     if (estojoStatus) {
-      var estojOk = (disp === estoj + estojEx);
+      var estojOk = (disp >= estojEx);
       if (tipoUso === 'INSTRUCAO') {
         estojoStatus.className = 'badge fs-6 ' + (estojOk ? 'bg-success' : 'bg-danger');
         estojoStatus.innerHTML = estojOk
@@ -486,7 +476,7 @@
     }
   }
 
-  [inputQtd, inputDisparos, inputExtravios, inputEstojos, inputEstojosExt].forEach(function(el) {
+  [inputIntactas, inputDisparos, inputExtravios, inputEstojosExt].forEach(function(el) {
     if (el) el.addEventListener('input', atualizarConciliacao);
   });
 
@@ -495,4 +485,5 @@
   atualizarConciliacao();
 })();
 </script>
+
 {% endblock %}

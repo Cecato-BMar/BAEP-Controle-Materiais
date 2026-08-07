@@ -15,4 +15,6 @@ urlpatterns = [
     path('devolucao/cpi/', views.devolucao_cpi, name='devolucao_cpi'),
     path('api/lotes/', api.api_lotes, name='api_lotes'),
     path('api/retiradas-pendentes/', api.api_retiradas_pendentes, name='api_retiradas_pendentes'),
+    path('api/retirada/<int:retirada_id>/detalhe/', api.api_retirada_detalhe, name='api_retirada_detalhe'),
 ]
+
