@@ -1,14 +1,17 @@
 import io
+import logging
 from datetime import datetime, time
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Sum, Count, Q
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, Spacer
+
+logger = logging.getLogger(__name__)
 from .forms import (
     LoteMunicaoForm,
     RetiradaMunicaoForm,
@@ -319,47 +322,70 @@ def nova_devolucao(request):
     if request.method == 'POST':
         form = DevolucaoMunicaoForm(request.POST)
         if form.is_valid():
-            devolucao = form.save(commit=False)
-            retirada = devolucao.retirada
-            material = retirada.material
-            lote = retirada.lote
-            intactas = form.cleaned_data.get('quantidade_intactas') or 0
-            disparos = form.cleaned_data.get('disparos') or 0
-            extravios = form.cleaned_data.get('extravios') or 0
-            estojos = form.cleaned_data.get('estojos') or 0
-            estojos_extraviados = form.cleaned_data.get('estojos_extraviados') or 0
-            justificativa = form.cleaned_data.get('justificativa', '').strip()
-            sindicancia = form.cleaned_data.get('sindicancia', '').strip()
-            boletim = form.cleaned_data.get('boletim_ocorrencia', '').strip()
+            try:
+                devolucao = form.save(commit=False)
+                retirada = devolucao.retirada
+                material = retirada.material
+                lote = retirada.lote
+                intactas = form.cleaned_data.get('quantidade_intactas') or 0
+                disparos = form.cleaned_data.get('disparos') or 0
+                extravios = form.cleaned_data.get('extravios') or 0
+                estojos = form.cleaned_data.get('estojos') or 0
+                estojos_extraviados = form.cleaned_data.get('estojos_extraviados') or 0
+                justificativa = form.cleaned_data.get('justificativa', '').strip()
+                sindicancia = form.cleaned_data.get('sindicancia', '').strip()
+                boletim = form.cleaned_data.get('boletim_ocorrencia', '').strip()
 
-            devolucao.save()
-            
-            if disparos > 0 or extravios > 0 or estojos_extraviados > 0:
-                RegistroDisparoMunicao.objects.create(
-                    devolucao=devolucao,
-                    quantidade_disparada=disparos,
-                    quantidade_estojos=estojos,
-                    quantidade_extraviada=extravios,
-                    quantidade_estojos_extraviados=estojos_extraviados,
-                    justificativa=justificativa,
-                    sindicancia=sindicancia,
-                    boletim_ocorrencia=boletim,
-                )
+                # Garantia extra: quantidade deve ser positiva antes de salvar
+                total_prestado = intactas + disparos + extravios
+                if total_prestado <= 0:
+                    form.add_error('quantidade_intactas', 'Informe ao menos uma munição devolvida.')
+                    return render(request, 'municoes/form_devolucao.html', {'form': form})
 
-            # Recalculate stock
-            retorno_intactas = intactas
-            
-            lote.quantidade_atual += retorno_intactas
-            lote.quantidade_estojos += estojos
-            lote.save()
+                devolucao.quantidade = total_prestado
 
-            material.quantidade_disponivel += retorno_intactas
-            material.quantidade_em_uso = max(material.quantidade_em_uso - devolucao.quantidade, 0)
-            material.quantidade = material.quantidade_disponivel + material.quantidade_em_uso
-            material.save()
+                # Validação de saldo pendente (belt-and-suspenders)
+                if total_prestado > retirada.quantidade_pendente:
+                    form.add_error(
+                        'quantidade_intactas',
+                        f'A soma ({total_prestado}) excede o saldo pendente da retirada ({retirada.quantidade_pendente}).'
+                    )
+                    return render(request, 'municoes/form_devolucao.html', {'form': form})
 
-            messages.success(request, 'Devolução registrada e estoque consolidado com sucesso.')
-            return redirect('municoes:lista_lotes')
+                # Salvar a devolução
+                devolucao.save()
+
+                if disparos > 0 or extravios > 0 or estojos_extraviados > 0:
+                    RegistroDisparoMunicao.objects.create(
+                        devolucao=devolucao,
+                        quantidade_disparada=disparos,
+                        quantidade_estojos=estojos,
+                        quantidade_extraviada=extravios,
+                        quantidade_estojos_extraviados=estojos_extraviados,
+                        justificativa=justificativa,
+                        sindicancia=sindicancia,
+                        boletim_ocorrencia=boletim,
+                    )
+
+                # Atualizar estoque
+                lote.quantidade_atual += intactas
+                lote.quantidade_estojos += estojos
+                lote.save()
+
+                material.quantidade_disponivel += intactas
+                material.quantidade_em_uso = max(material.quantidade_em_uso - total_prestado, 0)
+                material.quantidade = material.quantidade_disponivel + material.quantidade_em_uso
+                material.save()
+
+                messages.success(request, 'Devolução registrada e estoque consolidado com sucesso.')
+                return redirect('municoes:lista_lotes')
+
+            except IntegrityError as e:
+                logger.error('IntegrityError em nova_devolucao: %s', e, exc_info=True)
+                messages.error(request, 'Erro de integridade ao salvar a devolução. Verifique os dados e tente novamente.')
+            except Exception as e:
+                logger.error('Erro inesperado em nova_devolucao: %s', e, exc_info=True)
+                messages.error(request, 'Ocorreu um erro inesperado ao registrar a devolução. O suporte foi notificado.')
     else:
         form = DevolucaoMunicaoForm()
     return render(request, 'municoes/form_devolucao.html', {'form': form})
@@ -622,11 +648,19 @@ def lista_movimentacoes(request):
 
     if not tipo_filtro or tipo_filtro == 'CPI':
         for c in cpi_qs[:100]:
+            # Acesso seguro a registrado_por (pode ser nulo em registros antigos)
+            try:
+                usuario_cpi = (
+                    c.registrado_por.get_full_name() or c.registrado_por.username
+                    if c.registrado_por_id else '—'
+                )
+            except Exception:
+                usuario_cpi = '—'
             movimentacoes.append({
                 'tipo': 'CPI',
                 'tipo_display': f"Devolução CPI ({c.get_tipo_item_display()})",
                 'data_hora': c.data_hora,
-                'policial': c.registrado_por.get_full_name() or c.registrado_por.username,
+                'policial': usuario_cpi,
                 'material': c.lote.material.nome,
                 'lote': c.lote.numero_lote,
                 'calibre': c.lote.calibre,

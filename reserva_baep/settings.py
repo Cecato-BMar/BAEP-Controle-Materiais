@@ -306,9 +306,51 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': False,
         },
+        # Registra TODOS os erros 500 com traceback completo no arquivo de log
         'django.request': {
             'handlers': _handlers,
             'level': 'ERROR',
+            'propagate': False,
+        },
+        # Loggers de módulos do sistema — captura warnings e erros
+        'municoes': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'viaturas': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'materiais': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'movimentacoes': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'patrimonio': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'solicitacoes': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'material_belico': {
+            'handlers': _handlers,
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'licenciamento': {
+            'handlers': _handlers,
+            'level': 'WARNING',
             'propagate': False,
         },
     },

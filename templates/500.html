@@ -1,25 +1,218 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erro Interno — SIS LOGÍSTICA 2º BAEP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block title %}Erro Interno do Servidor - SIS LOGÍSTICA 2ºBAEP{% endblock %}
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --accent: #ef4444;
+      --accent-glow: rgba(239, 68, 68, 0.18);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
 
-{% block content %}
-<div class="container text-center py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg">
-                <div class="card-body p-5">
-                    <h1 class="display-1 text-danger">500</h1>
-                    <h2 class="mb-4">Erro Interno do Servidor</h2>
-                    <p class="lead mb-4">Ocorreu um erro inesperado no servidor. Nossa equipe técnica já foi notificada.</p>
-                    <div class="mb-4">
-                        <i class="fas fa-cogs fa-4x text-warning mb-4"></i>
-                    </div>
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-home me-2"></i>Voltar para o Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 100px;
+      height: 100px;
+      background: var(--accent-glow);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+      50%       { box-shadow: 0 0 0 16px rgba(239,68,68,.0); }
+    }
+
+    .icon-wrap svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .code {
+      font-size: 5rem;
+      font-weight: 800;
+      letter-spacing: -3px;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: .5rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: .75rem;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: .975rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .card-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .85rem;
+      color: var(--muted);
+      padding: .3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row strong { color: var(--text); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .75rem 1.5rem;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn:hover { opacity: .87; transform: translateY(-1px); }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: .75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      </svg>
     </div>
-</div>
-{% endblock %}
+
+    <span class="badge">HTTP 500</span>
+
+    <div class="code">500</div>
+    <h1>Erro Interno do Servidor</h1>
+    <p>
+      Ocorreu um erro inesperado ao processar sua solicitação.<br>
+      O incidente foi registrado automaticamente no log do sistema e
+      a equipe técnica foi notificada.
+    </p>
+
+    <div class="card">
+      <div class="card-title">O que fazer agora</div>
+      <div class="info-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.41-5"/></svg>
+        <span>Tente <strong>recarregar a página</strong> em alguns instantes</span>
+      </div>
+      <div class="info-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Ou volte para a <strong>página inicial</strong> do sistema</span>
+      </div>
+      <div class="info-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Se o erro persistir, contate o <strong>administrador do sistema</strong></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a href="/" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Voltar ao Início
+      </a>
+      <a href="javascript:history.back()" class="btn btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Página Anterior
+      </a>
+    </div>
+
+    <footer>
+      SIS LOGÍSTICA 2º BAEP &mdash; Sistema Integrado de Controle Logístico
+    </footer>
+  </div>
+</body>
+</html>
