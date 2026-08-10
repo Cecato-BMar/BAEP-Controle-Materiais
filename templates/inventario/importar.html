@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Importar Inventário (.xlsx) - 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+          <li class="breadcrumb-item active">Importar Planilha</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3 text-dark">
+        <i class="fas fa-file-import text-success me-2"></i>Importar Inventário Físico e Contábil (.xlsx)
+      </h1>
+      <p class="text-muted mb-0 mt-1">Envie a planilha oficial do inventário para processamento e carga automática de bens no sistema.</p>
+    </div>
+    <div class="col-auto">
+      <a href="{% url 'inventario:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h5 class="fw-bold mb-0 text-primary">
+            <i class="fas fa-upload me-2"></i>Upload do Arquivo Oficial (.xlsx)
+          </h5>
+        </div>
+        <div class="card-body p-4">
+
+          <div class="alert alert-info border-0 mb-4">
+            <h6 class="fw-bold mb-1"><i class="fas fa-info-circle me-2"></i>Instruções de Importação</h6>
+            <p class="mb-0 small">
+              O sistema irá ler automaticamente o termo de inventário, detentor executivo, as contas contábeis e todos os 
+              itens permanentes presentes na planilha (ex: <strong>INVENTÁRIO - 2ºBAEP - EM - 2025..xlsx</strong>).
+            </p>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {% crispy form %}
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventário Semestral - SIS LOGÍSTICA 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h1 class="fw-bold mb-0 h3 text-dark">
+        <i class="fas fa-boxes text-primary me-2"></i>Controle Semestral de Inventário Físico e Contábil
+      </h1>
+      <p class="text-muted mb-0 mt-1">Gestão de bens materiais permanentes, auditoria física e conciliação patrimonial da Unidade.</p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      <a href="{% url 'inventario:importar' %}" class="btn btn-success fw-bold shadow-sm">
+        <i class="fas fa-file-import me-2"></i>Importar Inventário (.xlsx)
+      </a>
+      <a href="{% url 'inventario:novo_ciclo' %}" class="btn btn-outline-primary fw-bold">
+        <i class="fas fa-plus me-1"></i>Novo Inventário
+      </a>
+      <a href="{% url 'inventario:lista_ciclos' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-list me-1"></i>Ver Todos
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards KPI Principais -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 py-2 px-3 text-center border-start border-4 border-primary bg-white">
+        <div class="text-muted small fw-bold text-uppercase">Patrimônio Inventariado</div>
+        <div class="fw-bold fs-3 text-dark mt-1">R$ {{ totais_gerais.total_valor|default:0|floatformat:2 }}</div>
+        <div class="small text-muted"><i class="fas fa-layer-group me-1"></i>{{ totais_gerais.total_bens|default:0 }} Bens Permanentes</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 py-2 px-3 text-center border-start border-4 border-success bg-white">
+        <div class="text-muted small fw-bold text-uppercase">Conferidos Físicos</div>
+        <div class="fw-bold fs-3 text-success mt-1">{{ totais_gerais.total_conferidos|default:0 }}</div>
+        <div class="small text-muted">Auditoria presencial efetuada</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 py-2 px-3 text-center border-start border-4 border-warning bg-white">
+        <div class="text-muted small fw-bold text-uppercase">Bens em Processo de Exclusão</div>
+        <div class="fw-bold fs-3 text-warning mt-1">{{ totais_gerais.total_exclusao|default:0 }}</div>
+        <div class="small text-muted">Baixa ou recolhimento em andamento</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 py-2 px-3 text-center border-start border-4 border-info bg-white">
+        <div class="text-muted small fw-bold text-uppercase">Contas Contábeis</div>
+        <div class="fw-bold fs-3 text-info mt-1">{{ total_contas }}</div>
+        <div class="small text-muted">Categorias SIAFEM / PMESP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel do Inventário Vigente / Recente -->
+  {% if ciclo_atual %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="fw-bold mb-0 text-primary">
+          <i class="fas fa-clipboard-check me-2"></i>{{ ciclo_atual.titulo }}
+        </h5>
+        <small class="text-muted">Termo: <strong>{{ ciclo_atual.termo_numero }}</strong> | Responsável: <strong>{{ ciclo_atual.detentor_executivo|default:"Não informado" }}</strong></small>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'inventario:termo_pdf' ciclo_atual.id %}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold">
+          <i class="fas fa-file-pdf me-1"></i>Imprimir Termo (PDF)
+        </a>
+        <a href="{% url 'inventario:exportar_excel' ciclo_atual.id %}" class="btn btn-outline-success btn-sm fw-bold">
+          <i class="fas fa-file-excel me-1"></i>Exportar Excel
+        </a>
+        <a href="{% url 'inventario:detalhe_ciclo' ciclo_atual.id %}" class="btn btn-primary btn-sm fw-bold">
+          <i class="fas fa-search me-1"></i>Auditar e Conferir
+        </a>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- Progresso da Conferência Física -->
+      <div class="row align-items-center mb-4">
+        <div class="col-md-3">
+          <div class="fw-bold mb-1">Progresso da Auditoria Física</div>
+          <div class="text-muted small">{{ ciclo_atual.total_conferidos }} de {{ ciclo_atual.total_itens }} bens conferidos</div>
+        </div>
+        <div class="col-md-9">
+          <div class="progress" style="height: 22px; border-radius: 12px;">
+            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated fs-6 fw-bold" role="progressbar" style="width: {{ ciclo_atual.progresso_conferencia }}%;">
+              {{ ciclo_atual.progresso_conferencia }}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumo por Conta Contábil -->
+      <h6 class="fw-bold mb-3 text-secondary"><i class="fas fa-table me-2"></i>Balanço por Conta Contábil (SIAFEM)</h6>
+      <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle border">
+          <thead class="table-dark">
+            <tr>
+              <th>Código</th>
+              <th>Conta Contábil</th>
+              <th class="text-center">Quantidade de Bens</th>
+              <th class="text-end">Valor Total (R$)</th>
+              <th class="text-center">Conferência Física</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in contas_resumo %}
+            <tr>
+              <td class="fw-bold text-primary">{{ c.conta_contabil__codigo }}</td>
+              <td>{{ c.conta_contabil__nome }}</td>
+              <td class="text-center fw-bold">{{ c.qtd }}</td>
+              <td class="text-end fw-bold text-dark">R$ {{ c.valor_total|floatformat:2 }}</td>
+              <td class="text-center">
+                <span class="badge {% if c.conferidos == c.qtd %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                  {{ c.conferidos }} / {{ c.qtd }} conferidos
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-3">Nenhuma conta contábil cadastrada.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- Card Estado Vazio -->
+  <div class="card border-0 shadow-sm py-5 text-center my-4">
+    <div class="card-body">
+      <i class="fas fa-file-excel fa-4x text-success mb-3 opacity-75"></i>
+      <h4 class="fw-bold">Nenhum Inventário Cadastrado</h4>
+      <p class="text-muted max-w-md mx-auto mb-4">
+        Comece importando o arquivo Excel oficial (<strong>INVENTÁRIO - 2ºBAEP - EM - 2025..xlsx</strong>) para carregar todo o patrimônio da Unidade.
+      </p>
+      <a href="{% url 'inventario:importar' %}" class="btn btn-success btn-lg fw-bold px-5">
+        <i class="fas fa-file-import me-2"></i>Importar Planilha Oficial Agora
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Histórico de Inventários -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+      <h5 class="fw-bold mb-0 text-dark">
+        <i class="fas fa-history me-2 text-primary"></i>Histórico de Inventários Semestrais
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Termo</th>
+              <th>Título / Exercício</th>
+              <th>Detentor Executivo</th>
+              <th class="text-center">Bens</th>
+              <th class="text-end">Valor Total</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in ciclos %}
+            <tr>
+              <td class="fw-bold">{{ c.termo_numero }}</td>
+              <td>{{ c.titulo }} <small class="text-muted">({{ c.ano }} - {{ c.get_semestre_display }})</small></td>
+              <td>{{ c.detentor_executivo|default:"-" }}</td>
+              <td class="text-center fw-bold">{{ c.total_itens }}</td>
+              <td class="text-end fw-bold text-dark">R$ {{ c.total_valor|floatformat:2 }}</td>
+              <td class="text-center">
+                <span class="badge {% if c.status == 'HOMOLOGADO' or c.status == 'CONCLUIDO' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                  {{ c.get_status_display }}
+                </span>
+              </td>
+              <td class="text-center">
+                <a href="{% url 'inventario:detalhe_ciclo' c.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-search me-1"></i>Ver Detalhes
+                </a>
+                <a href="{% url 'inventario:termo_pdf' c.id %}" target="_blank" class="btn btn-sm btn-outline-danger">
+                  <i class="fas fa-file-pdf"></i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">Nenhum ciclo registrado.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

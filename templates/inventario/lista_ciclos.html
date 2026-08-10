@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Inventários Semestrais{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+          <li class="breadcrumb-item active">Todos os Ciclos</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3 text-dark">
+        <i class="fas fa-layer-group text-primary me-2"></i>Inventários Semestrais Registrados
+      </h1>
+      <p class="text-muted mb-0 mt-1">Histórico completo de termos de inventário físico e contábil do 2º BAEP.</p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      <a href="{% url 'inventario:importar' %}" class="btn btn-success fw-bold">
+        <i class="fas fa-file-import me-1"></i>Importar Planilha (.xlsx)
+      </a>
+      <a href="{% url 'inventario:novo_ciclo' %}" class="btn btn-primary fw-bold">
+        <i class="fas fa-plus me-1"></i>Novo Inventário
+      </a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Termo</th>
+              <th>Título</th>
+              <th>Ano / Semestre</th>
+              <th>Detentor Executivo</th>
+              <th class="text-center">Total Itens</th>
+              <th class="text-end">Valor Total (R$)</th>
+              <th class="text-center">Progresso Conferência</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in ciclos %}
+            <tr>
+              <td class="fw-bold text-primary">{{ c.termo_numero }}</td>
+              <td>{{ c.titulo }}</td>
+              <td><span class="badge bg-secondary">{{ c.ano }} - {{ c.get_semestre_display }}</span></td>
+              <td>{{ c.detentor_executivo|default:"-" }}</td>
+              <td class="text-center fw-bold">{{ c.total_itens }}</td>
+              <td class="text-end fw-bold text-dark">R$ {{ c.total_valor|floatformat:2 }}</td>
+              <td class="text-center" style="width: 160px;">
+                <div class="progress" style="height: 14px;">
+                  <div class="progress-bar bg-success" style="width: {{ c.progresso_conferencia }}%;">
+                    {{ c.progresso_conferencia }}%
+                  </div>
+                </div>
+              </td>
+              <td class="text-center">
+                <span class="badge {% if c.status == 'HOMOLOGADO' or c.status == 'CONCLUIDO' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                  {{ c.get_status_display }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'inventario:detalhe_ciclo' c.id %}" class="btn btn-outline-primary" title="Ver Detalhes">
+                    <i class="fas fa-search"></i>
+                  </a>
+                  <a href="{% url 'inventario:termo_pdf' c.id %}" target="_blank" class="btn btn-outline-danger" title="Termo PDF">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>
+                  <a href="{% url 'inventario:exportar_excel' c.id %}" class="btn btn-outline-success" title="Exportar Excel">
+                    <i class="fas fa-file-excel"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted py-4">Nenhum inventário semestral cadastrado.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ ciclo.termo_numero }} - Detalhes do Inventário{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}">Inventário</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'inventario:lista_ciclos' %}">Ciclos</a></li>
+          <li class="breadcrumb-item active">{{ ciclo.termo_numero }}</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0 h3 text-dark">
+        <i class="fas fa-boxes text-primary me-2"></i>{{ ciclo.titulo }}
+      </h1>
+      <p class="text-muted mb-0 mt-1">Termo: <strong>{{ ciclo.termo_numero }}</strong> | Responsável: <strong>{{ ciclo.detentor_executivo|default:"Não Informado" }}</strong></p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      <a href="{% url 'inventario:termo_pdf' ciclo.id %}" target="_blank" class="btn btn-danger fw-bold">
+        <i class="fas fa-file-pdf me-2"></i>Imprimir Termo (PDF)
+      </a>
+      <a href="{% url 'inventario:exportar_excel' ciclo.id %}" class="btn btn-outline-success fw-bold">
+        <i class="fas fa-file-excel me-1"></i>Exportar Excel
+      </a>
+      <a href="{% url 'inventario:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards Indicadores do Ciclo -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3">
+        <div class="fw-bold fs-3 text-dark">{{ estatisticas.total_itens }}</div>
+        <div class="small text-muted">Total de Bens Registrados</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#e8f5e9">
+        <div class="fw-bold fs-3 text-success">{{ estatisticas.conferidos }}</div>
+        <div class="small text-muted">Conferidos Físicos</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:#fff8e1">
+        <div class="fw-bold fs-3 text-warning">{{ estatisticas.pendentes }}</div>
+        <div class="small text-muted">Pendentes de Conferência</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm text-center py-3">
+        <div class="fw-bold fs-3 text-primary">R$ {{ estatisticas.total_valor|floatformat:2 }}</div>
+        <div class="small text-muted">Valor Contábil Total</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Progresso da Auditoria -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3 px-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-bold text-dark"><i class="fas fa-tasks me-2 text-primary"></i>Progresso Global de Conferência Presencial</span>
+        <span class="fw-bold text-success fs-5">{{ ciclo.progresso_conferencia }}%</span>
+      </div>
+      <div class="progress" style="height: 18px; border-radius: 10px;">
+        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ ciclo.progresso_conferencia }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro Avançado de Bens -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0 text-primary">
+        <i class="fas fa-filter me-2"></i>Filtrar e Buscar Bens do Patrimônio
+      </h6>
+    </div>
+    <div class="card-body p-4">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label fw-bold small">Busca Textual</label>
+          {{ form_filtro.busca }}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label fw-bold small">Conta Contábil</label>
+          {{ form_filtro.conta }}
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label fw-bold small">Seção / Subunidade</label>
+          {{ form_filtro.secao }}
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label fw-bold small">Conferência</label>
+          {{ form_filtro.conferido }}
+        </div>
+        <div class="col-12 col-md-1 d-flex gap-1">
+          <button type="submit" class="btn btn-primary w-100 fw-bold" title="Filtrar">
+            <i class="fas fa-search"></i>
+          </button>
+          <a href="{% url 'inventario:detalhe_ciclo' ciclo.id %}" class="btn btn-outline-secondary" title="Limpar Filtros">
+            <i class="fas fa-times"></i>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabela de Itens -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="fw-bold mb-0 text-dark">
+        <i class="fas fa-boxes me-2 text-primary"></i>Relação de Bens do Inventário
+      </h5>
+      <div class="d-flex gap-2">
+        <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja marcar TODOS os bens como conferidos?');">
+          {% csrf_token %}
+          <input type="hidden" name="acao" value="MARCAR_TODOS">
+          <button type="submit" class="btn btn-outline-success btn-sm fw-bold">
+            <i class="fas fa-check-double me-1"></i>Marcar Todos Conferidos
+          </button>
+        </form>
+        <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja desmarcar o status de conferência?');">
+          {% csrf_token %}
+          <input type="hidden" name="acao" value="DESMARCAR_TODOS">
+          <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-undo me-1"></i>Resetar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Seção / Subunidade</th>
+              <th>Tombo / Patrimônio</th>
+              <th>Nº de Série</th>
+              <th>Descrição do Material</th>
+              <th>Conta Contábil</th>
+              <th>Situação Registrada</th>
+              <th class="text-end">Valor (R$)</th>
+              <th class="text-center">Conferido Físico</th>
+              <th class="text-center">Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in page_obj %}
+            <tr id="row-item-{{ item.id }}" class="{% if item.conferido %}table-success-subtle{% endif %}">
+              <td class="fw-bold small">{{ item.secao_subunidade }}</td>
+              <td>
+                <span class="badge bg-dark fs-6">{{ item.patrimonio }}</span>
+              </td>
+              <td class="text-nowrap small">{{ item.numero_serie|default:"-" }}</td>
+              <td class="fw-bold">{{ item.tipo_material }}</td>
+              <td class="small text-muted">
+                {% if item.conta_contabil %}
+                  <span title="{{ item.conta_contabil.nome }}">{{ item.conta_contabil.codigo }}</span>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if 'EXCLUSÃO' in item.situacao_material %}
+                  <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>{{ item.situacao_material }}</span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">{{ item.situacao_material }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end fw-bold text-dark">R$ {{ item.valor|floatformat:2 }}</td>
+              <td class="text-center" id="status-badge-{{ item.id }}">
+                {% if item.conferido %}
+                  <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>CONFERIDO</span>
+                {% else %}
+                  <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>PENDENTE</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <form method="post" action="{% url 'inventario:conferir_item' item.id %}" class="form-conferir-ajax" data-item-id="{{ item.id }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="conferido" value="{% if item.conferido %}false{% else %}true{% endif %}">
+                  <button type="submit" class="btn btn-sm {% if item.conferido %}btn-outline-danger{% else %}btn-success{% endif %} fw-bold" title="Alternar Status de Conferência">
+                    {% if item.conferido %}
+                      <i class="fas fa-times me-1"></i>Desmarcar
+                    {% else %}
+                      <i class="fas fa-check me-1"></i>Conferir
+                    {% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted py-5">
+                <i class="fas fa-search fa-2x mb-2 text-muted"></i>
+                <br>Nenhum item encontrado com os filtros aplicados.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+      <nav aria-label="Navegação da Tabela">
+        <ul class="pagination justify-content-center mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Primeira</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+          </li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Processamento AJAX dos botões de conferência
+  document.querySelectorAll('.form-conferir-ajax').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const itemId = form.getAttribute('data-item-id');
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const row = document.getElementById('row-item-' + itemId);
+          const badgeCell = document.getElementById('status-badge-' + itemId);
+          const btn = form.querySelector('button');
+          const inputHidden = form.querySelector('input[name="conferido"]');
+
+          if (data.conferido) {
+            row.classList.add('table-success-subtle');
+            badgeCell.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>CONFERIDO</span>';
+            btn.className = 'btn btn-sm btn-outline-danger fw-bold';
+            btn.innerHTML = '<i class="fas fa-times me-1"></i>Desmarcar';
+            inputHidden.value = 'false';
+          } else {
+            row.classList.remove('table-success-subtle');
+            badgeCell.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>PENDENTE</span>';
+            btn.className = 'btn btn-sm btn-success fw-bold';
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Conferir';
+            inputHidden.value = 'true';
+          }
+        }
+      })
+      .catch(err => console.error('Erro na conferência:', err));
+    });
+  });
+});
+</script>
+{% endblock %}

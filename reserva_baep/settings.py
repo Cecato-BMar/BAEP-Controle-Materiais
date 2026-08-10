@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'licenciamento',
     'material_belico.apps.MaterialBelicoConfig',
     'administracao',
+    'inventario',
 ]
 
 # ---------------------------------------------------------------------------
