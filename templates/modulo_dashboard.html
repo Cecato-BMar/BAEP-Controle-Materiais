@@ -116,6 +116,24 @@
             </div>
             {% endif %}
 
+            <!-- Módulo: Inventário Semestral -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
+                    <div class="card-body text-center p-5">
+                        <div class="icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg,#198754,#0d6efd)">
+                            <i class="fas fa-clipboard-check fa-3x text-white"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Inventário Semestral</h3>
+                        <p class="text-muted small">Controle físico e contábil de bens permanentes, auditoria presencial, importação Excel e emissão de Termos em PDF.</p>
+                        <div class="mt-4 pt-2">
+                             <a href="{% url 'inventario:dashboard' %}" class="btn btn-success btn-lg shadow-sm w-100 rounded-pill text-white fw-bold">
+                                <i class="fas fa-boxes me-2"></i> ACESSAR INVENTÁRIO
+                             </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Módulo: Telemática & TI -->
             {% if user.is_superuser or user|has_group:"telematica" %}
             <div class="col-md-4">

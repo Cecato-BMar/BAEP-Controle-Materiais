@@ -598,15 +598,15 @@
                             <li class="nav-item">
                                 <a class="nav-link {% if 'catalogo' in request.path %}active{% endif %}" href="{% url 'patrimonio:lista_bens' %}">Catálogo</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="{% url 'inventario:dashboard' %}">
-                                    <i class="fas fa-clipboard-check me-1 text-success opacity-75"></i>Inventário Semestral
-                                </a>
-                            </li>
                         </ul>
                     </div>
                 </li>
-                {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="{% url 'inventario:dashboard' %}">
+                        <i class="fas fa-clipboard-check text-success me-2"></i><strong>Inventário Semestral</strong>
+                    </a>
+                </li>
                 {% endif %}
 
                 <!-- MÓDULO RELATÓRIOS -->
