@@ -603,10 +603,11 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="{% url 'inventario:dashboard' %}">
+                    <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="/inventario/">
                         <i class="fas fa-clipboard-check text-success me-2"></i><strong>Inventário Semestral</strong>
                     </a>
                 </li>
+                {% endif %}
                 {% endif %}
 
                 <!-- MÓDULO RELATÓRIOS -->
