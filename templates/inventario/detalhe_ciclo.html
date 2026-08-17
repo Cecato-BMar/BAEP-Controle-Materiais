@@ -18,18 +18,71 @@
       <h1 class="fw-bold mb-0 h3 text-dark">
         <i class="fas fa-boxes text-primary me-2"></i>{{ ciclo.titulo }}
       </h1>
-      <p class="text-muted mb-0 mt-1">Termo: <strong>{{ ciclo.termo_numero }}</strong> | Responsável: <strong>{{ ciclo.detentor_executivo|default:"Não Informado" }}</strong></p>
+      <p class="text-muted mb-0 mt-1">
+        Termo: <strong>{{ ciclo.termo_numero }}</strong> | 
+        Exercício: <strong>{{ ciclo.ano }}/{{ ciclo.semestre }}º Semestre</strong> |
+        Responsável: <strong>{{ ciclo.detentor_executivo|default:"Não Informado" }}</strong>
+      </p>
     </div>
-    <div class="col-auto d-flex gap-2">
-      <a href="{% url 'inventario:termo_pdf' ciclo.id %}" target="_blank" class="btn btn-danger fw-bold">
+    <div class="col-auto d-flex flex-wrap gap-2">
+      {% if pode_gerir and proximos_status %}
+      <button type="button" class="btn btn-warning fw-bold text-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTransicionarCiclo">
+        <i class="fas fa-exchange-alt me-1"></i>Alterar Status
+      </button>
+      {% endif %}
+      <a href="{% url 'inventario:termo_pdf' ciclo.id %}" target="_blank" class="btn btn-danger fw-bold shadow-sm">
         <i class="fas fa-file-pdf me-2"></i>Imprimir Termo (PDF)
       </a>
-      <a href="{% url 'inventario:exportar_excel' ciclo.id %}" class="btn btn-outline-success fw-bold">
+      <a href="{% url 'inventario:exportar_excel' ciclo.id %}" class="btn btn-outline-success fw-bold shadow-sm">
         <i class="fas fa-file-excel me-1"></i>Exportar Excel
       </a>
       <a href="{% url 'inventario:dashboard' %}" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-left me-1"></i>Voltar
       </a>
+    </div>
+  </div>
+
+  <!-- Alertas de Status / Bloqueio -->
+  {% if ciclo.bloqueado_para_edicao %}
+  <div class="alert alert-dark border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+    <i class="fas fa-lock fa-2x text-warning me-3"></i>
+    <div>
+      <h6 class="fw-bold mb-0">Ciclo de Inventário Selado (Status: {{ ciclo.get_status_display }})</h6>
+      <small class="text-muted">Este inventário foi homologado/arquivado e encontra-se bloqueado para novas conferências ou edições.</small>
+    </div>
+  </div>
+  {% elif ciclo.status != 'EM_ANDAMENTO' %}
+  <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+    <i class="fas fa-info-circle fa-2x text-primary me-3"></i>
+    <div>
+      <h6 class="fw-bold mb-0">Fase Atual: {{ ciclo.get_status_display }}</h6>
+      <small>Para registrar conferências físicas presenciais nos bens, o ciclo precisa estar no status <strong>Em Andamento</strong>.</small>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Stepper de Ciclo de Vida -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3 px-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="fw-bold text-dark"><i class="fas fa-stream me-2 text-primary"></i>Ciclo de Vida do Inventário</span>
+        <span class="badge {% if ciclo.status == 'HOMOLOGADO' %}bg-success{% elif ciclo.status == 'EM_ANDAMENTO' %}bg-primary{% elif ciclo.status == 'ARQUIVADO' %}bg-dark{% else %}bg-warning text-dark{% endif %} fs-6 px-3 py-2">
+          {{ ciclo.get_status_display }}
+        </span>
+      </div>
+
+      <!-- Barra de Linha do Tempo -->
+      <div class="position-relative m-3">
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: {% if ciclo.status == 'RASCUNHO' %}10%{% elif ciclo.status == 'EM_PREPARACAO' %}25%{% elif ciclo.status == 'EM_ANDAMENTO' %}45%{% elif ciclo.status == 'EM_ANALISE' %}65%{% elif ciclo.status == 'AGUARDANDO_APROVACAO' %}80%{% elif ciclo.status == 'CONCLUIDO' %}90%{% elif ciclo.status == 'HOMOLOGADO' %}100%{% else %}100%{% endif %};"></div>
+        </div>
+        <div class="d-flex justify-content-between position-absolute top-50 start-0 translate-middle-y w-100">
+          <span class="badge rounded-pill {% if ciclo.status == 'RASCUNHO' or ciclo.status == 'EM_PREPARACAO' or ciclo.status == 'EM_ANDAMENTO' or ciclo.status == 'EM_ANALISE' or ciclo.status == 'AGUARDANDO_APROVACAO' or ciclo.status == 'CONCLUIDO' or ciclo.status == 'HOMOLOGADO' %}bg-primary{% else %}bg-secondary{% endif %}" title="Preparação">1. Preparação</span>
+          <span class="badge rounded-pill {% if ciclo.status == 'EM_ANDAMENTO' or ciclo.status == 'EM_ANALISE' or ciclo.status == 'AGUARDANDO_APROVACAO' or ciclo.status == 'CONCLUIDO' or ciclo.status == 'HOMOLOGADO' %}bg-primary{% else %}bg-secondary{% endif %}" title="Conferência Física">2. Conferência</span>
+          <span class="badge rounded-pill {% if ciclo.status == 'EM_ANALISE' or ciclo.status == 'AGUARDANDO_APROVACAO' or ciclo.status == 'CONCLUIDO' or ciclo.status == 'HOMOLOGADO' %}bg-primary{% else %}bg-secondary{% endif %}" title="Análise e Divergências">3. Apuração</span>
+          <span class="badge rounded-pill {% if ciclo.status == 'HOMOLOGADO' or ciclo.status == 'ARQUIVADO' %}bg-success{% else %}bg-secondary{% endif %}" title="Homologação">4. Homologado</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -44,19 +97,27 @@
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm text-center py-3" style="background:#e8f5e9">
         <div class="fw-bold fs-3 text-success">{{ estatisticas.conferidos }}</div>
-        <div class="small text-muted">Conferidos Físicos</div>
+        <div class="small text-muted">Conferidos Conformes</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
       <div class="card border-0 shadow-sm text-center py-3" style="background:#fff8e1">
         <div class="fw-bold fs-3 text-warning">{{ estatisticas.pendentes }}</div>
         <div class="small text-muted">Pendentes de Conferência</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
+      <div class="card border-0 shadow-sm text-center py-3" style="background:{% if total_divergencias_abertas > 0 %}#ffebee{% else %}#f8f9fa{% endif %}">
+        <div class="fw-bold fs-3 {% if total_divergencias_abertas > 0 %}text-danger{% else %}text-muted{% endif %}">
+          {{ total_divergencias_abertas }}
+        </div>
+        <div class="small text-muted">Divergências Abertas</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-2">
       <div class="card border-0 shadow-sm text-center py-3">
-        <div class="fw-bold fs-3 text-primary">R$ {{ estatisticas.total_valor|floatformat:2 }}</div>
-        <div class="small text-muted">Valor Contábil Total</div>
+        <div class="fw-bold fs-4 text-primary">R$ {{ estatisticas.total_valor|floatformat:2 }}</div>
+        <div class="small text-muted">Valor Contábil</div>
       </div>
     </div>
   </div>
@@ -74,169 +135,596 @@
     </div>
   </div>
 
-  <!-- Filtro Avançado de Bens -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white py-3">
-      <h6 class="fw-bold mb-0 text-primary">
-        <i class="fas fa-filter me-2"></i>Filtrar e Buscar Bens do Patrimônio
-      </h6>
+  <!-- Navegação por Abas -->
+  <ul class="nav nav-pills mb-4 nav-fill bg-white p-2 rounded shadow-sm border" id="inventarioTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active fw-bold" id="itens-tab" data-bs-toggle="pill" data-bs-target="#tab-itens" type="button" role="tab">
+        <i class="fas fa-boxes me-2"></i>Bens e Conferência ({{ estatisticas.total_itens }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link fw-bold position-relative" id="divergencias-tab" data-bs-toggle="pill" data-bs-target="#tab-divergencias" type="button" role="tab">
+        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Divergências e Inconsistências
+        {% if total_divergencias_abertas > 0 %}
+        <span class="badge bg-danger rounded-pill ms-1">{{ total_divergencias_abertas }}</span>
+        {% endif %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link fw-bold" id="comissao-tab" data-bs-toggle="pill" data-bs-target="#tab-comissao" type="button" role="tab">
+        <i class="fas fa-users-cog me-2"></i>Comissão de Inventário ({{ comissao.count }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link fw-bold" id="auditoria-tab" data-bs-toggle="pill" data-bs-target="#tab-auditoria" type="button" role="tab">
+        <i class="fas fa-history me-2"></i>Trilha de Auditoria ({{ historico.count }})
+      </button>
+    </li>
+  </ul>
+
+  <!-- Conteúdo das Abas -->
+  <div class="tab-content" id="inventarioTabsContent">
+    
+    <!-- ABA 1: BENS E CONFERÊNCIA -->
+    <div class="tab-pane fade show active" id="tab-itens" role="tabpanel">
+      <!-- Filtro Avançado -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-primary">
+            <i class="fas fa-filter me-2"></i>Filtrar e Buscar Bens do Patrimônio
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <form method="get" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-bold small">Busca Textual</label>
+              {{ form_filtro.busca }}
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label fw-bold small">Conta Contábil</label>
+              {{ form_filtro.conta }}
+            </div>
+            <div class="col-12 col-md-2">
+              <label class="form-label fw-bold small">Seção / Subunidade</label>
+              {{ form_filtro.secao }}
+            </div>
+            <div class="col-12 col-md-2">
+              <label class="form-label fw-bold small">Conferência</label>
+              {{ form_filtro.conferido }}
+            </div>
+            <div class="col-12 col-md-1 d-flex gap-1">
+              <button type="submit" class="btn btn-primary w-100 fw-bold" title="Filtrar">
+                <i class="fas fa-search"></i>
+              </button>
+              <a href="{% url 'inventario:detalhe_ciclo' ciclo.id %}" class="btn btn-outline-secondary" title="Limpar Filtros">
+                <i class="fas fa-times"></i>
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabela de Itens -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-list me-2 text-primary"></i>Relação de Bens
+          </h5>
+          {% if pode_gerir and not ciclo.bloqueado_para_edicao and ciclo.status == 'EM_ANDAMENTO' %}
+          <div class="d-flex gap-2">
+            <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja marcar TODOS os bens pendentes como conferidos?');">
+              {% csrf_token %}
+              <input type="hidden" name="acao" value="MARCAR_TODOS">
+              <button type="submit" class="btn btn-outline-success btn-sm fw-bold">
+                <i class="fas fa-check-double me-1"></i>Marcar Todos Conferidos
+              </button>
+            </form>
+            <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja resetar o status de conferência de todos os itens?');">
+              {% csrf_token %}
+              <input type="hidden" name="acao" value="DESMARCAR_TODOS">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-undo me-1"></i>Resetar
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Seção / Subunidade</th>
+                  <th>Tombo / Patrimônio</th>
+                  <th>Nº de Série</th>
+                  <th>Descrição do Material</th>
+                  <th>Conta Contábil</th>
+                  <th>Situação Registrada</th>
+                  <th class="text-end">Valor (R$)</th>
+                  <th class="text-center">Status Conferência</th>
+                  <th class="text-center" style="min-width: 140px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in page_obj %}
+                <tr id="row-item-{{ item.id }}" class="{% if item.conferido %}table-success-subtle{% endif %}">
+                  <td class="fw-bold small">{{ item.secao_subunidade }}</td>
+                  <td>
+                    <span class="badge bg-dark fs-6">{{ item.patrimonio }}</span>
+                  </td>
+                  <td class="text-nowrap small">{{ item.numero_serie|default:"-" }}</td>
+                  <td class="fw-bold">{{ item.tipo_material }}</td>
+                  <td class="small text-muted">
+                    {% if item.conta_contabil %}
+                      <span title="{{ item.conta_contabil.nome }}">{{ item.conta_contabil.codigo }}</span>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if 'EXCLUSÃO' in item.situacao_material %}
+                      <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>{{ item.situacao_material }}</span>
+                    {% else %}
+                      <span class="badge bg-light text-dark border">{{ item.situacao_material }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end fw-bold text-dark">R$ {{ item.valor|floatformat:2 }}</td>
+                  <td class="text-center" id="status-badge-{{ item.id }}">
+                    {% if item.conferido %}
+                      <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>CONFERIDO</span>
+                    {% else %}
+                      <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>PENDENTE</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      {% if pode_conferir and not ciclo.bloqueado_para_edicao and ciclo.status == 'EM_ANDAMENTO' %}
+                      <!-- Botão Rápido -->
+                      <form method="post" action="{% url 'inventario:conferir_item' item.id %}" class="form-conferir-ajax d-inline" data-item-id="{{ item.id }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="conferido" value="{% if item.conferido %}false{% else %}true{% endif %}">
+                        <button type="submit" class="btn {% if item.conferido %}btn-outline-danger{% else %}btn-success{% endif %} fw-bold" title="Conferência Rápida">
+                          {% if item.conferido %}
+                            <i class="fas fa-times"></i>
+                          {% else %}
+                            <i class="fas fa-check"></i>
+                          {% endif %}
+                        </button>
+                      </form>
+                      <!-- Botão Detalhado -->
+                      <button type="button" class="btn btn-outline-primary btn-conferir-detalhado" 
+                              title="Conferência Detalhada / Divergência"
+                              data-bs-toggle="modal" 
+                              data-bs-target="#modalConferirDetalhado"
+                              data-item-id="{{ item.id }}"
+                              data-action-url="{% url 'inventario:conferir_item' item.id %}"
+                              data-patrimonio="{{ item.patrimonio }}"
+                              data-material="{{ item.tipo_material }}"
+                              data-serie="{{ item.numero_serie|default:'' }}"
+                              data-secao="{{ item.secao_subunidade }}"
+                              data-situacao="{{ item.situacao_fisica_conferida }}"
+                              data-obs="{{ item.observacoes_conferencia|default:'' }}">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      {% else %}
+                      <span class="badge bg-light text-muted border">Sem ações</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="9" class="text-center text-muted py-5">
+                    <i class="fas fa-search fa-2x mb-2 text-muted"></i>
+                    <br>Nenhum item encontrado com os filtros aplicados.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white py-3">
+          <nav aria-label="Navegação da Tabela">
+            <ul class="pagination justify-content-center mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; Primeira</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+              {% endif %}
+
+              <li class="page-item disabled">
+                <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+              </li>
+
+              {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <div class="card-body p-4">
-      <form method="get" class="row g-3 align-items-end">
-        <div class="col-12 col-md-4">
-          <label class="form-label fw-bold small">Busca Textual</label>
-          {{ form_filtro.busca }}
+
+    <!-- ABA 2: DIVERGÊNCIAS E INCONSISTÊNCIAS -->
+    <div class="tab-pane fade" id="tab-divergencias" role="tabpanel">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>Divergências Identificadas na Conferência
+          </h5>
+          <span class="badge bg-secondary">{{ divergencias.count }} registro(s)</span>
         </div>
-        <div class="col-12 col-md-3">
-          <label class="form-label fw-bold small">Conta Contábil</label>
-          {{ form_filtro.conta }}
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Patrimônio</th>
+                  <th>Material</th>
+                  <th>Tipo de Divergência</th>
+                  <th>Status</th>
+                  <th>Descrição / Apuração</th>
+                  <th>Responsável</th>
+                  <th>Resolução / Despacho</th>
+                  <th class="text-center">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for div in divergencias %}
+                <tr>
+                  <td class="fw-bold"><span class="badge bg-dark">{{ div.item.patrimonio }}</span></td>
+                  <td class="small">{{ div.item.tipo_material }}</td>
+                  <td>
+                    <span class="badge bg-warning text-dark">{{ div.get_tipo_display }}</span>
+                  </td>
+                  <td>
+                    {% if div.status == 'REGULARIZADA' %}
+                      <span class="badge bg-success"><i class="fas fa-check me-1"></i>Regularizada</span>
+                    {% elif div.status == 'CONFIRMADA_PARA_BAIXA' %}
+                      <span class="badge bg-danger"><i class="fas fa-trash me-1"></i>Baixa Confirmada</span>
+                    {% elif div.status == 'IMPROCEDENTE' %}
+                      <span class="badge bg-secondary"><i class="fas fa-ban me-1"></i>Improcedente</span>
+                    {% else %}
+                      <span class="badge bg-danger"><i class="fas fa-clock me-1"></i>{{ div.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ div.descricao|linebreaksbr }}</td>
+                  <td class="small">{{ div.responsavel.get_full_name|default:div.responsavel.username }}</td>
+                  <td class="small">
+                    {% if div.resolucao %}
+                      <strong>{{ div.resolucao }}</strong>
+                      <br><small class="text-muted">Por {{ div.resolvido_por.username }} em {{ div.resolvido_em|date:"d/m/Y H:i" }}</small>
+                    {% else %}
+                      <span class="text-muted fst-italic">Pendente de despacho</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if pode_gerir and div.status != 'REGULARIZADA' and div.status != 'CONFIRMADA_PARA_BAIXA' and div.status != 'IMPROCEDENTE' %}
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold btn-despachar-divergencia"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEncerrarDivergencia"
+                            data-divergencia-id="{{ div.id }}"
+                            data-action-url="{% url 'inventario:encerrar_divergencia' div.id %}"
+                            data-patrimonio="{{ div.item.patrimonio }}"
+                            data-tipo="{{ div.get_tipo_display }}"
+                            data-descricao="{{ div.descricao }}">
+                      <i class="fas fa-gavel me-1"></i>Despachar
+                    </button>
+                    {% else %}
+                    <span class="badge bg-light text-muted border">Concluído</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-5">
+                    <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                    <br>Nenhuma divergência registrada neste ciclo de inventário.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="col-12 col-md-2">
-          <label class="form-label fw-bold small">Seção / Subunidade</label>
-          {{ form_filtro.secao }}
-        </div>
-        <div class="col-12 col-md-2">
-          <label class="form-label fw-bold small">Conferência</label>
-          {{ form_filtro.conferido }}
-        </div>
-        <div class="col-12 col-md-1 d-flex gap-1">
-          <button type="submit" class="btn btn-primary w-100 fw-bold" title="Filtrar">
-            <i class="fas fa-search"></i>
-          </button>
-          <a href="{% url 'inventario:detalhe_ciclo' ciclo.id %}" class="btn btn-outline-secondary" title="Limpar Filtros">
-            <i class="fas fa-times"></i>
+      </div>
+    </div>
+
+    <!-- ABA 3: COMISSÃO DE INVENTÁRIO -->
+    <div class="tab-pane fade" id="tab-comissao" role="tabpanel">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-primary">
+            <i class="fas fa-user-shield me-2"></i>Membros da Comissão Designada
+          </h5>
+          <a href="/admin/inventario/membrocomissaoinventario/" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-cog me-1"></i>Gerenciar Comissão no Admin
           </a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Usuário</th>
+                  <th>Nome Completo</th>
+                  <th>Papel na Comissão</th>
+                  <th>Seção / Subunidade Designada</th>
+                  <th>Status</th>
+                  <th>Designado Em</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for membro in comissao %}
+                <tr>
+                  <td class="fw-bold">{{ membro.usuario.username }}</td>
+                  <td>{{ membro.usuario.get_full_name|default:"-" }}</td>
+                  <td>
+                    <span class="badge {% if membro.papel == 'PRESIDENTE' %}bg-danger{% elif membro.papel == 'SUPERVISOR' %}bg-warning text-dark{% else %}bg-primary{% endif %} fs-6">
+                      {{ membro.get_papel_display }}
+                    </span>
+                  </td>
+                  <td>{{ membro.secao_subunidade|default:"Geral (Todas as Seções)" }}</td>
+                  <td>
+                    {% if membro.ativo %}
+                      <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inativo</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ membro.designado_em|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-5">
+                    Nenhum membro designado especificamente. O criador do ciclo e Superusuários têm acesso de gestão.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 4: TRILHA DE AUDITORIA -->
+    <div class="tab-pane fade" id="tab-auditoria" role="tabpanel">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-history me-2 text-primary"></i>Histórico e Trilha de Auditoria do Ciclo
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="timeline">
+            {% for h in historico %}
+            <div class="d-flex mb-4 position-relative">
+              <div class="me-3 text-center" style="width: 40px;">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 36px; height: 36px;">
+                  <i class="fas fa-check"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1 bg-light p-3 rounded border">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="fw-bold mb-0 text-dark">
+                    Transição: <span class="badge bg-secondary">{{ h.status_anterior|default:"INICIAL" }}</span> &rarr; <span class="badge bg-primary">{{ h.status_novo }}</span>
+                  </h6>
+                  <small class="text-muted">{{ h.realizado_em|date:"d/m/Y H:i" }}</small>
+                </div>
+                <p class="small text-muted mb-1">
+                  Realizado por: <strong>{{ h.realizado_por.get_full_name|default:h.realizado_por.username }}</strong>
+                </p>
+                {% if h.justificativa %}
+                <div class="bg-white p-2 rounded border small mt-2">
+                  <strong>Justificativa:</strong> {{ h.justificativa|linebreaksbr }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+              Nenhuma alteração de status registrada no histórico até o momento.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAIS DE INTERAÇÃO -->
+<!-- ========================================== -->
+
+<!-- Modal 1: Alterar Status do Ciclo -->
+{% if pode_gerir and proximos_status %}
+<div class="modal fade" id="modalTransicionarCiclo" tabindex="-1" aria-labelledby="modalTransicionarCicloLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <form method="post" action="{% url 'inventario:transicionar_ciclo' ciclo.id %}">
+        {% csrf_token %}
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title fw-bold" id="modalTransicionarCicloLabel">
+            <i class="fas fa-exchange-alt me-2"></i>Transicionar Status do Ciclo
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-muted small">Status atual: <strong class="text-dark">{{ ciclo.get_status_display }}</strong></p>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold">Novo Status <span class="text-danger">*</span></label>
+            <select name="status" class="form-select" required>
+              <option value="">Selecione o novo status...</option>
+              {% for st_val, st_label in proximos_status %}
+              <option value="{{ st_val }}">{{ st_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Justificativa / Motivação da Transição</label>
+            <textarea name="justificativa" class="form-control" rows="3" placeholder="Informe detalhes, atos ou motivos da mudança de fase..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary fw-bold">Confirmar Transição</button>
         </div>
       </form>
     </div>
   </div>
+</div>
+{% endif %}
 
-  <!-- Tabela de Itens -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-      <h5 class="fw-bold mb-0 text-dark">
-        <i class="fas fa-boxes me-2 text-primary"></i>Relação de Bens do Inventário
-      </h5>
-      <div class="d-flex gap-2">
-        <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja marcar TODOS os bens como conferidos?');">
-          {% csrf_token %}
-          <input type="hidden" name="acao" value="MARCAR_TODOS">
-          <button type="submit" class="btn btn-outline-success btn-sm fw-bold">
-            <i class="fas fa-check-double me-1"></i>Marcar Todos Conferidos
-          </button>
-        </form>
-        <form method="post" action="{% url 'inventario:conferir_lote' ciclo.id %}" onsubmit="return confirm('Deseja desmarcar o status de conferência?');">
-          {% csrf_token %}
-          <input type="hidden" name="acao" value="DESMARCAR_TODOS">
-          <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-undo me-1"></i>Resetar
-          </button>
-        </form>
-      </div>
+<!-- Modal 2: Conferência Detalhada / Registro de Divergência -->
+<div class="modal fade" id="modalConferirDetalhado" tabindex="-1" aria-labelledby="modalConferirDetalhadoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <form method="post" id="formConferirDetalhado" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold" id="modalConferirDetalhadoLabel">
+            <i class="fas fa-clipboard-check me-2"></i>Conferência Física do Patrimônio
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <!-- Info do Bem -->
+          <div class="bg-light p-3 rounded mb-4 border">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <small class="text-muted d-block">Patrimônio / Tombo</small>
+                <strong class="fs-6 text-primary" id="modal-item-patrimonio">-</strong>
+              </div>
+              <div class="col-md-5">
+                <small class="text-muted d-block">Descrição do Material</small>
+                <strong id="modal-item-material">-</strong>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted d-block">Seção Prevista</small>
+                <strong id="modal-item-secao">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Resultado da Conferência <span class="text-danger">*</span></label>
+              <select name="resultado" id="modal-input-resultado" class="form-select fw-bold" required>
+                <option value="CONFIRMADO">Confirmado conforme base</option>
+                <option value="COM_RESSALVA">Confirmado com ressalva</option>
+                <option value="NAO_LOCALIZADO">Não localizado / Falta física</option>
+                <option value="OUTRA_SECAO">Localizado em outra seção</option>
+                <option value="SERIE_DIVERGENTE">Número de série divergente</option>
+                <option value="AVARIADO">Avariado / Inservível</option>
+                <option value="EM_BAIXA">Em processo de baixa</option>
+                <option value="EXCEDENTE">Bem excedente / Sobra</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Situação Física Conferida</label>
+              <select name="situacao_fisica_conferida" id="modal-input-situacao" class="form-select">
+                <option value="CONFORME">Conforme</option>
+                <option value="AVARIADO">Avariado</option>
+                <option value="INSERVIVEL">Inservível</option>
+                <option value="NAO_LOCALIZADO">Não localizado</option>
+                <option value="OUTRA_SECAO">Em outra seção</option>
+                <option value="EXCEDENTE">Excedente</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Número de Série Encontrado (se divergente)</label>
+              <input type="text" name="numero_serie_encontrado" id="modal-input-serie" class="form-control" placeholder="Preencha caso o nº de série seja diferente">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Localização Física Encontrada</label>
+              <input type="text" name="localizacao_encontrada" id="modal-input-localizacao" class="form-control" placeholder="Ex: Sala P/3, Reserva de Armas...">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold small">Evidência / Foto do Bem ou Tombo</label>
+              <input type="file" name="evidencia" class="form-control" accept="image/*,application/pdf">
+              <small class="text-muted">Opcional: anexe foto da plaqueta de tombamento, série ou avaria.</small>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold small">Observações / Parecer do Conferente</label>
+              <textarea name="observacoes_conferencia" id="modal-input-obs" class="form-control" rows="3" placeholder="Descreva detalhes adicionais da conferência física..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success fw-bold">Salvar Conferência</button>
+        </div>
+      </form>
     </div>
-
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th>Seção / Subunidade</th>
-              <th>Tombo / Patrimônio</th>
-              <th>Nº de Série</th>
-              <th>Descrição do Material</th>
-              <th>Conta Contábil</th>
-              <th>Situação Registrada</th>
-              <th class="text-end">Valor (R$)</th>
-              <th class="text-center">Conferido Físico</th>
-              <th class="text-center">Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in page_obj %}
-            <tr id="row-item-{{ item.id }}" class="{% if item.conferido %}table-success-subtle{% endif %}">
-              <td class="fw-bold small">{{ item.secao_subunidade }}</td>
-              <td>
-                <span class="badge bg-dark fs-6">{{ item.patrimonio }}</span>
-              </td>
-              <td class="text-nowrap small">{{ item.numero_serie|default:"-" }}</td>
-              <td class="fw-bold">{{ item.tipo_material }}</td>
-              <td class="small text-muted">
-                {% if item.conta_contabil %}
-                  <span title="{{ item.conta_contabil.nome }}">{{ item.conta_contabil.codigo }}</span>
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td>
-                {% if 'EXCLUSÃO' in item.situacao_material %}
-                  <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>{{ item.situacao_material }}</span>
-                {% else %}
-                  <span class="badge bg-light text-dark border">{{ item.situacao_material }}</span>
-                {% endif %}
-              </td>
-              <td class="text-end fw-bold text-dark">R$ {{ item.valor|floatformat:2 }}</td>
-              <td class="text-center" id="status-badge-{{ item.id }}">
-                {% if item.conferido %}
-                  <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>CONFERIDO</span>
-                {% else %}
-                  <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>PENDENTE</span>
-                {% endif %}
-              </td>
-              <td class="text-center">
-                <form method="post" action="{% url 'inventario:conferir_item' item.id %}" class="form-conferir-ajax" data-item-id="{{ item.id }}">
-                  {% csrf_token %}
-                  <input type="hidden" name="conferido" value="{% if item.conferido %}false{% else %}true{% endif %}">
-                  <button type="submit" class="btn btn-sm {% if item.conferido %}btn-outline-danger{% else %}btn-success{% endif %} fw-bold" title="Alternar Status de Conferência">
-                    {% if item.conferido %}
-                      <i class="fas fa-times me-1"></i>Desmarcar
-                    {% else %}
-                      <i class="fas fa-check me-1"></i>Conferir
-                    {% endif %}
-                  </button>
-                </form>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="9" class="text-center text-muted py-5">
-                <i class="fas fa-search fa-2x mb-2 text-muted"></i>
-                <br>Nenhum item encontrado com os filtros aplicados.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Paginação -->
-    {% if page_obj.has_other_pages %}
-    <div class="card-footer bg-white py-3">
-      <nav aria-label="Navegação da Tabela">
-        <ul class="pagination justify-content-center mb-0">
-          {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Primeira</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-          {% endif %}
-
-          <li class="page-item disabled">
-            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-          </li>
-
-          {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a></li>
-          {% endif %}
-        </ul>
-      </nav>
-    </div>
-    {% endif %}
   </div>
 </div>
 
+<!-- Modal 3: Despachar / Encerrar Divergência -->
+<div class="modal fade" id="modalEncerrarDivergencia" tabindex="-1" aria-labelledby="modalEncerrarDivergenciaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <form method="post" id="formEncerrarDivergencia" action="">
+        {% csrf_token %}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title fw-bold" id="modalEncerrarDivergenciaLabel">
+            <i class="fas fa-gavel me-2"></i>Despacho de Divergência
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="bg-light p-3 rounded mb-3 border">
+            <small class="text-muted d-block">Patrimônio</small>
+            <strong id="modal-div-patrimonio" class="text-dark">-</strong>
+            <small class="text-muted d-block mt-2">Divergência Apurada</small>
+            <span class="badge bg-warning text-dark" id="modal-div-tipo">-</span>
+            <p class="small text-muted mb-0 mt-1" id="modal-div-descricao">-</p>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Decisão / Despacho Final <span class="text-danger">*</span></label>
+            <select name="status" class="form-select fw-bold" required>
+              <option value="REGULARIZADA">Regularizada (Item localizado / acertado)</option>
+              <option value="CONFIRMADA_PARA_BAIXA">Confirmada para Baixa Patrimonial</option>
+              <option value="IMPROCEDENTE">Improcedente (Erro de lançamento / desconsiderar)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Parecer Técnico / Justificativa <span class="text-danger">*</span></label>
+            <textarea name="resolucao" class="form-control" rows="3" required placeholder="Descreva as medidas tomadas, número de processo ou justificativa do despacho..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger fw-bold">Registrar Despacho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SCRIPTS DE INTERATIVIDADE -->
+<!-- ========================================== -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Processamento AJAX dos botões de conferência
+  // 1. Processamento AJAX da conferência rápida
   document.querySelectorAll('.form-conferir-ajax').forEach(function(form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -261,21 +749,66 @@ document.addEventListener('DOMContentLoaded', function() {
           if (data.conferido) {
             row.classList.add('table-success-subtle');
             badgeCell.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>CONFERIDO</span>';
-            btn.className = 'btn btn-sm btn-outline-danger fw-bold';
-            btn.innerHTML = '<i class="fas fa-times me-1"></i>Desmarcar';
+            btn.className = 'btn btn-outline-danger fw-bold';
+            btn.innerHTML = '<i class="fas fa-times"></i>';
             inputHidden.value = 'false';
           } else {
             row.classList.remove('table-success-subtle');
             badgeCell.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>PENDENTE</span>';
-            btn.className = 'btn btn-sm btn-success fw-bold';
-            btn.innerHTML = '<i class="fas fa-check me-1"></i>Conferir';
+            btn.className = 'btn btn-success fw-bold';
+            btn.innerHTML = '<i class="fas fa-check"></i>';
             inputHidden.value = 'true';
           }
+        } else if (data.error) {
+          alert('Erro ao conferir item: ' + data.error);
         }
       })
-      .catch(err => console.error('Erro na conferência:', err));
+      .catch(err => console.error('Erro na conferência rápida:', err));
     });
   });
+
+  // 2. Preenchimento dinâmico do Modal de Conferência Detalhada
+  const modalConferir = document.getElementById('modalConferirDetalhado');
+  if (modalConferir) {
+    modalConferir.addEventListener('show.bs.modal', function(event) {
+      const btn = event.relatedTarget;
+      const actionUrl = btn.getAttribute('data-action-url');
+      const patrimonio = btn.getAttribute('data-patrimonio');
+      const material = btn.getAttribute('data-material');
+      const serie = btn.getAttribute('data-serie');
+      const secao = btn.getAttribute('data-secao');
+      const situacao = btn.getAttribute('data-situacao');
+      const obs = btn.getAttribute('data-obs');
+
+      document.getElementById('formConferirDetalhado').action = actionUrl;
+      document.getElementById('modal-item-patrimonio').textContent = patrimonio;
+      document.getElementById('modal-item-material').textContent = material;
+      document.getElementById('modal-item-secao').textContent = secao;
+      document.getElementById('modal-input-serie').value = serie;
+      document.getElementById('modal-input-localizacao').value = secao;
+      document.getElementById('modal-input-obs').value = obs;
+      if (situacao) {
+        document.getElementById('modal-input-situacao').value = situacao;
+      }
+    });
+  }
+
+  // 3. Preenchimento dinâmico do Modal de Despacho de Divergência
+  const modalDivergencia = document.getElementById('modalEncerrarDivergencia');
+  if (modalDivergencia) {
+    modalDivergencia.addEventListener('show.bs.modal', function(event) {
+      const btn = event.relatedTarget;
+      const actionUrl = btn.getAttribute('data-action-url');
+      const patrimonio = btn.getAttribute('data-patrimonio');
+      const tipo = btn.getAttribute('data-tipo');
+      const descricao = btn.getAttribute('data-descricao');
+
+      document.getElementById('formEncerrarDivergencia').action = actionUrl;
+      document.getElementById('modal-div-patrimonio').textContent = patrimonio;
+      document.getElementById('modal-div-tipo').textContent = tipo;
+      document.getElementById('modal-div-descricao').textContent = descricao;
+    });
+  }
 });
 </script>
 {% endblock %}

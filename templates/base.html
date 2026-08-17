@@ -710,6 +710,9 @@
                 <div class="mt-4 mb-4 px-4">
                     <div class="bg-dark rounded-4 p-3 text-center border border-secondary border-opacity-25">
                         <small class="text-muted d-block mb-2" style="font-size: 0.65rem;">SISTEMA LOGÍSTICA v2.2</small>
+                        <a href="{% url 'tutorial:index' %}" class="btn btn-xs btn-outline-warning btn-sm w-100 py-1 mb-2" style="font-size: 0.75rem;">
+                            <i class="fas fa-graduation-cap me-1"></i> Tutorial de Uso
+                        </a>
                         <a href="{% url 'ajuda' %}" class="btn btn-xs btn-outline-warning btn-sm w-100 py-1" style="font-size: 0.75rem;">
                             <i class="fas fa-question-circle me-1"></i> Central de Ajuda
                         </a>
@@ -785,6 +788,8 @@
                                 class="fas fa-info-circle"></i> Sobre</a>
                         <a href="{% url 'ajuda' %}" class="text-decoration-none text-secondary mx-2"><i
                                 class="fas fa-question-circle"></i> Ajuda</a>
+                        <a href="{% url 'tutorial:index' %}" class="text-decoration-none text-secondary mx-2"><i
+                                class="fas fa-graduation-cap"></i> Tutorial</a>
                         <a href="{% url 'termos' %}" class="text-decoration-none text-secondary mx-2"><i
                                 class="fas fa-file-contract"></i> Termos de Uso</a>
                         <a href="{% url 'privacidade' %}" class="text-decoration-none text-secondary mx-2"><i

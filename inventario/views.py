@@ -8,10 +8,24 @@ from django.db.models import Sum, Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
 
-from .models import CicloInventario, ItemInventario, ContaContabil
+from .models import (
+    CicloInventario,
+    ItemInventario,
+    ContaContabil,
+    MembroComissaoInventario,
+    ConferenciaInventario,
+    DivergenciaInventario,
+    HistoricoCicloInventario,
+)
 from .forms import ImportarInventarioForm, CicloInventarioForm, ConferenciaItemForm, FiltroInventarioForm
 from .services import InventarioExcelImporter
 from .reports import gerar_termo_inventario_pdf
+from .workflow import (
+    registrar_conferencia,
+    usuario_pode_gerir_ciclo,
+    usuario_pode_conferir,
+    encerrar_divergencia,
+)
 
 
 @login_required
@@ -100,12 +114,42 @@ def detalhe_ciclo(request, ciclo_id):
 
     contas_list = ContaContabil.objects.filter(itens__ciclo=ciclo).distinct().order_by('codigo')
 
+    # Permissões
+    pode_gerir = usuario_pode_gerir_ciclo(request.user, ciclo)
+    pode_conferir = usuario_pode_conferir(request.user, ciclo)
+
+    # Transições possíveis
+    transicoes_permitidas = ciclo.TRANSICOES_PERMITIDAS.get(ciclo.status, set())
+    status_choices_dict = dict(CicloInventario.STATUS_CHOICES)
+    proximos_status = [(st, status_choices_dict.get(st, st)) for st in transicoes_permitidas]
+
+    # Divergências
+    divergencias = DivergenciaInventario.objects.filter(
+        item__ciclo=ciclo
+    ).select_related('item', 'responsavel', 'resolvido_por').order_by('status', '-criado_em')
+    total_divergencias_abertas = divergencias.exclude(
+        status__in=['REGULARIZADA', 'CONFIRMADA_PARA_BAIXA', 'IMPROCEDENTE']
+    ).count()
+
+    # Membros da Comissão
+    comissao = MembroComissaoInventario.objects.filter(ciclo=ciclo).select_related('usuario').order_by('papel')
+
+    # Histórico de Auditoria
+    historico = HistoricoCicloInventario.objects.filter(ciclo=ciclo).select_related('realizado_por').order_by('-realizado_em')
+
     context = {
         'ciclo': ciclo,
         'page_obj': page_obj,
         'form_filtro': form_filtro,
         'estatisticas': estatisticas,
         'contas_list': contas_list,
+        'pode_gerir': pode_gerir,
+        'pode_conferir': pode_conferir,
+        'proximos_status': proximos_status,
+        'divergencias': divergencias,
+        'total_divergencias_abertas': total_divergencias_abertas,
+        'comissao': comissao,
+        'historico': historico,
     }
     return render(request, 'inventario/detalhe_ciclo.html', context)
 
@@ -130,6 +174,11 @@ def importar_inventario(request):
                 ciclo = resultado['ciclo']
                 ciclo.arquivo_origem = arquivo
                 ciclo.save()
+                MembroComissaoInventario.objects.get_or_create(
+                    ciclo=ciclo,
+                    usuario=request.user,
+                    papel='PRESIDENTE',
+                )
 
                 messages.success(
                     request,
@@ -153,6 +202,11 @@ def novo_ciclo(request):
             ciclo = form.save(commit=False)
             ciclo.criado_por = request.user
             ciclo.save()
+            MembroComissaoInventario.objects.get_or_create(
+                ciclo=ciclo,
+                usuario=request.user,
+                papel='PRESIDENTE',
+            )
             messages.success(request, 'Ciclo de Inventário criado com sucesso.')
             return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
     else:
@@ -163,18 +217,29 @@ def novo_ciclo(request):
 @login_required
 def conferir_item(request, item_id):
     item = get_object_or_404(ItemInventario, pk=item_id)
-    
+
     if request.method == 'POST':
-        conferido = request.POST.get('conferido') == 'true' or request.POST.get('conferido') == '1' or 'conferido' in request.POST
+        resultado = request.POST.get('resultado')
+        if not resultado:
+            resultado = 'CONFIRMADO' if request.POST.get('conferido') in {'true', '1', 'on'} else 'NAO_LOCALIZADO'
         situacao_fisica = request.POST.get('situacao_fisica_conferida', 'CONFORME')
         obs = request.POST.get('observacoes_conferencia', '').strip()
-
-        item.conferido = conferido
-        item.situacao_fisica_conferida = situacao_fisica
-        item.observacoes_conferencia = obs
-        item.data_conferencia = timezone.now() if conferido else None
-        item.conferido_por = request.user if conferido else None
-        item.save()
+        try:
+            registrar_conferencia(
+                item=item,
+                usuario=request.user,
+                resultado=resultado,
+                situacao_fisica=situacao_fisica,
+                observacoes=obs,
+                localizacao_encontrada=request.POST.get('localizacao_encontrada', '').strip(),
+                numero_serie_encontrado=request.POST.get('numero_serie_encontrado', '').strip(),
+                evidencia=request.FILES.get('evidencia'),
+            )
+        except (ValueError, PermissionError) as exc:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': str(exc)}, status=403)
+            messages.error(request, str(exc))
+            return redirect('inventario:detalhe_ciclo', ciclo_id=item.ciclo.id)
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
@@ -185,7 +250,7 @@ def conferir_item(request, item_id):
                 'total_conferidos': item.ciclo.total_conferidos
             })
 
-        messages.success(request, f"Status de conferência do patrimônio {item.patrimonio} atualizado.")
+        messages.success(request, f"Conferência do patrimônio {item.patrimonio} registrada com sucesso.")
         return redirect('inventario:detalhe_ciclo', ciclo_id=item.ciclo.id)
 
     return JsonResponse({'error': 'Método inválido'}, status=400)
@@ -196,12 +261,16 @@ def conferir_lote(request, ciclo_id):
     ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
     if request.method == 'POST':
         acao = request.POST.get('acao')
+        if not usuario_pode_gerir_ciclo(request.user, ciclo):
+            messages.error(request, 'Usuário sem permissão para conferir itens em lote.')
+            return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
+        if ciclo.bloqueado_para_edicao or ciclo.status != 'EM_ANDAMENTO':
+            messages.error(request, 'O ciclo não está em fase de conferência ativa.')
+            return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
+
         if acao == 'MARCAR_TODOS':
-            ciclo.itens.update(
-                conferido=True,
-                data_conferencia=timezone.now(),
-                conferido_por=request.user
-            )
+            for item in ciclo.itens.filter(conferido=False).iterator():
+                registrar_conferencia(item=item, usuario=request.user, resultado='CONFIRMADO')
             messages.success(request, 'Todos os itens deste inventário foram marcados como conferidos.')
         elif acao == 'DESMARCAR_TODOS':
             ciclo.itens.update(
@@ -210,7 +279,53 @@ def conferir_lote(request, ciclo_id):
                 conferido_por=None
             )
             messages.info(request, 'Status de conferência reiniciado.')
-            
+
+    return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
+
+
+@login_required
+def transicionar_ciclo(request, ciclo_id):
+    ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método inválido'}, status=405)
+    if not usuario_pode_gerir_ciclo(request.user, ciclo):
+        return JsonResponse({'error': 'Usuário sem permissão para alterar o ciclo.'}, status=403)
+    try:
+        ciclo.transicionar_para(
+            request.POST.get('status', ''),
+            request.user,
+            request.POST.get('justificativa', ''),
+        )
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, 'Status do ciclo atualizado e registrado no histórico.')
+    return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
+
+
+@login_required
+def encerrar_divergencia_view(request, divergencia_id):
+    divergencia = get_object_or_404(DivergenciaInventario, pk=divergencia_id)
+    ciclo = divergencia.item.ciclo
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método inválido'}, status=405)
+    if not usuario_pode_gerir_ciclo(request.user, ciclo):
+        messages.error(request, 'Usuário sem permissão para despachar divergências.')
+        return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
+
+    status_final = request.POST.get('status', '').strip()
+    resolucao = request.POST.get('resolucao', '').strip()
+    try:
+        encerrar_divergencia(
+            divergencia=divergencia,
+            usuario=request.user,
+            status=status_final,
+            resolucao=resolucao,
+        )
+        messages.success(request, f'Divergência do patrimônio {divergencia.item.patrimonio} despachada com sucesso.')
+    except (ValueError, PermissionError) as exc:
+        messages.error(request, str(exc))
+
     return redirect('inventario:detalhe_ciclo', ciclo_id=ciclo.id)
 
 
