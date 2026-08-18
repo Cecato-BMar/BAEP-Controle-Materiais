@@ -41,13 +41,14 @@ _csrf_raw = os.getenv(
     'http://127.0.0.1:8000,http://localhost:8000,'
     'https://127.0.0.1:8000,https://localhost:8000,'
     'http://10.43.19.224:8000,https://10.43.19.224:8000,'
-    'http://10.43.19.225:8000,https://10.43.19.225:8000'
+    'http://10.43.19.224:8001,https://10.43.19.224:8001,'
+    'http://10.43.19.224:8002,https://10.43.19.224:8002,'
+    'http://10.43.19.225:8000,https://10.43.19.225:8000,'
+    'http://10.43.19.225:8001,https://10.43.19.225:8001,'
+    'http://10.43.19.225:8002,https://10.43.19.225:8002'
 )
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
 
-# ---------------------------------------------------------------------------
-# Cabeçalhos de segurança (recomendados para produção)
-# ---------------------------------------------------------------------------
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
