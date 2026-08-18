@@ -12,4 +12,7 @@ __pycache__
 /media
 /staticfiles
 /logs
+/python
+*.nupkg
+*.zip
 node_modules
