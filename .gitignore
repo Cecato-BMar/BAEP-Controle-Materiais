@@ -44,6 +44,7 @@ private_key.pem
 
 # Arquivos temporários e de desenvolvimento
 scratch/
+sentinela_saas/
 batch_create_templates.py
 check_templates.py
 inspect_excel.py

@@ -22,17 +22,16 @@ load_dotenv(BASE_DIR / '.env')
 # ---------------------------------------------------------------------------
 # Segurança
 # ---------------------------------------------------------------------------
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    'django-insecure-lts*=avsuyh#-f3nir&6$rp5ob#1=068_851j2(y#i)!%g_o_+'
-)
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        'A variavel de ambiente SECRET_KEY eh obrigatoria. '
+        'Defina-a no arquivo .env ou nas variaveis de ambiente do sistema.'
+    )
 
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-if not DEBUG and SECRET_KEY == 'django-insecure-lts*=avsuyh#-f3nir&6$rp5ob#1=068_851j2(y#i)!%g_o_+':
-    raise ImproperlyConfigured('SECRET_KEY must be set as an environment variable in production.')
-
-_allowed_raw = os.getenv('ALLOWED_HOSTS', '*')
+_allowed_raw = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,10.43.19.224,10.43.19.225')
 ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()]
 
 # CSRF — origens confiáveis (separadas por vírgula no .env)

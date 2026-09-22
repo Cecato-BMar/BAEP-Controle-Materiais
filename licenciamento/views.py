@@ -73,8 +73,11 @@ def panel_master(request):
             client_name = request.POST.get('client_name', '2º BAEP')
             days = int(request.POST.get('days', 7))
             
-            generated_token = LicenseManager.generate_token(client_id, client_name, days)
-            messages.success(request, f"Token para {client_name} gerado com sucesso!")
+            try:
+                generated_token = LicenseManager.generate_token(client_id, client_name, days)
+                messages.success(request, f"Token para {client_name} gerado com sucesso!")
+            except Exception as e:
+                messages.error(request, f"Erro ao gerar licença: {e}")
             
         elif action == 'activate':
             token = request.POST.get('token')

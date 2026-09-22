@@ -1,3 +1,4 @@
+import os
 import jwt
 import datetime
 from django.utils import timezone
@@ -13,36 +14,9 @@ YX1S6tgfpCuswkwvVHyyR5yDE0Xi1FTAVC8FjlztYLFypQE+UK8Cymj7UvvC7Pxp
 RwIDAQAB
 -----END PUBLIC KEY-----"""
 
-# MANTENHA A CHAVE PRIVADA APENAS COM O DESENVOLVEDOR EM PRODUÇÃO!
-# Incluída aqui para fins de demonstração e geração de novos tokens pelo próprio sistema.
-PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
-MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCSLGQU22GIY61+
-0jt7qO80gRrBhZwIew9g2X5mANaCcOvIxAnqpdaM1+2slisOVZlWDA3Xa01CxP3p
-S0h4FulnCJFsbl29oWoH291bhWVYYrAbPi2MabPJgNvb/9J27fFzvxpIDAYcqvDW
-HhGBhxSDaZqUiXmwl0Us0ltsSAIqv0ysyCTigWcft1jzgd6gZ/1enbu8B19hZ5Be
-FX+ZJHIo171v/P/pLYr9fk9yT09djeY1iTvaRV9wUBKCBXvhaGj7ih3SixMtrf6D
-WNnVLKZhfVLq2B+kK6zCTC9UfLJHnIMTReLUVMBULwWOXO1gsXKlAT5QrwLKaPtS
-+8Ls/GlHAgMBAAECggEAAuwUmMl6otg3SjSYECn5lOegf3jqfHg//57UJOQ5uu7Y
-pTFXb2j0UpQogg2Ye8ILUt830Z7UCGnZbPYJKK7F6L47m1rTe0HZqvbixHx0tmEh
-Wydm5V/hl72Akl6EDcZGUEWO7XIhbHugXUTJnc4eWLLeQ7+XKV1vemy+0M8vDT1b
-uzzt1syzGAyJKeQtaepom/m41C3I+lFYYARyj3OhcHqqx5u2tSn6k+IN+w7OldyI
-kTEyp4gXmTCvfh6+Qdm6o38y6lUAfrwb46qAnfBnlJEeclDextb67ntKVmac7jUi
-A679Op/cV6cfxRxfVhuLRr7Gl0A7HNXmMp+G77vjcQKBgQDExdejvwNVlwGifpHH
-rrapcL773x0dZEqLCqKghnN5dUnBlay0K3zpvxQToj07q4FSZxCT5Qx3MFM0qsQ3
-Gmn7nnd5GZJuPZmo2mPSKy+KAPGmbzAQUjwwVVOfYJMoh36G2Vr4eX97f97BOmrO
-zpnUKouQn6hsOsP2w+x8+a2u9wKBgQC+K6eTEf8+0S0OuXRxVCQuwvs3uX5m1UmQ
-1RAVgp2Etoel4+v/Gttfx+olc11XVZqkuq9EMkzYPM5Tq2ARPWfo+M1DR4+F443H
-6Y5swoGuu8nniaFl+CJErjCDYKjD2bOU9pp2XZ3AJ0w+a4+NjxZGIshD0JWUK7r1
-7rGzMLp0MQKBgBait6qzh3uqElsR+k0hMQwO1zl8Mgo2hki2YXzb2p7HOkPVpvdW
-5ViyTWnwyOB7WzYSexq4R5XSbk/psQaxuC1kzlOU+H5MAcglz0PXCfHzJ9lAgyPt
-gdUBi8wSvPr1kz2J9WgN+fdH/2T1BmJh69o3RrTNWP+SRwa1BRhfVHaDAoGAdnOQ
-lF3QY9s8uoAvlGt5ghr3CXWj0v+lK+5ab1uFK+XZxi2akLK01AscwCkEieKLSXHy
-u4KtNL9jMOB9HR/nekiG6hJHxni/ljbW/M2Go0Ta9TpX6sDM74SkOSDa3erbHb0g
-5vtWyBpyNisfJmhq0lLV9M+Wa811TbxYuSlv6fECgYAN2ea+anjIqj+2WfstnMgv
-j6WfB4hRe55BJReizqW+5/5IK0ZY2PP8HvNrfcKWizQfteCMHL1AzUfcAo9+t1Rr
-yKeXbSBY/xs6F3c6uVmv2PIoat+T+DR+YtSCvlgFluMMQ8GDEgAoGkOP0ccBoGXG
-K8FCUZRg2xj+MI8HRFHU/w==
------END PRIVATE KEY-----"""
+# A chave privada NÃO deve ser versionada no código.
+# Em ambientes que precisam gerar tokens, forneça via variável de ambiente LICENSE_PRIVATE_KEY.
+PRIVATE_KEY = os.getenv('LICENSE_PRIVATE_KEY', '')
 
 class LicenseManager:
     @staticmethod
@@ -125,5 +99,10 @@ class LicenseManager:
             "version": "2.2"
         }
         
+        if not PRIVATE_KEY:
+            raise ValueError(
+                "Chave privada de licenciamento não configurada (LICENSE_PRIVATE_KEY). "
+                "A emissão de tokens só é permitida em ambiente administrativo seguro."
+            )
         token = jwt.encode(payload, PRIVATE_KEY, algorithm="RS256")
         return token
