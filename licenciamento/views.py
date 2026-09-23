@@ -79,6 +79,30 @@ def panel_master(request):
             except Exception as e:
                 messages.error(request, f"Erro ao gerar licença: {e}")
             
+        elif action == 'generate_and_activate':
+            client_id = request.POST.get('client_id', 'baep-cliente')
+            client_name = request.POST.get('client_name', '2º BAEP')
+            days = int(request.POST.get('days', 365))
+            try:
+                token = LicenseManager.generate_token(client_id, client_name, days)
+                is_valid, payload = LicenseManager.verify_token(token)
+                if is_valid or payload:
+                    LicenseRecord.objects.all().update(is_active=False)
+                    expires_at = datetime.datetime.fromtimestamp(payload['exp'], tz=datetime.timezone.utc)
+                    issued_at = datetime.datetime.fromtimestamp(payload['iat'], tz=datetime.timezone.utc)
+                    LicenseRecord.objects.create(
+                        client_id=payload.get('client_id'),
+                        client_name=payload.get('client_name'),
+                        token_base64=token,
+                        issued_at=issued_at,
+                        expires_at=expires_at,
+                        is_active=True
+                    )
+                    messages.success(request, f"Licença para {client_name} ({days} dias) gerada e ATIVADA com sucesso!")
+                    return redirect('home')
+            except Exception as e:
+                messages.error(request, f"Erro ao gerar e ativar licença: {e}")
+
         elif action == 'activate':
             token = request.POST.get('token')
             if token:
@@ -99,6 +123,7 @@ def panel_master(request):
                     messages.success(request, "Sistema autenticado e liberado com sucesso!")
                     return redirect('home')
                 messages.error(request, "Token inválido.")
+
 
     return render(request, 'licenciamento/panel_master.html', {
         'generated_token': generated_token,
