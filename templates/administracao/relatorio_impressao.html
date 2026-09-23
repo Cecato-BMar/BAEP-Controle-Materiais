@@ -1,60 +1,125 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Relatório Administrativo de Utilização - 2º BAEP</title>
+    <title>Relatório Administrativo de Utilização — 2º BAEP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --baep-gold: #d4af37;
+            --baep-dark: #0d131b;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            color: #000;
-            background: #fff;
-            padding: 20px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #111827;
+            background: #ffffff;
+            padding: 24px;
             font-size: 12px;
         }
-        .header-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            text-transform: uppercase;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--baep-gold);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
         }
+
+        .header-emblem {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--baep-gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .header-text {
+            text-align: center;
+            flex-grow: 1;
+            padding: 0 15px;
+        }
+
+        .header-text h5 {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+            color: #0b0f14;
+            text-transform: uppercase;
+        }
+
+        .header-text h6 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .header-badge {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #b8860b;
+            text-transform: uppercase;
+        }
+
         .sub-header {
             font-size: 11px;
-            margin-bottom: 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
+
         table th, table td {
-            border: 1px solid #333;
-            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            padding: 7px 10px;
             font-size: 11px;
         }
+
         table th {
-            background-color: #e9ecef !important;
-            font-weight: bold;
+            background-color: #0d131b !important;
+            color: #f5d77f !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             text-align: center;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
-        .text-center {
-            text-align: center;
+
+        table tbody tr:nth-child(even) td {
+            background-color: #f8fafc;
         }
+
         .signature-section {
-            margin-top: 50px;
+            margin-top: 40px;
             page-break-inside: avoid;
         }
+
         .signature-box {
             text-align: center;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-            margin-top: 40px;
-            width: 45%;
+            border-top: 1.5px solid #000;
+            padding-top: 6px;
+            margin-top: 35px;
+            width: 44%;
             display: inline-block;
+            font-size: 11px;
         }
+
         @media print {
             .no-print {
                 display: none !important;
@@ -62,22 +127,33 @@
             body {
                 padding: 0;
             }
+            table th {
+                background-color: #1e293b !important;
+                color: #ffffff !important;
+            }
         }
     </style>
 </head>
 <body>
     <div class="no-print mb-3 text-end">
-        <button onclick="window.print()" class="btn btn-primary btn-sm me-2"><i class="fas fa-print"></i> Imprimir / Salvar PDF</button>
+        <button onclick="window.print()" class="btn btn-warning btn-sm me-2 fw-bold text-dark" style="background: #d4af37; border: 1px solid #c59b27;">
+            <i class="fas fa-print me-1"></i> Imprimir / Salvar PDF
+        </button>
         <button onclick="window.close()" class="btn btn-secondary btn-sm">Fechar</button>
     </div>
 
-    <div class="header-title">
-        POLÍCIA MILITAR DO ESTADO DE SÃO PAULO<br>
-        COMANDO DE POLICIAMENTO DO INTERIOR / 2º BAEP<br>
-        <span style="font-size: 12px; font-weight: normal;">RELATÓRIO ADMINISTRATIVO DE UTILIZAÇÃO E CAUTELAS</span>
+    <!-- Cabeçalho Oficial com Brasão -->
+    <div class="header-container">
+        <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP" class="header-emblem">
+        <div class="header-text">
+            <h5>POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
+            <h6>2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA — 2º BAEP</h6>
+            <div class="header-badge">SEÇÃO DE LOGÍSTICA • RELATÓRIO ADMINISTRATIVO OFICIAL</div>
+        </div>
+        <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP" class="header-emblem" style="visibility: hidden;">
     </div>
 
-    <div class="sub-header row">
+    <div class="sub-header row g-2">
         <div class="col-6">
             <strong>Período da Consulta:</strong> {{ data_inicio|date:"d/m/Y" }} a {{ data_fim|date:"d/m/Y" }}<br>
             <strong>Tipo de Recurso:</strong> {{ tipo_recurso }}<br>
@@ -85,16 +161,17 @@
         </div>
         <div class="col-6 text-end">
             <strong>Emitido em:</strong> {{ agora|date:"d/m/Y H:i" }}<br>
-            <strong>Solicitado por:</strong> {{ usuario_solicitante }}
+            <strong>Operador Solicitante:</strong> {{ usuario_solicitante }}<br>
+            <span class="badge bg-light text-dark border">SIS LOGÍSTICA v2.2</span>
         </div>
     </div>
 
     {% if estatisticas_categorias %}
     <div class="mb-3">
-        <strong>Resumo por Categoria/Modelo:</strong>
+        <strong class="text-uppercase small" style="font-size: 10px; color: #475569;">Resumo por Categoria / Modelo:</strong>
         <div class="d-flex flex-wrap gap-2 mt-1">
             {% for cat_nome, qtd in estatisticas_categorias.items %}
-                <span class="badge bg-light text-dark border me-2">{{ cat_nome }}: {{ qtd }}</span>
+                <span class="badge bg-light text-dark border me-1">{{ cat_nome }}: {{ qtd }}</span>
             {% endfor %}
         </div>
     </div>
@@ -115,21 +192,21 @@
             {% for item in itens %}
             <tr>
                 <td class="text-center">{{ forloop.counter }}</td>
-                <td>{{ item.nome_material }} ({{ item.categoria }})</td>
-                <td class="text-center">{{ item.numero_serie }}</td>
+                <td><strong>{{ item.nome_material }}</strong> ({{ item.categoria }})</td>
+                <td class="text-center font-monospace">{{ item.numero_serie }}</td>
                 <td>{{ item.policial_nome }} (RE: {{ item.policial_rg }})</td>
                 <td class="text-center">{{ item.data_retirada|date:"d/m/Y H:i" }}</td>
                 <td class="text-center">
                     {% if item.data_devolucao %}
                         {{ item.data_devolucao|date:"d/m/Y H:i" }}
                     {% else %}
-                        <strong>EM CAUTELA</strong>
+                        <span class="badge bg-warning text-dark border border-warning">EM CAUTELA</span>
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center py-3">Nenhum registro localizado no período informado.</td>
+                <td colspan="6" class="text-center py-3 text-muted">Nenhum registro localizado no período informado.</td>
             </tr>
             {% endfor %}
         </tbody>

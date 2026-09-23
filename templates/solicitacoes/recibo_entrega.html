@@ -23,52 +23,62 @@
 <div class="container mb-5">
     <div id="printable-recibo" class="card border-0 shadow-sm overflow-hidden">
         <div class="card-body p-5">
-            <!-- Cabeçalho Oficial -->
-            <div class="text-center mb-4 pb-4 border-bottom">
-                <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 80px;" class="mb-3">
-                <h5 class="fw-bold text-navy mb-1">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
-                <h6 class="mb-0 text-muted small">2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP</h6>
-                <div class="mt-3 smaller fw-bold text-uppercase text-decoration-underline">Recibo de Entrega de Material</div>
+            <!-- Cabeçalho Oficial com Brasão -->
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-4" style="border-bottom: 2px solid #d4af37;">
+                <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP Seção de Logística"
+                     style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #d4af37; box-shadow: 0 0 14px rgba(212,175,55,0.35);">
+                <div class="text-center flex-grow-1 px-3">
+                    <h5 class="fw-bold text-navy mb-1" style="font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; font-size: 1rem;">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
+                    <h6 class="fw-bold mb-1" style="color: #334155; font-size: 0.9rem;">2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA — 2º BAEP</h6>
+                    <div style="color: #b8860b; font-weight: 800; letter-spacing: 1.5px; font-size: 0.75rem; text-transform: uppercase;">
+                        Seção de Logística &bull; SIS LOGÍSTICA
+                    </div>
+                    <div class="mt-2 fw-bold text-uppercase" style="font-size: 0.78rem; letter-spacing: 1px; text-decoration: underline; color: #0d131b;">
+                        Recibo de Entrega de Material
+                    </div>
+                </div>
+                <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="" aria-hidden="true"
+                     style="width: 80px; height: 80px; border-radius: 50%; visibility: hidden;">
             </div>
 
             <!-- Dados da Solicitação -->
-            <div class="row mb-4">
+            <div class="row mb-4 p-3 rounded-3" style="background: #f8fafc; border: 1px solid rgba(212,175,55,0.15);">
                 <div class="col-md-6">
-                    <p class="mb-1"><span class="fw-bold">Solicitação:</span> #{{ solicitacao.id }}</p>
-                    <p class="mb-1"><span class="fw-bold">Data do Pedido:</span> {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</p>
-                    <p class="mb-1"><span class="fw-bold">Data da Entrega:</span> {{ solicitacao.data_atualizacao|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-1 small"><span class="fw-bold text-navy">Solicitação:</span> #{{ solicitacao.id }}</p>
+                    <p class="mb-1 small"><span class="fw-bold text-navy">Data do Pedido:</span> {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-0 small"><span class="fw-bold text-navy">Data da Entrega:</span> {{ solicitacao.data_atualizacao|date:"d/m/Y H:i" }}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-1"><span class="fw-bold">Requisitante/Destino:</span> 
+                    <p class="mb-1 small"><span class="fw-bold text-navy">Requisitante/Destino:</span>
                         {% if solicitacao.policial_requisitante %}
                             {{ solicitacao.policial_requisitante.get_posto_display }} {{ solicitacao.policial_requisitante.nome }} ({{ solicitacao.policial_requisitante.re }})
                         {% else %}
                             {{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}
                         {% endif %}
                     </p>
-                    <p class="mb-1"><span class="fw-bold">Seção/Unidade:</span> {{ solicitacao.orgao_requisitante.nome|default:"Não informada" }}</p>
+                    <p class="mb-1 small"><span class="fw-bold text-navy">Seção/Unidade:</span> {{ solicitacao.orgao_requisitante.nome|default:"Não informada" }}</p>
                     {% if solicitacao.entregue_por %}
-                    <p class="mb-1"><span class="fw-bold">Entregue por:</span> {{ solicitacao.entregue_por.get_full_name|default:solicitacao.entregue_por.username }}</p>
+                    <p class="mb-0 small"><span class="fw-bold text-navy">Entregue por:</span> {{ solicitacao.entregue_por.get_full_name|default:solicitacao.entregue_por.username }}</p>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Tabela de Itens -->
             <div class="table-responsive mb-5">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr class="text-center smaller text-uppercase">
-                            <th>Material</th>
-                            <th>Código</th>
-                            <th>Qtd. Pedida</th>
-                            <th>Qtd. Entregue</th>
+                <table class="table table-bordered align-middle" style="font-size: 0.88rem;">
+                    <thead>
+                        <tr class="text-center">
+                            <th style="background: #0d131b !important; color: #f5d77f !important; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">Material</th>
+                            <th style="background: #0d131b !important; color: #f5d77f !important; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">Código</th>
+                            <th style="background: #0d131b !important; color: #f5d77f !important; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">Qtd. Pedida</th>
+                            <th style="background: #0d131b !important; color: #f5d77f !important; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">Qtd. Entregue</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in solicitacao.itens.all %}
                         <tr class="text-center">
-                            <td class="text-start fw-bold">{{ item.produto.nome }}</td>
-                            <td>{{ item.produto.codigo }}</td>
+                            <td class="text-start fw-bold text-navy">{{ item.produto.nome }}</td>
+                            <td class="font-monospace text-muted">{{ item.produto.codigo }}</td>
                             <td>{{ item.quantidade_solicitada }}</td>
                             <td class="fw-bold text-navy">{{ item.quantidade_atendida }}</td>
                         </tr>
@@ -79,8 +89,8 @@
 
             {% if solicitacao.notas_admin %}
             <div class="mb-5">
-                <h6 class="fw-bold smaller text-muted text-uppercase mb-2">Observações do Almoxarifado:</h6>
-                <div class="p-3 bg-light rounded border small">
+                <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.78rem; letter-spacing: 0.5px;">Observações do Almoxarifado:</h6>
+                <div class="p-3 rounded-3 small" style="background: #f8fafc; border: 1px solid rgba(212,175,55,0.25);">
                     {{ solicitacao.notas_admin }}
                 </div>
             </div>
@@ -90,46 +100,61 @@
             <div class="mt-5 pt-5">
                 <div class="row text-center">
                     <div class="col-6">
-                        <div class="mx-auto border-top border-dark" style="width: 80%;"></div>
-                        <div class="smaller fw-bold mt-2 text-uppercase">Assinatura do Requisitante</div>
-                        <div class="smaller text-muted">Documento gerado via SIS LOGÍSTICA</div>
+                        <div class="mx-auto" style="width: 80%; border-top: 1.5px solid #000;"></div>
+                        <div class="fw-bold mt-2 text-uppercase text-navy" style="font-size: 0.82rem;">Assinatura do Requisitante</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Nome / RE / Matrícula</div>
                     </div>
                     <div class="col-6">
-                        <div class="mx-auto border-top border-dark" style="width: 80%;"></div>
-                        <div class="smaller fw-bold mt-2 text-uppercase">Assinatura do Almoxarifado</div>
-                        <div class="smaller text-muted">2º BAEP - Seção de Logística</div>
+                        <div class="mx-auto" style="width: 80%; border-top: 1.5px solid #000;"></div>
+                        <div class="fw-bold mt-2 text-uppercase text-navy" style="font-size: 0.82rem;">Assinatura do Almoxarifado</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">2º BAEP — Seção de Logística</div>
                     </div>
                 </div>
             </div>
 
             <!-- Rodapé -->
-            <div class="mt-5 pt-4 text-center border-top text-muted smaller">
+            <div class="mt-5 pt-4 text-center text-muted" style="border-top: 1px solid #e2e8f0; font-size: 0.78rem;">
                 <p class="mb-0">Este é um comprovante oficial de movimentação de material. Sua guarda é responsabilidade do requisitante.</p>
-                <p>Gerado em {{ data_atual|date:"d/m/Y H:i:s" }}</p>
+                <p class="mb-0">Gerado em {{ data_atual|date:"d/m/Y H:i:s" }} &bull; SIS LOGÍSTICA — 2º BAEP</p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .text-navy { color: #1a2a6c; }
-    .bg-navy { background-color: #1a2a6c; }
-    .btn-navy { background-color: #1a2a6c; color: white; }
-    
+    .text-navy { color: #0d131b !important; }
+    .bg-navy { background-color: #0d131b !important; }
+    .btn-navy {
+        background: linear-gradient(135deg, #0d131b 0%, #1a2332 100%);
+        color: #f5d77f !important;
+        border: 1px solid rgba(212,175,55,0.4);
+        font-weight: 700;
+    }
+    .btn-navy:hover {
+        background: linear-gradient(135deg, #1a2332 0%, #263346 100%);
+        color: #fff !important;
+    }
+
     @media print {
         body * { visibility: hidden; }
         #printable-recibo, #printable-recibo * { visibility: visible; }
-        #printable-recibo { 
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            box-shadow: none !important; 
-            border: none !important; 
+        #printable-recibo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            border: none !important;
         }
         .container { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
         .card { border: none !important; }
         .d-print-none { display: none !important; }
+        table thead th {
+            background: #0d131b !important;
+            color: #f5d77f !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
     }
 </style>
 {% endblock %}

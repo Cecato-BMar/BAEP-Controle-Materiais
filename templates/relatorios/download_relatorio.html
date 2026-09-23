@@ -1,77 +1,97 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Download de Relatório - SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Exportação de Relatório — SIS LOGÍSTICA 2º BAEP{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="mb-2">
-        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 40px; width: auto;">
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-download me-2"></i>Download de Relatório</h1>
+<div class="container-fluid animate__animated animate__fadeIn">
+    <!-- Breadcrumb e Voltar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="d-flex align-items-center">
+            <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP Seção de Logística" 
+                 style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--baep-gold);" class="me-3 shadow-sm">
+            <div>
+                <h2 class="fw-bold mb-0 text-navy" style="font-family: 'Outfit', sans-serif;">Exportação de Relatório</h2>
+                <small class="text-muted">Seção de Logística • 2º BAEP</small>
+            </div>
+        </div>
         <div>
-            <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.id %}" class="btn btn-secondary me-2">
-                <i class="fas fa-arrow-left me-2"></i>Voltar
+            <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.id %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> Voltar à Prévia
             </a>
         </div>
     </div>
     
-    <!-- Informações do Relatório -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-info-circle me-2"></i>Informações do Relatório
-        </div>
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Título:</div>
-                <div class="col-md-9">{{ relatorio.titulo }}</div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Informações do Relatório -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <i class="fas fa-info-circle me-2 text-warning"></i>
+                    <span class="fw-bold text-navy">Metadados do Documento</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold text-muted small text-uppercase">Título:</div>
+                        <div class="col-md-9 fw-bold text-navy">{{ relatorio.titulo }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold text-muted small text-uppercase">Tipo Operacional:</div>
+                        <div class="col-md-9"><span class="badge bg-light text-dark border px-3 py-1">{{ relatorio.get_tipo_display }}</span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold text-muted small text-uppercase">Data de Geração:</div>
+                        <div class="col-md-9 text-muted">{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 fw-bold text-muted small text-uppercase">Operador:</div>
+                        <div class="col-md-9 text-navy fw-semibold">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</div>
+                    </div>
+                </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Tipo:</div>
-                <div class="col-md-9">{{ relatorio.get_tipo_display }}</div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Data de Geração:</div>
-                <div class="col-md-9">{{ relatorio.data_geracao|date:"d/m/Y H:i" }}</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Formulário de Download -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-file-download me-2"></i>Opções de Download
-        </div>
-        <div class="card-body">
-            <p class="text-muted mb-4">Personalize o nome do arquivo antes de fazer o download.</p>
             
-            <form method="post" action="{% url 'relatorios:download_relatorio_arquivo' relatorio_id=relatorio.id %}">
-                {% csrf_token %}
-                
-                <div class="row mb-3">
-                    <label for="nome_arquivo" class="col-md-3 col-form-label">Nome do arquivo:</label>
-                    <div class="col-md-9">
-                        <input type="text" class="form-control" id="nome_arquivo" name="nome_arquivo" value="{{ relatorio.titulo|slugify }}" required>
-                        <small class="form-text text-muted">O nome do arquivo que será baixado (sem a extensão).</small>
-                    </div>
+            <!-- Formulário de Download -->
+            <div class="card border-0 shadow-sm" style="border-top: 3px solid var(--baep-gold) !important;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <i class="fas fa-file-download me-2 text-warning"></i>
+                    <span class="fw-bold text-navy">Gerar Arquivo PDF Oficial</span>
                 </div>
-                
-                <div class="row mb-3">
-                    <label for="formato" class="col-md-3 col-form-label">Formato:</label>
-                    <div class="col-md-9">
-                        <select class="form-select" id="formato" name="formato">
-                            <option value="pdf" selected>PDF</option>
-                        </select>
-                    </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">
+                        O arquivo será exportado com o cabeçalho oficial da <strong>Polícia Militar do Estado de São Paulo</strong> e carimbo digital do 2º BAEP.
+                    </p>
+                    
+                    <form method="post" action="{% url 'relatorios:download_relatorio_arquivo' relatorio_id=relatorio.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <label for="nome_arquivo" class="col-md-3 col-form-label fw-bold text-navy small text-uppercase">Nome do arquivo:</label>
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="nome_arquivo" name="nome_arquivo" value="{{ relatorio.titulo|slugify }}" required>
+                                    <span class="input-group-text bg-light text-muted font-monospace">.pdf</span>
+                                </div>
+                                <small class="form-text text-muted">Nome do arquivo gerado para armazenamento e anexação em partes oficiais.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <label for="formato" class="col-md-3 col-form-label fw-bold text-navy small text-uppercase">Formato Oficial:</label>
+                            <div class="col-md-9">
+                                <select class="form-select" id="formato" name="formato">
+                                    <option value="pdf" selected>Documento PDF (Padrão A4 Militar)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center pt-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow fw-bold">
+                                <i class="fas fa-file-pdf me-2"></i> Baixar Relatório em PDF
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-download me-2"></i>Baixar Arquivo
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

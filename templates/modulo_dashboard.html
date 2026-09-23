@@ -1,55 +1,68 @@
 {% extends 'base.html' %}
-{% load auth_extras %}
+{% load auth_extras static %}
 
-{% block title %}Seleção de Módulos — Sistema Integrado 2º BAEP{% endblock %}
+{% block title %}Painel de Módulos — SIS LOGÍSTICA 2º BAEP{% endblock %}
 
 {% block content %}
 <div class="module-selector-page animate__animated animate__fadeIn">
-    <!-- Fundo de Partículas Decorativas -->
-    <div class="decoration-dots opacity-20"></div>
+    <!-- Grade tática de fundo -->
+    <div class="tactical-dots-bg"></div>
 
-    <div class="container py-5">
+    <div class="container py-4">
+        <!-- Cabeçalho de Comando Institucional -->
         <div class="text-center mb-5 animate__animated animate__fadeInDown">
-            <div class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-bold">
-                 LOGÍSTICA E OPERAÇÃO ESTRATÉGICA
+            <div class="emblem-centerpiece mb-3">
+                <div class="emblem-ring"></div>
+                <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP Seção de Logística" class="emblem-img">
             </div>
-            <h1 class="display-3 fw-bold text-navy mb-2">Sistema Integrado BAEP</h1>
-            <p class="lead text-muted mx-auto" style="max-width: 600px;">Coordenação unificada de material bélico e insumos do 2º Batalhão de Ações Especiais de Polícia.</p>
+
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" 
+                 style="background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.35); color: #8c6d1f; font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">
+                <i class="fas fa-shield-alt text-warning"></i> POLÍCIA MILITAR DO ESTADO DE SÃO PAULO • 2º BAEP
+            </div>
+
+            <h1 class="display-4 fw-extrabold text-navy mb-1" style="font-family: 'Outfit', sans-serif; letter-spacing: -1px;">
+                SEÇÃO DE LOGÍSTICA
+            </h1>
+            <p class="lead text-muted mx-auto" style="max-width: 620px; font-size: 1.05rem;">
+                Sistema Integrado de Controle de Material Bélico, Consumo, Frota e Patrimônio Operacional.
+            </p>
         </div>
 
+        <!-- Grade de Módulos Operacionais -->
         <div class="row g-4 justify-content-center">
             <!-- Módulo: Reserva de Armas -->
             {% if user.is_superuser or user|has_group:"reserva_armas" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle bg-primary text-white mb-4 shadow-sm mx-auto">
-                            <i class="fas fa-shield-alt fa-3x"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle bg-navy text-warning mb-4 shadow-sm mx-auto">
+                            <i class="fas fa-shield-alt fa-2x"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Reserva de Armas</h3>
-                        <p class="text-muted small">Controle tático de armamentos, cautelas, munições e equipamentos de proteção balística.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg shadow-sm w-100 rounded-pill">
-                                <i class="fas fa-sign-in-alt me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Reserva de Armas</h4>
+                        <p class="text-muted small mb-4">Controle tático de armamentos, cautelas individuais, registros balísticos e equipamentos de proteção.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg shadow-sm w-100 rounded-pill py-3 fw-bold">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR ARSENAL
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Módulo: Municões -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle bg-danger text-white mb-4 shadow-sm mx-auto">
-                            <i class="fas fa-bullseye fa-3x"></i>
+            <!-- Módulo: Munições -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle bg-danger text-white mb-4 shadow-sm mx-auto">
+                            <i class="fas fa-bullseye fa-2x"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Controle de Munições</h3>
-                        <p class="text-muted small">Registro de lotes, retiradas e devoluções de munições com saldo e fluxo operacional.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-danger btn-lg shadow-sm w-100 rounded-pill text-white">
-                                <i class="fas fa-file-invoice-dollar me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Controle de Munições</h4>
+                        <p class="text-muted small mb-4">Registro de lotes, retiradas de serviço, recargas e controle contábil de cartuchos por calibre.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'municoes:lista_lotes' %}" class="btn btn-danger btn-lg shadow-sm w-100 rounded-pill py-3 fw-bold text-white">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR MUNIÇÕES
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -58,18 +71,18 @@
 
             <!-- Módulo: Materiais P4 (Estoque) -->
             {% if user.is_superuser or user|has_group:"materiais" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle bg-warning text-white mb-4 shadow-sm mx-auto">
-                            <i class="fas fa-boxes fa-3x"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle text-white mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg, #d97706, #b45309);">
+                            <i class="fas fa-boxes fa-2x"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Logística MATERIAL DE CONSUMO</h3>
-                        <p class="text-muted small">Gestão técnica de materiais de consumo, almoxarifado estratégico e relatórios de fluxo (MATERIAL DE CONSUMO 1/4).</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'estoque:dashboard' %}" class="btn btn-warning btn-lg shadow-sm w-100 rounded-pill text-white">
-                                <i class="fas fa-chart-bar me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Material de Consumo</h4>
+                        <p class="text-muted small mb-4">Gestão do almoxarifado, pedidos de consumo, controle de estoque mínimo e fluxo de reposição.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'estoque:dashboard' %}" class="btn btn-warning btn-lg shadow-sm w-100 rounded-pill py-3 fw-bold text-dark" style="background: #f59e0b; border: 1px solid #d97706;">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR ESTOQUE
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -78,18 +91,18 @@
 
             <!-- Módulo: Frota de Viaturas -->
             {% if user.is_superuser or user|has_group:"frota" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg,#28a745,#20c997)">
-                            <i class="fas fa-car-side fa-3x text-white"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg, #059669, #10b981);">
+                            <i class="fas fa-car-side fa-2x text-white"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Gestão de Frota</h3>
-                        <p class="text-muted small">Controle operacional da frota: viaturas 4 rodas, motos, embarcações e caminhões — despacho, abastecimento e manutenção.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'viaturas:dashboard' %}" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold" style="background:linear-gradient(135deg,#28a745,#20c997)">
-                                <i class="fas fa-route me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Gestão de Frota</h4>
+                        <p class="text-muted small mb-4">Viaturas táticas, despachos de escala, controle de abastecimento, checklist e ordens de manutenção.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'viaturas:dashboard' %}" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold py-3" style="background: linear-gradient(135deg, #059669, #10b981);">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR FROTA
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -98,18 +111,18 @@
             
             <!-- Módulo: Patrimônio -->
             {% if user.is_superuser or user|has_group:"patrimonio" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle bg-info text-white mb-4 shadow-sm mx-auto">
-                            <i class="fas fa-barcode fa-3x"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle text-white mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
+                            <i class="fas fa-barcode fa-2x"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Patrimônio</h3>
-                        <p class="text-muted small">Controle de bens permanentes, mobiliário e gestão de cautelas individuais de carga.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'patrimonio:dashboard' %}" class="btn btn-info btn-lg shadow-sm w-100 rounded-pill text-white fw-bold">
-                                <i class="fas fa-landmark me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Patrimônio Permanente</h4>
+                        <p class="text-muted small mb-4">Controle físico de bens duráveis, numeração de patrimônio, termos de responsabilidade e localização.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'patrimonio:dashboard' %}" class="btn btn-info btn-lg shadow-sm w-100 rounded-pill text-white fw-bold py-3" style="background: #0284c7; border: 1px solid #0369a1;">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR PATRIMÔNIO
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -117,18 +130,18 @@
             {% endif %}
 
             <!-- Módulo: Inventário Semestral -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg,#198754,#0d6efd)">
-                            <i class="fas fa-clipboard-check fa-3x text-white"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg, #0f766e, #14b8a6);">
+                            <i class="fas fa-clipboard-check fa-2x text-white"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Inventário Semestral</h3>
-                        <p class="text-muted small">Controle físico e contábil de bens permanentes, auditoria presencial, importação Excel e emissão de Termos em PDF.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="/inventario/" class="btn btn-success btn-lg shadow-sm w-100 rounded-pill text-white fw-bold">
-                                <i class="fas fa-boxes me-2"></i> ACESSAR INVENTÁRIO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Inventário Semestral</h4>
+                        <p class="text-muted small mb-4">Auditoria física oficial periódica, conferência cruzada de bens permanentes e geração de relatórios oficiais.</p>
+                        <div class="mt-auto">
+                            <a href="/inventario/" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold py-3" style="background: linear-gradient(135deg, #0f766e, #14b8a6);">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR INVENTÁRIO
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -136,18 +149,18 @@
 
             <!-- Módulo: Telemática & TI -->
             {% if user.is_superuser or user|has_group:"telematica" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg,#007bff,#6610f2)">
-                            <i class="fas fa-satellite-dish fa-3x text-white"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle mb-4 shadow-sm mx-auto" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                            <i class="fas fa-satellite-dish fa-2x text-white"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Telemática & TI</h3>
-                        <p class="text-muted small">Gestão de ativos tecnológicos, rádios, terminais de dados (TPD), rede lógica e manutenção especializada.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'telematica:dashboard' %}" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold" style="background:linear-gradient(135deg,#007bff,#6610f2)">
-                                <i class="fas fa-microchip me-2"></i> ACESSAR MÓDULO
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Telemática & TI</h4>
+                        <p class="text-muted small mb-4">Gestão de rádios comunicadores, terminais portáteis, rede corporativa e chamados de suporte técnico.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'telematica:dashboard' %}" class="btn btn-lg shadow-sm w-100 rounded-pill text-white fw-bold py-3" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                                <i class="fas fa-arrow-right me-2"></i> ACESSAR TELEMÁTICA
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -156,18 +169,18 @@
 
             <!-- Módulo: Painel Administrativo -->
             {% if user.is_superuser or user|has_group:"administracao" %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-lg premium-card transition-all">
-                    <div class="card-body text-center p-5">
-                        <div class="icon-circle bg-navy text-white mb-4 shadow-sm mx-auto">
-                            <i class="fas fa-users-cog fa-3x"></i>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm tactical-module-card">
+                    <div class="card-body text-center p-4 p-xl-5">
+                        <div class="module-icon-circle bg-navy text-white mb-4 shadow-sm mx-auto">
+                            <i class="fas fa-users-cog fa-2x text-warning"></i>
                         </div>
-                        <h3 class="fw-bold mb-3">Administração</h3>
-                        <p class="text-muted small">Configurações globais de usuários, níveis de permissão e auditoria de sistemas de rede.</p>
-                        <div class="mt-4 pt-2">
-                             <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-navy btn-lg shadow-sm w-100 rounded-pill">
-                                <i class="fas fa-lock me-2"></i> GERENCIAR TI
-                             </a>
+                        <h4 class="fw-bold mb-2 text-navy">Administração</h4>
+                        <p class="text-muted small mb-4">Controle de perfis de operadores, auditoria de transações, permissões de acesso e segurança.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-navy btn-lg shadow-sm w-100 rounded-pill py-3 fw-bold">
+                                <i class="fas fa-lock me-2"></i> GERENCIAR SISTEMA
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -175,55 +188,57 @@
             {% endif %}
         </div>
 
-        <!-- Seção de Serviços Rápidos (Acessível a todos) -->
-        <div class="row g-4 mt-5 justify-content-center animate__animated animate__fadeInUp">
+        <!-- Seção de Serviços Rápidos ao Policial -->
+        <div class="row g-4 mt-4 justify-content-center animate__animated animate__fadeInUp">
             <div class="col-12 text-center mb-2">
-                <h4 class="fw-bold text-muted text-uppercase" style="letter-spacing: 2px; font-size: 0.9rem;">Serviços ao Policial</h4>
+                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill fw-bold text-uppercase" style="letter-spacing: 1.5px; font-size: 0.72rem;">
+                    SERVIÇOS RÁPIDOS AO OPERACIONAL
+                </span>
             </div>
 
             <!-- Solicitar Material -->
-            <div class="col-md-3">
-                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 border-0 shadow-sm quick-action-card">
                     <div class="card-body text-center p-4">
-                        <div class="icon-sm bg-warning bg-opacity-10 text-warning mb-3 mx-auto">
-                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        <div class="quick-icon bg-warning bg-opacity-10 text-warning mb-3 mx-auto">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Solicitar Material</h5>
-                        <p class="text-muted smallest mb-3">Pedidos de material de consumo e escritório.</p>
-                        <a href="{% url 'solicitacoes:minhas_solicitacoes' %}" class="btn btn-outline-warning btn-sm w-100 rounded-pill">
-                            SOLICITAR
+                        <h6 class="fw-bold mb-1 text-navy">Solicitar Material</h6>
+                        <p class="text-muted smallest mb-3">Requisitar materiais de expediente e consumo.</p>
+                        <a href="{% url 'solicitacoes:minhas_solicitacoes' %}" class="btn btn-outline-warning btn-sm w-100 rounded-pill fw-bold">
+                            FAZER PEDIDO
                         </a>
                     </div>
                 </div>
             </div>
 
             <!-- Solicitar Suporte TI -->
-            <div class="col-md-3">
-                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 border-0 shadow-sm quick-action-card">
                     <div class="card-body text-center p-4">
-                        <div class="icon-sm bg-primary bg-opacity-10 text-primary mb-3 mx-auto">
-                            <i class="fas fa-headset fa-2x"></i>
+                        <div class="quick-icon bg-primary bg-opacity-10 text-warning mb-3 mx-auto">
+                            <i class="fas fa-headset fa-lg"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Suporte de TI</h5>
-                        <p class="text-muted smallest mb-3">Abertura de chamados técnicos e manutenção.</p>
-                        <a href="{% url 'telematica:solicitar_suporte' %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
-                            SOLICITAR
+                        <h6 class="fw-bold mb-1 text-navy">Suporte de TI</h6>
+                        <p class="text-muted smallest mb-3">Abertura de chamados técnicos e redes.</p>
+                        <a href="{% url 'telematica:solicitar_suporte' %}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold">
+                            ABRIR CHAMADO
                         </a>
                     </div>
                 </div>
             </div>
 
             <!-- Solicitar Baixa Viatura -->
-            <div class="col-md-3">
-                <div class="card h-100 border-0 shadow-sm quick-service-card transition-all">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 border-0 shadow-sm quick-action-card">
                     <div class="card-body text-center p-4">
-                        <div class="icon-sm bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
-                            <i class="fas fa-car-crash fa-2x"></i>
+                        <div class="quick-icon bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
+                            <i class="fas fa-car-crash fa-lg"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Baixa de Viatura</h5>
-                        <p class="text-muted smallest mb-3">Registro de descarga ou inativação de frota.</p>
-                        <a href="{% url 'viaturas:solicitar_baixa' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
-                            CADASTRAR
+                        <h6 class="fw-bold mb-1 text-navy">Baixa de Viatura</h6>
+                        <p class="text-muted smallest mb-3">Solicitar inativação ou baixa de frota.</p>
+                        <a href="{% url 'viaturas:solicitar_baixa' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold">
+                            SOLICITAR BAIXA
                         </a>
                     </div>
                 </div>
@@ -234,30 +249,107 @@
 
 <style>
     .smallest { font-size: 0.75rem; }
-    .icon-sm { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
-    .quick-service-card { border-radius: 20px; }
-    .quick-service-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
-
-    .text-navy { color: #1a2a6c; }
-    .btn-navy { background-color: #1a2a6c; color: #fff; }
-    .btn-navy:hover { background-color: #0f1a4a; color: #fff; }
-    .bg-navy { background-color: #1a2a6c; }
     
     .module-selector-page { 
-        min-height: 80vh; 
+        min-height: 85vh; 
         display: flex; 
         align-items: center; 
-        background: radial-gradient(circle at top right, rgba(13, 110, 253, 0.03), transparent 400px);
+        position: relative;
     }
-    
-    .icon-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-    
-    .premium-card { border-radius: 24px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .premium-card:hover { transform: translateY(-15px); box-shadow: 0 30px 60px rgba(0,0,0,0.12) !important; }
-    
-    .decoration-dots { position: absolute; top:0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; background-image: radial-gradient(#1a2a6c 1px, transparent 1px); background-size: 40px 40px; }
-    
+
+    .tactical-dots-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        background-image: 
+            radial-gradient(rgba(212, 175, 55, 0.08) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+
+    /* Brasão Central de Destaque */
+    .emblem-centerpiece {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .emblem-ring {
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f5d77f, #d4af37, #8c6d1f);
+        box-shadow: 0 4px 18px rgba(212, 175, 55, 0.4);
+    }
+
+    .emblem-img {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #0d131b;
+    }
+
+    /* Cartões Táticos de Módulos */
+    .tactical-module-card {
+        border-radius: 20px;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08) !important;
+        transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tactical-module-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(212, 175, 55, 0.5) !important;
+        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12), 0 0 20px rgba(212, 175, 55, 0.15) !important;
+    }
+
+    .module-icon-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+
+    .tactical-module-card:hover .module-icon-circle {
+        transform: scale(1.08);
+    }
+
+    /* Quick action cards */
+    .quick-action-card {
+        border-radius: 16px;
+        transition: all 0.25s ease;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06) !important;
+    }
+
+    .quick-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Forçar layout centralizado quando no seletor */
     .sidebar { display: none !important; }
-    .main-content { margin-left: 0 !important; width: 100% !important; }
+    .main-content { margin-left: 0 !important; width: 100% !important; padding: 20px 10px !important; }
+    footer { margin-left: 0 !important; }
 </style>
 {% endblock %}

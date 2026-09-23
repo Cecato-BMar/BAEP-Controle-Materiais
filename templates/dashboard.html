@@ -1,176 +1,211 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Dashboard Estratégico — Reserva de Armas BAEP{% endblock %}
+{% block title %}Dashboard Estratégico — Reserva de Armas 2º BAEP{% endblock %}
 
 {% block content %}
 <div class="container-fluid animate__animated animate__fadeIn">
     
-    <!-- Cabeçalho de Boas-Vindas -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Cabeçalho de Boas-Vindas Tático -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h1 class="fw-bold mb-0 text-navy"><i class="fas fa-shield-alt me-2"></i>Reserva de Armas</h1>
-            <p class="text-muted mb-0">Gestão de Material Bélico e Logística Operacional — {{ hoje|date:"d \d\e F \d\e Y" }}</p>
-        </div>
-        <div class="text-end d-none d-md-block">
-            <div class="badge bg-light text-dark border p-2 px-3 shadow-sm">
-                <i class="far fa-clock me-1 text-primary"></i> <span id="current-time">--:--:--</span>
+            <div class="d-inline-flex align-items-center gap-2 mb-1 px-3 py-1 rounded-pill" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3);">
+                <i class="fas fa-shield-alt text-warning"></i>
+                <span style="color: #b8860b; font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                    SEÇÃO DE LOGÍSTICA • RESERVA DE MATERIAL BÉLICO
+                </span>
             </div>
+            <h1 class="fw-bold mb-0 text-navy" style="font-family: 'Outfit', sans-serif;">Painel Tático de Armamento</h1>
+            <p class="text-muted mb-0 small">Monitoramento em tempo real do arsenal e fluxo operacional — {{ hoje|date:"d \d\e F \d\e Y" }}</p>
+        </div>
+        <div class="text-end d-none d-md-flex align-items-center gap-2">
+            <div class="badge bg-white text-dark border p-2 px-3 shadow-sm rounded-pill d-flex align-items-center gap-2">
+                <i class="far fa-clock text-warning"></i>
+                <span id="current-time" class="fw-bold">--:--:--</span>
+            </div>
+            <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                <i class="fas fa-plus-circle me-1"></i> Nova Cautela
+            </a>
         </div>
     </div>
     
     <!-- Painel de Indicadores de Desempenho (KPIs) -->
     <div class="row g-3 mb-4">
-        <!-- Card: Material Bélico -->
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+        <!-- Card: Material Bélico Total -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 kpi-card">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                            <i class="fas fa-gun fa-lg text-primary"></i>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="kpi-icon-box" style="background: rgba(212, 175, 55, 0.15); color: #b8860b;">
+                            <i class="fas fa-gun fa-lg"></i>
                         </div>
-                        <span class="text-muted small fw-bold">TOTAL</span>
+                        <span class="badge bg-light text-muted border text-uppercase" style="font-size: 0.68rem; letter-spacing: 1px;">TOTAL ARSENAL</span>
                     </div>
-                    <h2 class="fw-bold mb-1">{{ total_materiais }}</h2>
-                    <p class="text-muted small mb-3 text-uppercase">Itens na Reserva</p>
-                    <div class="progress mb-2" style="height: 6px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio materiais_disponiveis total_materiais 100 %}%"></div>
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio materiais_em_uso total_materiais 100 %}%"></div>
-                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio materiais_manutencao total_materiais 100 %}%"></div>
+                    <h2 class="fw-bold mb-1 text-navy" style="font-family: 'Outfit', sans-serif;">{{ total_materiais }}</h2>
+                    <p class="text-muted small mb-3 text-uppercase" style="letter-spacing: 0.5px;">Itens Cadastrados</p>
+                    <div class="progress mb-2" style="height: 6px; border-radius: 4px; background-color: #e2e8f0;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio materiais_disponiveis total_materiais 100 %}%" title="Disponíveis"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio materiais_em_uso total_materiais 100 %}%" title="Em Uso"></div>
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio materiais_manutencao total_materiais 100 %}%" title="Manutenção"></div>
                     </div>
-                    <div class="d-flex justify-content-between small">
-                        <span class="text-success"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ materiais_disponiveis }} Disp.</span>
-                        <span class="text-warning"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ materiais_em_uso }} Uso</span>
+                    <div class="d-flex justify-content-between small text-muted" style="font-size: 0.76rem;">
+                        <span class="text-success fw-bold"><i class="fas fa-circle me-1" style="font-size: 7px;"></i>{{ materiais_disponiveis }} Disp.</span>
+                        <span class="text-warning fw-bold"><i class="fas fa-circle me-1" style="font-size: 7px;"></i>{{ materiais_em_uso }} Em Uso</span>
+                        <span class="text-danger fw-bold"><i class="fas fa-circle me-1" style="font-size: 7px;"></i>{{ materiais_manutencao }} Manut.</span>
                     </div>
                 </div>
-                <a href="{% url 'materiais:lista_materiais' %}" class="card-footer bg-light border-0 text-center text-primary text-decoration-none py-2 small fw-bold">
+                <a href="{% url 'materiais:lista_materiais' %}" class="card-footer bg-light border-0 text-center text-decoration-none py-2 small fw-bold" style="color: #8c6d1f;">
                     GERENCIAR ARSENAL <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </div>
         </div>
         
-        <!-- Card: Efetivo Policial -->
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-navy text-white overflow-hidden">
-                <div class="card-body p-4 position-relative">
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="rounded-circle bg-white bg-opacity-20 p-3">
+        <!-- Card: Efetivo Policial (Estilo Tático Escuro com Ouro) -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 bg-navy text-white overflow-hidden kpi-card position-relative" style="border: 1px solid rgba(212, 175, 55, 0.3) !important;">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="kpi-icon-box" style="background: rgba(212, 175, 55, 0.2); color: #f5d77f; border: 1px solid rgba(212, 175, 55, 0.4);">
                             <i class="fas fa-users-cog fa-lg"></i>
                         </div>
-                        <i class="fas fa-star opacity-20 fa-4x position-absolute end-0 bottom-0 mb-n3 me-n2"></i>
+                        <span class="badge" style="background: rgba(212, 175, 55, 0.2); color: #f5d77f; font-size: 0.68rem; letter-spacing: 1px;">EFETIVO 2º BAEP</span>
                     </div>
-                    <h2 class="fw-bold mb-1">{{ total_policiais }}</h2>
-                    <p class="text-white-50 small mb-0 text-uppercase">Policiais Cadastrados</p>
-                    <hr class="opacity-10 my-3">
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-success rounded-pill me-2">{{ policiais_ativos }} Ativos</span>
-                        <small class="text-white-50">Prontos para serviço</small>
+                    <h2 class="fw-bold mb-1 text-white" style="font-family: 'Outfit', sans-serif;">{{ total_policiais }}</h2>
+                    <p class="text-white-50 small mb-0 text-uppercase" style="letter-spacing: 0.5px;">Policiais Cadastrados</p>
+                    <hr class="opacity-15 my-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="badge bg-success rounded-pill px-3">{{ policiais_ativos }} Prontos</span>
+                        <small class="text-white-50">Efetivo de Serviço</small>
                     </div>
                 </div>
-                <a href="{% url 'policiais:lista_policiais' %}" class="card-footer bg-white bg-opacity-10 border-0 text-center text-white text-decoration-none py-2 small fw-bold">
-                    VER EFETIVO <i class="fas fa-chevron-right ms-1"></i>
+                <i class="fas fa-shield-alt opacity-10 fa-6x position-absolute end-0 bottom-0 mb-n3 me-n2" style="color: #d4af37; pointer-events: none;"></i>
+                <a href="{% url 'policiais:lista_policiais' %}" class="card-footer bg-black bg-opacity-25 border-0 text-center text-warning text-decoration-none py-2 small fw-bold" style="z-index: 2;">
+                    VER EFETIVO COMPLETO <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </div>
         </div>
         
-        <!-- Card: Movimentações Hoje -->
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+        <!-- Card: Fluxo Hoje -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 kpi-card">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
-                        <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-info"></i>FLUXO HOJE</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0 text-navy" style="font-size: 0.85rem;"><i class="fas fa-exchange-alt me-2 text-primary"></i>FLUXO HOJE</h6>
                         <span class="badge bg-light text-dark border">{{ hoje|date:"d/m" }}</span>
                     </div>
                     <div class="row text-center mt-3">
                         <div class="col-6 border-end">
-                            <h3 class="fw-bold text-primary mb-0">{{ retiradas_hoje }}</h3>
-                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Retiradas</small>
+                            <h3 class="fw-bold text-navy mb-0" style="font-family: 'Outfit', sans-serif;">{{ retiradas_hoje }}</h3>
+                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Retiradas</small>
                         </div>
                         <div class="col-6">
-                            <h3 class="fw-bold text-success mb-0">{{ devolucoes_hoje }}</h3>
-                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Devoluções</small>
+                            <h3 class="fw-bold text-success mb-0" style="font-family: 'Outfit', sans-serif;">{{ devolucoes_hoje }}</h3>
+                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Devoluções</small>
                         </div>
                     </div>
+                    <div class="mt-3 text-center">
+                        <span class="badge bg-light text-muted border px-3 py-1 rounded-pill small" style="font-size: 0.72rem;">
+                            Total: {{ movimentacoes_hoje }} cautelas registradas
+                        </span>
+                    </div>
                 </div>
-                <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="card-footer bg-light border-0 text-center text-info text-decoration-none py-2 small fw-bold">
-                    REGISTRAR FLUXO <i class="fas fa-plus-circle ms-1"></i>
+                <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="card-footer bg-light border-0 text-center text-primary text-decoration-none py-2 small fw-bold">
+                    REGISTRAR MOVIMENTAÇÃO <i class="fas fa-plus-circle ms-1"></i>
                 </a>
             </div>
         </div>
         
-        <!-- Card: Relatórios Mensais -->
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-gradient-blue text-white">
+        <!-- Card: Consolidado Mês -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 kpi-card" style="background: linear-gradient(135deg, #101722 0%, #1a2535 100%); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
-                        <h6 class="fw-bold mb-0 text-uppercase">Consolidado Mês</h6>
-                        <i class="fas fa-chart-pie"></i>
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-white border-opacity-10 pb-2">
+                        <h6 class="fw-bold mb-0 text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.8px; color: #f5d77f;">Consolidado Mês</h6>
+                        <i class="fas fa-chart-pie text-warning"></i>
                     </div>
-                    <h2 class="fw-bold mt-2">{{ movimentacoes_mes }}</h2>
-                    <small class="text-white-50">Movimentações em {{ hoje|date:"F" }}</small>
+                    <h2 class="fw-bold mt-2 mb-0" style="font-family: 'Outfit', sans-serif;">{{ movimentacoes_mes }}</h2>
+                    <small class="text-white-50">Transações em {{ hoje|date:"F" }}</small>
                     <div class="mt-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>Retiradas</span>
-                            <span>{{ retiradas_mes }}</span>
+                            <span class="text-white-50">Retiradas</span>
+                            <span class="fw-bold text-warning">{{ retiradas_mes }}</span>
                         </div>
-                        <div class="progress" style="height: 4px; background-color: rgba(255,255,255,0.1);">
-                            <div class="progress-bar bg-white" style="width: {% widthratio retiradas_mes movimentacoes_mes 100 %}%"></div>
+                        <div class="progress" style="height: 5px; background-color: rgba(255,255,255,0.15); border-radius: 4px;">
+                            <div class="progress-bar" style="background: var(--baep-gold-gradient); width: {% widthratio retiradas_mes movimentacoes_mes 100 %}%"></div>
                         </div>
                     </div>
                 </div>
-                <a href="{% url 'relatorios:lista_relatorios' %}" class="card-footer bg-dark bg-opacity-20 border-0 text-center text-white text-decoration-none py-2 small fw-bold">
-                    GERAR RELATÓRIO PDF <i class="fas fa-file-pdf ms-1"></i>
+                <a href="{% url 'relatorios:lista_relatorios' %}" class="card-footer bg-black bg-opacity-25 border-0 text-center text-warning text-decoration-none py-2 small fw-bold">
+                    CENTRAL DE RELATÓRIOS <i class="fas fa-file-pdf ms-1"></i>
                 </a>
             </div>
         </div>
     </div>
     
-    <!-- Tabelas de Monitoramento -->
+    <!-- Tabelas e Listas de Monitoramento -->
     <div class="row">
         <!-- Últimas Movimentações -->
         <div class="col-lg-7 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Monitor de Fluxo Recente</h5>
-                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-link text-decoration-none">Ver todas</a>
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="mb-0 fw-bold text-navy" style="font-size: 0.95rem;">
+                        <i class="fas fa-history me-2 text-warning"></i>Fluxo Operacional Recente
+                    </h5>
+                    <a href="{% url 'movimentacoes:lista_movimentacoes' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                        Ver Histórico
+                    </a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 custom-dashboard-table">
-                        <thead class="bg-light">
+                        <thead>
                             <tr>
                                 <th class="ps-4">Data/Hora</th>
                                 <th>Tipo</th>
-                                <th>Militar</th>
-                                <th>Material</th>
-                                <th class="text-end pe-4">Ação</th>
+                                <th>Policial Militar</th>
+                                <th>Material / Identificação</th>
+                                <th class="text-end pe-4">Detalhes</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for mov in ultimas_movimentacoes %}
-                            <tr class="transition-row">
+                            <tr>
                                 <td class="ps-4">
-                                    <div class="small fw-bold">{{ mov.data_hora|date:"d/m" }}</div>
-                                    <div class="text-muted small">{{ mov.data_hora|date:"H:i" }}</div>
+                                    <div class="small fw-bold text-navy">{{ mov.data_hora|date:"d/m/Y" }}</div>
+                                    <div class="text-muted small" style="font-size: 0.72rem;">{{ mov.data_hora|date:"H:i" }}</div>
                                 </td>
                                 <td>
                                     {% if mov.tipo == 'RETIRADA' %}
-                                    <span class="badge bg-primary-light text-primary border-primary border px-3 rounded-pill">Saindo</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3">Retirada</span>
                                     {% else %}
-                                    <span class="badge bg-success-light text-success border-success border px-3 rounded-pill">Voltando</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">Devolução</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-light text-primary fw-bold">{{ mov.policial.nome|first }}</div>
-                                        <span class="small fw-bold text-truncate" style="max-width: 120px;">{{ mov.policial.nome }}</span>
+                                        <div class="avatar-sm me-2 bg-light fw-bold text-navy border">
+                                            {{ mov.policial.nome|first }}
+                                        </div>
+                                        <div>
+                                            <span class="small fw-bold text-navy d-block text-truncate" style="max-width: 140px;">
+                                                {{ mov.policial.nome }}
+                                            </span>
+                                            <small class="text-muted" style="font-size: 0.7rem;">RE {{ mov.policial.re }}</small>
+                                        </div>
                                     </div>
                                 </td>
-                                <td><code class="small text-navy">{{ mov.material.identificacao }}</code></td>
+                                <td>
+                                    <span class="badge bg-light text-dark border fw-bold font-monospace" style="font-size: 0.78rem;">
+                                        {{ mov.material.identificacao }}
+                                    </span>
+                                </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-icon btn-light rounded-circle shadow-sm"><i class="fas fa-file-alt"></i></button>
+                                    <a href="{% url 'movimentacoes:detalhe_movimentacao' mov.id %}" class="btn btn-sm btn-light border rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-eye text-muted"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5" class="text-center py-5 text-muted">Aguardando movimentações...</td></tr>
+                            <tr><td colspan="5" class="text-center py-5 text-muted">Nenhuma movimentação registrada nas últimas horas.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -178,82 +213,130 @@
             </div>
         </div>
         
-        <!-- Alertas e Ranking -->
+        <!-- Coluna Lateral: Mais Movimentados e Relatórios -->
         <div class="col-lg-5 mb-4">
             <!-- Materiais mais utilizados -->
-             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-orange"></i>Mais Movimentados do Mês</h5>
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-navy" style="font-size: 0.95rem;">
+                        <i class="fas fa-fire me-2 text-warning"></i>Mais Movimentados no Mês
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
                         {% for material in materiais_mais_movimentados %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
                             <div class="d-flex align-items-center">
-                                <div class="icon-box bg-light me-3">
-                                    <i class="fas fa-gun text-muted"></i>
+                                <div class="icon-box-sm bg-light me-3 border rounded-3 text-warning">
+                                    <i class="fas fa-gun"></i>
                                 </div>
                                 <div>
-                                    <p class="mb-0 fw-bold">{{ material.identificacao }}</p>
-                                    <small class="text-muted">{{ material.get_tipo_display }}</small>
+                                    <p class="mb-0 fw-bold text-navy small">{{ material.identificacao }}</p>
+                                    <small class="text-muted" style="font-size: 0.72rem;">{{ material.get_tipo_display }}</small>
                                 </div>
                             </div>
-                            <span class="badge bg-primary rounded-pill">{{ material.total_movimentacoes }}</span>
+                            <span class="badge bg-light text-dark border rounded-pill px-3">{{ material.total_movimentacoes }} saídas</span>
                         </li>
                         {% empty %}
                         <li class="list-group-item text-center py-4 text-muted small">Sem dados para este período</li>
                         {% endfor %}
                     </ul>
                 </div>
-             </div>
+            </div>
 
-             <!-- Relatórios recentes -->
-             <div class="card border-0 shadow-sm border-start border-4 border-info">
-                 <div class="card-body">
-                    <h6 class="fw-bold mb-3 d-flex justify-content-between">
-                        <span><i class="fas fa-file-alt me-2 text-info"></i>Documentos Recentes</span>
-                        <i class="fas fa-external-link-alt small text-muted"></i>
+            <!-- Relatórios Recentes com Cabeçalho Oficial -->
+            <div class="card border-0 shadow-sm" style="border-left: 4px solid var(--baep-gold) !important;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center text-navy">
+                        <span><i class="fas fa-file-invoice me-2 text-warning"></i>Documentos e Relatórios Oficiais</span>
+                        <a href="{% url 'relatorios:lista_relatorios' %}" class="small text-muted text-decoration-none">Ver Central</a>
                     </h6>
                     {% for relatorio in ultimos_relatorios %}
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0 text-info">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light">
+                        <div class="flex-shrink-0 text-danger me-3">
                             <i class="fas fa-file-pdf fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold small">{{ relatorio.titulo|truncatechars:30 }}</div>
-                            <small class="text-muted" style="font-size: 0.7rem;">{{ relatorio.data_geracao|date:"d/m @ H:i" }} — {{ relatorio.usuario.username }}</small>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small text-navy text-truncate" style="max-width: 220px;">
+                                {{ relatorio.titulo }}
+                            </div>
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                {{ relatorio.data_geracao|date:"d/m/Y H:i" }} • {{ relatorio.gerado_por.username }}
+                            </small>
                         </div>
-                        <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" class="btn btn-xs btn-outline-info rounded-pill px-2" style="font-size: 0.6rem;">BAIXAR</a>
+                        <a href="{% url 'relatorios:detalhe_relatorio' relatorio_id=relatorio.id %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 0.7rem;">
+                            ABRIR
+                        </a>
                     </div>
                     {% empty %}
-                    <p class="text-center text-muted small py-3">Nenhum relatório emitido.</p>
+                    <p class="text-center text-muted small py-3 mb-0">Nenhum relatório emitido recentemente.</p>
                     {% endfor %}
-                 </div>
-             </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    .bg-navy { background-color: #1a2a6c; }
-    .text-navy { color: #1a2a6c; }
-    .bg-gradient-blue { background: linear-gradient(135deg, #1a2a6c 0%, #2a4858 100%); }
-    .text-orange { color: #f39c12; }
-    .bg-primary-light { background-color: rgba(13, 110, 253, 0.05); }
-    .bg-success-light { background-color: rgba(25, 135, 84, 0.05); }
-    .avatar-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border: 1px solid #dee2e6; }
-    .icon-box { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .custom-dashboard-table thead th { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; border: 0; color: #6c757d; padding: 1rem 0.5rem; }
-    .transition-row { transition: background 0.2s; }
-    .transition-row:hover { background-color: #f8f9fa !important; }
-    .btn-xs { padding: 0.15rem 0.4rem; font-size: 0.75rem; }
+    .kpi-card {
+        border-radius: 18px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .kpi-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .avatar-sm { 
+        width: 34px; 
+        height: 34px; 
+        border-radius: 50%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 0.78rem; 
+    }
+
+    .icon-box-sm { 
+        width: 38px; 
+        height: 38px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+    }
+
+    .custom-dashboard-table thead th { 
+        font-size: 0.7rem; 
+        text-transform: uppercase; 
+        letter-spacing: 0.6px; 
+        color: #475569; 
+        padding: 0.9rem 1rem; 
+        background: #f8fafc;
+    }
+
+    .custom-dashboard-table tbody td {
+        padding: 0.9rem 1rem;
+    }
 </style>
 
 <script>
     function updateTime() {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('current-time').textContent = timeStr;
+        const timeEl = document.getElementById('current-time');
+        if (timeEl) {
+            timeEl.textContent = timeStr;
+        }
     }
     setInterval(updateTime, 1000);
     updateTime();

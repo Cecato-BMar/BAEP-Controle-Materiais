@@ -1,27 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Visualização de Documento — SIS LOGÍSTICA 2ºBAEP{% endblock %}
+{% block title %}Visualização de Documento — SIS LOGÍSTICA 2º BAEP{% endblock %}
 
 {% block content %}
 <div class="container-fluid animate__animated animate__fadeIn">
     <!-- Ações Rápidas de Topo -->
-    <div class="d-flex justify-content-between align-items-start mb-4 d-print-none">
+    <div class="d-flex justify-content-between align-items-start mb-4 d-print-none flex-wrap gap-3">
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
                     <li class="breadcrumb-item"><a href="{% url 'relatorios:lista_relatorios' %}" class="text-navy text-decoration-none small fw-bold">Central de Relatórios</a></li>
-                    <li class="breadcrumb-item active small">Detalhamento</li>
+                    <li class="breadcrumb-item active small text-muted">Detalhamento</li>
                 </ol>
             </nav>
-            <h2 class="fw-bold text-navy mb-0"><i class="fas fa-file-invoice me-2"></i>{{ relatorio.titulo }}</h2>
+            <h2 class="fw-bold text-navy mb-0" style="font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-file-invoice me-2 text-warning"></i>{{ relatorio.titulo }}
+            </h2>
             <div class="mt-2">
-                 {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
-                <span class="badge bg-success-light text-success border border-success border-opacity-10 px-3 py-2 rounded-pill">SITUAÇÃO ATUAL</span>
+                {% if relatorio.tipo == 'SITUACAO_ATUAL' %}
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold">SITUAÇÃO ATUAL</span>
                 {% elif 'MATERIAIS' in relatorio.tipo %}
-                <span class="badge bg-primary-light text-primary border border-primary border-opacity-10 px-3 py-2 rounded-pill">LOGÍSTICA ARSENAL</span>
+                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-3 py-2 rounded-pill fw-bold">LOGÍSTICA ARSENAL</span>
                 {% else %}
-                <span class="badge bg-warning-light text-warning border border-warning border-opacity-10 px-3 py-2 rounded-pill">FLUXO OPERACIONAL</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill fw-bold">FLUXO OPERACIONAL</span>
                 {% endif %}
             </div>
         </div>
@@ -29,11 +31,11 @@
             <a href="{% url 'relatorios:lista_relatorios' %}" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="fas fa-arrow-left me-2"></i> Voltar
             </a>
-            <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+            <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
                 <i class="fas fa-print me-2"></i> IMPRIMIR
             </button>
-            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" target="_blank" class="btn btn-navy rounded-pill px-4 shadow">
-                <i class="fas fa-file-pdf me-2"></i> SALVAR PDF
+            <a href="{% url 'relatorios:download_relatorio' relatorio_id=relatorio.id %}" target="_blank" class="btn btn-navy rounded-pill px-4 shadow fw-bold">
+                <i class="fas fa-file-pdf me-2"></i> EXPORTAR PDF
             </a>
         </div>
     </div>
@@ -42,8 +44,10 @@
         <!-- Coluna de Metadados -->
         <div class="col-lg-3 d-print-none">
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom-0">
-                    <h6 class="fw-bold mb-0 text-muted text-uppercase small"><i class="fas fa-fingerprint me-2"></i>Metadados Oficiais</h6>
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0 text-navy text-uppercase small">
+                        <i class="fas fa-fingerprint me-2 text-warning"></i>Metadados Oficiais
+                    </h6>
                 </div>
                 <div class="card-body pt-0">
                     <ul class="list-group list-group-flush small">
@@ -57,55 +61,67 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between py-3 px-0 border-light">
                             <span class="text-muted">ID Sistema:</span>
-                            <span class="fw-bold text-muted">#{{ relatorio.id }}</span>
+                            <span class="fw-bold text-muted font-monospace">#{{ relatorio.id }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between py-3 px-0 border-light">
+                            <span class="text-muted">Autenticação:</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill">Válido</span>
                         </li>
                     </ul>
                 </div>
             </div>
             
-            <div class="card border-0 shadow-sm bg-light mb-4">
+            <div class="card border-0 shadow-sm mb-4" style="background: rgba(212, 175, 55, 0.06); border: 1px solid rgba(212, 175, 55, 0.25) !important;">
                 <div class="card-body py-3">
-                    <h6 class="fw-bold smaller text-navy mb-2"><i class="fas fa-info-circle me-1"></i> Dica PWA</h6>
-                    <p class="mb-0 text-muted small">Para uma experiência otimizada em dispositivos móveis, utilize a prévia ao lado antes de exportar o arquivo oficial.</p>
+                    <h6 class="fw-bold smaller text-navy mb-2"><i class="fas fa-shield-alt text-warning me-1"></i> Documento Controlado</h6>
+                    <p class="mb-0 text-muted small" style="font-size: 0.8rem;">
+                        Este documento oficial foi gerado pelo <strong>SIS LOGÍSTICA</strong> do 2º BAEP. As informações nele contidas são de uso exclusivo e restrito à Polícia Militar do Estado de São Paulo.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- Coluna de Visualização (HTML Preview) -->
+        <!-- Coluna de Visualização (HTML Preview com Estética do Brasão) -->
         <div class="col-lg-9">
             <div id="printable-report" class="card border-0 shadow-sm overflow-hidden h-100">
-                <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-0">
+                <!-- Cabeçalho Oficial Militar Padronizado -->
+                <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-bottom border-2 border-warning border-opacity-50">
                     <div class="d-flex align-items-center">
-                        <img src="{% static 'img/logo_baep.png' %}" alt="Logo BAEP" style="height: 60px;" class="me-3">
+                        <img src="{% static 'img/brasao_baep_logistica.jpg' %}" alt="Brasão 2º BAEP Seção de Logística" 
+                             style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2px solid #d4af37; box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);" class="me-3">
                         <div>
-                            <h5 class="mb-0 fw-bold text-navy">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h5>
-                            <h6 class="mb-0 text-muted small">2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA - 2º BAEP</h6>
+                            <h6 class="mb-0 fw-bold text-navy" style="font-size: 0.95rem; letter-spacing: 0.5px;">POLÍCIA MILITAR DO ESTADO DE SÃO PAULO</h6>
+                            <h6 class="mb-0 fw-bold text-navy" style="font-size: 0.85rem; letter-spacing: 0.3px;">2º BATALHÃO DE AÇÕES ESPECIAIS DE POLÍCIA — 2º BAEP</h6>
+                            <div class="text-warning text-uppercase small fw-bold" style="letter-spacing: 1.2px; font-size: 0.72rem;">
+                                SEÇÃO DE LOGÍSTICA • SIS LOGÍSTICA
+                            </div>
                         </div>
                     </div>
                     <div class="text-end d-none d-md-block">
-                        <div class="smaller fw-bold text-uppercase text-muted">Documento Controlado</div>
-                        <div class="small text-navy">Emissão: {{ relatorio.data_geracao|date:"d/m/Y" }}</div>
+                        <div class="smaller fw-bold text-uppercase text-muted" style="letter-spacing: 1px;">Documento Oficial</div>
+                        <div class="small fw-bold text-navy">Emissão: {{ relatorio.data_geracao|date:"d/m/Y H:i" }}</div>
+                        <div class="smaller text-muted">ID: #{{ relatorio.id }}</div>
                     </div>
                 </div>
                 
-                <div class="card-body p-4 pt-0">
-                    <div class="text-center mb-4 py-3 border-top border-bottom">
-                        <h4 class="fw-bold text-navy mb-1 text-uppercase">{{ relatorio.titulo }}</h4>
-                        <div class="text-muted small">Relatório gerado via SIS LOGÍSTICA - Autenticado por {{ relatorio.gerado_por.username }}</div>
+                <div class="card-body p-4 pt-3">
+                    <div class="text-center mb-4 py-3 border-bottom">
+                        <h4 class="fw-bold text-navy mb-1 text-uppercase" style="font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">{{ relatorio.titulo }}</h4>
+                        <div class="text-muted small">Relatório emitido via SIS LOGÍSTICA • Autenticado por {{ relatorio.gerado_por.username }}</div>
                     </div>
 
                     {% if preview_data %}
                         {% for section in preview_data %}
-                            <div class="mb-5">
-                                <h6 class="fw-bold text-navy text-uppercase mb-3 bg-light p-2 rounded">
-                                    <i class="fas fa-chevron-right me-2 smaller"></i>{{ section.title }}
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-navy text-uppercase mb-3 p-2 rounded" style="background: rgba(212, 175, 55, 0.08); border-left: 4px solid var(--baep-gold);">
+                                    <i class="fas fa-chevron-right me-2 text-warning small"></i>{{ section.title }}
                                 </h6>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-striped align-middle mb-0" style="font-size: 0.85rem;">
-                                        <thead class="table-dark text-uppercase" style="font-size: 0.75rem;">
+                                    <table class="table table-bordered table-striped align-middle mb-0" style="font-size: 0.84rem;">
+                                        <thead class="text-uppercase" style="font-size: 0.72rem; background: #0d131b; color: #f5d77f;">
                                             <tr>
                                                 {% for col in section.columns %}
-                                                <th class="py-3 px-3">{{ col }}</th>
+                                                <th class="py-2 px-3 text-warning border-secondary">{{ col }}</th>
                                                 {% endfor %}
                                             </tr>
                                         </thead>
@@ -124,25 +140,26 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-5">
-                            <i class="fas fa-file-invoice fa-4x mb-3 text-light"></i>
-                            <h5 class="text-muted">Aguardando processamento de prévia...</h5>
-                            <p class="text-muted small">Caso a prévia não carregue, utilize o botão "SALVAR PDF" no topo.</p>
+                            <i class="fas fa-file-invoice fa-4x mb-3 text-warning opacity-50"></i>
+                            <h5 class="text-navy fw-bold">Documento Processado com Sucesso</h5>
+                            <p class="text-muted small">Utilize os botões no topo para imprimir diretamente ou salvar o arquivo oficial em PDF.</p>
                         </div>
                     {% endif %}
 
                     {% if relatorio.observacoes %}
-                    <div class="mt-4 p-4 bg-light rounded-4 border-start border-primary border-4">
-                        <h6 class="fw-bold small text-navy mb-2 text-uppercase">Notas Adicionais:</h6>
-                        <p class="mb-0 text-muted italic">{{ relatorio.observacoes }}</p>
+                    <div class="mt-4 p-4 rounded-3 border-start border-4" style="background: #f8fafc; border-color: var(--baep-gold) !important;">
+                        <h6 class="fw-bold small text-navy mb-2 text-uppercase">Notas Oficiais / Observações:</h6>
+                        <p class="mb-0 text-muted" style="font-size: 0.88rem;">{{ relatorio.observacoes }}</p>
                     </div>
                     {% endif %}
 
-                    <div class="mt-5 pt-4 text-center border-top d-print-block d-none">
+                    <!-- Campo de Assinatura Oficial Militar -->
+                    <div class="mt-5 pt-4 text-center border-top">
                         <div class="row justify-content-center">
-                            <div class="col-md-6">
-                                <div class="border-bottom border-dark mb-2"></div>
-                                <div class="fw-bold small">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</div>
-                                <div class="smaller text-muted text-uppercase">Responsável pela Emissão</div>
+                            <div class="col-md-6 col-8">
+                                <div class="border-bottom border-dark mb-2" style="border-width: 1.5px !important;"></div>
+                                <div class="fw-bold text-navy small">{{ relatorio.gerado_por.get_full_name|default:relatorio.gerado_por.username }}</div>
+                                <div class="smaller text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Responsável pela Emissão • Seção de Logística</div>
                             </div>
                         </div>
                     </div>
@@ -153,15 +170,12 @@
 </div>
 
 <style>
-    .bg-navy { background-color: #1a2a6c; }
-    .text-navy { color: #1a2a6c; }
-    .btn-navy { background-color: #1a2a6c; color: white; }
-    .btn-navy:hover { background-color: #0f1a4a; color: white; }
-    .bg-success-light { background-color: #e8f5e9; }
-    .bg-primary-light { background-color: #e3f2fd; }
-    .bg-warning-light { background-color: #fff3e0; }
-    
     @media print {
+        body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            padding: 0 !important;
+        }
         body * { visibility: hidden; }
         #printable-report, #printable-report * { visibility: visible; }
         #printable-report { 
@@ -174,8 +188,14 @@
         }
         .d-print-none { display: none !important; }
         .d-print-block { display: block !important; }
-        .card { border: none !important; }
-        .table-dark { background-color: #000 !important; color: #fff !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .table { border-color: #000000 !important; }
+        .table thead th { 
+            background: #1a2332 !important; 
+            color: #ffffff !important; 
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
     }
 </style>
 {% endblock %}
