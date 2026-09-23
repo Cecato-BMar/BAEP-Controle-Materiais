@@ -31,22 +31,46 @@ if not SECRET_KEY:
 
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-_allowed_raw = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,10.43.19.224,10.43.19.225')
-ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()]
+# Suporte a expansão de sub-redes (ex: 10.43.19.* ou 10.43.19.0/24)
+import ipaddress
 
-# CSRF — origens confiáveis (separadas por vírgula no .env)
+_allowed_raw = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,10.43.19.*')
+ALLOWED_HOSTS = []
+for h in _allowed_raw.split(','):
+    h = h.strip()
+    if not h:
+        continue
+    if h.endswith('.*'):
+        prefix = h[:-2]
+        ALLOWED_HOSTS.extend([f"{prefix}.{i}" for i in range(1, 255)])
+    elif '/' in h and not h.startswith(('http://', 'https://')):
+        try:
+            net = ipaddress.ip_network(h, strict=False)
+            ALLOWED_HOSTS.extend([str(ip) for ip in net.hosts()])
+        except ValueError:
+            ALLOWED_HOSTS.append(h)
+    else:
+        ALLOWED_HOSTS.append(h)
+
+# CSRF — origens confiáveis (com expansão de sub-redes)
 _csrf_raw = os.getenv(
     'CSRF_TRUSTED_ORIGINS',
     'http://127.0.0.1:8000,http://localhost:8000,'
     'https://127.0.0.1:8000,https://localhost:8000,'
-    'http://10.43.19.224:8000,https://10.43.19.224:8000,'
-    'http://10.43.19.224:8001,https://10.43.19.224:8001,'
-    'http://10.43.19.224:8002,https://10.43.19.224:8002,'
-    'http://10.43.19.225:8000,https://10.43.19.225:8000,'
-    'http://10.43.19.225:8001,https://10.43.19.225:8001,'
-    'http://10.43.19.225:8002,https://10.43.19.225:8002'
+    'http://10.43.19.*:8000,http://10.43.19.*:8001,http://10.43.19.*:8002,'
+    'https://10.43.19.*:8000,https://10.43.19.*:8001,https://10.43.19.*:8002'
 )
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
+CSRF_TRUSTED_ORIGINS = []
+for o in _csrf_raw.split(','):
+    o = o.strip()
+    if not o:
+        continue
+    if '.*' in o:
+        for i in range(1, 255):
+            CSRF_TRUSTED_ORIGINS.append(o.replace('.*', f'.{i}'))
+    else:
+        CSRF_TRUSTED_ORIGINS.append(o)
+
 
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
