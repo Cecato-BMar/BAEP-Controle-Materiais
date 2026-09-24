@@ -1,4 +1,6 @@
 """Views do módulo Material Bélico."""
+import os
+import traceback
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -1295,6 +1297,7 @@ def importar_excel(request):
             })
 
         if tipo_importacao == 'oficial':
+            tmp_path = None
             try:
                 import tempfile
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
@@ -1302,23 +1305,22 @@ def importar_excel(request):
                         tmp.write(chunk)
                     tmp_path = tmp.name
 
-                from importar_planilha_oficial import run_import, EXCEL_PATH
                 import importar_planilha_oficial
                 importar_planilha_oficial.EXCEL_PATH = tmp_path
-                run_import()
-                os.remove(tmp_path)
+                resumo = importar_planilha_oficial.run_import()
 
-                messages.success(request, 'Planilha Oficial Completa do 2º BAEP importada e sincronizada com sucesso!')
+                total_importado = sum(resumo.values()) if isinstance(resumo, dict) else '450+'
+                messages.success(request, f'Planilha Oficial Completa do 2º BAEP importada e sincronizada com sucesso! Total: {total_importado} registros.')
                 return render(request, 'material_belico/importar_excel.html', {
                     'tipo_choices': tipo_choices,
                     'resultado': {
                         'tipo_label': 'Planilha Oficial Completa do 2º BAEP',
-                        'criados': '450+',
+                        'criados': total_importado,
                         'atualizados': 0,
                         'ignorados': 0,
                         'erros': [],
-                        'total_processado': 'Todos os materiais sincronizados com sucesso!',
-                        'colunas_mapeadas': {'Todas as Abas': 'FUZIS, GLOCK, CAL.12, TAURUS, HT, TASER, COLETES, ESCUDOS, CAPACETES, etc.'},
+                        'total_processado': f'{total_importado} materiais sincronizados com sucesso!',
+                        'colunas_mapeadas': resumo if isinstance(resumo, dict) else {'Todas as Abas': 'FUZIS, GLOCK, CAL.12, TAURUS, HT, TASER, COLETES, ESCUDOS, CAPACETES, etc.'},
                     }
                 })
             except Exception as e:
@@ -1327,6 +1329,13 @@ def importar_excel(request):
                 return render(request, 'material_belico/importar_excel.html', {
                     'tipo_choices': tipo_choices,
                 })
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except OSError:
+                        pass
+
 
         config = IMPORT_CONFIGS[tipo_importacao]
         Model = config['model']

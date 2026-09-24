@@ -638,6 +638,7 @@ def run_import():
     for k, v in resumo.items():
         print(f"  - {k}: {v} registros sincronizados com sucesso!")
     print("==================================================")
+    return resumo
 
 
 if __name__ == '__main__':
