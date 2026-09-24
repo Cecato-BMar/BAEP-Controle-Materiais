@@ -1,17 +1,38 @@
 """
 Script para importação e sincronização completa da 'PLANILHA DE MATERIAS - Atualizada .xlsx'
 Módulo Material Bélico — 2º BAEP
+
+Pode ser executado:
+  - Standalone:  python importar_planilha_oficial.py
+  - Via view:    import importar_planilha_oficial; importar_planilha_oficial.run_import()
 """
 import os
 import sys
 import datetime
-import openpyxl
-import django
+import traceback
 
-# Configuração do Django
-sys.path.insert(0, '/home/servidor-sys-baep/BAEP-Controle-Materiais')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reserva_baep.settings')
-django.setup()
+# ---------------------------------------------------------------------------
+# Configuração do Django (só roda se ainda não estiver configurado)
+# ---------------------------------------------------------------------------
+_DJANGO_READY = False
+try:
+    import django
+    from django.conf import settings
+    if settings.configured:
+        _DJANGO_READY = True
+except Exception:
+    pass
+
+if not _DJANGO_READY:
+    # Standalone — garante que o diretório do projeto esteja no path
+    _project_dir = os.path.dirname(os.path.abspath(__file__))
+    if _project_dir not in sys.path:
+        sys.path.insert(0, _project_dir)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reserva_baep.settings')
+    import django
+    django.setup()
+
+import openpyxl
 
 from material_belico.models import (
     Fuzil, EspingardaCal12, PistolaGlock, PistolaTaurus, ArmaTransferenciaPendente,
@@ -21,14 +42,18 @@ from material_belico.models import (
     ColeteBalistico, EscudoBalistico, CapaceteBalistico
 )
 
-EXCEL_PATH = '/home/servidor-sys-baep/BAEP-Controle-Materiais/BAEP-Controle-Materiais-2/PLANILHA DE MATERIAS - Atualizada .xlsx'
+# Caminho padrão do arquivo Excel — será sobrescrito pela view se necessário
+EXCEL_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'MATERIAS DA RESERVA DE ARMAS DO 2º BAEP.xlsx'
+)
 
 
 def clean_val(v):
     if v is None:
         return None
     v_str = str(v).strip()
-    if v_str in ('', 'None', '────────', '---------', 'N/I'):
+    if v_str in ('', 'None', '────────', '---------', 'N/I', '#REF!', '#N/A', 'S/ ACESSÓRIO'):
         return None
     return v_str
 
@@ -45,6 +70,138 @@ def parse_date(v):
                 pass
     return None
 
+
+# =============================================================================
+# Helpers para KitOperacional
+# =============================================================================
+
+def _get_fuzil(patrimonio_or_serie):
+    v = clean_val(patrimonio_or_serie)
+    if not v:
+        return None
+    obj = Fuzil.objects.filter(patrimonio=v).first()
+    if not obj:
+        obj = Fuzil.objects.filter(observacoes__icontains=f'Série: {v}').first()
+    return obj
+
+
+def _get_espingarda(numero):
+    v = clean_val(numero)
+    if not v:
+        return None
+    return EspingardaCal12.objects.filter(numero_espingarda=v).first()
+
+
+def _get_radio_ht(patrimonio):
+    v = clean_val(patrimonio)
+    if not v:
+        return None
+    obj = RadioHT.objects.filter(patrimonio=v).first()
+    if not obj:
+        obj = RadioHT.objects.filter(serie=v).first()
+    return obj
+
+
+def _get_am640(serie):
+    v = clean_val(serie)
+    if not v:
+        return None
+    return AM640.objects.filter(serie=v).first()
+
+
+def _get_escudo(numero):
+    v = clean_val(numero)
+    if not v:
+        return None
+    try:
+        return EscudoBalistico.objects.filter(numero=int(v)).first()
+    except (ValueError, TypeError):
+        return None
+
+
+def _parse_kit_number(titulo):
+    """Converte título da aba para numero_kit válido no model."""
+    if titulo is None:
+        return None
+    t = str(titulo).strip().upper()
+    if 'OPERACIONAL' in t:
+        for i in range(1, 13):
+            if str(i).zfill(2) in t or f' {i}' in t:
+                return str(i)
+    if 'COMANDANTE' in t and 'SUB' not in t:
+        return 'CMT'
+    if 'SUBCOMANDANTE' in t or ('SUB' in t and 'COMANDANTE' in t):
+        return 'SUBCMT'
+    for at in ['AT-01', 'AT-02', 'AT-03', 'AT-04']:
+        if at in t or f'(AT-0{at[-1]})' in t:
+            return at
+    if 'GUARDA' in t:
+        return 'GUARDA'
+    return None
+
+
+def _parse_single_kit(rows, num_kit):
+    """Parse rows de um bloco de kit e retorna dict de campos para KitOperacional."""
+    dados = {
+        'fuzil_556_1': None,
+        'fuzil_556_2': None,
+        'fuzil_762': None,
+        'espingarda': None,
+        'radio_ht': None,
+        'am640': None,
+        'escudo': None,
+    }
+    fuzis_556 = []
+
+    for row in rows:
+        tipo = clean_val(row[0])
+        pat = clean_val(row[1])
+        col2 = clean_val(row[2])  # RED DOT ou AM-640 label
+        col3 = clean_val(row[3])  # MAGNIFER ou AM-640 série
+
+        if not tipo:
+            continue
+
+        tipo_up = tipo.upper()
+
+        if 'SCAR CAL. 556' in tipo_up or 'IA2' in tipo_up or 'SCAR' in tipo_up and '556' in tipo_up:
+            if pat:
+                f = _get_fuzil(pat)
+                if f:
+                    fuzis_556.append(f)
+
+        elif 'SCAR CAL. 762' in tipo_up or ('SCAR' in tipo_up and '762' in tipo_up):
+            if pat:
+                dados['fuzil_762'] = _get_fuzil(pat)
+
+        elif 'BENELLI' in tipo_up or 'CAL. 12' in tipo_up or 'CAL.12' in tipo_up:
+            if pat:
+                dados['espingarda'] = _get_espingarda(pat)
+
+        elif 'HT' in tipo_up:
+            if pat:
+                dados['radio_ht'] = _get_radio_ht(pat)
+            # AM-640 está na mesma linha
+            if col2 and 'AM-640' in str(col2).upper() and col3:
+                dados['am640'] = _get_am640(col3)
+            elif col3:
+                dados['am640'] = _get_am640(col3)
+
+        elif 'ESCUDO' in tipo_up:
+            if pat:
+                dados['escudo'] = _get_escudo(pat)
+
+    if fuzis_556:
+        dados['fuzil_556_1'] = fuzis_556[0]
+    if len(fuzis_556) >= 2:
+        dados['fuzil_556_2'] = fuzis_556[1]
+
+    return dados
+
+
+# =============================================================================
+# IMPORTAÇÃO PRINCIPAL
+# =============================================================================
 
 def run_import():
     print(f"Carregando planilha oficial: {EXCEL_PATH}")
@@ -264,8 +421,6 @@ def run_import():
         ht_count = 0
         for row in ws.iter_rows(min_row=4, values_only=True):
             try:
-                # Col C (index 2) is Motorola Serie e.g. 426CXK3307
-                # Col D (index 3) is PMESP Patrimonio e.g. 221030854-P
                 if len(row) >= 4 and row[2]:
                     serie = clean_val(row[2])
                     patrimonio = clean_val(row[3]) or f"HT-{serie}"
@@ -629,6 +784,118 @@ def run_import():
                 print(f"Erro em Capacete: {e}")
 
         resumo['Capacetes Balísticos'] = cap_c
+
+    # -------------------------------------------------------------------------
+    # 15. KITS OPERACIONAIS (KIT OP)
+    # -------------------------------------------------------------------------
+    if 'KIT OP' in wb.sheetnames:
+        ws = wb['KIT OP']
+        kit_c = 0
+        kit_err = []
+
+        all_rows = list(ws.iter_rows(values_only=True))
+
+        # Parser de blocos de kit
+        kit_blocks = []
+        current_left_num = None
+        current_right_num = None
+        collecting = False
+        left_rows = []
+        right_rows = []
+
+        for r_idx, row in enumerate(all_rows, start=1):
+            col_b = row[1] if len(row) > 1 else None
+            col_g = row[6] if len(row) > 6 else None
+
+            b_str = str(col_b).strip() if col_b else ''
+            g_str = str(col_g).strip() if col_g else ''
+
+            is_kit_header_left = (
+                'KIT OPERACIONAL' in b_str.upper() or
+                'KIT COMANDANTE' in b_str.upper() or
+                'KIT SUBCOMANDANTE' in b_str.upper() or
+                'ATIRADORES' in b_str.upper() or
+                'GUARDA' in b_str.upper()
+            )
+
+            if is_kit_header_left:
+                if current_left_num and left_rows:
+                    kit_blocks.append((current_left_num, left_rows[:]))
+                if current_right_num and right_rows:
+                    kit_blocks.append((current_right_num, right_rows[:]))
+
+                current_left_num = _parse_kit_number(col_b)
+                current_right_num = _parse_kit_number(col_g)
+                left_rows = []
+                right_rows = []
+                collecting = True
+                continue
+
+            if 'TIPO DE MATERIAL' in b_str.upper():
+                continue
+
+            if collecting:
+                left_row_data = (
+                    row[1] if len(row) > 1 else None,
+                    row[2] if len(row) > 2 else None,
+                    row[3] if len(row) > 3 else None,
+                    row[4] if len(row) > 4 else None,
+                )
+                right_row_data = (
+                    row[6] if len(row) > 6 else None,
+                    row[7] if len(row) > 7 else None,
+                    row[8] if len(row) > 8 else None,
+                    row[9] if len(row) > 9 else None,
+                )
+
+                if any(v is not None for v in left_row_data):
+                    left_rows.append(left_row_data)
+                if any(v is not None for v in right_row_data):
+                    right_rows.append(right_row_data)
+
+        # Último bloco
+        if current_left_num and left_rows:
+            kit_blocks.append((current_left_num, left_rows))
+        if current_right_num and right_rows:
+            kit_blocks.append((current_right_num, right_rows))
+
+        # Monta / salva os kits
+        valid_choices = [c[0] for c in KitOperacional.NUMERO_KIT_CHOICES]
+
+        for num_kit, rows in kit_blocks:
+            if not num_kit:
+                continue
+            if num_kit not in valid_choices:
+                kit_err.append(f'Kit "{num_kit}" não é opção válida, ignorado.')
+                continue
+
+            try:
+                dados = _parse_single_kit(rows, num_kit)
+                obj, created = KitOperacional.objects.get_or_create(numero_kit=num_kit)
+
+                for campo, valor in dados.items():
+                    if valor is not None:
+                        setattr(obj, campo, valor)
+
+                obj.save_base(raw=True)
+                kit_c += 1
+                status = 'CRIADO' if created else 'ATUALIZADO'
+                print(f'  Kit {num_kit} {status} — '
+                      f'F556:{dados["fuzil_556_1"]} '
+                      f'F762:{dados["fuzil_762"]} '
+                      f'ESP:{dados["espingarda"]} '
+                      f'HT:{dados["radio_ht"]} '
+                      f'AM:{dados["am640"]} '
+                      f'ESC:{dados["escudo"]}')
+
+            except Exception as e:
+                kit_err.append(f'Kit {num_kit}: {e}')
+                print(f'  Erro Kit {num_kit}: {e}')
+                traceback.print_exc()
+
+        resumo['Kits Operacionais'] = kit_c
+        if kit_err:
+            print(f"  Avisos kits: {kit_err}")
 
     # -------------------------------------------------------------------------
     # RESUMO FINAL

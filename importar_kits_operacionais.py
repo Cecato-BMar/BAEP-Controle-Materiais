@@ -17,9 +17,21 @@ Tipos de linha de dados por kit:
 """
 import os, sys, django
 
-sys.path.insert(0, '/home/servidor-sys-baep/BAEP-Controle-Materiais')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reserva_baep.settings')
-django.setup()
+# Configuração do Django (guard para evitar dupla inicialização)
+_DJANGO_READY = False
+try:
+    from django.conf import settings
+    if settings.configured:
+        _DJANGO_READY = True
+except Exception:
+    pass
+
+if not _DJANGO_READY:
+    _project_dir = os.path.dirname(os.path.abspath(__file__))
+    if _project_dir not in sys.path:
+        sys.path.insert(0, _project_dir)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reserva_baep.settings')
+    django.setup()
 
 import openpyxl
 from material_belico.models import (
