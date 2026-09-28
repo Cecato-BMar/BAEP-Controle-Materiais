@@ -6,8 +6,6 @@ Versão 2.2 | Produção
 
 import os
 import logging
-import base64
-import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -21,14 +19,39 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Carrega variáveis de ambiente do arquivo .env (se existir)
 load_dotenv(BASE_DIR / '.env')
 
-# Google Sheets sync (credenciais via base64 do JSON da Service Account)
+# --- Google Sheets (Service Account) ---------------------------------------
+# Formato esperado em GOOGLE_SERVICE_ACCOUNT_JSON: base64 (sem quebras de linha)
+# do JSON completo do creds.json. Se estiver vazio ou inválido, o app sobe
+# normalmente e a sync fica desabilitada (SHEETS_SYNC_ENABLED deve ser false).
+import base64
+import binascii
+import json as _json
+import logging as _logging
+
 _encoded_sa = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
-GOOGLE_SERVICE_ACCOUNT_INFO = (
-    json.loads(base64.b64decode(_encoded_sa).decode("utf-8"))
-    if _encoded_sa else None
-)
+GOOGLE_SERVICE_ACCOUNT_INFO = None
+
+if _encoded_sa:
+    try:
+        # Remove espaços/quebras que possam ter entrado no paste
+        _clean = "".join(_encoded_sa.split())
+        # Adiciona padding base64 se estiver faltando (=)
+        _padded = _clean + "=" * (-len(_clean) % 4)
+        GOOGLE_SERVICE_ACCOUNT_INFO = _json.loads(
+            base64.b64decode(_padded, validate=True).decode("utf-8")
+        )
+    except (binascii.Error, _json.JSONDecodeError, UnicodeDecodeError) as exc:
+        _logging.getLogger(__name__).warning(
+            "GOOGLE_SERVICE_ACCOUNT_JSON inválido (%s). "
+            "Sync do Sheets ficará desabilitado.", exc
+        )
+        GOOGLE_SERVICE_ACCOUNT_INFO = None
+
 GOOGLE_SHEETS_SPREADSHEET_ID = os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID", "")
+LEGACY_SPREADSHEET_ID = os.getenv("LEGACY_SPREADSHEET_ID", "")
+NEW_SPREADSHEET_ID = os.getenv("NEW_SPREADSHEET_ID", "")
 SHEETS_SYNC_ENABLED = os.getenv("SHEETS_SYNC_ENABLED", "false").lower() == "true"
+IMPORT_ENABLED = os.getenv("IMPORT_ENABLED", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
 # Segurança
