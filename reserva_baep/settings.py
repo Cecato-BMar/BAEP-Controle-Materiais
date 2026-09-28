@@ -6,6 +6,8 @@ Versão 2.2 | Produção
 
 import os
 import logging
+import base64
+import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -18,6 +20,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Carrega variáveis de ambiente do arquivo .env (se existir)
 load_dotenv(BASE_DIR / '.env')
+
+# Google Sheets sync (credenciais via base64 do JSON da Service Account)
+_encoded_sa = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+GOOGLE_SERVICE_ACCOUNT_INFO = (
+    json.loads(base64.b64decode(_encoded_sa).decode("utf-8"))
+    if _encoded_sa else None
+)
+GOOGLE_SHEETS_SPREADSHEET_ID = os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID", "")
+SHEETS_SYNC_ENABLED = os.getenv("SHEETS_SYNC_ENABLED", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
 # Segurança
@@ -118,6 +129,7 @@ INSTALLED_APPS = [
     'administracao',
     'inventario.apps.InventarioConfig',
     'tutorial.apps.TutorialConfig',
+    'integracoes',
 ]
 
 # ---------------------------------------------------------------------------

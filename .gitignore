@@ -41,6 +41,10 @@ desktop.ini
 # Arquivos sensíveis
 credenciais.txt
 private_key.pem
+# Credenciais Google / secrets locais (mantém secrets/.gitignore no repo)
+secrets/*
+!secrets/.gitignore
+
 
 # Arquivos temporários e de desenvolvimento
 scratch/
