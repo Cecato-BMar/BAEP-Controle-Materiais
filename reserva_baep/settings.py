@@ -23,8 +23,8 @@ load_dotenv(BASE_DIR / '.env')
 # Formato esperado em GOOGLE_SERVICE_ACCOUNT_JSON: base64 (sem quebras de linha)
 # do JSON completo do creds.json. Se estiver vazio ou inválido, o app sobe
 # normalmente e a sync fica desabilitada (SHEETS_SYNC_ENABLED deve ser false).
-import base64
-import binascii
+import base64 as _base64
+import binascii as _binascii
 import json as _json
 import logging as _logging
 
@@ -35,12 +35,12 @@ if _encoded_sa:
     try:
         # Remove espaços/quebras que possam ter entrado no paste
         _clean = "".join(_encoded_sa.split())
-        # Adiciona padding base64 se estiver faltando (=)
+        # Corrige padding base64 se estiver faltando (=)
         _padded = _clean + "=" * (-len(_clean) % 4)
         GOOGLE_SERVICE_ACCOUNT_INFO = _json.loads(
-            base64.b64decode(_padded, validate=True).decode("utf-8")
+            _base64.b64decode(_padded, validate=True).decode("utf-8")
         )
-    except (binascii.Error, _json.JSONDecodeError, UnicodeDecodeError) as exc:
+    except (_binascii.Error, _json.JSONDecodeError, UnicodeDecodeError) as exc:
         _logging.getLogger(__name__).warning(
             "GOOGLE_SERVICE_ACCOUNT_JSON inválido (%s). "
             "Sync do Sheets ficará desabilitado.", exc
