@@ -1,0 +1,13 @@
+# AgentHandoff: generate a handoff packet for another agent
+# Usage: /handoff <target-agent>
+[command]
+description = "Generate a handoff packet for switching to another AI coding agent"
+prompt = """
+Based on our entire conversation in this session, generate a precise handoff packet so the next AI agent ({{args}}) continues exactly where we left off.
+
+Write .agenthandoff/current-handoff.json and .agenthandoff/current-handoff.md with: task_state (goal, current_step, next_action), decisions (with reasons), warnings, failed_attempts (with why_failed), and related_files.
+
+Be specific. Every failed_attempt MUST include why_failed. next_action must reference exact file:line. Set provenance.review_status to 'approved'.
+
+After writing, output: "Handoff ready. Run agenthandoff inline for a paste-ready summary."
+"""

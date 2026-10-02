@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_permissoes
 
 app_name = 'administracao'
 
@@ -8,4 +9,6 @@ urlpatterns = [
     path('consulta/', views.consulta_dinamica, name='consulta_dinamica'),
     path('consulta/exportar-excel/', views.exportar_excel, name='exportar_excel'),
     path('consulta/imprimir/', views.imprimir_relatorio, name='imprimir_relatorio'),
+    path('permissoes/', views_permissoes.listar_usuarios_permissoes, name='listar_permissoes'),
+    path('permissoes/<int:user_id>/', views_permissoes.gerenciar_permissoes_usuario, name='gerenciar_permissoes_usuario'),
 ]

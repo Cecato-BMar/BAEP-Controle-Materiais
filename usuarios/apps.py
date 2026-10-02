@@ -20,6 +20,8 @@ def _criar_grupos_padrao(sender, **kwargs):
         from django.contrib.auth.models import Group
         grupos = [
             'reserva_armas',
+            'material_belico',
+            'materiais',
             'logistica',
             'frota',
             'patrimonio',

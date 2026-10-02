@@ -1473,6 +1473,7 @@ def exportar_movimentacoes_pdf(request):
 # =============================================================================
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_produtos_ajax(request):
     """Busca de produtos por nome/código para autocomplete"""
@@ -1488,6 +1489,7 @@ def buscar_produtos_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_produto_por_qr_ajax(request):
     """Busca produto por token de QR Code"""
@@ -1505,6 +1507,7 @@ def buscar_produto_por_qr_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_lotes_ajax(request):
     """Busca lotes de um produto (PEPS — mais antigo primeiro)"""
@@ -1516,6 +1519,7 @@ def buscar_lotes_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_militar_por_re_ajax(request):
     """Busca policial por RE na tabela POLICIAIS (Efetivo BAEP)"""
@@ -1535,6 +1539,7 @@ def buscar_militar_por_re_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_saldo_produto_ajax(request):
     """Retorna saldo disponível de um produto (para validação em tempo real na saída)"""
@@ -1740,6 +1745,7 @@ def exportar_recibo_saida_pdf(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_militares_ajax(request):
     """Busca policiais por RE ou nome apenas na tabela POLICIAIS (Efetivo BAEP)"""
@@ -1765,6 +1771,7 @@ def buscar_militares_ajax(request):
 
 
 @login_required
+@require_module_permission('materiais')
 @require_GET
 def buscar_militares_adm_ajax(request):
     """Busca policiais na tabela MilitarRequisitante (Cadastros Administrativos)"""

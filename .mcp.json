@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "agenthandoff": {
+      "command": "C:\\Users\\2BAEP\\AppData\\Roaming\\npm\\agenthandoff",
+      "args": [
+        "mcp",
+        "start"
+      ]
+    }
+  }
+}

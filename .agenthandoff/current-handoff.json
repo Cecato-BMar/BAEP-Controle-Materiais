@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "project_id": "BAEP-Controle-Materiais",
+  "project_path": "c:\\Users\\2BAEP\\.antigravity-ide\\BAEP-Controle-Materiais",
+  "created_at": "2026-09-25T10:38:00-03:00",
+  "source_agent": "gemini",
+  "target_agent": "copilot",
+  "task_state": {
+    "goal": "Ajustar e validar a importação completa de materiais bélicos e kits operacionais a partir das planilhas oficiais da Reserva de Armas do 2º BAEP",
+    "current_step": "Revisão e unificação da lógica de importação dos Kits Operacionais (aba 'KIT OP') entre 'importar_kits_operacionais.py' e 'importar_planilha_oficial.py'",
+    "next_action": "Verificar e harmonizar EXCEL_PATH em importar_kits_operacionais.py:41 para suportar caminho relativo dinâmico (compatível com Windows/Linux) e validar execução com db.sqlite3",
+    "blocked_on": null
+  },
+  "decisions": [
+    {
+      "statement": "Integrada a importação de Kits Operacionais diretamente na rotina mestre de sincronização",
+      "reason": "A aba 'KIT OP' depende dos itens importados previamente (fuzis, espingardas, HTs, AM-640, escudos). Integrar ao final de importar_planilha_oficial.py garante que todas as ForeignKeys já existam no banco.",
+      "related_files": [
+        "importar_planilha_oficial.py",
+        "importar_kits_operacionais.py"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "statement": "Persistência de kits operacionais parciais com save_base(raw=True)",
+      "reason": "Vários kits na planilha física possuem composição incompleta ou temporariamente desfalcada; save_base(raw=True) evita bloqueios por ValidationError de campos nulos.",
+      "related_files": [
+        "importar_kits_operacionais.py",
+        "importar_planilha_oficial.py"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "statement": "Auto-recuperação do usuário master e licença no comando garantir_master",
+      "reason": "Garante que o ambiente local e de homologação suba sempre com credenciais válidas e evite telas de licença expirada.",
+      "related_files": [
+        "licenciamento/management/commands/garantir_master.py",
+        "run_app.bat"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "facts": [
+    {
+      "statement": "A planilha oficial possui as abas: FUZIL, ESPINGARDA, GLOCK, TAURUS, HT, AM-640, AM-600, MOSQUETÃO, TASER, ALGEMAS, QUÍMICOS, MUNIÇÕES, COLETES, ESCUDOS, CAPACETES e KIT OP.",
+      "source": "gemini-session",
+      "related_files": [
+        "importar_planilha_oficial.py"
+      ]
+    },
+    {
+      "statement": "O banco de dados utilizado no ambiente de desenvolvimento é SQLite (db.sqlite3).",
+      "source": "gemini-session",
+      "related_files": [
+        "reserva_baep/settings.py",
+        "db.sqlite3"
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "statement": "importar_kits_operacionais.py:41 contém caminho fixo Linux (/home/servidor-sys-baep/...). No Windows causará FileNotFoundError se executado standalone sem ajustar para caminho relativo.",
+      "source": "gemini-session"
+    },
+    {
+      "statement": "Sempre tratar strings nulas ou mascaradas com clean_val()/clean() para descartar '────────', '---------', 'S/ ACESSÓRIO', '#REF!'.",
+      "source": "gemini-session"
+    }
+  ],
+  "failed_attempts": [
+    {
+      "what": "Execução de salvar KitOperacional via .save() padrão do Django",
+      "why_failed": "Model possui validações clean() que falham quando o kit na planilha possui dotação incompleta",
+      "recommendation": "Utilizar obj.save_base(raw=True) durante as importações e sincronizações de planilha"
+    },
+    {
+      "what": "Execução de importar_planilha_oficial.py sem imports de traceback e os",
+      "why_failed": "Disparava NameError ao tentar registrar falhas de linhas corrompidas no terminal",
+      "recommendation": "Garantir os imports no topo do script"
+    }
+  ],
+  "related_files": [
+    "importar_kits_operacionais.py",
+    "importar_planilha_oficial.py",
+    "material_belico/models.py",
+    "material_belico/views.py",
+    "reserva_baep/settings.py"
+  ],
+  "open_questions": [],
+  "manual_notes": [
+    "Branch ativa: feature/inventario-fluxo-completo",
+    "Último commit: 47719c4 (correção na importação dos kits)"
+  ],
+  "provenance": {
+    "capture_method": "agent-self-reported",
+    "sources_used": [
+      "gemini-session-context"
+    ],
+    "review_status": "approved"
+  }
+}

@@ -705,10 +705,10 @@
                 </li>
 
                 <!-- MÓDULO LOGÍSTICA & SUPRIMENTOS -->
-                {% if user.is_superuser or user|has_group:'materiais' or user|has_group:'patrimonio' %}
+                {% if user.is_superuser or 'materiais' in user_groups or user|has_group:'materiais' or 'patrimonio' in user_groups or user|has_group:'patrimonio' %}
                 <div class="sidebar-heading"><i class="fas fa-boxes"></i> Logística & Suprimentos</div>
                 
-                {% if user.is_superuser or user|has_group:'materiais' %}
+                {% if user.is_superuser or 'materiais' in user_groups or user|has_group:'materiais' %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'estoque' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseEstoqueNovo" role="button">
@@ -815,10 +815,15 @@
                     </div>
                 </li>
 
-                {% if user.is_superuser or user|has_group:'administracao' %}
+                {% if user.is_superuser or 'administracao' in user_groups or user|has_group:'administracao' %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
                         <i class="fas fa-user-cog"></i> Usuários
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'permissoes' in request.path %}active{% endif %}" href="{% url 'administracao:listar_permissoes' %}">
+                        <i class="fas fa-user-lock"></i> Permissões de Módulos
                     </a>
                 </li>
                 {% endif %}

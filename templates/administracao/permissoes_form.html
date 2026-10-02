@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Permissões — {{ usuario_alvo.username }} — 2º BAEP{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted">Painel</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'administracao:dashboard' %}" class="text-decoration-none text-muted">Administração</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'administracao:listar_permissoes' %}" class="text-decoration-none text-muted">Permissões de Módulos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ usuario_alvo.username }}</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-1" style="color: var(--secondary-color);">
+                <i class="fas fa-sliders-h text-warning me-2"></i>Gerenciar Acessos do Usuário
+            </h2>
+            <p class="text-muted small mb-0">
+                Conceda ou revogue acesso aos módulos operacionais do sistema gerenciando a associação aos grupos de permissão.
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'administracao:listar_permissoes' %}" class="btn btn-outline-secondary rounded-3 shadow-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar para a Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Card de Perfil do Usuário Alvo -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                        style="width: 54px; height: 54px; font-size: 1.3rem; background: var(--baep-gold-gradient); color: #0b0f14; border: 2px solid #f5d77f;">
+                        {{ usuario_alvo.username|first|upper }}
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">
+                            {{ usuario_alvo.get_full_name|default:usuario_alvo.username }}
+                            {% if usuario_alvo.is_superuser %}
+                                <span class="badge bg-danger ms-2 fs-6"><i class="fas fa-shield-alt me-1"></i>Superusuário</span>
+                            {% endif %}
+                        </h4>
+                        <div class="text-muted small mt-1">
+                            <span class="me-3"><i class="fas fa-user me-1 text-warning"></i>Login: <strong>{{ usuario_alvo.username }}</strong></span>
+                            {% if usuario_alvo.perfil.policial %}
+                                <span class="me-3"><i class="fas fa-id-badge me-1 text-warning"></i>RE: <strong>{{ usuario_alvo.perfil.policial.re }}</strong></span>
+                                <span class="me-3"><i class="fas fa-medal me-1 text-warning"></i>Posto/Graduação: <strong>{{ usuario_alvo.perfil.policial.get_posto_display }}</strong></span>
+                            {% endif %}
+                            <span><i class="fas fa-layer-group me-1 text-warning"></i>Perfil: <strong>{{ usuario_alvo.perfil.get_nivel_acesso_display|default:'Visualizador' }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if usuario_alvo.is_superuser %}
+                <div class="alert alert-warning border-0 shadow-sm mb-0 py-2 px-3 rounded-3 small">
+                    <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+                    <strong>Atenção:</strong> Por ser <em>Superusuário</em>, esta conta possui acesso irrestrito a todos os módulos, independentemente dos grupos marcados abaixo.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Permissões -->
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Bloco Principal de Destaque: Material de Consumo -->
+        {% for mod in lista_modulos %}
+            {% if mod.destaque %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-warning bg-white">
+                <div class="card-header bg-white py-3 border-0">
+                    <span class="badge bg-warning text-dark text-uppercase px-2 py-1 mb-2 fw-bold">Módulo em Foco</span>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="{{ mod.icone }} text-warning me-2"></i>{{ mod.nome }}
+                    </h5>
+                </div>
+                <div class="card-body pt-0 pb-4">
+                    <p class="text-muted small mb-3">{{ mod.descricao }}</p>
+
+                    <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="form-check form-switch fs-4 me-3 mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                    id="modulo_{{ mod.group }}" name="grupos" value="{{ mod.group }}"
+                                    {% if mod.checked %}checked{% endif %}>
+                            </div>
+                            <label class="form-check-label mb-0 cursor-pointer" for="modulo_{{ mod.group }}">
+                                <div class="fw-bold text-dark">Liberar Acesso ao Material de Consumo</div>
+                                <small class="text-muted">
+                                    Adiciona o usuário ao grupo operacional <code>{{ mod.group }}</code>, liberando o menu lateral e todas as telas de estoque e almoxarifado.
+                                </small>
+                            </label>
+                        </div>
+                        <span class="badge {% if mod.checked %}bg-success{% else %}bg-secondary{% endif %} px-3 py-2 fs-6" id="badge_status_{{ mod.group }}">
+                            {% if mod.checked %}
+                                <i class="fas fa-check-circle me-1"></i>Habilitado
+                            {% else %}
+                                <i class="fas fa-times-circle me-1"></i>Desabilitado
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Demais Módulos do Sistema -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-1 text-dark">
+                    <i class="fas fa-cubes me-2 text-primary"></i>Demais Módulos do SIS LOGÍSTICA
+                </h5>
+                <p class="text-muted small mb-0">Controle o acesso aos demais departamentos e módulos do 2º BAEP.</p>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row g-3">
+                    {% for mod in lista_modulos %}
+                        {% if not mod.destaque %}
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card h-100 border rounded-3 p-3 {% if mod.checked %}border-primary bg-primary bg-opacity-10{% else %}bg-white{% endif %}">
+                                <div class="d-flex align-items-start">
+                                    <div class="form-check form-switch fs-5 me-2 mt-1">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                            id="modulo_{{ mod.group }}" name="grupos" value="{{ mod.group }}"
+                                            {% if mod.checked %}checked{% endif %}>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <label class="form-check-label fw-bold text-dark d-block mb-1 cursor-pointer" for="modulo_{{ mod.group }}">
+                                            <i class="{{ mod.icone }} me-1 text-muted"></i>{{ mod.nome }}
+                                        </label>
+                                        <small class="text-muted d-block" style="font-size: 0.78rem; line-height: 1.3;">
+                                            {{ mod.descricao }}
+                                        </small>
+                                        <div class="mt-2">
+                                            <span class="badge bg-light text-dark border small" style="font-size: 0.68rem;">
+                                                Grupo: {{ mod.group }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Ações -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <a href="{% url 'administracao:listar_permissoes' %}" class="btn btn-outline-secondary rounded-3">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning rounded-3 px-4 fw-bold shadow-sm">
+                    <i class="fas fa-save me-1"></i>Salvar Permissões
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Atualização visual dinâmica do badge do módulo em foco ao alternar o switch
+    document.addEventListener('DOMContentLoaded', function () {
+        const switchConsumo = document.getElementById('modulo_materiais');
+        const badgeStatus = document.getElementById('badge_status_materiais');
+        if (switchConsumo && badgeStatus) {
+            switchConsumo.addEventListener('change', function () {
+                if (this.checked) {
+                    badgeStatus.className = 'badge bg-success px-3 py-2 fs-6';
+                    badgeStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i>Habilitado';
+                } else {
+                    badgeStatus.className = 'badge bg-secondary px-3 py-2 fs-6';
+                    badgeStatus.innerHTML = '<i class="fas fa-times-circle me-1"></i>Desabilitado';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
