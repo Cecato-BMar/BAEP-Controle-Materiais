@@ -42,6 +42,12 @@ Projetado para ambientes com alta demanda operacional, o sistema oferece suporte
 
 ---
 
+## 🔐 Controle de Acesso
+
+O acesso aos módulos operacionais é gerenciado nativamente através de **Django Groups**, associando cada operador estritamente aos setores autorizados (como Reserva de Armas, Frota e Inventário). A aplicação aplica proteção em nível de rota via decorator `@require_module_permission`, menu lateral condicional e interface administrativa com travas anti-lockout. Para detalhes completos da arquitetura, tabela de grupos e guia de configuração, consulte [docs/permissoes.md](docs/permissoes.md).
+
+---
+
 ## ⚙️ Pré-requisitos
 
 - Python 3.12+
