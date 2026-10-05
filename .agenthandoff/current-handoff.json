@@ -2,94 +2,95 @@
   "schema_version": "1.0",
   "project_id": "BAEP-Controle-Materiais",
   "project_path": "c:\\Users\\2BAEP\\.antigravity-ide\\BAEP-Controle-Materiais",
-  "created_at": "2026-09-25T10:38:00-03:00",
+  "created_at": "2026-10-05T11:08:00-03:00",
   "source_agent": "gemini",
-  "target_agent": "copilot",
+  "target_agent": "generic",
   "task_state": {
-    "goal": "Ajustar e validar a importação completa de materiais bélicos e kits operacionais a partir das planilhas oficiais da Reserva de Armas do 2º BAEP",
-    "current_step": "Revisão e unificação da lógica de importação dos Kits Operacionais (aba 'KIT OP') entre 'importar_kits_operacionais.py' e 'importar_planilha_oficial.py'",
-    "next_action": "Verificar e harmonizar EXCEL_PATH em importar_kits_operacionais.py:41 para suportar caminho relativo dinâmico (compatível com Windows/Linux) e validar execução com db.sqlite3",
+    "goal": "Implementar controle de permissões por Groups para o módulo de Inventário Semestral (Conferência Cega) e integrar à tela administrativa de permissões",
+    "current_step": "Concluídas todas as 5 etapas: adição do grupo 'inventario' no boot, inclusão em MODULOS_SISTEMA, aplicação de @require_module_permission nas 11 FBVs, correção do menu lateral base.html e criação de testes automatizados completos.",
+    "next_action": "Efetuar commit das alterações na branch feature/inventario-fluxo-completo e realizar push para origin ou homologação em staging/produção.",
     "blocked_on": null
   },
   "decisions": [
     {
-      "statement": "Integrada a importação de Kits Operacionais diretamente na rotina mestre de sincronização",
-      "reason": "A aba 'KIT OP' depende dos itens importados previamente (fuzis, espingardas, HTs, AM-640, escudos). Integrar ao final de importar_planilha_oficial.py garante que todas as ForeignKeys já existam no banco.",
+      "statement": "Criação automática do Group 'inventario' no AppConfig.ready() de usuarios/apps.py",
+      "reason": "Garante que ao inicializar o Django ou executar migrações o grupo de permissão de inventário já exista no banco de dados.",
       "related_files": [
-        "importar_planilha_oficial.py",
-        "importar_kits_operacionais.py"
+        "usuarios/apps.py"
       ],
-      "confidence": 0.95
+      "confidence": 0.99
     },
     {
-      "statement": "Persistência de kits operacionais parciais com save_base(raw=True)",
-      "reason": "Vários kits na planilha física possuem composição incompleta ou temporariamente desfalcada; save_base(raw=True) evita bloqueios por ValidationError de campos nulos.",
+      "statement": "Inclusão do módulo Inventário Semestral em MODULOS_SISTEMA de administracao/views_permissoes.py",
+      "reason": "Permite que administradores gerenciem o acesso ao módulo Inventário diretamente pela interface visual existente de gerenciamento de permissões sem necessidade de novas views.",
       "related_files": [
-        "importar_kits_operacionais.py",
-        "importar_planilha_oficial.py"
+        "administracao/views_permissoes.py"
       ],
-      "confidence": 0.95
+      "confidence": 0.99
     },
     {
-      "statement": "Auto-recuperação do usuário master e licença no comando garantir_master",
-      "reason": "Garante que o ambiente local e de homologação suba sempre com credenciais válidas e evite telas de licença expirada.",
+      "statement": "Aplicação de @require_module_permission('inventario') abaixo de @login_required em todas as 11 FBVs de inventario/views.py",
+      "reason": "Garante segurança a nível de backend: usuários autenticados sem o grupo 'inventario' ou sem superusuário recebem 403 Forbidden em qualquer rota do módulo.",
       "related_files": [
-        "licenciamento/management/commands/garantir_master.py",
-        "run_app.bat"
+        "inventario/views.py"
       ],
-      "confidence": 0.95
+      "confidence": 0.99
+    },
+    {
+      "statement": "Desacoplamento do link de Inventário Semestral de 'patrimonio' no menu lateral templates/base.html",
+      "reason": "O link de inventário estava indevidamente sob a condicional de patrimônio; agora possui sua própria verificação ('inventario' in user_groups or user|has_group:'inventario') e a seção pai 'Logística & Suprimentos' também contempla usuários que só têm acesso a inventário.",
+      "related_files": [
+        "templates/base.html"
+      ],
+      "confidence": 0.99
     }
   ],
   "facts": [
     {
-      "statement": "A planilha oficial possui as abas: FUZIL, ESPINGARDA, GLOCK, TAURUS, HT, AM-640, AM-600, MOSQUETÃO, TASER, ALGEMAS, QUÍMICOS, MUNIÇÕES, COLETES, ESCUDOS, CAPACETES e KIT OP.",
+      "statement": "O decorador @require_module_permission('inventario') valida o acesso via request.user.groups.filter(name='inventario').exists() e libera request.user.is_superuser.",
       "source": "gemini-session",
       "related_files": [
-        "importar_planilha_oficial.py"
+        "reserva_baep/decorators.py"
       ]
     },
     {
-      "statement": "O banco de dados utilizado no ambiente de desenvolvimento é SQLite (db.sqlite3).",
+      "statement": "24 testes em administracao e inventario passaram com sucesso (0 falhas, 0 erros).",
       "source": "gemini-session",
       "related_files": [
-        "reserva_baep/settings.py",
-        "db.sqlite3"
+        "administracao/tests.py",
+        "inventario/tests.py"
       ]
     }
   ],
   "warnings": [
     {
-      "statement": "importar_kits_operacionais.py:41 contém caminho fixo Linux (/home/servidor-sys-baep/...). No Windows causará FileNotFoundError se executado standalone sem ajustar para caminho relativo.",
+      "statement": "Nunca executar 'flush' ou 'migrate --run-syncdb' no banco SQLite local db.sqlite3 pois contém dados reais de homologação do 2º BAEP.",
       "source": "gemini-session"
     },
     {
-      "statement": "Sempre tratar strings nulas ou mascaradas com clean_val()/clean() para descartar '────────', '---------', 'S/ ACESSÓRIO', '#REF!'.",
+      "statement": "Testes unitários que realizam requisições HTTP autenticadas devem instanciar licença de teste ou usar username 'master', sob pena de redirecionamento 302 para licenciamento:bloqueado pelo LicenseCheckMiddleware.",
       "source": "gemini-session"
     }
   ],
   "failed_attempts": [
     {
-      "what": "Execução de salvar KitOperacional via .save() padrão do Django",
-      "why_failed": "Model possui validações clean() que falham quando o kit na planilha possui dotação incompleta",
-      "recommendation": "Utilizar obj.save_base(raw=True) durante as importações e sincronizações de planilha"
-    },
-    {
-      "what": "Execução de importar_planilha_oficial.py sem imports de traceback e os",
-      "why_failed": "Disparava NameError ao tentar registrar falhas de linhas corrompidas no terminal",
-      "recommendation": "Garantir os imports no topo do script"
+      "what": "Execução dos testes de inventario sem conceder grupo 'inventario' aos usuários de teste",
+      "why_failed": "test_detalhe_ciclo_view_e_templates_renderizam falhou com 302 devido ao LicenseCheckMiddleware e ausência de permissão",
+      "recommendation": "Adicionar geração de token de licença de teste e vincular self.presidente ao grupo 'inventario' no setUp."
     }
   ],
   "related_files": [
-    "importar_kits_operacionais.py",
-    "importar_planilha_oficial.py",
-    "material_belico/models.py",
-    "material_belico/views.py",
-    "reserva_baep/settings.py"
+    "usuarios/apps.py",
+    "administracao/views_permissoes.py",
+    "inventario/views.py",
+    "templates/base.html",
+    "administracao/tests.py",
+    "inventario/tests.py"
   ],
   "open_questions": [],
   "manual_notes": [
     "Branch ativa: feature/inventario-fluxo-completo",
-    "Último commit: 47719c4 (correção na importação dos kits)"
+    "Todas as 11 FBVs protegidas: dashboard, lista_ciclos, detalhe_ciclo, importar_inventario, novo_ciclo, conferir_item, conferir_lote, transicionar_ciclo, encerrar_divergencia_view, termo_pdf, exportar_excel."
   ],
   "provenance": {
     "capture_method": "agent-self-reported",

@@ -8,6 +8,8 @@ from django.db.models import Sum, Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
 
+from reserva_baep.decorators import require_module_permission
+
 from .models import (
     CicloInventario,
     ItemInventario,
@@ -29,6 +31,7 @@ from .workflow import (
 
 
 @login_required
+@require_module_permission('inventario')
 def dashboard(request):
     ciclos = CicloInventario.objects.all().order_by('-ano', '-semestre', '-criado_em')
     ciclo_atual = ciclos.first()
@@ -62,12 +65,14 @@ def dashboard(request):
 
 
 @login_required
+@require_module_permission('inventario')
 def lista_ciclos(request):
     ciclos = CicloInventario.objects.all().order_by('-ano', '-semestre', '-criado_em')
     return render(request, 'inventario/lista_ciclos.html', {'ciclos': ciclos})
 
 
 @login_required
+@require_module_permission('inventario')
 def detalhe_ciclo(request, ciclo_id):
     ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
     form_filtro = FiltroInventarioForm(request.GET or None)
@@ -155,6 +160,7 @@ def detalhe_ciclo(request, ciclo_id):
 
 
 @login_required
+@require_module_permission('inventario')
 def importar_inventario(request):
     if request.method == 'POST':
         form = ImportarInventarioForm(request.POST, request.FILES)
@@ -195,6 +201,7 @@ def importar_inventario(request):
 
 
 @login_required
+@require_module_permission('inventario')
 def novo_ciclo(request):
     if request.method == 'POST':
         form = CicloInventarioForm(request.POST)
@@ -215,6 +222,7 @@ def novo_ciclo(request):
 
 
 @login_required
+@require_module_permission('inventario')
 def conferir_item(request, item_id):
     item = get_object_or_404(ItemInventario, pk=item_id)
 
@@ -257,6 +265,7 @@ def conferir_item(request, item_id):
 
 
 @login_required
+@require_module_permission('inventario')
 def conferir_lote(request, ciclo_id):
     ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
     if request.method == 'POST':
@@ -284,6 +293,7 @@ def conferir_lote(request, ciclo_id):
 
 
 @login_required
+@require_module_permission('inventario')
 def transicionar_ciclo(request, ciclo_id):
     ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
     if request.method != 'POST':
@@ -304,6 +314,7 @@ def transicionar_ciclo(request, ciclo_id):
 
 
 @login_required
+@require_module_permission('inventario')
 def encerrar_divergencia_view(request, divergencia_id):
     divergencia = get_object_or_404(DivergenciaInventario, pk=divergencia_id)
     ciclo = divergencia.item.ciclo
@@ -330,11 +341,13 @@ def encerrar_divergencia_view(request, divergencia_id):
 
 
 @login_required
+@require_module_permission('inventario')
 def termo_pdf(request, ciclo_id):
     return gerar_termo_inventario_pdf(request, ciclo_id)
 
 
 @login_required
+@require_module_permission('inventario')
 def exportar_excel(request, ciclo_id):
     ciclo = get_object_or_404(CicloInventario, pk=ciclo_id)
     wb = openpyxl.Workbook()

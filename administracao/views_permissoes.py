@@ -1,4 +1,7 @@
+import os
 import logging
+from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
@@ -8,6 +11,25 @@ from django.db.models import Q
 from reserva_baep.decorators import require_module_permission
 
 logger = logging.getLogger('administracao')
+
+
+def _registrar_log_bloqueio(admin_username, target_username, motivo):
+    """
+    Registra tentativa bloqueada de alteração de permissão no arquivo baep_sistema.log
+    e nos logs do sistema.
+    Formato: [PERMISSAO-BLOQUEIO] user=<admin> target=<username> motivo=<auto-bloqueio|master-protegido> ts=<ISO8601>
+    """
+    ts = timezone.now().isoformat()
+    log_msg = f"[PERMISSAO-BLOQUEIO] user={admin_username} target={target_username} motivo={motivo} ts={ts}"
+    logger.warning(log_msg)
+    try:
+        log_dir = settings.BASE_DIR / 'logs'
+        log_dir.mkdir(exist_ok=True)
+        log_file = log_dir / 'baep_sistema.log'
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(log_msg + '\n')
+    except Exception as exc:
+        logger.error(f"Erro ao registrar log de bloqueio de permissão: {exc}")
 
 # Definição canônica dos grupos de módulos do SIS LOGÍSTICA 2º BAEP
 MODULOS_SISTEMA = [
@@ -44,6 +66,13 @@ MODULOS_SISTEMA = [
         'nome': 'Patrimônio Permanente (Tombamento)',
         'descricao': 'Gestão de bens duráveis, tombamentos, contas patrimoniais e termos de responsabilidade.',
         'icone': 'fas fa-barcode',
+        'destaque': False,
+    },
+    {
+        'group': 'inventario',
+        'nome': 'Inventário Semestral (Conferência Cega)',
+        'descricao': 'Ciclo de inventário semestral com conferência cega, apuração de divergências e termo oficial.',
+        'icone': 'fas fa-clipboard-check',
         'destaque': False,
     },
     {
@@ -147,6 +176,19 @@ def gerenciar_permissoes_usuario(request, user_id):
 
     if request.method == 'POST':
         grupos_selecionados = set(request.POST.getlist('grupos'))
+
+        # VALIDAÇÃO B — Proteção do master:
+        admin_master_user = os.getenv('ADMIN_USERNAME', 'master')
+        if usuario_alvo.username == 'master' or usuario_alvo.username == admin_master_user:
+            _registrar_log_bloqueio(request.user.username, usuario_alvo.username, 'master-protegido')
+            messages.error(request, "As permissões do usuário master não podem ser alteradas.")
+            return redirect('administracao:listar_permissoes')
+
+        # VALIDAÇÃO A — Auto-proteção de admin:
+        if usuario_alvo.id == request.user.id and 'administracao' not in grupos_selecionados:
+            grupos_selecionados.add('administracao')
+            _registrar_log_bloqueio(request.user.username, usuario_alvo.username, 'auto-bloqueio')
+            messages.error(request, "Você não pode remover sua própria permissão de administração.")
 
         # Grupos anteriores para fins de auditoria/log
         grupos_anteriores = set(usuario_alvo.groups.values_list('name', flat=True))

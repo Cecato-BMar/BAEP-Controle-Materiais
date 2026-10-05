@@ -25,6 +25,7 @@ def _criar_grupos_padrao(sender, **kwargs):
             'logistica',
             'frota',
             'patrimonio',
+            'inventario',
             'telematica',
             'relatorios',
             'administracao',

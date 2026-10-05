@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.template.loader import get_template
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -22,8 +22,29 @@ from .workflow import (
 class InventarioWorkflowTests(TestCase):
     def setUp(self):
         self.client = Client()
+
+        # Garante licença ativa para testes HTTP
+        from licenciamento.license_core import LicenseManager
+        from licenciamento.models import LicenseRecord
+        import datetime
+        token = LicenseManager.generate_token('baep-teste', '2º BAEP Testes', 365)
+        is_valid, payload = LicenseManager.verify_token(token)
+        expires_at = datetime.datetime.fromtimestamp(payload['exp'], tz=datetime.timezone.utc)
+        issued_at = datetime.datetime.fromtimestamp(payload['iat'], tz=datetime.timezone.utc)
+        LicenseRecord.objects.create(
+            client_id='baep-teste',
+            client_name='2º BAEP Testes',
+            token_base64=token,
+            issued_at=issued_at,
+            expires_at=expires_at,
+            is_active=True
+        )
+
+        grupo_inventario, _ = Group.objects.get_or_create(name='inventario')
         self.conferente = User.objects.create_user(username='conferente', password='senha-segura')
+        self.conferente.groups.add(grupo_inventario)
         self.presidente = User.objects.create_user(username='presidente', password='senha-segura')
+        self.presidente.groups.add(grupo_inventario)
         self.usuario_sem_papel = User.objects.create_user(username='sem_papel', password='senha-segura')
 
         self.ciclo = CicloInventario.objects.create(

@@ -550,10 +550,10 @@
                 </li>
 
                 <!-- MÓDULO OPERACIONAL -->
-                {% if user.is_superuser or user|has_group:'reserva_armas' or user|has_group:'frota' or user|has_group:'telematica' %}
+                {% if user.is_superuser or 'reserva_armas' in user_groups or 'frota' in user_groups or 'telematica' in user_groups %}
                 <div class="sidebar-heading"><i class="fas fa-shield-alt"></i> Operacional</div>
                 
-                {% if user.is_superuser or user|has_group:'reserva_armas' %}
+                {% if user.is_superuser or 'reserva_armas' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'materiais' in request.path or 'policiais' in request.path or 'movimentacoes' in request.path and not 'estoque' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseArmas" role="button">
@@ -619,7 +619,7 @@
                 </li>
                 {% endif %}
 
-                {% if user.is_superuser or user|has_group:'frota' %}
+                {% if user.is_superuser or 'frota' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'viaturas' in request.path or 'despachos' in request.path or 'manutencoes' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseFrota" role="button">
@@ -650,7 +650,7 @@
                 </li>
                 {% endif %}
 
-                {% if user.is_superuser or user|has_group:'telematica' %}
+                {% if user.is_superuser or 'telematica' in user_groups %}
 
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'telematica' in request.path %}active{% endif %}"
@@ -705,10 +705,10 @@
                 </li>
 
                 <!-- MÓDULO LOGÍSTICA & SUPRIMENTOS -->
-                {% if user.is_superuser or 'materiais' in user_groups or user|has_group:'materiais' or 'patrimonio' in user_groups or user|has_group:'patrimonio' %}
+                {% if user.is_superuser or 'materiais' in user_groups or 'patrimonio' in user_groups or 'inventario' in user_groups or 'logistica' in user_groups %}
                 <div class="sidebar-heading"><i class="fas fa-boxes"></i> Logística & Suprimentos</div>
                 
-                {% if user.is_superuser or 'materiais' in user_groups or user|has_group:'materiais' %}
+                {% if user.is_superuser or 'materiais' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'estoque' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseEstoqueNovo" role="button">
@@ -739,7 +739,7 @@
                 </li>
                 {% endif %}
 
-                {% if user.is_superuser or user|has_group:'patrimonio' %}
+                {% if user.is_superuser or 'patrimonio' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'patrimonio' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapsePatrimonioNovo" role="button">
@@ -760,9 +760,11 @@
                         </ul>
                     </div>
                 </li>
+                {% endif %}
 
+                {% if user.is_superuser or 'inventario' in user_groups %}
                 <li class="nav-item">
-                    <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="/inventario/">
+                    <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="{% url 'inventario:dashboard' %}">
                         <i class="fas fa-clipboard-check text-success me-2"></i><strong>Inventário Semestral</strong>
                     </a>
                 </li>
@@ -776,7 +778,7 @@
                         <i class="fas fa-file-pdf text-danger"></i> Central de Relatórios
                     </a>
                 </li>
-                {% if user.is_superuser or user.is_staff or user|has_group:'administracao' %}
+                {% if user.is_superuser or user.is_staff or 'administracao' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'administracao' in request.path %}active{% endif %}" href="{% url 'administracao:consulta_dinamica' %}">
                         <i class="fas fa-search-location text-warning"></i> Consultas Administrativas
@@ -795,7 +797,7 @@
                     </a>
                     <div class="collapse" id="collapseConfig">
                         <ul class="nav flex-column sidebar-submenu">
-                            {% if user.is_superuser or user|has_group:'materiais' %}
+                            {% if user.is_superuser or 'materiais' in user_groups %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'estoque:lista_fornecedores' %}">Fornecedores</a>
                             </li>
@@ -806,7 +808,7 @@
                                 <a class="nav-link" href="{% url 'estoque:lista_localizacoes' %}">Localizações</a>
                             </li>
                             {% endif %}
-                            {% if user.is_superuser or user|has_group:'frota' or user|has_group:'telematica' %}
+                            {% if user.is_superuser or 'frota' in user_groups or 'telematica' in user_groups %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'viaturas:lista_oficinas' %}">Oficinas</a>
                             </li>
@@ -815,7 +817,7 @@
                     </div>
                 </li>
 
-                {% if user.is_superuser or 'administracao' in user_groups or user|has_group:'administracao' %}
+                {% if user.is_superuser or 'administracao' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}" href="{% url 'usuarios:lista_usuarios' %}">
                         <i class="fas fa-user-cog"></i> Usuários
@@ -828,7 +830,7 @@
                 </li>
                 {% endif %}
 
-                {% if user.is_superuser or user|has_group:'material_belico' %}
+                {% if user.is_superuser or 'material_belico' in user_groups %}
                 <li class="nav-item">
                     <a class="nav-link d-flex justify-content-between align-items-center {% if 'material-belico' in request.path %}active{% endif %}"
                         data-bs-toggle="collapse" href="#collapseMaterialBelico" role="button">
