@@ -19,6 +19,7 @@ urlpatterns = [
     path('manutencoes/<int:pk>/editar/', views.editar_manutencao, name='editar_manutencao'),
     path('manutencoes/<int:pk>/excluir/', views.excluir_manutencao, name='excluir_manutencao'),
     path('ajax/buscar-equipamentos/', views.buscar_equipamentos_ajax, name='buscar_equipamentos_ajax'),
+    path('ajax/criar-setor/', views.criar_setor_ajax, name='criar_setor_ajax'),
     
     # Serviços e Redes
     path('servicos/', views.lista_servicos, name='lista_servicos'),

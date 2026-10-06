@@ -23,11 +23,42 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Novo Setor/Seção -->
+<div class="modal fade" id="novoSetorModal" tabindex="-1" aria-labelledby="novoSetorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="novoSetorModalLabel"><i class="fas fa-building me-2"></i>Novo Setor / Seção</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="setor-modal-erro" class="alert alert-danger d-none py-2 small"></div>
+                <div class="mb-3">
+                    <label for="novo_setor_nome" class="form-label">Nome do Setor <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="novo_setor_nome" placeholder="Ex: Seção de Armamento" required>
+                </div>
+                <div class="mb-0">
+                    <label for="novo_setor_sigla" class="form-label">Sigla <small class="text-muted">(opcional)</small></label>
+                    <input type="text" class="form-control" id="novo_setor_sigla" placeholder="Ex: SA" maxlength="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarSetor">
+                    <i class="fas fa-save me-1"></i>Salvar Setor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 $(document).ready(function() {
+
+    // ── Select2 para Policial Responsável ──
     $('.select2-policial').select2({
         theme: 'bootstrap-5',
         placeholder: 'Busque por RE ou Nome no Efetivo...',
@@ -49,6 +80,95 @@ $(document).ready(function() {
             inputTooShort: function() { return "Digite pelo menos 2 caracteres..."; },
             noResults: function() { return "Nenhum policial encontrado."; },
             searching: function() { return "Buscando..."; }
+        }
+    });
+
+    // ── Botão "+" ao lado do campo Setor ──
+    var $setorWrapper = $('#setor-field-wrapper');
+    if ($setorWrapper.length) {
+        var $select = $setorWrapper.find('select');
+        // Injeta o botão "+" ao lado do select
+        $select.wrap('<div class="input-group"></div>');
+        $select.after(
+            '<button type="button" class="btn btn-outline-primary" ' +
+            'data-bs-toggle="modal" data-bs-target="#novoSetorModal" ' +
+            'title="Adicionar novo Setor/Seção">' +
+            '<i class="fas fa-plus"></i></button>'
+        );
+    }
+
+    // ── Salvar novo Setor via AJAX ──
+    var novoSetorModal = document.getElementById('novoSetorModal');
+    var bsModal = new bootstrap.Modal(novoSetorModal);
+
+    // Limpa campos ao abrir o modal
+    $(novoSetorModal).on('show.bs.modal', function() {
+        $('#novo_setor_nome').val('');
+        $('#novo_setor_sigla').val('');
+        $('#setor-modal-erro').addClass('d-none').text('');
+    });
+
+    // Foca no campo nome ao abrir
+    $(novoSetorModal).on('shown.bs.modal', function() {
+        $('#novo_setor_nome').focus();
+    });
+
+    // Submissão via AJAX
+    $('#btnSalvarSetor').on('click', function() {
+        var $btn = $(this);
+        var nome = $('#novo_setor_nome').val().trim();
+        var sigla = $('#novo_setor_sigla').val().trim();
+        var $erro = $('#setor-modal-erro');
+
+        if (!nome) {
+            $erro.removeClass('d-none').html('<i class="fas fa-exclamation-circle me-1"></i>O nome do setor é obrigatório.');
+            $('#novo_setor_nome').focus();
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Salvando...');
+        $erro.addClass('d-none');
+
+        $.ajax({
+            url: "{% url 'telematica:criar_setor_ajax' %}",
+            type: 'POST',
+            data: {
+                nome: nome,
+                sigla: sigla,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.ok) {
+                    // Adiciona a nova opção ao select e seleciona
+                    var $select = $('#setor-field-wrapper select');
+                    var option = new Option(data.text, data.id, true, true);
+                    $select.append(option).val(data.id);
+
+                    bsModal.hide();
+                } else {
+                    $erro.removeClass('d-none').html('<i class="fas fa-exclamation-circle me-1"></i>' + data.erro);
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Erro inesperado ao salvar.';
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.erro) msg = resp.erro;
+                } catch(e) {}
+                $erro.removeClass('d-none').html('<i class="fas fa-exclamation-circle me-1"></i>' + msg);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Salvar Setor');
+            }
+        });
+    });
+
+    // Enter no campo nome dispara o botão salvar
+    $('#novo_setor_nome, #novo_setor_sigla').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $('#btnSalvarSetor').click();
         }
     });
 });

@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db.models import Q, Count, Sum
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from .models import (CategoriaEquipamento, Equipamento, ConfiguracaoRadio, 
                      LinhaMovel, ServicoTI, SolicitacaoSuporteTI)
@@ -359,8 +359,27 @@ def excluir_categoria(request, pk):
             messages.error(request, 'Não é possível excluir categorias que possuem equipamentos vinculados.')
         return redirect('telematica:lista_categorias')
     return render(request, 'telematica/confirmar_exclusao.html', {'objeto': categoria, 'url_voltar': 'telematica:lista_categorias'})
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+
+
+
+@login_required
+@require_module_permission('telematica')
+@require_POST
+def criar_setor_ajax(request):
+    """Cria um novo OrgaoRequisitante (Setor/Seção) via AJAX e retorna JSON."""
+    from estoque.models import OrgaoRequisitante
+
+    nome = request.POST.get('nome', '').strip()
+    sigla = request.POST.get('sigla', '').strip()
+
+    if not nome:
+        return JsonResponse({'ok': False, 'erro': 'O nome do setor é obrigatório.'}, status=400)
+
+    if OrgaoRequisitante.objects.filter(nome__iexact=nome).exists():
+        return JsonResponse({'ok': False, 'erro': f'Já existe um setor com o nome "{nome}".'}, status=400)
+
+    setor = OrgaoRequisitante.objects.create(nome=nome, sigla=sigla or None)
+    return JsonResponse({'ok': True, 'id': setor.pk, 'text': str(setor)})
 
 @login_required
 @require_GET

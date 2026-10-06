@@ -122,7 +122,16 @@ class EquipamentoForm(forms.ModelForm):
             
             HTML('<h5 class="text-primary mt-4 mb-3">Rede e Localização</h5>'),
             Row(Column('hostname', css_class='col-md-4'), Column('endereco_ip', css_class='col-md-4'), Column('endereco_mac', css_class='col-md-4')),
-            Row(Column('vlan', css_class='col-md-2'), Column('porta_switch', css_class='col-md-2'), Column('codigo_unidade', css_class='col-md-2'), Column('setor', css_class='col-md-3'), Column('policial_responsavel', css_class='col-md-3')),
+            Row(
+                Column('vlan', css_class='col-md-2'),
+                Column('porta_switch', css_class='col-md-2'),
+                Column('codigo_unidade', css_class='col-md-2'),
+                Column(
+                    Div('setor', css_id='setor-field-wrapper'),
+                    css_class='col-md-3'
+                ),
+                Column('policial_responsavel', css_class='col-md-3'),
+            ),
             Row(Column('usuario_responsavel', css_class='col-md-12')),
             
             HTML('<h5 class="text-primary mt-4 mb-3">Status e Datas</h5>'),
