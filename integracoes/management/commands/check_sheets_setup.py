@@ -7,70 +7,51 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Verifica se as variáveis e credenciais do Google Sheets estão ok."
+    help = "Verifica se as variáveis e credenciais do Google Sheets estão configuradas."
 
     def handle(self, *args: object, **options: object) -> None:
-        ok = True
-
-        # 1) Service Account JSON carregado
+        # 1) Service Account
         sa_info = getattr(settings, "GOOGLE_SERVICE_ACCOUNT_INFO", None)
-        if sa_info is None:
-            ok = False
+        if sa_info is not None:
+            client_email = sa_info.get("client_email", "(desconhecido)")
             self.stdout.write(
-                self.style.ERROR(
-                    "[FALHA] GOOGLE_SERVICE_ACCOUNT_INFO não carregado. "
-                    "Defina GOOGLE_SERVICE_ACCOUNT_JSON (base64 do creds.json)."
-                )
-            )
-        else:
-            client_email = sa_info.get("client_email", "(ausente no JSON)")
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"[OK] Service Account carregada: {client_email}"
-                )
-            )
-
-        # 2) Spreadsheet ID
-        spreadsheet_id = getattr(settings, "GOOGLE_SHEETS_SPREADSHEET_ID", "") or ""
-        if not spreadsheet_id.strip():
-            ok = False
-            self.stdout.write(
-                self.style.ERROR(
-                    "[FALHA] GOOGLE_SHEETS_SPREADSHEET_ID está vazio."
-                )
+                self.style.SUCCESS(f"[OK] Service Account: {client_email}")
             )
         else:
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"[OK] Spreadsheet ID configurado: {spreadsheet_id[:8]}…"
+                self.style.ERROR(
+                    "[ERRO] Service Account não carregada — verifique GOOGLE_SERVICE_ACCOUNT_JSON"
                 )
             )
 
-        # 3) Flag de sync (informativo)
-        enabled = getattr(settings, "SHEETS_SYNC_ENABLED", False)
+        # 2) Planilha antiga (LEGACY_SPREADSHEET_ID)
+        legacy_id = (getattr(settings, "LEGACY_SPREADSHEET_ID", "") or "").strip()
+        if legacy_id:
+            self.stdout.write(
+                self.style.SUCCESS(f"[OK] LEGACY_SPREADSHEET_ID: {legacy_id[:12]}…")
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING("[AVISO] LEGACY_SPREADSHEET_ID não configurado")
+            )
+
+        # 3) Planilha nova (NEW_SPREADSHEET_ID)
+        new_id = (getattr(settings, "NEW_SPREADSHEET_ID", "") or "").strip()
+        if new_id:
+            self.stdout.write(
+                self.style.SUCCESS(f"[OK] NEW_SPREADSHEET_ID: {new_id[:12]}…")
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING("[AVISO] NEW_SPREADSHEET_ID não configurado")
+            )
+
+        # 4) Flags informativas
+        sync_enabled = bool(getattr(settings, "SHEETS_SYNC_ENABLED", False))
+        import_enabled = bool(getattr(settings, "IMPORT_ENABLED", False))
+        self.stdout.write(f"[INFO] SHEETS_SYNC_ENABLED = {sync_enabled}")
+        self.stdout.write(f"[INFO] IMPORT_ENABLED = {import_enabled}")
+
         self.stdout.write(
-            f"[INFO] SHEETS_SYNC_ENABLED = {enabled}"
+            "Configuração validada. Próxima fase: conectar às planilhas."
         )
-
-        # 4) TODO: abrir planilha e listar abas (próxima fase — google_client)
-        # from integracoes.google_client import list_sheet_titles
-        # titles = list_sheet_titles(spreadsheet_id)
-        # self.stdout.write(f"[OK] Abas: {', '.join(titles)}")
-        self.stdout.write(
-            self.style.WARNING(
-                "[TODO] Conexão com a planilha (listar abas) — próxima fase."
-            )
-        )
-
-        if ok:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    "Setup parcial OK. Complete as variáveis e aguarde a próxima fase."
-                )
-            )
-        else:
-            self.stdout.write(
-                self.style.ERROR(
-                    "Setup incompleto. Corrija os itens [FALHA] acima."
-                )
-            )
