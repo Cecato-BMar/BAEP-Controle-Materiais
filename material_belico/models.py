@@ -454,8 +454,11 @@ class TASER(models.Model):
     """TASER — Controle de carga de bateria (RN-07)"""
     serie = models.CharField(_('Série'), max_length=50, unique=True)
     situacao = models.CharField(_('Situação'), max_length=30, default='RESERVA')
-    carga_bateria_percent = models.PositiveIntegerField(_('Carga da Bateria (%)'), default=100,
-                                                         validators=[MinValueValidator(0), MaxValueValidator(100)])
+    carga_bateria_percent = models.PositiveIntegerField(
+        _('Carga da Bateria (%)'),
+        null=True, blank=True, default=None,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
     observacoes = models.TextField(_('Observações'), blank=True, null=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
@@ -472,11 +475,15 @@ class TASER(models.Model):
     @property
     def alerta_bateria(self):
         """RN-07: Carga abaixo de 50% gera alerta de recarga."""
+        if self.carga_bateria_percent is None:
+            return False
         return self.carga_bateria_percent < 50
 
     @property
     def bloqueado_operacao(self):
         """RN-07: Carga 0% bloqueia alocação para operação."""
+        if self.carga_bateria_percent is None:
+            return False
         return self.carga_bateria_percent == 0
 
 

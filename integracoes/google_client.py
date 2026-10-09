@@ -9,7 +9,7 @@ SEGURANÇA INEGOCIÁVEL:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from django.conf import settings
 from google.oauth2 import service_account
@@ -121,6 +121,15 @@ def list_sheet_titles(spreadsheet_id_or_target: str = "new") -> list[str]:
         raise GoogleSheetsAPIError(f"Erro ao listar abas da planilha ({actual_id}): {exc}") from exc
 
 
+def col_letter_to_index(col: str) -> int:
+    """Converte letra de coluna do Sheets para índice 0-based ('A' -> 0, 'B' -> 1, 'AA' -> 26)."""
+    idx = 0
+    for char in col.upper():
+        if "A" <= char <= "Z":
+            idx = idx * 26 + (ord(char) - ord("A") + 1)
+    return idx - 1
+
+
 def read_sheet_values(spreadsheet_id_or_target: str, range_name: str) -> list[list[Any]]:
     """Lê todas as linhas de um intervalo especificado em uma planilha.
 
@@ -142,8 +151,64 @@ def read_sheet_values(spreadsheet_id_or_target: str, range_name: str) -> list[li
         ) from exc
 
 
+def read_all(spreadsheet_id_or_target: str, sheet_name: str) -> list[list[Any]]:
+    """Lê todas as linhas de uma aba da planilha."""
+    range_name = f"'{sheet_name}'" if "'" not in sheet_name else sheet_name
+    return read_sheet_values(spreadsheet_id_or_target, range_name)
+
+
+
+def read_sheet_as_dicts(
+    spreadsheet_id_or_target: str,
+    sheet_name: str,
+    data_start_row: int = 2,
+    columns: dict[str, str] | None = None,
+    stop_on_blank_lookup: bool = True,
+    lookup_key: str | None = None,
+    filter_rows: Callable[[dict[str, Any]], bool] | None = None,
+) -> list[dict[str, Any]]:
+    """Lê uma aba da planilha e converte as linhas em lista de dicionários mapeados por coluna.
+
+    Cada dicionário resultante inclui '_row_number' indicando a linha física 1-based original.
+    Linhas com número < data_start_row são ignoradas (cabeçalho/linhas iniciais).
+    """
+    if columns is None:
+        columns = {}
+
+    raw_rows = read_all(spreadsheet_id_or_target, sheet_name)
+    col_map = {col_letter_to_index(letter): field_name for letter, field_name in columns.items()}
+    records: list[dict[str, Any]] = []
+
+    for row_idx, row in enumerate(raw_rows):
+        row_num = row_idx + 1  # 1-based
+        if row_num < data_start_row:
+            continue
+
+        item: dict[str, Any] = {"_row_number": row_num}
+        for col_idx, field_name in col_map.items():
+            val = row[col_idx] if col_idx < len(row) else ""
+            if isinstance(val, str):
+                val = val.strip()
+            item[field_name] = val
+
+        if lookup_key:
+            lookup_val = str(item.get(lookup_key, "")).strip()
+            if not lookup_val:
+                if stop_on_blank_lookup:
+                    break
+                continue
+
+        if filter_rows and not filter_rows(item):
+            continue
+
+        records.append(item)
+
+    return records
+
+
 # ============================================================================
 # OPERAÇÕES DE ESCRITA — PROTEGIDAS PELA BARREIRA _assert_write_allowed
+
 # ============================================================================
 
 def update_row(
