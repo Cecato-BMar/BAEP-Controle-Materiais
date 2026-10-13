@@ -55,11 +55,12 @@ class Command(BaseCommand):
 
         status = summary.get("status", "")
         if status == "FAILED":
-            self.stdout.write(self.style.ERROR("[FALHA] Processamento da planilha legada concluido!\n"))
+            self.stdout.write(self.style.ERROR("[FALHA] Processamento da planilha legada falhou!\n"))
         elif status == "PARTIAL_SUCCESS":
-            self.stdout.write(self.style.WARNING("[PARCIAL] Processamento da planilha legada concluido!\n"))
+            self.stdout.write(self.style.WARNING("[PARCIAL] Processamento da planilha legada concluido com alertas!\n"))
         else:
-            self.stdout.write(self.style.SUCCESS("[OK] Processamento da planilha legada concluido!\n"))
+            self.stdout.write(self.style.SUCCESS("[OK] Processamento da planilha legada concluido com sucesso!\n"))
+
         self.stdout.write(f"Operação ID: #{summary['operation_id']}")
         self.stdout.write(f"Status final: {status}")
         self.stdout.write(f"Total de linhas lidas: {summary['total_read']}")

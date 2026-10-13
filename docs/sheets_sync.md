@@ -125,3 +125,50 @@ integracoes/
 
 Ambiente atual: `10.43.19.224:8002` (sem domínio público).
 A sync por **polling** (management command / cron Coolify) não exige webhook nem IP público — apenas saída HTTPS do servidor para `googleapis.com`.
+
+## Seed Inicial da Planilha Nova (`--seed` e `--force`)
+
+O comando `sync_full_sheets --seed` popula a planilha nova com todos os registros atuais do banco de dados (6 abas correspondentes a `PistolaGlock`, `PistolaTaurus`, `EspingardaCal12`, `EscudoBalistico`, `TASER`, `RadioHT`).
+
+```bash
+python manage.py sync_full_sheets --seed [--dry-run] [--force]
+```
+
+### Idempotência e Comportamento de Segurança:
+- **Sem `--force`**: O seed recusa a execução caso `SheetRowSnapshot` já exista no banco de dados (disparando `RuntimeError`), ou se a aba na planilha nova já contiver dados. Isso previne duplicações acidentais.
+- **Com `--force`**: Limpa as abas da planilha nova (`clear("new", "A:ZZ")`), remove snapshots anteriores e reescreve todos os dados a partir do Django. **Atenção:** formatação manual, cores ou notas adicionadas na planilha nova serão perdidas.
+- **Com `--dry-run`**: Simula a operação de seed sem alterar a planilha ou criar registros no banco de dados.
+
+## PULL: Sincronização Google Sheets → Django (`pull_from_sheets`)
+
+O comando `pull_from_sheets` lê os dados da planilha nova e atualiza o banco de dados Django:
+
+```bash
+python manage.py pull_from_sheets --confirm [--dry-run] [--force] [--model PistolaGlock]
+```
+
+### Regras de Negócio e Segurança:
+1. **Confirmação Obrigatória**: Requer `--confirm` para execução real ou `--dry-run` para simulação segura.
+2. **Backup Automático**: Antes de aplicar alterações reais, gera um backup físico do banco de dados (tag `pull`).
+3. **Bloqueio Concorrente e Anti-Loop**: Utiliza `select_for_update()` em `SheetSyncState` no início da transação atômica e ativa `set_syncing(True)` para impedir loops e concorrência.
+4. **Sem Fabricação de Dados**: Campos obrigatórios vazios ou inválidos não recebem valores inventados; a linha é registrada com status `ERROR` em `SyncOperationRecord`.
+5. **Criação de Linhas Sem ID**: Quando uma nova linha é criada diretamente na planilha sem `id`, o sistema cria o registro no Django e escreve imediatamente o ID gerado na célula `A{linha}` da planilha para evitar duplicações em ciclos subsequentes.
+6. **Last Write Wins (LWW)**: Se a linha possui `id`, compara o campo `atualizado_em` da planilha com `data_atualizacao` do Django. Se o Django for mais recente, a alteração da planilha é ignorada com warning. Colunas marcadas como `read_only_columns` (como `atualizado_em`) não são sobrescritas.
+
+## PUSH: Sincronização Django → Google Sheets (`push_to_sheets`)
+
+O comando `push_to_sheets` envia registros novos ou modificados no Django para a planilha nova:
+
+```bash
+python manage.py push_to_sheets --confirm [--dry-run] [--since <ISO8601>] [--model PistolaGlock]
+```
+
+### Regras de Negócio e Segurança:
+1. **Marco Temporal Preciso**: O marco temporal (`marco = since or state.last_push_at`) é capturado **antes** de qualquer leitura de objetos para não perder updates concorrentes.
+2. **Atualização Atômica de Estado**: Ao finalizar, define `state.last_push_at = marco` (não `now()`), garantindo continuidade estrita para execuções seguintes.
+3. **Batch Updates em Lote**: Registros já mapeados por `SheetRowSnapshot` são atualizados via `values.batchUpdate` em lotes de 100 linhas com range explícito `A{row}:{last_col}{row}` (uma única chamada HTTP para até 100 alterações).
+4. **Novos Registros (`append_row`)**: Registros novos no Django que ainda não possuem snapshot utilizam `append_row` e registram o novo `SheetRowSnapshot` com `update_or_create`. Se o range retornado não fornecer o número da linha, faz fallback para `len(read_all) + 1` com warning log.
+5. **Atualização do Snapshot**: Após cada escrita, o `content_hash` do snapshot é recalculado e persistido para evitar que o pull seguinte interprete como modificação externa.
+
+
+

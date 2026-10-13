@@ -151,3 +151,42 @@ class SyncOperationModelsTests(TestCase):
         op.created_count = 1
         op.save()
         self.assertEqual(SyncOperation.objects.get(pk=op.pk).status, "SUCCESS")
+
+
+class ReadSheetAsDictsTests(TestCase):
+    """Testa diretamente a função read_sheet_as_dicts sem mockar sua lógica interna."""
+
+    @patch("integracoes.google_client.read_all")
+    def test_read_sheet_as_dicts_row_numbers_and_mapping(self, mock_read_all):
+        # Simula linhas brutas de planilha: Linha 1 = cabeçalho, Linhas 2 e 3 = dados
+        mock_read_all.return_value = [
+            ["IGNORADO", "PATRIMONIO", "SERIE", "MODELO"],       # Linha 1
+            ["X", "PAT-01", "SERIE-01", "GLOCK G22"],             # Linha 2
+            ["Y", "PAT-02", "SERIE-02", "GLOCK G22"],             # Linha 3
+            ["Z", "", "", ""],                                     # Linha 4 (vazia)
+            ["W", "PAT-03", "SERIE-03", "GLOCK G22"],             # Linha 5
+        ]
+
+        from integracoes.google_client import read_sheet_as_dicts
+
+        cols = {"B": "patrimonio", "C": "serie", "D": "modelo"}
+        dicts = read_sheet_as_dicts(
+            spreadsheet_id_or_target="legacy",
+            sheet_name="PISTOLAS GLOCK",
+            header_row=1,
+            data_start_row=2,
+            columns=cols,
+            stop_on_blank_lookup=True,
+            lookup_key="patrimonio",
+        )
+
+        # Como a linha 4 tem lookup vazio e stop_on_blank_lookup=True, deve parar antes da linha 5
+        self.assertEqual(len(dicts), 2)
+        self.assertEqual(dicts[0]["_row_number"], 2)
+        self.assertEqual(dicts[0]["patrimonio"], "PAT-01")
+        self.assertEqual(dicts[0]["serie"], "SERIE-01")
+        self.assertEqual(dicts[0]["modelo"], "GLOCK G22")
+
+        self.assertEqual(dicts[1]["_row_number"], 3)
+        self.assertEqual(dicts[1]["patrimonio"], "PAT-02")
+

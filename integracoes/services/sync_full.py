@@ -25,7 +25,9 @@ from integracoes.exceptions import SheetsSyncDisabledError
 from integracoes.google_client import (
     append_row,
     batch_update,
+    clear,
     list_sheet_titles,
+    read_all,
     update_row,
 )
 from integracoes.mapping import NEW_SHEET_MAP, SYNC_ORDER, get_model_class
@@ -157,9 +159,12 @@ def _finalize_operation(op: SyncOperation, summary: dict[str, Any]) -> dict[str,
     return summary
 
 
-def seed_new_spreadsheet(dry_run: bool = False) -> dict[str, Any]:
+def seed_new_spreadsheet(dry_run: bool = False, force: bool = False) -> dict[str, Any]:
     """Popula a planilha nova com o estado atual do Django (abas 1:1).
 
+    - Guard de 'já executado': sem force, recusa se SheetRowSnapshot existir.
+    - Se force=True: limpa abas na planilha nova (clear A:ZZ) e reescreve tudo.
+    - Se force=False e aba tiver conteúdo mas sem snapshots: aborta com erro.
     - Cria SyncOperation(operation_type="SEED")
     - Sem backup físico (seed só escreve na planilha nova + snapshots)
     - Para cada model em SYNC_ORDER: cria aba, cabeçalho, append em lotes de 500
@@ -168,16 +173,25 @@ def seed_new_spreadsheet(dry_run: bool = False) -> dict[str, Any]:
     """
     _assert_sheets_sync_enabled()
 
+    if not dry_run and not force:
+        if SheetRowSnapshot.objects.exists():
+            raise RuntimeError(
+                "Seed já foi executado (SheetRowSnapshot existente). "
+                "Use --force para re-executar — atenção: isso limpa as abas "
+                "da planilha nova e reescreve tudo (formatação manual será perdida)."
+            )
+
     op = SyncOperation.objects.create(
         operation_type="SEED",
         status="IN_PROGRESS",
         backup_file_path=None,
-        metadata={"dry_run": dry_run},
+        metadata={"dry_run": dry_run, "force": force},
     )
 
     summary: dict[str, Any] = {
         "operation_id": op.pk,
         "dry_run": dry_run,
+        "force": force,
         "total": 0,
         "created": 0,
         "errors": 0,
@@ -206,10 +220,27 @@ def seed_new_spreadsheet(dry_run: bool = False) -> dict[str, Any]:
             model_stats = {"total": 0, "created": 0, "errors": 0}
             summary["per_model"][model_name] = model_stats
 
+            if not dry_run and not force:
+                existing_rows = read_all("new", sheet_name)
+                if existing_rows:
+                    msg = (
+                        f"Aba '{sheet_name}' já possui conteúdo na planilha nova, "
+                        "mas SheetRowSnapshot está vazio. Abortando para evitar misturar dados. "
+                        "Use --force para limpar e reescrever."
+                    )
+                    op.error_message = msg
+                    op.status = "FAILED"
+                    op.save(update_fields=["error_message", "status"])
+                    raise RuntimeError(msg)
+
             try:
                 existing_titles = _ensure_sheet_exists(existing_titles, sheet_name, dry_run)
 
                 if not dry_run:
+                    if force:
+                        clear("new", _sheet_range(sheet_name, "A:ZZ"))
+                        SheetRowSnapshot.objects.filter(model_name=model_name).delete()
+
                     update_row(
                         "new",
                         _sheet_range(sheet_name, "A1"),
@@ -334,6 +365,10 @@ def seed_new_spreadsheet(dry_run: bool = False) -> dict[str, Any]:
         logger.error("Falha geral no seed: %s", exc, exc_info=True)
         summary["errors"] += 1
         op.error_message = str(exc)
+        _finalize_operation(op, summary)
+        if isinstance(exc, RuntimeError):
+            raise
+        return summary
 
     return _finalize_operation(op, summary)
 

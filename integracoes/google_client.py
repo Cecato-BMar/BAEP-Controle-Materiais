@@ -161,12 +161,14 @@ def read_all(spreadsheet_id_or_target: str, sheet_name: str) -> list[list[Any]]:
 def read_sheet_as_dicts(
     spreadsheet_id_or_target: str,
     sheet_name: str,
+    header_row: int = 1,
     data_start_row: int = 2,
     columns: dict[str, str] | None = None,
     stop_on_blank_lookup: bool = True,
     lookup_key: str | None = None,
     filter_rows: Callable[[dict[str, Any]], bool] | None = None,
 ) -> list[dict[str, Any]]:
+
     """Lê uma aba da planilha e converte as linhas em lista de dicionários mapeados por coluna.
 
     Cada dicionário resultante inclui '_row_number' indicando a linha física 1-based original.
@@ -295,15 +297,31 @@ def clear(spreadsheet_id_or_target: str, range_name: str) -> dict[str, Any]:
 
 
 def batch_update(
-    spreadsheet_id_or_target: str, requests: list[dict[str, Any]]
+    spreadsheet_id_or_target: str,
+    requests: list[dict[str, Any]],
+    value_input_option: str = "USER_ENTERED",
 ) -> dict[str, Any]:
     """Executa um lote de modificações (batchUpdate) na planilha nova.
 
+    Se requests contiver dicts com 'range' e 'values', utiliza values().batchUpdate.
+    Caso contrário, executa batchUpdate geral de schema/abas.
     BARREIRA: Levanta LegacySheetWriteForbidden imediatamente se o alvo for legado.
     """
     actual_id = _assert_write_allowed(spreadsheet_id_or_target)
     service = get_new_service()
     try:
+        if requests and any("range" in r for r in requests):
+            body = {
+                "valueInputOption": value_input_option,
+                "data": requests,
+            }
+            return (
+                service.spreadsheets()
+                .values()
+                .batchUpdate(spreadsheetId=actual_id, body=body)
+                .execute()
+            )
+
         body = {"requests": requests}
         return (
             service.spreadsheets()
