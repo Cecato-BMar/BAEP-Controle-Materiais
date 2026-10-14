@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Entrega #{{ entrega.pk }} | Logística 2ºBAEP{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.7rem;">
+            <i class="fas fa-box text-primary me-2"></i>Detalhes da Entrega #{{ entrega.pk }}
+        </h1>
+        <p class="text-muted mb-0">Visualização detalhada do fardamento concedido e auditoria de alertas</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'uniformes:lista_entregas' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Voltar
+        </a>
+        {% if entrega.ativa %}
+        <a href="{% url 'uniformes:editar_entrega' entrega.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit me-1"></i>Editar Entrega
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Coluna Principal: Dados da Entrega -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="fw-bold mb-0 text-secondary">
+                    <i class="fas fa-clipboard-check text-primary me-2"></i>Informações da Entrega
+                </h5>
+                <div>
+                    {% if not entrega.ativa %}
+                        <span class="badge bg-secondary px-3 py-2">
+                            <i class="fas fa-ban me-1"></i>Entrega Cancelada
+                        </span>
+                    {% elif entrega.esta_vencido %}
+                        <span class="badge bg-danger px-3 py-2">
+                            <i class="fas fa-times-circle me-1"></i>Vencido ({{ entrega.dias_restantes }} dias)
+                        </span>
+                    {% elif entrega.esta_em_alerta %}
+                        <span class="badge bg-warning text-dark px-3 py-2">
+                            <i class="fas fa-clock me-1"></i>Vencendo em {{ entrega.dias_restantes }} dias
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success px-3 py-2">
+                            <i class="fas fa-check-circle me-1"></i>Regular / Em dia ({{ entrega.dias_restantes }} dias restantes)
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <!-- Seção Policial -->
+                <div class="row align-items-center pb-4 mb-4 border-bottom">
+                    <div class="col-auto">
+                        {% if entrega.policial.foto %}
+                            <img src="{{ entrega.policial.foto.url }}" alt="{{ entrega.policial.nome }}" class="rounded-circle border" style="width: 70px; height: 70px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 1.8rem; font-weight: 700;">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-light text-muted border mb-1">Policial Militar</span>
+                        <h4 class="fw-bold mb-1 text-dark">{{ entrega.policial.nome }}</h4>
+                        <div class="text-muted">
+                            <span class="me-3"><strong>RE:</strong> {{ entrega.policial.re }}</span>
+                            <span class="me-3"><strong>Posto/Graduação:</strong> {{ entrega.policial.posto }}</span>
+                            {% if entrega.policial.situacao %}
+                                <span><strong>Situação:</strong> {{ entrega.policial.situacao }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção Uniforme e Prazos -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Item Entregue</small>
+                            <h5 class="fw-bold text-dark mb-1">{{ entrega.tipo_uniforme.nome }}</h5>
+                            <div class="text-muted small">
+                                Quantidade: <strong class="text-dark">{{ entrega.quantidade }} unidade(s)</strong>
+                            </div>
+                            <div class="text-muted small">
+                                Prazo de Renovação: {{ entrega.tipo_uniforme.prazo_meses }} meses
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Controle Temporal</small>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Data da Entrega:</span>
+                                <strong class="text-dark">{{ entrega.data_entrega|date:"d/m/Y" }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Vencimento Calculado:</span>
+                                <strong class="text-dark">{{ entrega.data_vencimento_calc|date:"d/m/Y" }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted small">Dias Restantes:</span>
+                                <span>
+                                    {% if entrega.esta_vencido %}
+                                        <strong class="text-danger">{{ entrega.dias_restantes }} dias (Vencido)</strong>
+                                    {% else %}
+                                        <strong class="text-success">{{ entrega.dias_restantes }} dias</strong>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observações -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-secondary mb-2">
+                        <i class="fas fa-comment-alt me-1 text-primary"></i>Observações
+                    </h6>
+                    <div class="p-3 bg-light rounded-3 text-muted">
+                        {{ entrega.observacoes|default:"Nenhuma observação registrada para esta entrega."|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- Auditoria -->
+                <div class="row g-2 pt-3 border-top text-muted small">
+                    <div class="col-sm-4">
+                        <i class="fas fa-user-check me-1"></i><strong>Entregue por:</strong><br>
+                        {{ entrega.entregue_por.get_full_name|default:entrega.entregue_por.username|default:"Não informado" }}
+                    </div>
+                    <div class="col-sm-4">
+                        <i class="fas fa-calendar-plus me-1"></i><strong>Cadastrado em:</strong><br>
+                        {{ entrega.criado_em|date:"d/m/Y H:i" }}
+                    </div>
+                    <div class="col-sm-4">
+                        <i class="fas fa-history me-1"></i><strong>Última atualização:</strong><br>
+                        {{ entrega.atualizado_em|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zona de Perigo / Ação de Cancelamento -->
+            <div class="card-footer bg-white py-3 border-top">
+                {% if entrega.ativa %}
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="small text-muted">
+                        <i class="fas fa-info-circle me-1"></i>Caso este lançamento tenha ocorrido por engano, você pode desativá-lo.
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelarEntregaModal">
+                        <i class="fas fa-times-circle me-1"></i>Cancelar Entrega
+                    </button>
+                </div>
+                {% else %}
+                <div class="alert alert-secondary mb-0 py-2 small d-flex align-items-center">
+                    <i class="fas fa-ban me-2 text-danger"></i>
+                    Esta entrega foi cancelada administrativamente e não gera mais notificações ou pendências.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna Lateral: Histórico de Alertas -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0 text-secondary">
+                    <i class="fas fa-bell text-warning me-2"></i>Histórico de Alertas
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if alertas %}
+                <div class="list-group list-group-flush">
+                    {% for alerta in alertas %}
+                    <div class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="small fw-bold text-dark">
+                                <i class="fas fa-calendar-alt me-1 text-muted"></i>{{ alerta.criado_em|date:"d/m/Y H:i" }}
+                            </span>
+                            {% if alerta.lido %}
+                                <span class="badge bg-success">Lido</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pendente</span>
+                            {% endif %}
+                        </div>
+                        {% if alerta.lido %}
+                            <small class="text-muted d-block">
+                                Lido por <strong>{{ alerta.lido_por.get_full_name|default:alerta.lido_por.username|default:"Usuário" }}</strong>
+                                em {{ alerta.lido_em|date:"d/m/Y H:i" }}
+                            </small>
+                        {% else %}
+                            <small class="text-danger d-block">
+                                <i class="fas fa-clock me-1"></i>Aguardando leitura do operador
+                            </small>
+                            <form method="post" action="{% url 'uniformes:marcar_alerta_lido' alerta.pk %}" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                                    <i class="fas fa-check me-1"></i>Marcar como lido
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-bell-slash fa-2x opacity-25 mb-2"></i>
+                    <p class="small mb-0">Nenhum alerta gerado para esta entrega até o momento.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmação de Cancelamento -->
+{% if entrega.ativa %}
+<div class="modal fade" id="cancelarEntregaModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelarModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Cancelamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p>Tem certeza de que deseja <strong>cancelar</strong> este registro de entrega?</p>
+                <div class="alert alert-light border small text-muted">
+                    <div><strong>Item:</strong> {{ entrega.tipo_uniforme.nome }} ({{ entrega.quantidade }}x)</div>
+                    <div><strong>Policial:</strong> {{ entrega.policial.nome }} (RE: {{ entrega.policial.re }})</div>
+                    <div><strong>Data da Entrega:</strong> {{ entrega.data_entrega|date:"d/m/Y" }}</div>
+                </div>
+                <p class="small text-muted mb-0">
+                    O registro será marcado como inativo e preservado no histórico de auditoria.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                <form method="post" action="{% url 'uniformes:excluir_entrega' entrega.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban me-1"></i>Confirmar Cancelamento
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

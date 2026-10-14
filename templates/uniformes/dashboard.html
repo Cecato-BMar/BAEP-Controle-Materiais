@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Uniformes | Logística 2ºBAEP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-stat {
+        border-radius: 15px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .card-stat:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        color: inherit;
+    }
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+    }
+    .stat-value {
+        font-size: 1.9rem;
+        font-weight: 800;
+        margin-bottom: 0;
+        line-height: 1.1;
+    }
+    .stat-label {
+        color: #64748b;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .pulse-danger {
+        animation: pulseAnimation 2s infinite;
+    }
+    @keyframes pulseAnimation {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.7rem;">
+            <i class="fas fa-tshirt text-primary me-2"></i>Controle de Uniformes
+        </h1>
+        <p class="text-muted mb-0">Gestão de entregas, prazos de validade e alertas de renovação</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'uniformes:lista_tipos' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-tags me-1"></i>Catálogo de Tipos
+        </a>
+        <a href="{% url 'uniformes:lista_alertas' %}" class="btn btn-outline-warning">
+            <i class="fas fa-bell me-1"></i>Ver Alertas
+            {% if alertas_pendentes_count > 0 %}
+                <span class="badge bg-danger ms-1">{{ alertas_pendentes_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'uniformes:criar_entrega' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nova Entrega
+        </a>
+    </div>
+</div>
+
+<!-- 4 Cards KPI -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Tipos Ativos -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'uniformes:lista_tipos' %}?ativo=1" class="card card-stat h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                </div>
+                <div class="stat-label">Tipos Ativos</div>
+                <h3 class="stat-value text-primary">{{ tipos_ativos_count }}</h3>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 2: Entregas em Vigor -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'uniformes:lista_entregas' %}?ativa=1" class="card card-stat h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="icon-box bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+                <div class="stat-label">Entregas em Vigor</div>
+                <h3 class="stat-value text-success">{{ entregas_ativas_count }}</h3>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 3: Entregas Vencidas -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'uniformes:lista_entregas' %}?vencidas=1" class="card card-stat h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="icon-box {% if entregas_vencidas_count > 0 %}bg-danger bg-opacity-10 text-danger pulse-danger{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    {% if entregas_vencidas_count > 0 %}
+                        <span class="badge bg-danger">Atenção</span>
+                    {% endif %}
+                </div>
+                <div class="stat-label">Entregas Vencidas</div>
+                <h3 class="stat-value {% if entregas_vencidas_count > 0 %}text-danger{% else %}text-muted{% endif %}">
+                    {{ entregas_vencidas_count }}
+                </h3>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 4: Alertas Pendentes -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'uniformes:lista_alertas' %}?lido=0" class="card card-stat h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="icon-box {% if alertas_pendentes_count > 0 %}bg-warning bg-opacity-10 text-warning{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    {% if alertas_pendentes_count > 0 %}
+                        <span class="badge bg-warning text-dark">Pendentes</span>
+                    {% endif %}
+                </div>
+                <div class="stat-label">Alertas Pendentes</div>
+                <h3 class="stat-value {% if alertas_pendentes_count > 0 %}text-warning{% else %}text-muted{% endif %}">
+                    {{ alertas_pendentes_count }}
+                </h3>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Tabela: Últimas 10 Entregas -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="fw-bold mb-0 text-secondary">
+            <i class="fas fa-history me-2 text-primary"></i>Últimas 10 Entregas Registradas
+        </h5>
+        <a href="{% url 'uniformes:lista_entregas' %}" class="btn btn-sm btn-outline-primary">
+            Ver Todas as Entregas <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="min-width: 180px;">Policial</th>
+                        <th scope="col">Tipo de Uniforme</th>
+                        <th scope="col" class="text-center">Qtd</th>
+                        <th scope="col">Data Entrega</th>
+                        <th scope="col">Vencimento</th>
+                        <th scope="col" class="text-center">Status</th>
+                        <th scope="col" class="text-end" style="min-width: 100px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in ultimas_entregas %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 rounded-circle text-primary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-weight: 700; font-size: 0.8rem;">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ entrega.policial.nome }}</div>
+                                    <small class="text-muted">RE: {{ entrega.policial.re }} - {{ entrega.policial.posto }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ entrega.tipo_uniforme.nome }}</div>
+                            <small class="text-muted">Validade: {{ entrega.tipo_uniforme.prazo_meses }} meses</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">{{ entrega.quantidade }}</span>
+                        </td>
+                        <td>{{ entrega.data_entrega|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ entrega.data_vencimento_calc|date:"d/m/Y" }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if entrega.esta_vencido %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Vencido ({{ entrega.dias_restantes }}d)
+                                </span>
+                            {% elif entrega.esta_em_alerta %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Vencendo em {{ entrega.dias_restantes }}d
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Em dia
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'uniformes:detalhe_entrega' entrega.pk %}" class="btn btn-sm btn-outline-primary" title="Ver Detalhes">
+                                <i class="fas fa-eye me-1"></i>Detalhes
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-3">
+                                <i class="fas fa-box-open fa-3x opacity-25"></i>
+                            </div>
+                            <h6 class="fw-bold text-secondary">Nenhuma entrega registrada ainda</h6>
+                            <p class="text-muted small mb-3">Comece registrando a primeira entrega de uniforme para a tropa.</p>
+                            <a href="{% url 'uniformes:criar_entrega' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Registrar Primeira Entrega
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -49,6 +49,7 @@ urlpatterns = [
     path('inventario/', include('inventario.urls')),
     path('administracao/', include('administracao.urls')),
     path('tutorial/', include('tutorial.urls')),
+    path('uniformes/', include('uniformes.urls')),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('termos/', views.termos, name='termos'),
     path('privacidade/', views.privacidade, name='privacidade'),

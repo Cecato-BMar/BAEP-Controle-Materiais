@@ -18,6 +18,4 @@ django-simple-history
 google-api-python-client>=2.100
 google-auth>=2.20
 google-auth-httplib2>=0.1.1
-
-
-
+python-dateutil>=2.8.2

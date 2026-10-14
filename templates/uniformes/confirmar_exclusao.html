@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Cancelamento de Entrega | Logística 2ºBAEP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-6 col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="text-danger mb-3">
+                    <i class="fas fa-exclamation-triangle fa-4x"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">Cancelar Entrega?</h3>
+                <p class="text-muted mb-4">
+                    Tem certeza de que deseja cancelar este registro de entrega?
+                </p>
+
+                <div class="card bg-light border-0 rounded-3 text-start p-3 mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Policial:</span>
+                        <strong class="text-dark">{{ entrega.policial.nome }} (RE: {{ entrega.policial.re }})</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Item:</span>
+                        <strong class="text-dark">{{ entrega.tipo_uniforme.nome }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Quantidade:</span>
+                        <strong class="text-dark">{{ entrega.quantidade }} unidade(s)</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Data da Entrega:</span>
+                        <strong class="text-dark">{{ entrega.data_entrega|date:"d/m/Y" }}</strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning small border-0 bg-warning bg-opacity-10 text-dark text-start mb-4">
+                    <i class="fas fa-info-circle text-warning me-2"></i>
+                    <strong>Atenção:</strong> A entrega será marcada como cancelada/inativa, desativando alertas futuros, mas permanecerá registrada para fins de rastreabilidade e histórico da Seção de Logística.
+                </div>
+
+                <form method="post" action="{% url 'uniformes:excluir_entrega' entrega.pk %}" class="d-flex justify-content-center gap-2">
+                    {% csrf_token %}
+                    <a href="{% url 'uniformes:detalhe_entrega' entrega.pk %}" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar
+                    </a>
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="fas fa-ban me-1"></i>Confirmar Cancelamento
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

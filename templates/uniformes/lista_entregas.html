@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Entregas de Uniforme | Logística 2ºBAEP{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.7rem;">
+            <i class="fas fa-box text-primary me-2"></i>Entregas de Uniforme
+        </h1>
+        <p class="text-muted mb-0">Registro de entregas, status e vencimentos</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'uniformes:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Dashboard
+        </a>
+        <a href="{% url 'uniformes:criar_entrega' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nova Entrega
+        </a>
+    </div>
+</div>
+
+<!-- Card de Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4 col-sm-12">
+                <label for="id_q" class="form-label small fw-semibold text-muted mb-1">Buscar Policial</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="q" id="id_q" value="{{ q }}" class="form-control border-start-0" placeholder="Nome ou RE do policial...">
+                </div>
+            </div>
+
+            <div class="col-md-2 col-sm-6">
+                <label for="id_tipo" class="form-label small fw-semibold text-muted mb-1">Tipo de Uniforme</label>
+                <select name="tipo" id="id_tipo" class="form-select">
+                    <option value="">Todos os Tipos</option>
+                    {% for t in tipos %}
+                        <option value="{{ t.pk }}" {% if tipo_filtro == t.pk %}selected{% endif %}>{{ t.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 col-sm-6">
+                <label for="id_ativa" class="form-label small fw-semibold text-muted mb-1">Situação</label>
+                <select name="ativa" id="id_ativa" class="form-select">
+                    <option value="" {% if not ativa_filtro %}selected{% endif %}>Todas as Entregas</option>
+                    <option value="1" {% if ativa_filtro == '1' %}selected{% endif %}>Em Vigor (Ativas)</option>
+                    <option value="0" {% if ativa_filtro == '0' %}selected{% endif %}>Canceladas / Inativas</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 col-sm-6 d-flex align-items-center pb-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="vencidas" value="1" id="id_vencidas" {% if vencidas_filtro == '1' %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold text-danger small" for="id_vencidas">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Só vencidas
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-2 col-sm-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i>Filtrar
+                </button>
+                {% if q or ativa_filtro or tipo_filtro or vencidas_filtro %}
+                <a href="{% url 'uniformes:lista_entregas' %}" class="btn btn-outline-secondary" title="Limpar Filtros">
+                    <i class="fas fa-undo"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela de Entregas -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="min-width: 200px;">Policial</th>
+                        <th scope="col">Tipo de Uniforme</th>
+                        <th scope="col" class="text-center">Qtd</th>
+                        <th scope="col">Data Entrega</th>
+                        <th scope="col">Vencimento</th>
+                        <th scope="col" class="text-center">Status</th>
+                        <th scope="col" class="text-end" style="min-width: 140px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in page_obj %}
+                    <tr {% if not entrega.ativa %}class="table-light text-muted opacity-75"{% endif %}>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 rounded-circle text-primary d-flex align-items-center justify-content-center me-2" style="width: 34px; height: 34px; font-weight: 700; font-size: 0.85rem;">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ entrega.policial.nome }}</div>
+                                    <small class="text-muted">RE: {{ entrega.policial.re }} - {{ entrega.policial.posto }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ entrega.tipo_uniforme.nome }}</div>
+                            <small class="text-muted">Ciclo: {{ entrega.tipo_uniforme.prazo_meses }} meses</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">{{ entrega.quantidade }}</span>
+                        </td>
+                        <td>{{ entrega.data_entrega|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ entrega.data_vencimento_calc|date:"d/m/Y" }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if not entrega.ativa %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-ban me-1"></i>Cancelada
+                                </span>
+                            {% elif entrega.esta_vencido %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Vencido ({{ entrega.dias_restantes }}d)
+                                </span>
+                            {% elif entrega.esta_em_alerta %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Vencendo em {{ entrega.dias_restantes }}d
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Em dia
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'uniformes:detalhe_entrega' entrega.pk %}" class="btn btn-outline-primary" title="Ver Detalhes">
+                                    <i class="fas fa-eye me-1"></i>Detalhes
+                                </a>
+                                <a href="{% url 'uniformes:editar_entrega' entrega.pk %}" class="btn btn-outline-secondary" title="Editar Entrega">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-3">
+                                <i class="fas fa-box-open fa-3x opacity-25"></i>
+                            </div>
+                            <h6 class="fw-bold text-secondary">Nenhuma entrega encontrada</h6>
+                            <p class="text-muted small mb-3">
+                                {% if q or ativa_filtro or tipo_filtro or vencidas_filtro %}
+                                    Nenhum registro corresponde aos filtros selecionados.
+                                {% else %}
+                                    Nenhuma entrega de uniforme foi registrada no sistema.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'uniformes:criar_entrega' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Registrar Primeira Entrega
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3 border-top">
+        <small class="text-muted">
+            Mostrando página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} registros)
+        </small>
+        <nav aria-label="Navegação de páginas">
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ q|urlencode }}&ativa={{ ativa_filtro|default:'' }}&tipo={{ tipo_filtro|default:'' }}&vencidas={{ vencidas_filtro|default:'' }}&page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ q|urlencode }}&ativa={{ ativa_filtro|default:'' }}&tipo={{ tipo_filtro|default:'' }}&vencidas={{ vencidas_filtro|default:'' }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ q|urlencode }}&ativa={{ ativa_filtro|default:'' }}&tipo={{ tipo_filtro|default:'' }}&vencidas={{ vencidas_filtro|default:'' }}&page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

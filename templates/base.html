@@ -550,7 +550,7 @@
                 </li>
 
                 <!-- MÓDULO OPERACIONAL -->
-                {% if user.is_superuser or 'reserva_armas' in user_groups or 'frota' in user_groups or 'telematica' in user_groups %}
+                {% if user.is_superuser or 'reserva_armas' in user_groups or 'frota' in user_groups or 'telematica' in user_groups or 'uniformes' in user_groups %}
                 <div class="sidebar-heading"><i class="fas fa-shield-alt"></i> Operacional</div>
                 
                 {% if user.is_superuser or 'reserva_armas' in user_groups %}
@@ -679,6 +679,32 @@
                                 <a class="nav-link text-info" href="{% url 'relatorios:gerar_relatorio_telematica' %}" target="_blank">
                                     <i class="fas fa-file-pdf small me-2"></i>Emitir Relatórios
                                 </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if user.is_superuser or 'uniformes' in user_groups %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center {% if 'uniformes' in request.path %}active{% endif %}"
+                        data-bs-toggle="collapse" href="#collapseUniformes" role="button">
+                        <span><i class="fas fa-tshirt"></i> Uniformes</span>
+                        <i class="fas fa-chevron-right small opacity-50 transition-icon"></i>
+                    </a>
+                    <div class="collapse {% if 'uniformes' in request.path %}show{% endif %}" id="collapseUniformes">
+                        <ul class="nav flex-column sidebar-submenu">
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'uniformes' in request.path and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'uniformes:dashboard' %}">Visão Geral</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'uniformes' in request.path and request.resolver_match.url_name == 'lista_entregas' %}active{% endif %}" href="{% url 'uniformes:lista_entregas' %}">Entregas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'uniformes' in request.path and request.resolver_match.url_name == 'lista_tipos' %}active{% endif %}" href="{% url 'uniformes:lista_tipos' %}">Catálogo</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if 'uniformes' in request.path and request.resolver_match.url_name == 'lista_alertas' %}active{% endif %}" href="{% url 'uniformes:lista_alertas' %}">Alertas</a>
                             </li>
                         </ul>
                     </div>

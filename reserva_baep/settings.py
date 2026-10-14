@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     'inventario.apps.InventarioConfig',
     'tutorial.apps.TutorialConfig',
     'integracoes',
+    'uniformes',
 ]
 
 # ---------------------------------------------------------------------------

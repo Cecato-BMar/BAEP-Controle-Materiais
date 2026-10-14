@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo de Tipos | Logística 2ºBAEP{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold mb-0" style="font-size: 1.7rem;">
+            <i class="fas fa-tags text-primary me-2"></i>Catálogo de Tipos de Uniforme
+        </h1>
+        <p class="text-muted mb-0">Tipos, prazos de renovação e configuração de alertas</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'uniformes:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Dashboard
+        </a>
+        <a href="{% url 'uniformes:criar_tipo' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Novo Tipo
+        </a>
+    </div>
+</div>
+
+<!-- Card de Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6 col-sm-12">
+                <label for="id_q" class="form-label small fw-semibold text-muted mb-1">Buscar por Nome</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="q" id="id_q" value="{{ q }}" class="form-control border-start-0" placeholder="Ex: Calça Tática, Coturno, Camisa...">
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <label for="id_ativo" class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select name="ativo" id="id_ativo" class="form-select">
+                    <option value="" {% if not ativo_filtro %}selected{% endif %}>Todos os Status</option>
+                    <option value="1" {% if ativo_filtro == '1' %}selected{% endif %}>Somente Ativos</option>
+                    <option value="0" {% if ativo_filtro == '0' %}selected{% endif %}>Somente Inativos</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-sm-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i>Filtrar
+                </button>
+                {% if q or ativo_filtro %}
+                <a href="{% url 'uniformes:lista_tipos' %}" class="btn btn-outline-secondary" title="Limpar Filtros">
+                    <i class="fas fa-undo"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabela de Tipos -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="min-width: 220px;">Nome do Uniforme</th>
+                        <th scope="col">Prazo de Validade</th>
+                        <th scope="col">Dias de Alerta Prévio</th>
+                        <th scope="col" class="text-center">Status</th>
+                        <th scope="col" class="text-end" style="min-width: 100px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tipo in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ tipo.nome }}</div>
+                            {% if tipo.descricao %}
+                                <small class="text-muted d-block">{{ tipo.descricao|truncatechars:60 }}</small>
+                            {% else %}
+                                <small class="text-muted fst-italic">Sem descrição</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-calendar-alt text-primary me-1"></i>{{ tipo.prazo_meses }} meses
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted">
+                                <i class="fas fa-bell text-warning me-1"></i>{{ tipo.dias_alerta }} dias antes
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            {% if tipo.ativo %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Ativo
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-ban me-1"></i>Inativo
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'uniformes:editar_tipo' tipo.pk %}" class="btn btn-sm btn-outline-primary" title="Editar Tipo">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted mb-3">
+                                <i class="fas fa-tags fa-3x opacity-25"></i>
+                            </div>
+                            <h6 class="fw-bold text-secondary">Nenhum tipo de uniforme encontrado</h6>
+                            <p class="text-muted small mb-3">
+                                {% if q or ativo_filtro %}
+                                    Nenhum registro corresponde aos filtros selecionados.
+                                {% else %}
+                                    Cadastre os tipos de uniforme (ex: Calça Tática, Coturno) para gerenciar entregas.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'uniformes:criar_tipo' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Cadastrar Primeiro Tipo
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3 border-top">
+        <small class="text-muted">
+            Mostrando página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} registros)
+        </small>
+        <nav aria-label="Navegação de páginas">
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ q|urlencode }}&ativo={{ ativo_filtro|default:'' }}&page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ q|urlencode }}&ativo={{ ativo_filtro|default:'' }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ q|urlencode }}&ativo={{ ativo_filtro|default:'' }}&page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
