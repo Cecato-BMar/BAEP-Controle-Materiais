@@ -861,3 +861,34 @@ class LogExclusaoMaterial(models.Model):
         return f"{self.data_exclusao.strftime('%d/%m/%Y %H:%M')} - {self.nome_material}"
 
 
+class AnexoMovimentacao(models.Model):
+    """Arquivos comprobatórios anexados a uma movimentação de estoque."""
+    TIPO_CHOICES = [
+        ("NFE", "Nota Fiscal Eletrônica"),
+        ("EMPENHO", "Nota de Empenho"),
+        ("RECIBO", "Recibo Assinado"),
+        ("OUTRO", "Outro"),
+    ]
+
+    movimentacao = models.ForeignKey(
+        MovimentacaoEstoque, on_delete=models.CASCADE,
+        related_name="anexos", verbose_name="Movimentação",
+    )
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default="OUTRO")
+    arquivo = models.FileField(upload_to="comprovantes_estoque/%Y/%m/")
+    nome_original = models.CharField(max_length=255, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    criado_por = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "Anexo de Movimentação"
+        verbose_name_plural = "Anexos de Movimentação"
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.nome_original}"
+
+
+

@@ -70,3 +70,6 @@ lcm_diversos_categorizado.xml
 # Diretórios clonados/worktrees locais
 BAEP-Controle-Materiais-*/
 BAEP-Controle-Materiais-*.worktrees/
+
+# Backup files
+Dockerfile.bak

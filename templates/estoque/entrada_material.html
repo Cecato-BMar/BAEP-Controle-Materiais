@@ -7,6 +7,17 @@
 <div class="row justify-content-center">
   <div class="col-xl-10">
 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-bold mb-0">
+          <i class="fas fa-arrow-down text-success me-1"></i> Entrada de Material
+        </h5>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-abrir-importacao">
+        <i class="fas fa-file-import me-1"></i> Importar via DANFE/Empenho
+      </button>
+    </div>
+
     <div class="card border-0 shadow">
       <div class="card-header bg-success text-white d-flex align-items-center gap-2">
         <i class="fas fa-arrow-down fa-lg"></i>
@@ -47,6 +58,128 @@
     </div>
 
   </div>
+</div>
+
+<!-- MODAL DE IMPORTAÇÃO DE PDFS (DANFE + EMPENHO) -->
+<div class="modal fade" id="modalImportacao" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-import me-2"></i> Importar de DANFE + Empenho
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- ESTADO A: UPLOAD -->
+                <div id="estado-upload">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Envie os dois PDFs. A extração pode levar até 15 segundos (OCR da DANFE).
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">DANFE / Nota Fiscal (PDF)</label>
+                            <input type="file" class="form-control" id="input-nfe-pdf" accept=".pdf,application/pdf">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nota de Empenho (PDF)</label>
+                            <input type="file" class="form-control" id="input-empenho-pdf" accept=".pdf,application/pdf">
+                        </div>
+                    </div>
+                    <div id="erro-extracao" class="alert alert-danger mt-3 d-none"></div>
+                    <div id="spinner-extracao" class="text-center my-4 d-none">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 mb-0">Extraindo dados dos PDFs...</p>
+                    </div>
+                </div>
+
+                <!-- ESTADO B: REVISÃO -->
+                <div id="estado-revisao" class="d-none">
+                    <!-- Header resumido -->
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body py-2">
+                            <div class="row g-2 small">
+                                <div class="col-md-3"><strong>NF:</strong> <span id="rev-nf">-</span></div>
+                                <div class="col-md-3"><strong>Empenho:</strong> <span id="rev-empenho">-</span></div>
+                                <div class="col-md-3"><strong>Data:</strong> <span id="rev-data">-</span></div>
+                                <div class="col-md-3"><strong>Fornecedor:</strong> <span id="rev-fornecedor">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas de validação -->
+                    <div id="alertas-validacao"></div>
+
+                    <!-- Tabela de itens -->
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Descrição (NFe / Empenho)</th>
+                                    <th style="width: 80px;">Qtd</th>
+                                    <th style="width: 100px;">Vl. Unit.</th>
+                                    <th style="width: 100px;">Total</th>
+                                    <th style="width: 280px;">Produto *</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-itens"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="erro-confirmacao" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-extrair">Extrair Dados</button>
+                <button type="button" class="btn btn-success d-none" id="btn-confirmar" disabled>
+                    <i class="fas fa-check me-1"></i> Confirmar Importação
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CADASTRO NOVO PRODUTO -->
+<div class="modal fade" id="modalNovoProduto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Cadastrar Novo Produto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" class="form-control" id="np-nome" maxlength="200">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Código CATMAT</label>
+                    <input type="text" class="form-control" id="np-catmat" maxlength="50">
+                    <small class="text-muted">Preenchido automaticamente do Empenho</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Categoria *</label>
+                    <select class="form-select" id="np-categoria">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Unidade de Medida</label>
+                    <select class="form-select" id="np-unidade">
+                        <option value="">Opcional...</option>
+                    </select>
+                </div>
+                <div id="erro-novo-produto" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btn-salvar-novo-produto">Salvar Produto</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -168,6 +301,381 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   // Calcular inicial se houver valores
   calcularTotal();
+});
+
+// =============================================================================
+// IMPORTAÇÃO DE NFE/EMPENHO (Bloco 3c)
+// =============================================================================
+
+// Dados pré-carregados pelo Django
+let PRODUTOS = JSON.parse('{{ produtos_ativos_json|default:"[]"|escapejs }}');
+const CATEGORIAS = JSON.parse('{{ categorias_ativas_json|default:"[]"|escapejs }}');
+const UNIDADES = JSON.parse('{{ unidades_medida_json|default:"[]"|escapejs }}');
+
+let estadoImportacao = null;
+let arquivosPDF = { nfe: null, empenho: null };
+let linhaAtualNovoProduto = null;
+
+function getCsrfToken() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el) return el.value;
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+        const [k, v] = c.trim().split('=');
+        if (k === name) return v;
+    }
+    return '';
+}
+
+function mostrarErro(id, msg) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.textContent = msg;
+        el.classList.remove('d-none');
+    }
+}
+
+function esconderErro(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('d-none');
+    }
+}
+
+function formatarValor(v) {
+    const n = parseFloat(v || 0);
+    return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatarDataBR(iso) {
+    if (!iso) return '';
+    const partes = String(iso).substring(0, 10).split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return iso;
+}
+
+function atualizarBotaoConfirmar() {
+    const selects = document.querySelectorAll('.produto-select');
+    const todosPreenchidos = selects.length > 0 && Array.from(selects).every(s => s.value);
+    const btn = document.getElementById('btn-confirmar');
+    if (btn) btn.disabled = !todosPreenchidos;
+}
+
+function abrirModalNovoProduto(nfeItem, empenhoItem) {
+    document.getElementById('np-nome').value = (empenhoItem && empenhoItem.descricao) || (nfeItem && nfeItem.descricao) || '';
+    document.getElementById('np-catmat').value = (empenhoItem && empenhoItem.codigo_item) || '';
+
+    const selCat = document.getElementById('np-categoria');
+    selCat.innerHTML = '<option value="">Selecione...</option>';
+    CATEGORIAS.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nome;
+        if (c.nome.toLowerCase().includes('aliment')) opt.selected = true;
+        selCat.appendChild(opt);
+    });
+
+    const selUn = document.getElementById('np-unidade');
+    selUn.innerHTML = '<option value="">Opcional...</option>';
+    UNIDADES.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.nome || u.sigla;
+        selUn.appendChild(opt);
+    });
+
+    esconderErro('erro-novo-produto');
+    const modalEl = document.getElementById('modalNovoProduto');
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+function renderizarRevisao(data) {
+    const hdr = data.header_suggestions || {};
+    document.getElementById('rev-nf').textContent = hdr.nota_fiscal || '-';
+    document.getElementById('rev-empenho').textContent = hdr.documento_referencia || '-';
+    document.getElementById('rev-data').textContent = formatarDataBR(hdr.data_movimentacao) || '-';
+    document.getElementById('rev-fornecedor').textContent = hdr.fornecedor_nome || '-';
+
+    // Alertas de validação
+    const val = data.validation || {};
+    let htmlAlertas = '';
+    if (val.errors && val.errors.length) {
+        htmlAlertas += '<div class="alert alert-danger py-2 mb-2"><strong>Erros:</strong><ul class="mb-0">' + val.errors.map(e => '<li>' + e + '</li>').join('') + '</ul></div>';
+    }
+    if (data.warnings && data.warnings.length) {
+        htmlAlertas += '<div class="alert alert-warning py-2 mb-2"><strong>Avisos:</strong><ul class="mb-0">' + data.warnings.map(w => '<li>' + w + '</li>').join('') + '</ul></div>';
+    }
+    document.getElementById('alertas-validacao').innerHTML = htmlAlertas;
+
+    // Itens
+    const tbody = document.getElementById('tbody-itens');
+    tbody.innerHTML = '';
+    (data.matches || []).forEach((m, i) => {
+        const nfe = m.nfe_item || {};
+        const emp = m.empenho_item || {};
+        const sug = m.suggestion || {};
+
+        const badgeClass = m.match_confidence === 'high' ? 'success' : (m.match_confidence === 'medium' ? 'warning' : 'secondary');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-center fw-bold">${i + 1}</td>
+            <td>
+                <div class="small fw-semibold"><strong>NFe:</strong> ${nfe.descricao || '?'}</div>
+                <div class="small text-muted"><strong>Emp:</strong> ${(emp.descricao || '').substring(0, 100)}...</div>
+                <span class="badge bg-${badgeClass} mt-1">${m.match_method} / ${m.match_confidence}</span>
+            </td>
+            <td class="text-end fw-semibold">${nfe.quantidade || '?'}</td>
+            <td class="text-end">R$ ${formatarValor(nfe.valor_unitario)}</td>
+            <td class="text-end fw-bold">R$ ${formatarValor(nfe.valor_total)}</td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <select class="form-select produto-select" data-linha="${i}">
+                        <option value="">Selecione...</option>
+                    </select>
+                    <button type="button" class="btn btn-outline-success btn-novo-produto" data-linha="${i}" title="Criar novo produto">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-1">CATMAT emp: ${emp.codigo_item || '?'}</small>
+            </td>
+        `;
+        tbody.appendChild(tr);
+
+        // Popular opções do Select2
+        const sel = tr.querySelector('.produto-select');
+        PRODUTOS.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.codigo} - ${p.nome}`;
+            if (sug.produto_id && sug.produto_id === p.id) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        $(sel).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            dropdownParent: $('#modalImportacao'),
+            placeholder: 'Selecione um produto...',
+        });
+
+        $(sel).on('change', atualizarBotaoConfirmar);
+
+        // Botão "criar novo produto"
+        tr.querySelector('.btn-novo-produto').addEventListener('click', () => {
+            linhaAtualNovoProduto = i;
+            abrirModalNovoProduto(nfe, emp);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAbrir = document.getElementById('btn-abrir-importacao');
+    if (btnAbrir) {
+        btnAbrir.addEventListener('click', () => {
+            // Reset estado
+            estadoImportacao = null;
+            arquivosPDF = { nfe: null, empenho: null };
+            document.getElementById('estado-upload').classList.remove('d-none');
+            document.getElementById('estado-revisao').classList.add('d-none');
+            document.getElementById('btn-extrair').classList.remove('d-none');
+            document.getElementById('btn-confirmar').classList.add('d-none');
+            document.getElementById('btn-confirmar').disabled = true;
+            document.getElementById('btn-confirmar').innerHTML = '<i class="fas fa-check me-1"></i> Confirmar Importação';
+            esconderErro('erro-extracao');
+            esconderErro('erro-confirmacao');
+            document.getElementById('spinner-extracao').classList.add('d-none');
+            document.getElementById('input-nfe-pdf').value = '';
+            document.getElementById('input-empenho-pdf').value = '';
+
+            const modalEl = document.getElementById('modalImportacao');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        });
+    }
+
+    const btnExtrair = document.getElementById('btn-extrair');
+    if (btnExtrair) {
+        btnExtrair.addEventListener('click', async () => {
+            const nfeInput = document.getElementById('input-nfe-pdf');
+            const empInput = document.getElementById('input-empenho-pdf');
+
+            if (!nfeInput.files.length || !empInput.files.length) {
+                mostrarErro('erro-extracao', 'Selecione os dois PDFs antes de extrair.');
+                return;
+            }
+
+            arquivosPDF.nfe = nfeInput.files[0];
+            arquivosPDF.empenho = empInput.files[0];
+
+            const formData = new FormData();
+            formData.append('nfe_pdf', arquivosPDF.nfe);
+            formData.append('empenho_pdf', arquivosPDF.empenho);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            esconderErro('erro-extracao');
+            document.getElementById('btn-extrair').classList.add('d-none');
+            document.getElementById('spinner-extracao').classList.remove('d-none');
+
+            try {
+                const resp = await fetch('{% url "estoque:extrair_pdfs" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    mostrarErro('erro-extracao', data.error || 'Erro ao extrair PDFs.');
+                    document.getElementById('btn-extrair').classList.remove('d-none');
+                    return;
+                }
+
+                estadoImportacao = data;
+                renderizarRevisao(data);
+                document.getElementById('estado-upload').classList.add('d-none');
+                document.getElementById('estado-revisao').classList.remove('d-none');
+                document.getElementById('btn-confirmar').classList.remove('d-none');
+                atualizarBotaoConfirmar();
+            } catch (err) {
+                mostrarErro('erro-extracao', 'Erro de conexão: ' + err.message);
+                document.getElementById('btn-extrair').classList.remove('d-none');
+            } finally {
+                document.getElementById('spinner-extracao').classList.add('d-none');
+            }
+        });
+    }
+
+    const btnSalvarNovoProd = document.getElementById('btn-salvar-novo-produto');
+    if (btnSalvarNovoProd) {
+        btnSalvarNovoProd.addEventListener('click', async () => {
+            const nome = document.getElementById('np-nome').value.trim();
+            const catId = document.getElementById('np-categoria').value;
+            if (!nome) {
+                mostrarErro('erro-novo-produto', 'Nome é obrigatório.');
+                return;
+            }
+            if (!catId) {
+                mostrarErro('erro-novo-produto', 'Categoria é obrigatória.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('codigo_cat_mat', document.getElementById('np-catmat').value.trim());
+            formData.append('categoria_id', catId);
+            formData.append('unidade_medida_id', document.getElementById('np-unidade').value);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            btnSalvarNovoProd.disabled = true;
+            try {
+                const resp = await fetch('{% url "estoque:criar_produto_inline" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    mostrarErro('erro-novo-produto', data.error || 'Erro ao criar produto.');
+                    btnSalvarNovoProd.disabled = false;
+                    return;
+                }
+
+                // Adicionar aos selects de produto
+                const sel = document.querySelector(`.produto-select[data-linha="${linhaAtualNovoProduto}"]`);
+                if (sel) {
+                    const opt = new Option(`${data.codigo} - ${data.nome}`, data.id, true, true);
+                    $(sel).append(opt).trigger('change');
+                }
+
+                // Adicionar ao cache global
+                PRODUTOS.push({ id: data.id, nome: data.nome, codigo: data.codigo, codigo_cat_mat: data.codigo_cat_mat });
+
+                // Fechar modal de novo produto
+                const modalEl = document.getElementById('modalNovoProduto');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                atualizarBotaoConfirmar();
+            } catch (err) {
+                mostrarErro('erro-novo-produto', 'Erro de conexão: ' + err.message);
+            } finally {
+                btnSalvarNovoProd.disabled = false;
+            }
+        });
+    }
+
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', async () => {
+            if (!estadoImportacao) return;
+
+            const hdr = estadoImportacao.header_suggestions || {};
+            const payload = {
+                header: {
+                    nota_fiscal: hdr.nota_fiscal,
+                    documento_referencia: hdr.documento_referencia,
+                    data_movimentacao: hdr.data_movimentacao,
+                    fornecedor_nome: hdr.fornecedor_nome,
+                    fornecedor_cnpj: hdr.fornecedor_cnpj,
+                },
+                items: Array.from(document.querySelectorAll('.produto-select')).map((sel, i) => ({
+                    produto_id: parseInt(sel.value),
+                    quantidade: estadoImportacao.matches[i].nfe_item.quantidade,
+                    valor_unitario: estadoImportacao.matches[i].nfe_item.valor_unitario,
+                    observacoes: '',
+                })),
+            };
+
+            const formData = new FormData();
+            formData.append('payload', JSON.stringify(payload));
+            formData.append('nfe_pdf', arquivosPDF.nfe);
+            formData.append('empenho_pdf', arquivosPDF.empenho);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            btnConfirmar.disabled = true;
+            btnConfirmar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Salvando...';
+            esconderErro('erro-confirmacao');
+
+            try {
+                const resp = await fetch('{% url "estoque:confirmar_importacao" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.success) {
+                    window.location.href = '{% url "estoque:lista_movimentacoes" %}';
+                } else {
+                    mostrarErro('erro-confirmacao', data.error || 'Erro ao salvar importação.');
+                    btnConfirmar.disabled = false;
+                    btnConfirmar.innerHTML = '<i class="fas fa-check me-1"></i> Confirmar Importação';
+                }
+            } catch (err) {
+                mostrarErro('erro-confirmacao', 'Erro de conexão: ' + err.message);
+                btnConfirmar.disabled = false;
+                btnConfirmar.innerHTML = '<i class="fas fa-check me-1"></i> Confirmar Importação';
+            }
+        });
+    }
+
+    const modalImpEl = document.getElementById('modalImportacao');
+    if (modalImpEl) {
+        modalImpEl.addEventListener('hidden.bs.modal', () => {
+            // Destruir Select2 criados para evitar vazamento
+            document.querySelectorAll('.produto-select').forEach(sel => {
+                if ($(sel).data('select2')) $(sel).select2('destroy');
+            });
+            estadoImportacao = null;
+            arquivosPDF = { nfe: null, empenho: null };
+        });
+    }
 });
 </script>
 {% endblock %}

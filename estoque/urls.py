@@ -149,4 +149,12 @@ urlpatterns = [
     path('ajax/saldo-produto/', views.buscar_saldo_produto_ajax, name='buscar_saldo_produto_ajax'),
     path('ajax/buscar-militares/', views.buscar_militares_ajax, name='buscar_militares_ajax'),
     path('ajax/buscar-militares-adm/', views.buscar_militares_adm_ajax, name='buscar_militares_adm_ajax'),
+
+    # =========================================================================
+    # API de Importação de PDFs
+    # =========================================================================
+    path('api/extrair-pdfs/', views.extrair_pdfs_view, name='extrair_pdfs'),
+    path('api/criar-produto-inline/', views.criar_produto_inline_view, name='criar_produto_inline'),
+    path('api/confirmar-importacao/', views.confirmar_importacao_view, name='confirmar_importacao'),
 ]
+

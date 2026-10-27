@@ -4,7 +4,8 @@ from .models import (
     Categoria, Subcategoria, UnidadeMedida, UnidadeFornecimento, Cor, ContaPatrimonial,
     OrgaoRequisitante, LocalizacaoFisica, MilitarRequisitante,
     Fornecedor, Produto, Lote, NumeroSerie,
-    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque, LogExclusaoMaterial
+    MovimentacaoEstoque, Inventario, ItemInventario, AjusteEstoque, LogExclusaoMaterial,
+    AnexoMovimentacao
 )
 
 
@@ -315,3 +316,11 @@ class AjusteEstoqueAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('produto', 'aprovado_por', 'inventario')
+
+
+@admin.register(AnexoMovimentacao)
+class AnexoMovimentacaoAdmin(admin.ModelAdmin):
+    list_display = ("movimentacao", "tipo", "nome_original", "criado_em", "criado_por")
+    list_filter = ("tipo",)
+    search_fields = ("nome_original",)
+

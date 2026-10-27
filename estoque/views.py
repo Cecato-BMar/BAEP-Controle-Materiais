@@ -8,11 +8,15 @@ from django.db.models import Q, Sum, Count, F, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers.json import DjangoJSONEncoder
 import json
 import csv
 import io
+import logging
+
+logger = logging.getLogger(__name__)
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -216,6 +220,15 @@ def criar_entrada_material(request):
     return render(request, 'estoque/entrada_material.html', {
         'form': form,
         'titulo': 'Registrar Entrada de Material',
+        'produtos_ativos_json': json.dumps(list(
+            Produto.objects.filter(status='ATIVO').values('id', 'nome', 'codigo', 'codigo_cat_mat')
+        )),
+        'categorias_ativas_json': json.dumps(list(
+            Categoria.objects.filter(ativo=True).values('id', 'nome', 'codigo')
+        )),
+        'unidades_medida_json': json.dumps(list(
+            UnidadeMedida.objects.filter(ativo=True).values('id', 'nome', 'sigla')
+        )),
     })
 
 
@@ -1844,3 +1857,145 @@ def upload_recibo_assinado(request):
         messages.success(request, f'Recibo assinado para a movimentação #{mov.pk:06d} foi salvo com sucesso!')
         
     return redirect('estoque:lista_movimentacoes')
+
+
+# =============================================================================
+# IMPORTAÇÃO DE NOTA FISCAL / EMPENHO (PDF)
+# =============================================================================
+
+from .pdf_import.orchestrator import process_pdfs
+
+@login_required
+@require_module_permission('materiais')
+@require_POST
+def extrair_pdfs_view(request):
+    """Endpoint síncrono que extrai, valida e casa dados de NFe e Empenho via upload de PDFs."""
+    nfe_file = request.FILES.get("nfe_pdf")
+    empenho_file = request.FILES.get("empenho_pdf")
+
+    # Validações básicas de upload
+    if not nfe_file or not empenho_file:
+        return JsonResponse({"error": "Envie os 2 PDFs."}, status=400)
+
+    max_size = 10 * 1024 * 1024  # 10 MB
+    for f, label in [(nfe_file, "NFe"), (empenho_file, "Empenho")]:
+        filename = getattr(f, "name", "") or ""
+        content_type = getattr(f, "content_type", "") or ""
+        if not filename.lower().endswith(".pdf") and content_type != "application/pdf":
+            return JsonResponse({"error": f"Arquivo de {label} inválido. Envie um arquivo PDF."}, status=400)
+        if getattr(f, "size", 0) > max_size:
+            return JsonResponse({"error": f"O arquivo de {label} excede o tamanho máximo de 10 MB."}, status=400)
+
+    try:
+        result = process_pdfs(nfe_file, empenho_file)
+        return JsonResponse(result, encoder=DjangoJSONEncoder)
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
+    except Exception:
+        logger.exception("Erro em /api/extrair-pdfs/")
+        return JsonResponse({"error": "Erro interno ao processar PDFs."}, status=500)
+
+
+from django.db import transaction, IntegrityError
+from .pdf_import.importer import create_movimentacoes_from_import
+
+@login_required
+@require_module_permission('materiais')
+@require_POST
+def criar_produto_inline_view(request):
+    """Cria um novo produto via modal/offcanvas de importação com código autogerado MAT-XXX."""
+    nome = (request.POST.get("nome") or "").strip()
+    categoria_id = request.POST.get("categoria_id")
+    codigo_cat_mat = (request.POST.get("codigo_cat_mat") or "").strip()
+    unidade_medida_id = request.POST.get("unidade_medida_id") or None
+
+    if not nome:
+        return JsonResponse({"error": "Nome é obrigatório."}, status=400)
+    if not categoria_id:
+        return JsonResponse({"error": "Categoria é obrigatória."}, status=400)
+
+    from estoque.models import Categoria
+    if not Categoria.objects.filter(pk=categoria_id).exists():
+        return JsonResponse({"error": "Categoria inválida."}, status=400)
+
+    try:
+        with transaction.atomic():
+            # Auto-gerar código MAT-XXX com retry em caso de concorrência
+            for _ in range(5):
+                ultimo = (
+                    Produto.objects.filter(codigo__startswith="MAT-")
+                    .select_for_update(skip_locked=False)
+                    .order_by("-codigo")
+                    .first()
+                )
+                if ultimo:
+                    try:
+                        num = int(ultimo.codigo.split("-")[1]) + 1
+                    except (IndexError, ValueError):
+                        num = 1
+                else:
+                    num = 1
+                novo_codigo = f"MAT-{num:03d}"
+
+                try:
+                    produto = Produto.objects.create(
+                        codigo=novo_codigo,
+                        nome=nome,
+                        categoria_id=categoria_id,
+                        codigo_cat_mat=codigo_cat_mat or None,
+                        unidade_medida_id=unidade_medida_id,
+                        status="ATIVO",
+                        criado_por=request.user,
+                    )
+                    return JsonResponse({
+                        "id": produto.pk,
+                        "codigo": produto.codigo,
+                        "nome": produto.nome,
+                        "codigo_cat_mat": produto.codigo_cat_mat,
+                    })
+                except IntegrityError:
+                    continue  # retry com novo incremento
+
+            return JsonResponse(
+                {"error": "Não foi possível gerar código único. Tente novamente."},
+                status=409,
+            )
+    except Exception:
+        logger.exception("Erro em /api/criar-produto-inline/")
+        return JsonResponse({"error": "Erro ao criar produto."}, status=500)
+
+
+@login_required
+@require_module_permission('materiais')
+@require_POST
+def confirmar_importacao_view(request):
+    """Recebe o payload com dados validados e os arquivos PDF para criação atômica das movimentações."""
+    payload_str = request.POST.get("payload")
+    if not payload_str:
+        return JsonResponse({"error": "Payload ausente."}, status=400)
+    try:
+        payload = json.loads(payload_str)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido."}, status=400)
+
+    nfe_file = request.FILES.get("nfe_pdf")
+    empenho_file = request.FILES.get("empenho_pdf")
+    if not nfe_file or not empenho_file:
+        return JsonResponse({"error": "Reenvie os PDFs."}, status=400)
+
+    try:
+        result = create_movimentacoes_from_import(
+            request=request,
+            header_data=payload.get("header", {}),
+            items=payload.get("items", []),
+            nfe_file=nfe_file,
+            empenho_file=empenho_file,
+        )
+        return JsonResponse({"success": True, **result})
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
+    except Exception:
+        logger.exception("Erro em /api/confirmar-importacao/")
+        return JsonResponse({"error": "Erro interno ao salvar importação."}, status=500)
+
+
