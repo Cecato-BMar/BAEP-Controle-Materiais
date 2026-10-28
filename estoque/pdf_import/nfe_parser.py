@@ -313,5 +313,6 @@ def parse_nfe(file_obj: Union[str, Path, BinaryIO, bytes]) -> dict:
         "itens": itens,
         "empenho_referencia": empenho_referencia,
         "_ocr_used": True,
+        "_extraction_method": "local_ocr",
         "_confidence": confidence,
     }

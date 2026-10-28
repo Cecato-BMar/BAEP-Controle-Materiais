@@ -1,10 +1,15 @@
 import logging
+from decimal import Decimal
 from typing import Any
+
+from django.conf import settings
 
 from .detectors import detect_pdf_type, TYPE_NFE, TYPE_EMPENHO, TYPE_UNKNOWN
 from .empenho_parser import parse_empenho
+from .gemini_extractor import extract_nfe_items_with_gemini
 from .item_matcher import match_items
 from .nfe_parser import parse_nfe
+from .ocr import read_file_bytes
 from .product_matcher import suggest_product
 from .validators import validate_nfe_vs_empenho
 
@@ -87,6 +92,41 @@ def process_pdfs(nfe_file: Any, empenho_file: Any = None) -> dict:
     # ── 2. Parse ──
     nfe = parse_nfe(actual_nfe)
     empenho = parse_empenho(actual_empenho) if actual_empenho else {}
+
+    nfe.setdefault("_extraction_method", "local_ocr")
+
+    # Verifica se a soma dos itens diverge do valor total da nota
+    valor_total_nota = nfe.get("valor_total_nota")
+    itens_nfe = nfe.get("itens") or []
+    soma_itens = sum(
+        (Decimal(str(it["valor_total"])) for it in itens_nfe if it.get("valor_total") is not None),
+        Decimal("0.00"),
+    )
+
+    falha_validacao_itens = False
+    if not itens_nfe:
+        falha_validacao_itens = True
+    elif valor_total_nota is not None:
+        try:
+            diff = abs(soma_itens - Decimal(str(valor_total_nota)))
+            if diff > Decimal("0.01"):
+                falha_validacao_itens = True
+        except Exception:
+            falha_validacao_itens = True
+
+    if falha_validacao_itens:
+        api_key = getattr(settings, "GEMINI_API_KEY", "")
+        if api_key:
+            try:
+                pdf_bytes = read_file_bytes(actual_nfe)
+                itens_gemini = extract_nfe_items_with_gemini(pdf_bytes)
+                if itens_gemini:
+                    nfe["itens"] = itens_gemini
+                    nfe["_extraction_method"] = "gemini_fallback"
+                    if "_confidence" in nfe and isinstance(nfe["_confidence"], dict):
+                        nfe["_confidence"]["itens"] = "high"
+            except Exception as e:
+                logger.warning(f"Fallback de extração via Gemini não executado ou falhou: {e}")
 
     # Verifica se a NFe falhou completamente na extração
     nfe_valida = any([

@@ -53,6 +53,10 @@ NEW_SPREADSHEET_ID = os.getenv("NEW_SPREADSHEET_ID", "")
 SHEETS_SYNC_ENABLED = os.getenv("SHEETS_SYNC_ENABLED", "false").lower() == "true"
 IMPORT_ENABLED = os.getenv("IMPORT_ENABLED", "false").lower() == "true"
 
+# --- Google Gemini AI (Fallback para extração de NFe) ----------------------
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+
+
 # ---------------------------------------------------------------------------
 # Segurança
 # ---------------------------------------------------------------------------

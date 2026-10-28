@@ -1,6 +1,6 @@
 from pathlib import Path
 from unittest.mock import patch
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from estoque.pdf_import.orchestrator import process_pdfs
 
@@ -79,4 +79,77 @@ class OrchestratorTests(TestCase):
         hdr = result["header_suggestions"]
         self.assertEqual(hdr["documento_referencia"], "2026NE01176")
         self.assertEqual(hdr["nota_fiscal"], "000362")
+
+    def test_metodo_extracao_padrao_local_ocr(self):
+        self.assertEqual(self.result["nfe"].get("_extraction_method"), "local_ocr")
+
+    @override_settings(GEMINI_API_KEY="test-key")
+    @patch("estoque.pdf_import.orchestrator.extract_nfe_items_with_gemini")
+    def test_gemini_fallback_nao_acionado_quando_ocr_bate(self, mock_gemini):
+        result = process_pdfs(self.nfe_path, None)
+        mock_gemini.assert_not_called()
+        self.assertEqual(result["nfe"]["_extraction_method"], "local_ocr")
+
+    @override_settings(GEMINI_API_KEY="test-key")
+    @patch("estoque.pdf_import.orchestrator.extract_nfe_items_with_gemini")
+    @patch("estoque.pdf_import.orchestrator.parse_nfe")
+    def test_gemini_fallback_acionado_quando_ocr_diverge(self, mock_parse_nfe, mock_gemini):
+        from decimal import Decimal
+        mock_parse_nfe.return_value = {
+            "chave_acesso": "35261064490977000117550010000003621415663784",
+            "numero_nf": "000362",
+            "valor_total_nota": Decimal("981.60"),
+            "itens": [
+                {
+                    "codigo": "001",
+                    "descricao": "Item Incompleto OCR",
+                    "valor_total": Decimal("100.00"),
+                    "quantidade": Decimal("10.00"),
+                    "valor_unitario": Decimal("10.00"),
+                }
+            ],
+            "empenho_referencia": "2026NE01176",
+            "_confidence": {"itens": "low"},
+        }
+
+        mock_gemini.return_value = [
+            {
+                "codigo": "001",
+                "descricao": "Margarina Becel 500g",
+                "ncm": "15171000",
+                "cfop": "5102",
+                "unidade": "UN",
+                "quantidade": Decimal("40.00"),
+                "valor_unitario": Decimal("9.80"),
+                "valor_total": Decimal("392.00"),
+            },
+            {
+                "codigo": "002",
+                "descricao": "Adoçante Líquido 100ml",
+                "ncm": "29251100",
+                "cfop": "5102",
+                "unidade": "UN",
+                "quantidade": Decimal("36.00"),
+                "valor_unitario": Decimal("6.10"),
+                "valor_total": Decimal("219.60"),
+            },
+            {
+                "codigo": "003",
+                "descricao": "Café Torrado 500g",
+                "ncm": "09012100",
+                "cfop": "5102",
+                "unidade": "UN",
+                "quantidade": Decimal("20.00"),
+                "valor_unitario": Decimal("18.50"),
+                "valor_total": Decimal("370.00"),
+            },
+        ]
+
+        result = process_pdfs(self.nfe_path, None)
+
+        mock_gemini.assert_called_once()
+        self.assertEqual(result["nfe"]["_extraction_method"], "gemini_fallback")
+        self.assertEqual(len(result["nfe"]["itens"]), 3)
+        self.assertEqual(result["nfe"]["_confidence"]["itens"], "high")
+
 
