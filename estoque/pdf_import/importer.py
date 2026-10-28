@@ -18,10 +18,10 @@ def create_movimentacoes_from_import(
     header_data: dict,
     items: list[dict],
     nfe_file: Any,
-    empenho_file: Any,
+    empenho_file: Any = None,
 ) -> dict:
     """
-    Cria N MovimentacaoEstoque + 2 AnexoMovimentacao por movimentação (compartilha arquivos físicos).
+    Cria N MovimentacaoEstoque + AnexoMovimentacao por movimentação (compartilha arquivos físicos).
     Executa em transação atômica — se qualquer item falhar, nada é persistido.
     """
     # ── 1. Validar header
@@ -31,7 +31,7 @@ def create_movimentacoes_from_import(
 
     if not nota_fiscal:
         raise ValueError("Número da NF é obrigatório.")
-    if not doc_ref:
+    if empenho_file and not doc_ref:
         raise ValueError("Número do Empenho é obrigatório.")
     if not data_raw:
         raise ValueError("Data da movimentação é obrigatória.")
@@ -93,10 +93,12 @@ def create_movimentacoes_from_import(
         f"{prefix}/nfe_{nota_fiscal}_{now.strftime('%Y%m%d%H%M%S')}.pdf",
         nfe_file,
     )
-    empenho_stored_path = default_storage.save(
-        f"{prefix}/empenho_{doc_ref}_{now.strftime('%Y%m%d%H%M%S')}.pdf",
-        empenho_file,
-    )
+    empenho_stored_path = None
+    if empenho_file:
+        empenho_stored_path = default_storage.save(
+            f"{prefix}/empenho_{doc_ref or 'ref'}_{now.strftime('%Y%m%d%H%M%S')}.pdf",
+            empenho_file,
+        )
 
     # ── 5. Criar N MovimentacaoEstoque
     movs = []
@@ -121,7 +123,7 @@ def create_movimentacoes_from_import(
         mov.save()
         movs.append(mov)
 
-    # ── 6. Criar 2 AnexoMovimentacao por movimentação (compartilhando os paths salvos)
+    # ── 6. Criar AnexoMovimentacao por movimentação (compartilhando os paths salvos)
     for mov in movs:
         AnexoMovimentacao.objects.create(
             movimentacao=mov,
@@ -130,16 +132,18 @@ def create_movimentacoes_from_import(
             nome_original=getattr(nfe_file, "name", "nfe.pdf"),
             criado_por=request.user,
         )
-        AnexoMovimentacao.objects.create(
-            movimentacao=mov,
-            tipo="EMPENHO",
-            arquivo=empenho_stored_path,
-            nome_original=getattr(empenho_file, "name", "empenho.pdf"),
-            criado_por=request.user,
-        )
+        if empenho_stored_path:
+            AnexoMovimentacao.objects.create(
+                movimentacao=mov,
+                tipo="EMPENHO",
+                arquivo=empenho_stored_path,
+                nome_original=getattr(empenho_file, "name", "empenho.pdf"),
+                criado_por=request.user,
+            )
 
+    anexos_por_mov = 2 if empenho_stored_path else 1
     return {
         "movimentacoes_criadas": len(movs),
-        "anexos_criados": len(movs) * 2,
+        "anexos_criados": len(movs) * anexos_por_mov,
         "ids": [m.pk for m in movs],
     }

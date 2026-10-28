@@ -1874,11 +1874,15 @@ def extrair_pdfs_view(request):
     empenho_file = request.FILES.get("empenho_pdf")
 
     # Validações básicas de upload
-    if not nfe_file or not empenho_file:
-        return JsonResponse({"error": "Envie os 2 PDFs."}, status=400)
+    if not nfe_file:
+        return JsonResponse({"error": "Envie a NFe."}, status=400)
 
     max_size = 10 * 1024 * 1024  # 10 MB
-    for f, label in [(nfe_file, "NFe"), (empenho_file, "Empenho")]:
+    files_to_check = [(nfe_file, "NFe")]
+    if empenho_file:
+        files_to_check.append((empenho_file, "Empenho"))
+
+    for f, label in files_to_check:
         filename = getattr(f, "name", "") or ""
         content_type = getattr(f, "content_type", "") or ""
         if not filename.lower().endswith(".pdf") and content_type != "application/pdf":
@@ -1907,7 +1911,14 @@ def criar_produto_inline_view(request):
     nome = (request.POST.get("nome") or "").strip()
     categoria_id = request.POST.get("categoria_id")
     codigo_cat_mat = (request.POST.get("codigo_cat_mat") or "").strip()
-    unidade_medida_id = request.POST.get("unidade_medida_id") or None
+    unidade_medida_id = request.POST.get("unidade_medida_id", "").strip() or None
+    if unidade_medida_id in ("undefined", "null", ""):
+        unidade_medida_id = None
+    elif unidade_medida_id is not None:
+        try:
+            unidade_medida_id = int(unidade_medida_id)
+        except (ValueError, TypeError):
+            unidade_medida_id = None
 
     if not nome:
         return JsonResponse({"error": "Nome é obrigatório."}, status=400)
@@ -1960,9 +1971,11 @@ def criar_produto_inline_view(request):
                 {"error": "Não foi possível gerar código único. Tente novamente."},
                 status=409,
             )
-    except Exception:
-        logger.exception("Erro em /api/criar-produto-inline/")
-        return JsonResponse({"error": "Erro ao criar produto."}, status=500)
+    except Exception as e:
+        logger.error(f"Erro ao criar produto inline: {e}", exc_info=True)
+        return JsonResponse({
+            "error": f"Erro ao criar produto: {str(e)}"
+        }, status=500)
 
 
 @login_required
@@ -1980,8 +1993,8 @@ def confirmar_importacao_view(request):
 
     nfe_file = request.FILES.get("nfe_pdf")
     empenho_file = request.FILES.get("empenho_pdf")
-    if not nfe_file or not empenho_file:
-        return JsonResponse({"error": "Reenvie os PDFs."}, status=400)
+    if not nfe_file:
+        return JsonResponse({"error": "NFe não enviada."}, status=400)
 
     try:
         result = create_movimentacoes_from_import(

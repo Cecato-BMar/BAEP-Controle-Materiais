@@ -29,6 +29,42 @@ def validate_nfe_vs_empenho(nfe: dict, empenho: dict) -> dict:
     errors = []
     warnings = []
 
+    if not empenho:
+        warnings.append("Empenho não enviado. Validação cruzada de CNPJ, valor e empenho_ref foi pulada.")
+        totais_itens_match = False
+        itens_nfe = nfe.get("itens") or []
+        valor_nfe = nfe.get("valor_total_nota")
+        if itens_nfe and valor_nfe is not None:
+            try:
+                soma_itens = sum(
+                    Decimal(str(item["valor_total"]))
+                    for item in itens_nfe
+                    if item.get("valor_total") is not None
+                )
+                if abs(soma_itens - Decimal(str(valor_nfe))) <= Decimal("0.01"):
+                    totais_itens_match = True
+                else:
+                    warnings.append(
+                        f"A soma dos itens da NFe (R$ {soma_itens:.2f}) diverge do valor total da nota (R$ {valor_nfe}). "
+                        "Verifique se algum item não foi capturado pelo OCR."
+                    )
+            except Exception:
+                warnings.append("Falha ao somar valores dos itens da NFe.")
+        else:
+            warnings.append("Itens da NFe ou valor total da nota não disponíveis para conferência de soma dos itens.")
+
+        return {
+            "valid": True,
+            "errors": [],
+            "warnings": warnings,
+            "checks": {
+                "cnpj_match": False,
+                "valor_match": False,
+                "empenho_ref_match": False,
+                "totais_itens_match": totais_itens_match,
+            },
+        }
+
     # 1. CNPJ Match
     cnpj_nfe = _normalize_cnpj(nfe.get("emitente", {}).get("cnpj") if isinstance(nfe.get("emitente"), dict) else None)
     cnpj_emp = _normalize_cnpj(empenho.get("credor", {}).get("cnpj") if isinstance(empenho.get("credor"), dict) else None)

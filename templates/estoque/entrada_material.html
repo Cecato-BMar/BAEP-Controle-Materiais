@@ -75,7 +75,7 @@
                 <div id="estado-upload">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-1"></i>
-                        Envie os dois PDFs. A extração pode levar até 15 segundos (OCR da DANFE).
+                        Envie os PDFs (DANFE obrigatória, Empenho opcional). A extração pode levar até 15 segundos (OCR da DANFE).
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -83,7 +83,7 @@
                             <input type="file" class="form-control" id="input-nfe-pdf" accept=".pdf,application/pdf">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Nota de Empenho (PDF)</label>
+                            <label class="form-label fw-bold">Nota de Empenho (PDF) <small class="text-muted">— Opcional</small></label>
                             <input type="file" class="form-control" id="input-empenho-pdf" accept=".pdf,application/pdf">
                         </div>
                     </div>
@@ -420,13 +420,15 @@ function renderizarRevisao(data) {
         const sug = m.suggestion || {};
 
         const badgeClass = m.match_confidence === 'high' ? 'success' : (m.match_confidence === 'medium' ? 'warning' : 'secondary');
+        const descEmp = emp.descricao ? `<strong>Emp:</strong> ${emp.descricao.substring(0, 100)}...` : '<span class="text-muted">NFe apenas</span>';
+        const catmatEmp = emp.codigo_item ? `CATMAT emp: ${emp.codigo_item}` : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="text-center fw-bold">${i + 1}</td>
             <td>
                 <div class="small fw-semibold"><strong>NFe:</strong> ${nfe.descricao || '?'}</div>
-                <div class="small text-muted"><strong>Emp:</strong> ${(emp.descricao || '').substring(0, 100)}...</div>
+                <div class="small text-muted">${descEmp}</div>
                 <span class="badge bg-${badgeClass} mt-1">${m.match_method} / ${m.match_confidence}</span>
             </td>
             <td class="text-end fw-semibold">${nfe.quantidade || '?'}</td>
@@ -441,7 +443,7 @@ function renderizarRevisao(data) {
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
-                <small class="text-muted d-block mt-1">CATMAT emp: ${emp.codigo_item || '?'}</small>
+                ${catmatEmp ? `<small class="text-muted d-block mt-1">${catmatEmp}</small>` : ''}
             </td>
         `;
         tbody.appendChild(tr);
@@ -504,17 +506,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const nfeInput = document.getElementById('input-nfe-pdf');
             const empInput = document.getElementById('input-empenho-pdf');
 
-            if (!nfeInput.files.length || !empInput.files.length) {
-                mostrarErro('erro-extracao', 'Selecione os dois PDFs antes de extrair.');
+            if (!nfeInput.files.length) {
+                mostrarErro('erro-extracao', 'Selecione pelo menos a NFe.');
                 return;
             }
 
             arquivosPDF.nfe = nfeInput.files[0];
-            arquivosPDF.empenho = empInput.files[0];
+            arquivosPDF.empenho = empInput.files.length ? empInput.files[0] : null;
 
             const formData = new FormData();
             formData.append('nfe_pdf', arquivosPDF.nfe);
-            formData.append('empenho_pdf', arquivosPDF.empenho);
+            if (arquivosPDF.empenho) {
+                formData.append('empenho_pdf', arquivosPDF.empenho);
+            }
             formData.append('csrfmiddlewaretoken', getCsrfToken());
 
             esconderErro('erro-extracao');
@@ -635,7 +639,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('payload', JSON.stringify(payload));
             formData.append('nfe_pdf', arquivosPDF.nfe);
-            formData.append('empenho_pdf', arquivosPDF.empenho);
+            if (arquivosPDF.empenho) {
+                formData.append('empenho_pdf', arquivosPDF.empenho);
+            }
             formData.append('csrfmiddlewaretoken', getCsrfToken());
 
             btnConfirmar.disabled = true;

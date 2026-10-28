@@ -102,16 +102,33 @@ class ConfirmarImportacaoViewTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["error"], "JSON inválido.")
 
-    def test_rejeita_sem_pdfs(self):
+    def test_rejeita_sem_nfe(self):
         self.client.force_login(self.user)
-        # Falta empenho_pdf
+        # Falta nfe_pdf
         data = {
             "payload": json.dumps(self.payload_dict),
-            "nfe_pdf": SimpleUploadedFile("nfe.pdf", b"%PDF-1.4"),
+            "empenho_pdf": SimpleUploadedFile("empenho.pdf", b"%PDF-1.4"),
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json()["error"], "Reenvie os PDFs.")
+        self.assertEqual(response.json()["error"], "NFe não enviada.")
+
+    def test_sucesso_apenas_com_nfe(self):
+        self.client.force_login(self.user)
+        data = {
+            "payload": json.dumps(self.payload_dict),
+            "nfe_pdf": SimpleUploadedFile("nfe.pdf", b"%PDF-1.4 test nfe content"),
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        res_json = response.json()
+        self.assertTrue(res_json.get("success"))
+        self.assertEqual(res_json.get("movimentacoes_criadas"), 3)
+        self.assertEqual(res_json.get("anexos_criados"), 3)
+        self.assertEqual(AnexoMovimentacao.objects.count(), 3)
+        MovimentacaoEstoque.objects.all().delete()
+        AnexoMovimentacao.objects.all().delete()
+
 
     def test_sucesso_cria_3_movimentacoes(self):
         self.client.force_login(self.user)

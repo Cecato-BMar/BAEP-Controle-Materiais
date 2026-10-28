@@ -231,3 +231,23 @@ class ImporterTests(TestCase):
         fornecedor = Fornecedor.objects.get(documento="64490977000117")
         self.assertEqual(fornecedor.documento, "64490977000117")
         self.assertFalse(Fornecedor.objects.filter(documento="64.490.977/0001-17").exists())
+
+    def test_sem_empenho_cria_apenas_anexo_nfe(self):
+        request = self._build_request()
+        nfe_file, _ = self._build_files()
+
+        result = create_movimentacoes_from_import(
+            request=request,
+            header_data=self.header_data,
+            items=self.items_data,
+            nfe_file=nfe_file,
+            empenho_file=None,
+        )
+
+        self.assertEqual(result["movimentacoes_criadas"], 3)
+        self.assertEqual(result["anexos_criados"], 3)
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 3)
+        self.assertEqual(AnexoMovimentacao.objects.count(), 3)
+        tipos = list(AnexoMovimentacao.objects.values_list("tipo", flat=True))
+        self.assertEqual(tipos, ["NFE", "NFE", "NFE"])
+

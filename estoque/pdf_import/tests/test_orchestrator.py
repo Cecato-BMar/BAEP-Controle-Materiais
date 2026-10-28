@@ -61,3 +61,22 @@ class OrchestratorTests(TestCase):
     def test_consolida_warnings_ocr(self):
         # Se OCR de itens for low, consolida warning explicativo
         self.assertIn("Descrições de itens com baixa confiança (OCR)", self.result["warnings"])
+
+    def test_process_pdfs_apenas_nfe(self):
+        result = process_pdfs(self.nfe_path, None)
+        for key in ["nfe", "empenho", "validation", "matches", "header_suggestions", "warnings"]:
+            self.assertIn(key, result)
+        self.assertEqual(result["empenho"], {})
+        self.assertTrue(result["validation"]["valid"])
+        self.assertEqual(len(result["matches"]), 3)
+        for m in result["matches"]:
+            self.assertEqual(m["match_method"], "nfe_only")
+            self.assertEqual(m["match_confidence"], "medium")
+            self.assertIsNone(m["empenho_item"])
+
+    def test_header_suggestions_fallback_empenho_ref(self):
+        result = process_pdfs(self.nfe_path, None)
+        hdr = result["header_suggestions"]
+        self.assertEqual(hdr["documento_referencia"], "2026NE01176")
+        self.assertEqual(hdr["nota_fiscal"], "000362")
+

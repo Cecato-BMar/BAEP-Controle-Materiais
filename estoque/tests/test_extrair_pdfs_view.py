@@ -57,13 +57,13 @@ class ExtrairPdfsViewTests(TestCase):
         response = self.client.post(self.url, {})
         self.assertEqual(response.status_code, 403)
 
-    def test_rejeita_sem_arquivos(self):
+    def test_rejeita_sem_nenhum_pdf(self):
         self.client.force_login(self.user_autorizado)
         response = self.client.post(self.url, {})
         self.assertEqual(response.status_code, 400)
         data = response.json()
         self.assertIn("error", data)
-        self.assertIn("Envie os 2 PDFs", data["error"])
+        self.assertIn("Envie a NFe", data["error"])
 
     def test_rejeita_arquivo_nao_pdf(self):
         self.client.force_login(self.user_autorizado)
@@ -122,3 +122,25 @@ class ExtrairPdfsViewTests(TestCase):
         self.assertEqual(data["header_suggestions"]["nota_fiscal"], "000362")
         self.assertEqual(data["header_suggestions"]["documento_referencia"], "2026NE01176")
         self.assertEqual(len(data["matches"]), 3)
+
+    def test_aceita_apenas_nfe(self):
+        self.client.force_login(self.user_autorizado)
+        nfe_path = self.fixtures_dir / "nfe_sample.pdf"
+
+        with open(nfe_path, "rb") as f_nfe:
+            nfe_upload = SimpleUploadedFile(
+                "nfe_sample.pdf", f_nfe.read(), content_type="application/pdf"
+            )
+
+        response = self.client.post(
+            self.url,
+            {"nfe_pdf": nfe_upload},
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("nfe", data)
+        self.assertEqual(data["empenho"], {})
+        self.assertTrue(data["validation"]["valid"])
+        self.assertEqual(len(data["matches"]), 3)
+        self.assertEqual(data["header_suggestions"]["nota_fiscal"], "000362")
+        self.assertEqual(data["header_suggestions"]["documento_referencia"], "2026NE01176")

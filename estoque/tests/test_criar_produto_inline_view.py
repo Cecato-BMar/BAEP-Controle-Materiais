@@ -152,3 +152,28 @@ class CriarProdutoInlineViewTests(TestCase):
         data = response.json()
         # Deve ter recuperado na 2ª tentativa gerando MAT-002
         self.assertEqual(data["codigo"], "MAT-002")
+
+    def test_unidade_medida_vazia_nao_quebra(self):
+        self.client.force_login(self.user)
+        response = self.client.post(self.url, {
+            "nome": "Produto Sem Unidade",
+            "categoria_id": self.categoria.pk,
+            "unidade_medida_id": "",
+        })
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["nome"], "Produto Sem Unidade")
+        produto = Produto.objects.get(pk=data["id"])
+        self.assertIsNone(produto.unidade_medida)
+
+        # Testar também se "undefined" não quebra
+        response_undef = self.client.post(self.url, {
+            "nome": "Produto Unidade Undefined",
+            "categoria_id": self.categoria.pk,
+            "unidade_medida_id": "undefined",
+        })
+        self.assertEqual(response_undef.status_code, 200)
+        data_undef = response_undef.json()
+        produto_undef = Produto.objects.get(pk=data_undef["id"])
+        self.assertIsNone(produto_undef.unidade_medida)
+
