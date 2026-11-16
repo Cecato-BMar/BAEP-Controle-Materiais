@@ -414,7 +414,22 @@ function renderizarRevisao(data) {
     // Itens
     const tbody = document.getElementById('tbody-itens');
     tbody.innerHTML = '';
-    (data.matches || []).forEach((m, i) => {
+    const matches = data.matches || [];
+    if (matches.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="fas fa-exclamation-triangle text-warning fs-3 d-block mb-2"></i>
+                    <strong class="text-danger">Nenhum item foi extraído desta DANFE pelo OCR local.</strong><br>
+                    <small class="text-muted">Para DANFEs escaneadas ou com layouts não padronizados, certifique-se de configurar a <code>GEMINI_API_KEY</code> nas variáveis de ambiente do Coolify para ativar a extração automática com IA.</small>
+                </td>
+            </tr>
+        `;
+        const btnConf = document.getElementById('btn-confirmar');
+        if (btnConf) btnConf.disabled = true;
+        return;
+    }
+    matches.forEach((m, i) => {
         const nfe = m.nfe_item || {};
         const emp = m.empenho_item || {};
         const sug = m.suggestion || {};

@@ -200,7 +200,14 @@ def process_pdfs(nfe_file: Any, empenho_file: Any = None) -> dict:
 
     qtd_nfe = len(nfe.get("itens") or [])
     qtd_emp = len(empenho.get("itens") or [])
-    if empenho and qtd_nfe != qtd_emp:
+    if qtd_nfe == 0:
+        if not getattr(settings, "GEMINI_API_KEY", None):
+            w_zero = "Nenhum item foi detectado na NFe pelo OCR. Configure a GEMINI_API_KEY no servidor para ativar a extração com IA."
+        else:
+            w_zero = "Nenhum item foi detectado na NFe pelo OCR ou pelo extrator Gemini."
+        if w_zero not in warnings:
+            warnings.append(w_zero)
+    elif empenho and qtd_nfe != qtd_emp:
         w_qtd = f"{qtd_nfe} itens na NFe, {qtd_emp} no Empenho."
         if w_qtd not in warnings:
             warnings.append(w_qtd)
