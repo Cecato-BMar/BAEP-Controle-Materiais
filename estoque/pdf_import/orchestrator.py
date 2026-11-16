@@ -1,4 +1,5 @@
 import logging
+import os
 from decimal import Decimal
 from typing import Any
 
@@ -115,8 +116,9 @@ def process_pdfs(nfe_file: Any, empenho_file: Any = None) -> dict:
             falha_validacao_itens = True
 
     if falha_validacao_itens:
-        api_key = getattr(settings, "GEMINI_API_KEY", "")
+        api_key = getattr(settings, "GEMINI_API_KEY", "") or os.environ.get("GEMINI_API_KEY", "")
         if api_key:
+            logger.info("Validação de itens divergente. Acionando fallback Gemini...")
             try:
                 pdf_bytes = read_file_bytes(actual_nfe)
                 itens_gemini = extract_nfe_items_with_gemini(pdf_bytes)
@@ -125,8 +127,13 @@ def process_pdfs(nfe_file: Any, empenho_file: Any = None) -> dict:
                     nfe["_extraction_method"] = "gemini_fallback"
                     if "_confidence" in nfe and isinstance(nfe["_confidence"], dict):
                         nfe["_confidence"]["itens"] = "high"
+                    logger.info(f"Fallback Gemini executado com sucesso: {len(itens_gemini)} itens extraídos.")
+                else:
+                    logger.error("Fallback Gemini foi acionado mas retornou 0 itens. Verifique o PDF e a GEMINI_API_KEY.")
             except Exception as e:
-                logger.warning(f"Fallback de extração via Gemini não executado ou falhou: {e}")
+                logger.error(f"Fallback de extração via Gemini falhou criticamente: {e}", exc_info=True)
+        else:
+            logger.warning("Validação de itens da NFe falhou, mas GEMINI_API_KEY não está configurada.")
 
     # Verifica se a NFe falhou completamente na extração
     nfe_valida = any([

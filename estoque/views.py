@@ -960,8 +960,62 @@ def importar_produtos(request):
                     except Exception as e:
                         print(f"Erro item XML: {e}")
                         erros += 1
+            elif nome_arquivo.endswith('.pdf'):
+                from .pdf_import.orchestrator import process_pdfs
+                result = process_pdfs(arquivo)
+                nfe_data = result.get('nfe', {})
+                itens = nfe_data.get('itens', [])
+                if not itens:
+                    messages.warning(request, _('Nenhum item pôde ser extraído do PDF da DANFE.'))
+                else:
+                    cat_default, _ = Categoria.objects.get_or_create(
+                        nome="Gêneros Alimentícios",
+                        defaults={'codigo': "GEN-ALIM"}
+                    )
+                    for item in itens:
+                        try:
+                            nome = (item.get('descricao') or '').strip()
+                            if not nome:
+                                erros += 1
+                                continue
+                            codigo = (item.get('codigo') or '').strip()
+                            if not codigo or Produto.objects.filter(codigo=codigo).exists():
+                                ultimo = (
+                                    Produto.objects.filter(codigo__startswith="MAT-")
+                                    .order_by("-codigo")
+                                    .first()
+                                )
+                                num = 1
+                                if ultimo:
+                                    try:
+                                        num = int(ultimo.codigo.split("-")[1]) + 1
+                                    except (IndexError, ValueError):
+                                        num = 1
+                                codigo = f"MAT-{num:03d}"
+                            
+                            unidade_sigla = (item.get('unidade') or 'UN').strip().upper()[:10]
+                            unidade, _ = UnidadeMedida.objects.get_or_create(
+                                sigla=unidade_sigla,
+                                defaults={'nome': unidade_sigla}
+                            )
+                            
+                            Produto.objects.update_or_create(
+                                codigo=codigo,
+                                defaults={
+                                    'nome': nome[:200],
+                                    'categoria': cat_default,
+                                    'unidade_medida': unidade,
+                                    'status': 'ATIVO',
+                                    'criado_por': request.user,
+                                    '_current_user': request.user
+                                }
+                            )
+                            produtos_importados += 1
+                        except Exception as e:
+                            logger.error(f"Erro item PDF: {e}")
+                            erros += 1
             else:
-                messages.error(request, _('Formato de arquivo não suportado. Utilize .xlsx, .xls ou .xml.'))
+                messages.error(request, _('Formato de arquivo não suportado. Utilize .xlsx, .xls, .xml ou .pdf.'))
                 return redirect('estoque:lista_produtos')
                 
             if produtos_importados > 0:

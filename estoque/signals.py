@@ -9,6 +9,9 @@ from .models import MovimentacaoEstoque, Produto, AjusteEstoque, ItemInventario
 @receiver(post_save, sender=MovimentacaoEstoque)
 def atualizar_estoque_movimentacao(sender, instance, created, **kwargs):
     """Atualiza o estoque do produto após uma movimentação"""
+    if not created:
+        return
+
     produto = instance.produto
     quantidade = instance.quantidade
     

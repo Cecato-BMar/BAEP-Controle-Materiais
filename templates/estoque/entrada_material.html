@@ -498,6 +498,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modal.show();
         });
+
+        // Auto-abrir modal se passado parâmetro ?importar=1 na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('importar') === '1' || urlParams.get('modal') === 'importar') {
+            btnAbrir.click();
+        }
     }
 
     const btnExtrair = document.getElementById('btn-extrair');

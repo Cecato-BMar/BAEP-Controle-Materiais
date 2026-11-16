@@ -235,19 +235,146 @@ class ImporterTests(TestCase):
     def test_sem_empenho_cria_apenas_anexo_nfe(self):
         request = self._build_request()
         nfe_file, _ = self._build_files()
+        header = {**self.header_data, "documento_referencia": None}
 
         result = create_movimentacoes_from_import(
             request=request,
-            header_data=self.header_data,
+            header_data=header,
             items=self.items_data,
             nfe_file=nfe_file,
             empenho_file=None,
         )
 
         self.assertEqual(result["movimentacoes_criadas"], 3)
+        self.assertEqual(result["movimentacoes_atualizadas"], 0)
         self.assertEqual(result["anexos_criados"], 3)
+        self.assertEqual(result["status_empenho"], "SEM_EMPENHO")
         self.assertEqual(MovimentacaoEstoque.objects.count(), 3)
         self.assertEqual(AnexoMovimentacao.objects.count(), 3)
         tipos = list(AnexoMovimentacao.objects.values_list("tipo", flat=True))
         self.assertEqual(tipos, ["NFE", "NFE", "NFE"])
+
+    def test_criacao_apenas_com_nota_fiscal(self):
+        """Regra 1 e 2: NF obrigatória, empenho opcional. Salva com documento_referencia=None e status SEM_EMPENHO."""
+        request = self._build_request()
+        nfe_file, _ = self._build_files()
+        header = {
+            "nota_fiscal": "000999",
+            "documento_referencia": "",
+            "data_movimentacao": "2026-10-15",
+            "fornecedor_nome": "FORNECEDOR TESTE",
+            "fornecedor_cnpj": "11.222.333/0001-44",
+        }
+
+        result = create_movimentacoes_from_import(
+            request=request,
+            header_data=header,
+            items=[{"produto_id": self.produto1.pk, "quantidade": "15.00", "valor_unitario": "10.00"}],
+            nfe_file=nfe_file,
+            empenho_file=None,
+        )
+
+        self.assertEqual(result["movimentacoes_criadas"], 1)
+        self.assertEqual(result["movimentacoes_atualizadas"], 0)
+        self.assertEqual(result["status_empenho"], "SEM_EMPENHO")
+
+        mov = MovimentacaoEstoque.objects.get(nota_fiscal="000999")
+        self.assertIsNone(mov.documento_referencia)
+        self.assertEqual(mov.status_empenho, "SEM_EMPENHO")
+        self.assertEqual(mov.anexos.count(), 1)
+        self.assertEqual(mov.anexos.first().tipo, "NFE")
+
+    def test_criacao_com_nota_fiscal_e_nota_de_empenho(self):
+        """Regra 4: Compatibilidade com payloads que trazem Nota de Empenho."""
+        request = self._build_request()
+        nfe_file, empenho_file = self._build_files()
+        header = {
+            "nota_fiscal": "000888",
+            "documento_referencia": "2026NE00888",
+            "data_movimentacao": "2026-10-15",
+            "fornecedor_nome": "FORNECEDOR TESTE",
+            "fornecedor_cnpj": "11.222.333/0001-44",
+        }
+
+        result = create_movimentacoes_from_import(
+            request=request,
+            header_data=header,
+            items=[{"produto_id": self.produto2.pk, "quantidade": "25.00", "valor_unitario": "5.00"}],
+            nfe_file=nfe_file,
+            empenho_file=empenho_file,
+        )
+
+        self.assertEqual(result["movimentacoes_criadas"], 1)
+        self.assertEqual(result["movimentacoes_atualizadas"], 0)
+        self.assertEqual(result["status_empenho"], "COM_EMPENHO")
+
+        mov = MovimentacaoEstoque.objects.get(nota_fiscal="000888")
+        self.assertEqual(mov.documento_referencia, "2026NE00888")
+        self.assertEqual(mov.status_empenho, "COM_EMPENHO")
+        self.assertEqual(mov.anexos.count(), 2)
+        tipos = set(mov.anexos.values_list("tipo", flat=True))
+        self.assertEqual(tipos, {"NFE", "EMPENHO"})
+
+    def test_atualizacao_posterior_com_nota_de_empenho(self):
+        """Regra 5 e 6: Se depois chegar a NE para a mesma NF, atualizar o registro em vez de duplicar."""
+        request = self._build_request()
+        nfe_file, empenho_file = self._build_files()
+
+        # Passo 1: Importa apenas com NF (sem Empenho)
+        header_sem_emp = {
+            "nota_fiscal": "000777",
+            "documento_referencia": None,
+            "data_movimentacao": "2026-10-15",
+            "fornecedor_nome": "FORNECEDOR TESTE",
+            "fornecedor_cnpj": "11.222.333/0001-44",
+        }
+        res1 = create_movimentacoes_from_import(
+            request=request,
+            header_data=header_sem_emp,
+            items=[{"produto_id": self.produto1.pk, "quantidade": "10.00", "valor_unitario": "12.00"}],
+            nfe_file=nfe_file,
+            empenho_file=None,
+        )
+        self.assertEqual(res1["movimentacoes_criadas"], 1)
+        self.assertEqual(res1["status_empenho"], "SEM_EMPENHO")
+
+        mov = MovimentacaoEstoque.objects.get(nota_fiscal="000777")
+        self.assertIsNone(mov.documento_referencia)
+        self.assertEqual(mov.status_empenho, "SEM_EMPENHO")
+        saldo_inicial = self.produto1.saldo_calculado
+
+        # Passo 2: Empenho chega posteriormente para a mesma NF
+        header_com_emp = {
+            "nota_fiscal": "000777",
+            "documento_referencia": "2026NE00777",
+            "data_movimentacao": "2026-10-15",
+            "fornecedor_nome": "FORNECEDOR TESTE",
+            "fornecedor_cnpj": "11.222.333/0001-44",
+        }
+        res2 = create_movimentacoes_from_import(
+            request=request,
+            header_data=header_com_emp,
+            items=[{"produto_id": self.produto1.pk, "quantidade": "10.00", "valor_unitario": "12.00"}],
+            nfe_file=nfe_file,
+            empenho_file=empenho_file,
+        )
+
+        self.assertEqual(res2["movimentacoes_criadas"], 0)
+        self.assertEqual(res2["movimentacoes_atualizadas"], 1)
+        self.assertEqual(res2["status_empenho"], "COM_EMPENHO")
+
+        # Não deve haver duplicação de movimentação
+        self.assertEqual(MovimentacaoEstoque.objects.filter(nota_fiscal="000777").count(), 1)
+        mov.refresh_from_db()
+        self.assertEqual(mov.documento_referencia, "2026NE00777")
+        self.assertEqual(mov.status_empenho, "COM_EMPENHO")
+
+        # Anexo do empenho deve ter sido adicionado à movimentação existente
+        self.assertEqual(mov.anexos.count(), 2)
+        tipos = set(mov.anexos.values_list("tipo", flat=True))
+        self.assertEqual(tipos, {"NFE", "EMPENHO"})
+
+        # Saldo de estoque não pode ter sido duplicado
+        self.assertEqual(self.produto1.saldo_calculado, saldo_inicial)
+
 

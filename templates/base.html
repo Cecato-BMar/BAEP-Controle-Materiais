@@ -758,6 +758,11 @@
                                 <a class="nav-link {% if 'entrada' in request.path or 'saida' in request.path %}active{% endif %}" href="{% url 'estoque:lista_movimentacoes' %}">Movimentações</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-primary fw-bold" href="{% url 'estoque:criar_entrada_material' %}?importar=1">
+                                    <i class="fas fa-file-pdf me-1 text-danger"></i>Importar DANFE (PDF)
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {% if 'inventarios' in request.path %}active{% endif %}" href="{% url 'estoque:lista_inventarios' %}">Inventários</a>
                             </li>
                         </ul>

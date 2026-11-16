@@ -115,8 +115,11 @@ class ConfirmarImportacaoViewTests(TestCase):
 
     def test_sucesso_apenas_com_nfe(self):
         self.client.force_login(self.user)
+        payload = dict(self.payload_dict)
+        payload["header"] = dict(payload["header"])
+        payload["header"]["documento_referencia"] = ""
         data = {
-            "payload": json.dumps(self.payload_dict),
+            "payload": json.dumps(payload),
             "nfe_pdf": SimpleUploadedFile("nfe.pdf", b"%PDF-1.4 test nfe content"),
         }
         response = self.client.post(self.url, data)
@@ -124,8 +127,57 @@ class ConfirmarImportacaoViewTests(TestCase):
         res_json = response.json()
         self.assertTrue(res_json.get("success"))
         self.assertEqual(res_json.get("movimentacoes_criadas"), 3)
+        self.assertEqual(res_json.get("movimentacoes_atualizadas"), 0)
         self.assertEqual(res_json.get("anexos_criados"), 3)
+        self.assertEqual(res_json.get("status_empenho"), "SEM_EMPENHO")
         self.assertEqual(AnexoMovimentacao.objects.count(), 3)
+        for mov in MovimentacaoEstoque.objects.all():
+            self.assertIsNone(mov.documento_referencia)
+            self.assertEqual(mov.status_empenho, "SEM_EMPENHO")
+        MovimentacaoEstoque.objects.all().delete()
+        AnexoMovimentacao.objects.all().delete()
+
+    def test_atualizacao_posterior_via_endpoint(self):
+        """Testa o ciclo completo: cadastro sem empenho seguido de atualização com empenho."""
+        self.client.force_login(self.user)
+
+        # 1. Cadastro inicial sem empenho
+        payload1 = dict(self.payload_dict)
+        payload1["header"] = dict(payload1["header"])
+        payload1["header"]["documento_referencia"] = None
+        data1 = {
+            "payload": json.dumps(payload1),
+            "nfe_pdf": SimpleUploadedFile("nfe.pdf", b"%PDF-1.4 test nfe content"),
+        }
+        resp1 = self.client.post(self.url, data1)
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp1.json().get("movimentacoes_criadas"), 3)
+        self.assertEqual(resp1.json().get("status_empenho"), "SEM_EMPENHO")
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 3)
+
+        # 2. Atualização posterior quando o empenho chega
+        payload2 = dict(self.payload_dict)
+        payload2["header"] = dict(payload2["header"])
+        payload2["header"]["documento_referencia"] = "2026NE01176"
+        data2 = {
+            "payload": json.dumps(payload2),
+            **self._files(),
+        }
+        resp2 = self.client.post(self.url, data2)
+        self.assertEqual(resp2.status_code, 200)
+        res2_json = resp2.json()
+        self.assertTrue(res2_json.get("success"))
+        self.assertEqual(res2_json.get("movimentacoes_criadas"), 0)
+        self.assertEqual(res2_json.get("movimentacoes_atualizadas"), 3)
+        self.assertEqual(res2_json.get("status_empenho"), "COM_EMPENHO")
+
+        # Nenhuma movimentação nova foi criada (total continua 3)
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 3)
+        # Todos os 3 registros agora possuem o número do empenho
+        for mov in MovimentacaoEstoque.objects.all():
+            self.assertEqual(mov.documento_referencia, "2026NE01176")
+            self.assertEqual(mov.status_empenho, "COM_EMPENHO")
+
         MovimentacaoEstoque.objects.all().delete()
         AnexoMovimentacao.objects.all().delete()
 

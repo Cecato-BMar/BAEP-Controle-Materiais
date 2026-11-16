@@ -636,6 +636,11 @@ class MovimentacaoEstoque(models.Model):
         return (f"{self.get_subtipo_display()} — {self.produto.nome} — "
                 f"{self.quantidade} — {self.data_movimentacao.strftime('%d/%m/%Y')}")
 
+    @property
+    def status_empenho(self):
+        """Retorna SEM_EMPENHO se documento_referencia for nulo/vazio; caso contrário COM_EMPENHO."""
+        return "COM_EMPENHO" if bool(self.documento_referencia and str(self.documento_referencia).strip()) else "SEM_EMPENHO"
+
     def clean(self):
         """Validações de negócio (MATERIAL DE CONSUMO Observações)"""
         super().clean()
