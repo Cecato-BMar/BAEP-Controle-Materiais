@@ -1918,6 +1918,18 @@ def upload_recibo_assinado(request):
 # =============================================================================
 
 from .pdf_import.orchestrator import process_pdfs
+from .pdf_import.gemini_extractor import test_gemini_connection
+
+
+@login_required
+@require_module_permission('materiais')
+@require_GET
+def testar_gemini_view(request):
+    """Endpoint de diagnóstico: testa conexão com a API Gemini. GET /estoque/api/testar-gemini/"""
+    result = test_gemini_connection()
+    status_code = 200 if result.get("ok") else 500
+    return JsonResponse(result, status=status_code)
+
 
 @login_required
 @require_module_permission('materiais')
