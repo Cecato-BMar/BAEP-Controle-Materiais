@@ -157,5 +157,6 @@ urlpatterns = [
     path('api/extrair-pdfs/', views.extrair_pdfs_view, name='extrair_pdfs'),
     path('api/criar-produto-inline/', views.criar_produto_inline_view, name='criar_produto_inline'),
     path('api/confirmar-importacao/', views.confirmar_importacao_view, name='confirmar_importacao'),
+    path('api/importar-xml/', views.importar_xml_view, name='importar_xml'),
 ]
 

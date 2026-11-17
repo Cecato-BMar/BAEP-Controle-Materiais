@@ -155,6 +155,13 @@ docker run -d \
 
 ---
 
+## 📥 Importação de NF-e via XML
+
+`POST /estoque/api/importar-xml/` aceita `multipart/form-data` com campo `xml` (arquivo XML da NF-e).
+XML sem empenho é aceito — o registro é criado com empenho nulo. Se o empenho chegar depois, reimporte o mesmo XML com o campo `empenho` preenchido para atualizar.
+
+---
+
 ## 📄 Licença
 
 Uso restrito e institucional autorizado ao **2º Batalhão de Ações Especiais de Polícia (2º BAEP)**. Todos os direitos reservados.

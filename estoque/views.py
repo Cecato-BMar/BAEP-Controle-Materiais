@@ -29,6 +29,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 
 from reserva_baep.decorators import require_module_permission
+from estoque.services.nfe_xml_processor import process_nfe_xml
 from policiais.models import Policial
 
 from .models import (
@@ -2078,3 +2079,62 @@ def confirmar_importacao_view(request):
         return JsonResponse({"error": "Erro interno ao salvar importação."}, status=500)
 
 
+
+# =============================================================================
+# IMPORTAÇÃO DE NF-e VIA XML (nfelib)
+# =============================================================================
+
+@login_required
+@require_module_permission('materiais')
+@require_POST
+def importar_xml_view(request):
+    """POST /estoque/api/importar-xml/ — Importa NF-e via XML usando nfelib.
+
+    Aceita multipart/form-data com campo 'xml' (arquivo XML da NF-e).
+    Campo opcional 'empenho' (string com número do empenho).
+    XML sem empenho é aceito — cria registro com empenho nulo.
+    Retorna 200/201 com dados extraídos ou 400 para XML inválido.
+    """
+    xml_file = request.FILES.get("xml")
+    if not xml_file:
+        return JsonResponse(
+            {"error": "Envie o arquivo XML da NF-e no campo 'xml'."},
+            status=400,
+        )
+
+    # Validação de extensão
+    if not xml_file.name.lower().endswith(".xml"):
+        return JsonResponse(
+            {"error": f"Arquivo '{xml_file.name}' não é um XML. Envie um arquivo .xml."},
+            status=400,
+        )
+
+    # Validação de tamanho (max 5 MB para XML)
+    max_size = 5 * 1024 * 1024
+    if xml_file.size > max_size:
+        return JsonResponse(
+            {"error": f"Arquivo XML muito grande ({xml_file.size / 1024 / 1024:.1f} MB). Máximo: 5 MB."},
+            status=400,
+        )
+
+    xml_bytes = xml_file.read()
+    empenho = request.POST.get("empenho", "").strip() or None
+
+    try:
+        result = process_nfe_xml(
+            xml_bytes=xml_bytes,
+            empenho=empenho,
+            usuario=request.user,
+            xml_filename=xml_file.name,
+        )
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
+    except Exception:
+        logger.exception("Erro em /api/importar-xml/")
+        return JsonResponse(
+            {"error": "Erro interno ao processar XML da NF-e."},
+            status=500,
+        )
+
+    status_code = 201 if result.get("movimentacoes_criadas", 0) > 0 else 200
+    return JsonResponse({"success": True, **result}, status=status_code)

@@ -611,6 +611,7 @@ class MovimentacaoEstoque(models.Model):
     documento_referencia = models.CharField(_('Documento Referência'), max_length=100,
                                              blank=True, null=True)
     nota_fiscal = models.CharField(_('Nota Fiscal'), max_length=100, blank=True, null=True)
+    chave_nfe = models.CharField(_('Chave NF-e'), max_length=44, blank=True, null=True, db_index=True)
     recibo_assinado = models.FileField(upload_to='recibos_assinados/', blank=True, null=True,
                                         verbose_name=_('Recibo Assinado/Escaneado'))
 
