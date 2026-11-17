@@ -10,6 +10,17 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
+
+
+def get_gemini_model() -> str:
+    """Retorna o modelo do Gemini configurado ou o padrão gemini-3.8-flash."""
+    return (
+        os.environ.get("GEMINI_MODEL")
+        or getattr(settings, "GEMINI_MODEL", "")
+        or DEFAULT_GEMINI_MODEL
+    ).strip()
+
 
 class ItemNFeSchema(BaseModel):
     codigo: str | None = None
@@ -44,8 +55,9 @@ def extract_nfe_items_with_gemini(pdf_bytes: bytes) -> list[dict]:
             len(pdf_bytes) if pdf_bytes else 0,
         )
 
+        gemini_model = get_gemini_model()
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model=gemini_model,
             contents=[
                 types.Part.from_bytes(data=pdf_bytes, mime_type='application/pdf'),
                 (
@@ -106,8 +118,9 @@ def test_gemini_connection() -> dict:
 
     try:
         client = genai.Client(api_key=api_key)
+        gemini_model = get_gemini_model()
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model=gemini_model,
             contents=["Responda apenas: OK"],
             config=types.GenerateContentConfig(temperature=0),
         )
@@ -115,7 +128,7 @@ def test_gemini_connection() -> dict:
             "ok": True,
             "message": f"Conexão OK. Resposta: {response.text.strip()[:50]}",
             "key_preview": key_preview,
-            "model": "gemini-2.0-flash",
+            "model": gemini_model,
         }
     except Exception as e:
         return {
