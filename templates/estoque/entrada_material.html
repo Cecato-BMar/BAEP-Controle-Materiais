@@ -13,9 +13,14 @@
           <i class="fas fa-arrow-down text-success me-1"></i> Entrada de Material
         </h5>
       </div>
-      <button type="button" class="btn btn-primary btn-sm" id="btn-abrir-importacao">
-        <i class="fas fa-file-import me-1"></i> Importar via DANFE/Empenho
-      </button>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-success btn-sm fw-bold shadow-sm" id="btn-abrir-importacao-xml">
+          <i class="fas fa-file-code me-1"></i> Importar XML da NF-e
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-abrir-importacao">
+          <i class="fas fa-file-import me-1"></i> Importar via DANFE/Empenho
+        </button>
+      </div>
     </div>
 
     <div class="card border-0 shadow">
@@ -177,6 +182,57 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" id="btn-salvar-novo-produto">Salvar Produto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE IMPORTAÇÃO DE NF-E VIA XML -->
+<div class="modal fade" id="modalImportacaoXml" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-code me-2"></i> Importar NF-e via XML
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Envie o arquivo <strong>.xml</strong> da NF-e emitida pela SEFAZ. O sistema extrairá emitente, itens, valores e dará entrada automaticamente no estoque com total fidelidade.
+                </div>
+
+                <form id="form-importar-xml">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Arquivo XML da NF-e *</label>
+                        <input type="file" class="form-control" id="input-xml-file" accept=".xml,text/xml,application/xml" required>
+                        <small class="text-muted">Formatos aceitos: &lt;NFe&gt; ou &lt;nfeProc&gt; (até 5 MB)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            Número do Empenho <small class="text-muted fw-normal">(Opcional)</small>
+                        </label>
+                        <input type="text" class="form-control" id="input-xml-empenho" placeholder="Ex: 2026NE00123" maxlength="100">
+                        <small class="text-muted">Se não tiver empenho agora, deixe em branco. Você poderá atualizar posteriormente.</small>
+                    </div>
+                </form>
+
+                <div id="erro-importacao-xml" class="alert alert-danger mt-3 d-none"></div>
+
+                <div id="spinner-importacao-xml" class="text-center my-3 d-none">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <p class="mt-2 mb-0 small text-muted">Processando XML e criando movimentações...</p>
+                </div>
+
+                <div id="sucesso-importacao-xml" class="alert alert-success mt-3 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-success fw-bold" id="btn-enviar-xml">
+                    <i class="fas fa-upload me-1"></i> Importar XML
+                </button>
             </div>
         </div>
     </div>
@@ -701,6 +757,112 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             estadoImportacao = null;
             arquivosPDF = { nfe: null, empenho: null };
+        });
+    }
+
+    // =========================================================================
+    // MODAL E FLUXO DE IMPORTAÇÃO DE XML (nfelib API)
+    // =========================================================================
+    const btnAbrirXml = document.getElementById('btn-abrir-importacao-xml');
+    const modalXmlEl = document.getElementById('modalImportacaoXml');
+    const modalXml = modalXmlEl ? (bootstrap.Modal.getInstance(modalXmlEl) || new bootstrap.Modal(modalXmlEl)) : null;
+
+    if (btnAbrirXml && modalXml) {
+        btnAbrirXml.addEventListener('click', () => {
+            document.getElementById('input-xml-file').value = '';
+            document.getElementById('input-xml-empenho').value = '';
+            document.getElementById('erro-importacao-xml').classList.add('d-none');
+            document.getElementById('sucesso-importacao-xml').classList.add('d-none');
+            document.getElementById('spinner-importacao-xml').classList.add('d-none');
+            document.getElementById('btn-enviar-xml').disabled = false;
+            document.getElementById('btn-enviar-xml').innerHTML = '<i class="fas fa-upload me-1"></i> Importar XML';
+            modalXml.show();
+        });
+
+        // Auto-abrir modal se parâmetro na URL
+        const urlParamsXml = new URLSearchParams(window.location.search);
+        if (urlParamsXml.get('importar_xml') === '1') {
+            btnAbrirXml.click();
+        }
+    }
+
+    const btnEnviarXml = document.getElementById('btn-enviar-xml');
+    if (btnEnviarXml) {
+        btnEnviarXml.addEventListener('click', async () => {
+            const inputFile = document.getElementById('input-xml-file');
+            const erroEl = document.getElementById('erro-importacao-xml');
+            const sucessoEl = document.getElementById('sucesso-importacao-xml');
+            const spinnerEl = document.getElementById('spinner-importacao-xml');
+            const empenhoVal = document.getElementById('input-xml-empenho').value.trim();
+
+            erroEl.classList.add('d-none');
+            sucessoEl.classList.add('d-none');
+
+            if (!inputFile.files || inputFile.files.length === 0) {
+                erroEl.textContent = 'Por favor, selecione um arquivo XML de NF-e.';
+                erroEl.classList.remove('d-none');
+                return;
+            }
+
+            const file = inputFile.files[0];
+            if (!file.name.toLowerCase().endsWith('.xml')) {
+                erroEl.textContent = 'O arquivo selecionado deve ser um arquivo .xml.';
+                erroEl.classList.remove('d-none');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('xml', file);
+            if (empenhoVal) {
+                formData.append('empenho', empenhoVal);
+            }
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+
+            btnEnviarXml.disabled = true;
+            spinnerEl.classList.remove('d-none');
+
+            try {
+                const resp = await fetch('{% url "estoque:importar_xml" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.success) {
+                    spinnerEl.classList.add('d-none');
+                    const criadas = data.movimentacoes_criadas || 0;
+                    const atualizadas = data.movimentacoes_atualizadas || 0;
+                    const totalItens = criadas + atualizadas;
+                    const statusEmp = data.status_empenho === 'SEM_EMPENHO' ? '(Sem Empenho)' : `(Empenho: ${empenhoVal})`;
+
+                    sucessoEl.innerHTML = `
+                        <h6 class="alert-heading fw-bold mb-1"><i class="fas fa-check-circle me-1"></i> NF-e Importada com Sucesso!</h6>
+                        <ul class="mb-2 ps-3 small">
+                            <li><strong>Nota Fiscal:</strong> ${data.numero_nf || '-'} (Série: ${data.serie || '-'})</li>
+                            <li><strong>Emitente:</strong> ${data.emitente_nome || data.emitente_cnpj || '-'}</li>
+                            <li><strong>Status:</strong> ${statusEmp}</li>
+                            <li><strong>Itens Processados:</strong> ${totalItens} (${criadas} novos, ${atualizadas} atualizados)</li>
+                        </ul>
+                        <div class="small text-muted">Redirecionando para o histórico de movimentações...</div>
+                    `;
+                    sucessoEl.classList.remove('d-none');
+
+                    setTimeout(() => {
+                        window.location.href = '{% url "estoque:lista_movimentacoes" %}';
+                    }, 2000);
+                } else {
+                    spinnerEl.classList.add('d-none');
+                    btnEnviarXml.disabled = false;
+                    erroEl.textContent = data.error || 'Erro ao processar o arquivo XML.';
+                    erroEl.classList.remove('d-none');
+                }
+            } catch (err) {
+                spinnerEl.classList.add('d-none');
+                btnEnviarXml.disabled = false;
+                erroEl.textContent = 'Erro de comunicação com o servidor: ' + err.message;
+                erroEl.classList.remove('d-none');
+            }
         });
     }
 });
